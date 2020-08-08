@@ -3,9 +3,34 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Gateway", "Biovation.Gateway\Biovation.Gateway.csproj", "{F00DC163-2379-4295-9965-DB011B69E1BB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Brands", "Brands", "{4B876D59-5F75-4213-82B7-5D3E470A3BA4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{6921E9DE-766A-451E-A601-1EE2D38F996B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Domain", "Biovation.Domain\Biovation.Domain.csproj", "{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F00DC163-2379-4295-9965-DB011B69E1BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F00DC163-2379-4295-9965-DB011B69E1BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F00DC163-2379-4295-9965-DB011B69E1BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F00DC163-2379-4295-9965-DB011B69E1BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE0E369-D4C8-4572-B475-92CE7BA0E5FE}
