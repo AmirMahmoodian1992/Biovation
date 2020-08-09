@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/Biovation/DesignTimeBuild/.dtbcache
+/.vs/Biovation/v16/Server/sqlite3/storage.ide-wal
+/.vs/Biovation/v16/Server/sqlite3/storage.ide-shm
+/.vs/Biovation/v16/Server/sqlite3/storage.ide
+/.vs/Biovation/v16/Server/sqlite3/db.lock
+/Biovation.Brands.Suprema/bin/
+/Biovation.Brands.Suprema/obj/
+/Biovation.CommonClasses/bin/Debug/netcoreapp3.1/Biovation.CommonClasses.deps.json

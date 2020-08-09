@@ -11,9 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{6921E9
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Domain", "Biovation.Domain\Biovation.Domain.csproj", "{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.Suprema", "Biovation.Brands.Suprema\Biovation.Brands.Suprema.csproj", "{F4A094F3-E755-4A8E-B0E1-F53955646BD6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.Suprema", "Biovation.Brands.Suprema\Biovation.Brands.Suprema.csproj", "{F4A094F3-E755-4A8E-B0E1-F53955646BD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.Virdi", "Biovation.Brands.Virdi\Biovation.Brands.Virdi.csproj", "{608DE8D9-6D8C-4115-AD35-DFAF928FAA1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.Virdi", "Biovation.Brands.Virdi\Biovation.Brands.Virdi.csproj", "{608DE8D9-6D8C-4115-AD35-DFAF928FAA1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.CommonClasses", "Biovation.CommonClasses\Biovation.CommonClasses.csproj", "{B75E452B-2B6E-4B80-822F-AD0897117765}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,10 @@ Global
 		{608DE8D9-6D8C-4115-AD35-DFAF928FAA1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{608DE8D9-6D8C-4115-AD35-DFAF928FAA1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{608DE8D9-6D8C-4115-AD35-DFAF928FAA1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B75E452B-2B6E-4B80-822F-AD0897117765}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B75E452B-2B6E-4B80-822F-AD0897117765}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B75E452B-2B6E-4B80-822F-AD0897117765}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B75E452B-2B6E-4B80-822F-AD0897117765}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -45,6 +51,7 @@ Global
 		{20DC7924-DEBE-42C0-BFC7-E6E22FFD440F} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
 		{F4A094F3-E755-4A8E-B0E1-F53955646BD6} = {4B876D59-5F75-4213-82B7-5D3E470A3BA4}
 		{608DE8D9-6D8C-4115-AD35-DFAF928FAA1B} = {4B876D59-5F75-4213-82B7-5D3E470A3BA4}
+		{B75E452B-2B6E-4B80-822F-AD0897117765} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE0E369-D4C8-4572-B475-92CE7BA0E5FE}
