@@ -1,5 +1,5 @@
-﻿using DataAccessLayer.Attributes;
-using DataAccessLayer.Domain;
+﻿using DataAccessLayerCore.Attributes;
+using DataAccessLayerCore.Domain;
 using System.Collections.Generic;
 
 

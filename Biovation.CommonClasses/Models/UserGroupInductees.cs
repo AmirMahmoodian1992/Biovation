@@ -1,5 +1,5 @@
 ﻿
-using DataAccessLayer.Attributes;
+using DataAccessLayerCore.Attributes;
 
 namespace Biovation.CommonClasses.Models
 {

@@ -1,5 +1,5 @@
 ﻿using Biovation.CommonClasses.Models;
-using DataAccessLayer.Repositories;
+using DataAccessLayerCore.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Data;

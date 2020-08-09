@@ -1,6 +1,6 @@
 ﻿using Biovation.CommonClasses.Models;
-using DataAccessLayer;
-using DataAccessLayer.Repositories;
+using DataAccessLayerCore;
+using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.CommonClasses.Repository
 {
-    public class UserGroupRepository : Repository<User>
+    public class UserGroupRepository
     {
         private readonly GenericRepository _repository;
 

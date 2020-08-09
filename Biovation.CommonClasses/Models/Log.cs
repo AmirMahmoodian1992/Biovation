@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Biovation.CommonClasses.DataMappers;
-using DataAccessLayer.Attributes;
+using DataAccessLayerCore.Attributes;
 using Newtonsoft.Json;
 
 namespace Biovation.CommonClasses.Models

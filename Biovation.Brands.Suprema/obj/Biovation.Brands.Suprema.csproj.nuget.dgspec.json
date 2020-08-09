@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {}
+    "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {}
   },
   "projects": {
-    "D:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {
+    "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
+        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
         "projectName": "Biovation.Brands.Suprema",
-        "projectPath": "D:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
-        "packagesPath": "C:\\Users\\omid_\\.nuget\\packages\\",
-        "outputPath": "D:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\obj\\",
+        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
+        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\omid_\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -25,8 +25,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "D:\\Projects\\Maticy\\Nuget": {},
-          "D:\\Projects\\Nuget": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -62,12 +60,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[3.1.2, 3.1.2]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -76,7 +68,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
         }
       }
     }

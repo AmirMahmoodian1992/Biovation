@@ -43,7 +43,7 @@ GO", "");
                 //IncludeSemicolons = false
             };
 
-            var scriptGen = new Sql100ScriptGenerator(options);
+            var scriptGen = new Sql150ScriptGenerator(options);
             scriptGen.GenerateScript(fragments, out var script);
 
             var resultContent = string.Empty;

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Data;
 using System.Reflection;
-using DataAccessLayer;
-using DataAccessLayer.Domain;
-using DataAccessLayer.Extensions;
+using DataAccessLayerCore;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Extentions;
 
 namespace Biovation.CommonClasses.DataMappers
 {

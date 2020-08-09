@@ -1,5 +1,5 @@
 ﻿using Biovation.CommonClasses.DataMappers;
-using DataAccessLayer.Attributes;
+using DataAccessLayerCore.Attributes;
 using System;
 using System.Globalization;
 namespace Biovation.CommonClasses.Models

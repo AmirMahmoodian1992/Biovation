@@ -1,7 +1,7 @@
 ﻿using Biovation.CommonClasses.DataMappers;
 using Biovation.CommonClasses.Models.ConstantValues;
 using Biovation.CommonClasses.Models.RestaurantModels;
-using DataAccessLayer.Attributes;
+using DataAccessLayerCore.Attributes;
 using System;
 using System.Linq;
 

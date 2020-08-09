@@ -1,13 +1,13 @@
 ﻿using Biovation.CommonClasses.Models;
-using DataAccessLayer;
+using DataAccessLayerCore;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
-using DataAccessLayer.Repositories;
+using DataAccessLayerCore.Repositories;
 
 namespace Biovation.CommonClasses.Repository
 {
-    public class UserCardRepository : Repository<UserCard>
+    public class UserCardRepository
     {
         private readonly GenericRepository _repository;
 

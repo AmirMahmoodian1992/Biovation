@@ -1,4 +1,4 @@
-﻿using DataAccessLayer.Attributes;
+﻿using DataAccessLayerCore.Attributes;
 using System;
 
 namespace Biovation.CommonClasses.Models

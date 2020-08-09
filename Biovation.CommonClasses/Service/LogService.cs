@@ -446,36 +446,36 @@ namespace Biovation.CommonClasses.Service
             return Task.Run(async () => await _logRepository.AddLogImage(log));
         }
 
-        public Task<string> SaveImage(byte[] image, long userId, DateTime logDatetime, uint deviceCode, string brandName)
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                        $@"\LogPic\{brandName}\{logDatetime.Year}\{logDatetime.Month}\{logDatetime.Day}");
-                    if (!Directory.Exists(directory))
-                    {
-                        Directory.CreateDirectory(directory);
-                    }
+        //public Task<string> SaveImage(byte[] image, long userId, DateTime logDatetime, uint deviceCode, string brandName)
+        //{
+        //    return Task.Run(() =>
+        //    {
+        //        try
+        //        {
+        //            var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+        //                $@"\LogPic\{brandName}\{logDatetime.Year}\{logDatetime.Month}\{logDatetime.Day}");
+        //            if (!Directory.Exists(directory))
+        //            {
+        //                Directory.CreateDirectory(directory);
+        //            }
 
-                    var fileName =
-                        $"{userId}-{logDatetime:HH-mm-ss}({deviceCode}).jpg";
-                    using (var ms = new MemoryStream(image))
-                    {
-                        using var img = Image.FromStream(ms);
-                        img.Save(Path.Combine(directory, fileName), ImageFormat.Jpeg);
-                    }
+        //            var fileName =
+        //                $"{userId}-{logDatetime:HH-mm-ss}({deviceCode}).jpg";
+        //            using (var ms = new MemoryStream(image))
+        //            {
+        //                using var img = Image.FromStream(ms);
+        //                img.Save(Path.Combine(directory, fileName), ImageFormat.Jpeg);
+        //            }
 
-                    return Path.Combine(directory, fileName);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            });
-        }
+        //            return Path.Combine(directory, fileName);
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception);
+        //            return default;
+        //        }
+        //    });
+        //}
 
         public Task<bool> SaveLogsInFile(List<Log> logs, string brandName, uint deviceCode)
         {

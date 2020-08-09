@@ -1,11 +1,10 @@
-﻿using Ninject;
-using Biovation.CommonClasses.Interface;
+﻿using Biovation.CommonClasses.Interface;
 
-namespace Biovation.CommonClasses.Models
+namespace Biovation.CommonClasses.Manager
 {
-    public static class KernelManager
-    {
-        public static IBrands[] ModulesArray;
-        public static StandardKernel Kernel;
-    }
+    //public static class KernelManager
+    //{
+    //    public static IBrands[] ModulesArray;
+    //    public static StandardKernel Kernel;
+    //}
 }

@@ -2,8 +2,8 @@
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.CommonClasses.Models;
-using DataAccessLayer;
-using DataAccessLayer.Repositories;
+using DataAccessLayerCore;
+using DataAccessLayerCore.Repositories;
 
 namespace Biovation.CommonClasses.Repository
 {

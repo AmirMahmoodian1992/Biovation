@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using DataAccessLayer;
+using DataAccessLayerCore;
 using DbUp.Engine;
 using DbUp.Support.SqlServer;
 

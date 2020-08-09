@@ -1,12 +1,12 @@
 ﻿using Biovation.CommonClasses.Models;
-using DataAccessLayer;
+using DataAccessLayerCore;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DataAccessLayer.Repositories;
+using DataAccessLayerCore.Repositories;
 
 namespace Biovation.CommonClasses.Repository
 {

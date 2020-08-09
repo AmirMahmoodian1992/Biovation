@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "VOPGInWqDKhZEu9NnfpygQPMlwE0XF8kZsoxQRSo8GH9MwU6Y95bkzLvyfGtR4KKINQrXtKPwrgGH9F9JwTaCg==",
+  "dgSpecHash": "Z1zhu+md3VTAN6jwBnUfYWKp8A7/Ah2JdKj3jaZM7jYE/XaqNOH4fmcEjE6+qRiepknssS+km/KYy2kqFTxKng==",
   "success": true,
-  "projectFilePath": "D:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj",
+  "projectFilePath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\omid_\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.10.9\\microsoft.visualstudio.azure.containers.tools.targets.1.10.9.nupkg.sha512",
-    "C:\\Users\\omid_\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.2\\microsoft.aspnetcore.app.ref.3.1.2.nupkg.sha512"
+    "C:\\Users\\Yazdizadeh\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.10.9\\microsoft.visualstudio.azure.containers.tools.targets.1.10.9.nupkg.sha512"
   ],
   "logs": []
 }

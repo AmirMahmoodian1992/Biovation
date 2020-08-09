@@ -1,5 +1,5 @@
 ﻿using System;
-using DataAccessLayer.Attributes;
+using DataAccessLayerCore.Attributes;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace Biovation.CommonClasses.Models
