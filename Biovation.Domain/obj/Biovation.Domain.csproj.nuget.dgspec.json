@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj": {}
+    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Domain\\Biovation.Domain.csproj": {}
   },
   "projects": {
-    "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj": {
+    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Domain\\Biovation.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Domain\\Biovation.Domain.csproj",
         "projectName": "Biovation.Domain",
-        "projectPath": "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj",
-        "packagesPath": "C:\\Users\\omid_\\.nuget\\packages\\",
-        "outputPath": "D:\\Projects\\BiovationCore\\Biovation.Domain\\obj\\",
+        "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Domain\\Biovation.Domain.csproj",
+        "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\omid_\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -25,8 +25,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "D:\\Projects\\Maticy\\Nuget": {},
-          "D:\\Projects\\Nuget": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -52,12 +50,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[3.1.2, 3.1.2]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
