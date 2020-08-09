@@ -26,3 +26,5 @@ D:\Projects\BiovationCore\Biovation.Brands.Suprema\obj\Debug\netcoreapp3.1\Biova
 D:\Projects\BiovationCore\Biovation.Brands.Suprema\obj\Debug\netcoreapp3.1\Biovation.Brands.Suprema.dll
 D:\Projects\BiovationCore\Biovation.Brands.Suprema\obj\Debug\netcoreapp3.1\Biovation.Brands.Suprema.pdb
 D:\Projects\BiovationCore\Biovation.Brands.Suprema\obj\Debug\netcoreapp3.1\Biovation.Brands.Suprema.genruntimeconfig.cache
+C:\Projects\BiovationCore\Biovation.Brands.Suprema\obj\Debug\netcoreapp3.1\Biovation.Brands.Suprema.dll
+C:\Projects\BiovationCore\Biovation.Brands.Suprema\obj\Debug\netcoreapp3.1\Biovation.Brands.Suprema.pdb
