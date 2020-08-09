@@ -18,3 +18,10 @@ D:\Projects\BiovationCore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Ga
 D:\Projects\BiovationCore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.dll
 D:\Projects\BiovationCore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.pdb
 D:\Projects\BiovationCore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.genruntimeconfig.cache
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.csprojAssemblyReference.cache
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.AssemblyInfoInputs.cache
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.AssemblyInfo.cs
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.csproj.CoreCompileInputs.cache
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.dll
+C:\Users\Arash.Sr7\Source\Repos\biovationcore\Biovation.Gateway\obj\Debug\netcoreapp3.1\Biovation.Gateway.pdb
