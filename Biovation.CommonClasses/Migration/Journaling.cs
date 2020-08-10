@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using DataAccessLayerCore;
+using DataAccessLayerCore.Domain;
 using DbUp.Engine;
 using DbUp.Support.SqlServer;
 
@@ -13,29 +14,33 @@ namespace Biovation.CommonClasses.Migration
         private string Schema { get; set; }
         private string TableName { get; set; }
         private string ModuleName { get; set; }
+        private DatabaseConnectionInfo ConnectionInfo { get; set; }
 
         /// <summary>
         /// برای ایجاد کانکشن به دیتابیس
         /// </summary>
         private static IConnectionFactory _connectionFactory;
 
-        public Journaling(string moduleName)
+        public Journaling(string moduleName, DatabaseConnectionInfo connectionInfo)
         {
             Schema = "dbo";
             TableName = "_MigrationHistory";
             ModuleName = moduleName;
+            ConnectionInfo = connectionInfo;
+            _connectionFactory = ConnectionHelper.GetConnection(ConnectionInfo);
         }
 
-        public Journaling(string schema, string tableName, string moduleName)
+        public Journaling(string schema, string tableName, string moduleName, DatabaseConnectionInfo connectionInfo)
         {
             Schema = schema;
             TableName = tableName;
             ModuleName = moduleName;
+            ConnectionInfo = connectionInfo;
+            _connectionFactory = ConnectionHelper.GetConnection(ConnectionInfo);
         }
 
         private static bool VerifyTableExistsCommand(string tableName, string schemaName)
         {
-            _connectionFactory = ConnectionHelper.GetConnection();
             using (var context = new DbContext(_connectionFactory))
             {
                 using (var command = context.CreateCommand())
@@ -83,7 +88,6 @@ namespace Biovation.CommonClasses.Migration
             {
                 var scripts = new List<string>();
 
-                _connectionFactory = ConnectionHelper.GetConnection();
                 using (var context = new DbContext(_connectionFactory))
                 {
                     using (var command = context.CreateCommand())
@@ -111,7 +115,6 @@ namespace Biovation.CommonClasses.Migration
             {
                 Logger.Log($"[{ModuleName}] : Creating the {0} table", CreateTableName(Schema, TableName));
 
-                _connectionFactory = ConnectionHelper.GetConnection();
                 using (var context = new DbContext(_connectionFactory))
                 {
                     using (var command = context.CreateCommand())
@@ -127,7 +130,6 @@ namespace Biovation.CommonClasses.Migration
 
             if (script.Name.Contains("SP") || script.Name.Contains("Functions") || script.Name.Contains("Triggers") || script.Name.Contains("Data"))
             {
-                _connectionFactory = ConnectionHelper.GetConnection();
                 using (var context = new DbContext(_connectionFactory))
                 {
                     using (var command = context.CreateCommand())
@@ -151,7 +153,6 @@ namespace Biovation.CommonClasses.Migration
 
             else
             {
-                _connectionFactory = ConnectionHelper.GetConnection();
                 using (var context = new DbContext(_connectionFactory))
                 {
                     using (var command = context.CreateCommand())
