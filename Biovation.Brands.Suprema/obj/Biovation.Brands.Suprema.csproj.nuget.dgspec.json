@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {}
+    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {}
   },
   "projects": {
-    "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {
+    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
+        "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
         "projectName": "Biovation.Brands.Suprema",
-        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
-        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Suprema\\obj\\",
+        "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Suprema\\Biovation.Brands.Suprema.csproj",
+        "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Suprema\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -68,7 +68,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 
 namespace Biovation.Gateway
 {
@@ -79,13 +81,16 @@ namespace Biovation.Gateway
             //{
             //    endpoints.MapControllers();
             //});
+
+
+
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(name: "Biovation",
-                    pattern: "Biovation/api/{*}",
-                    defaults: new { controller = "Blog", action = "" });
-                endpoints.MapControllerRoute(name: "default",
-                    pattern: "{controller=Biovation}/{action=Index}/{id?}");
+                //endpoints.MapControllerRoute(name: "Biovation",
+                //    pattern: "Biovation/api/{*}",
+                //    defaults: new { controller = "Blog", action = "" });
+                //endpoints.MapControllerRoute(name: "default",
+                //    pattern: "Biovation/api/{controller}/{action}");
             });
         }
     }
