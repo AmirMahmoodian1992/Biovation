@@ -62,6 +62,12 @@ namespace Biovation.Gateway
             {
                 app.UseDeveloperExceptionPage();
             }
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Main}/{action=Index}/{id?}");
+            //});
 
             app.UseHttpsRedirection();
 
@@ -69,9 +75,17 @@ namespace Biovation.Gateway
 
             app.UseAuthorization();
 
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    endpoints.MapControllers();
+            //});
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                endpoints.MapControllerRoute(name: "Biovation",
+                    pattern: "Biovation/api/{*}",
+                    defaults: new { controller = "Blog", action = "" });
+                endpoints.MapControllerRoute(name: "default",
+                    pattern: "{controller=Biovation}/{action=Index}/{id?}");
             });
         }
     }
