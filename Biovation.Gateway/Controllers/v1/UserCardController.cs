@@ -18,7 +18,7 @@ namespace Biovation.Gateway.Controllers.v1
         public UserCardController()
         {
             _restServer =
-                (RestClient)new RestClient(($"http://localhost:{ConfigurationManager.BiovationWebServerPort}"));
+                (RestClient)new RestClient(($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}"));
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
         [HttpPost]

@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj": {}
+    "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
+    "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
+        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
         "projectName": "Biovation.CommonClasses",
-        "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
-        "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\obj\\",
+        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
+        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -30,8 +30,8 @@
         "frameworks": {
           "netcoreapp3.1": {
             "projectReferences": {
-              "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
-                "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
+              "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+                "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
               }
             }
           }
@@ -45,6 +45,10 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[3.1.6, )"
+            },
             "Microsoft.SqlServer.TransactSql.ScriptDom": {
               "target": "Package",
               "version": "[150.4573.2, )"
@@ -81,24 +85,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj": {
+    "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
         "projectName": "Biovation.Gateway",
-        "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj",
-        "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\obj\\",
+        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -111,8 +115,11 @@
         "frameworks": {
           "netcoreapp3.1": {
             "projectReferences": {
-              "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
-                "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj"
+              "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
+                "projectPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj"
+              },
+              "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+                "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
               }
             }
           }
@@ -126,6 +133,10 @@
       "frameworks": {
         "netcoreapp3.1": {
           "dependencies": {
+            "Microsoft.Extensions.Configuration.Abstractions": {
+              "target": "Package",
+              "version": "[3.1.6, )"
+            },
             "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
               "target": "Package",
               "version": "[1.10.9, )"
@@ -157,24 +168,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+    "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
       "version": "1.1.1",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
+        "projectUniqueName": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
         "projectName": "DataAccessLayerCore",
-        "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
-        "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\DataAccessLayerCore\\obj\\",
+        "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
+        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -234,7 +245,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
         }
       }
     }

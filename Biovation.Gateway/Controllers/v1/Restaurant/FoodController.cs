@@ -28,7 +28,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
 
         public FoodController()
         {
-            _restClient = new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
+            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
         [HttpGet]

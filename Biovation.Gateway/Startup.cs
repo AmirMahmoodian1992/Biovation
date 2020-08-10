@@ -77,21 +77,21 @@ namespace Biovation.Gateway
 
             app.UseAuthorization();
 
-            //app.UseEndpoints(endpoints =>
-            //{
-            //    endpoints.MapControllers();
-            //});
-
-
-
             app.UseEndpoints(endpoints =>
             {
-                //endpoints.MapControllerRoute(name: "Biovation",
-                //    pattern: "Biovation/api/{*}",
-                //    defaults: new { controller = "Blog", action = "" });
-                //endpoints.MapControllerRoute(name: "default",
-                //    pattern: "Biovation/api/{controller}/{action}");
+                endpoints.MapControllers();
             });
+
+
+
+            //app.UseEndpoints(endpoints =>
+            //{
+            //    //endpoints.MapControllerRoute(name: "Biovation",
+            //    //    pattern: "Biovation/api/{*}",
+            //    //    defaults: new { controller = "Blog", action = "" });
+            //    //endpoints.MapControllerRoute(name: "default",
+            //    //    pattern: "Biovation/api/{controller}/{action}");
+            //});
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Biovation.Gateway.Controllers.v1
         public AccessGroupController()
         {
             _restServer =
-                new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
+                new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
 

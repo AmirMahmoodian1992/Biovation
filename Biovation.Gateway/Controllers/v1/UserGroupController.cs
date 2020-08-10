@@ -29,8 +29,8 @@ namespace Biovation.Gateway.Controllers.v1
         {
             // _communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
             _restServer =
-                (RestClient)new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-            _restClient = (RestClient)new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+                (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
+            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         //[HttpPost]

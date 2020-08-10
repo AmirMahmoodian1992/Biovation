@@ -23,7 +23,7 @@ namespace Biovation.Gateway.Controllers.v1
 
         public DeviceGroupController()
         {
-            _restClient = (RestClient)new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         [HttpGet]

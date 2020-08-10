@@ -34,10 +34,10 @@
           "lib/netcoreapp3.1/Microsoft.Extensions.Configuration.dll": {}
         }
       },
-      "Microsoft.Extensions.Configuration.Abstractions/3.1.4": {
+      "Microsoft.Extensions.Configuration.Abstractions/3.1.6": {
         "type": "package",
         "dependencies": {
-          "Microsoft.Extensions.Primitives": "3.1.4"
+          "Microsoft.Extensions.Primitives": "3.1.6"
         },
         "compile": {
           "lib/netcoreapp3.1/Microsoft.Extensions.Configuration.Abstractions.dll": {}
@@ -46,7 +46,7 @@
           "lib/netcoreapp3.1/Microsoft.Extensions.Configuration.Abstractions.dll": {}
         }
       },
-      "Microsoft.Extensions.Primitives/3.1.4": {
+      "Microsoft.Extensions.Primitives/3.1.6": {
         "type": "package",
         "compile": {
           "lib/netcoreapp3.1/Microsoft.Extensions.Primitives.dll": {}
@@ -508,6 +508,7 @@
         "framework": ".NETCoreApp,Version=v3.1",
         "dependencies": {
           "DataAccessLayerCore": "1.1.1",
+          "Microsoft.Extensions.Configuration.Abstractions": "3.1.6",
           "Microsoft.SqlServer.TransactSql.ScriptDom": "150.4573.2",
           "Newtonsoft.Json": "12.0.3",
           "RestSharp": "106.11.4",
@@ -601,10 +602,10 @@
         "microsoft.extensions.configuration.nuspec"
       ]
     },
-    "Microsoft.Extensions.Configuration.Abstractions/3.1.4": {
-      "sha512": "k7IJME4US5S5JFOGYaei5TLwutp8IqUvcBWtliKXETGn/JScmCgfej21xq5+ttxi0qZhiyJY06y9dw+cLh3kiQ==",
+    "Microsoft.Extensions.Configuration.Abstractions/3.1.6": {
+      "sha512": "Z7QAA7XFvYuGZCKsfzetdIq0Vj1ngiIzCBBqerlQMhewx1ZFLXHuvKx9xAIWeZqhuQv69VmFs3vO0Af9FDAa9Q==",
       "type": "package",
-      "path": "microsoft.extensions.configuration.abstractions/3.1.4",
+      "path": "microsoft.extensions.configuration.abstractions/3.1.6",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -613,14 +614,14 @@
         "lib/netcoreapp3.1/Microsoft.Extensions.Configuration.Abstractions.xml",
         "lib/netstandard2.0/Microsoft.Extensions.Configuration.Abstractions.dll",
         "lib/netstandard2.0/Microsoft.Extensions.Configuration.Abstractions.xml",
-        "microsoft.extensions.configuration.abstractions.3.1.4.nupkg.sha512",
+        "microsoft.extensions.configuration.abstractions.3.1.6.nupkg.sha512",
         "microsoft.extensions.configuration.abstractions.nuspec"
       ]
     },
-    "Microsoft.Extensions.Primitives/3.1.4": {
-      "sha512": "tLR9n5ltwA56nr1t5M6q5IBfGLXtMS+XgumtqVENmtPQOWUD+m0Kgo1U6GWr06Y875WUN3sOGnmqkvW4an7fYA==",
+    "Microsoft.Extensions.Primitives/3.1.6": {
+      "sha512": "X+h3tO383iMbtFxYp6Al4pgBzbfQKJY8/gd4U7+sZy90XeSfnw5SwHyCiRrAePG6kee4zCGsvQHPCqaTZ876hw==",
       "type": "package",
-      "path": "microsoft.extensions.primitives/3.1.4",
+      "path": "microsoft.extensions.primitives/3.1.6",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
@@ -629,7 +630,7 @@
         "lib/netcoreapp3.1/Microsoft.Extensions.Primitives.xml",
         "lib/netstandard2.0/Microsoft.Extensions.Primitives.dll",
         "lib/netstandard2.0/Microsoft.Extensions.Primitives.xml",
-        "microsoft.extensions.primitives.3.1.4.nupkg.sha512",
+        "microsoft.extensions.primitives.3.1.6.nupkg.sha512",
         "microsoft.extensions.primitives.nuspec"
       ]
     },
@@ -2161,29 +2162,31 @@
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v3.1": [
       "Biovation.CommonClasses >= 1.0.0",
+      "DataAccessLayerCore >= 1.1.1",
+      "Microsoft.Extensions.Configuration.Abstractions >= 3.1.6",
       "Microsoft.VisualStudio.Azure.Containers.Tools.Targets >= 1.10.9",
       "Swashbuckle.AspNetCore >= 5.5.1",
       "morelinq >= 3.3.2"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Arash.Sr7\\.nuget\\packages\\": {},
+    "C:\\Users\\Yazdizadeh\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+      "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
       "projectName": "Biovation.Gateway",
-      "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj",
-      "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\obj\\",
+      "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+      "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+      "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -2196,8 +2199,11 @@
       "frameworks": {
         "netcoreapp3.1": {
           "projectReferences": {
-            "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
-              "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj"
+            "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
+              "projectPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj"
+            },
+            "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+              "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
             }
           }
         }
@@ -2211,6 +2217,10 @@
     "frameworks": {
       "netcoreapp3.1": {
         "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": {
+            "target": "Package",
+            "version": "[3.1.6, )"
+          },
           "Microsoft.VisualStudio.Azure.Containers.Tools.Targets": {
             "target": "Package",
             "version": "[1.10.9, )"
@@ -2242,7 +2252,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
       }
     }
   },
