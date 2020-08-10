@@ -1,21 +1,18 @@
-﻿using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using RestSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web.Http;
+using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RestSharp;
 
-namespace Biovation.WebService.APIControllers
+namespace Biovation.Gateway.Controllers.v1
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     [Route("[controller]")]
@@ -101,7 +98,7 @@ namespace Biovation.WebService.APIControllers
                         var device = _deviceService.GetDeviceInfo(deviceId[i]);
                         if (device == null)
                         {
-                            Logger<>.Log($"DeviceId {deviceId[i]} does not exist.");
+                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
                             result.Add(new ResultViewModel
                             { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
                             continue;
@@ -173,7 +170,7 @@ namespace Biovation.WebService.APIControllers
         }
 
         [HttpGet]
-        [Route("DeviceModels")
+        [Route("DeviceModels")]
         public Task<List<DeviceModel>> DeviceModels(string brandCode = default, bool loadedBrandsOnly = true)
         {
             return Task.Run(() =>
@@ -461,56 +458,58 @@ namespace Biovation.WebService.APIControllers
                 return results;
             });
         }
+            
 
-        [HttpPost]
-        [Route("UpgradeFirmware")]
-        public Task<ResultViewModel> UpgradeFirmware(int deviceId)
-        {
-            return Task.Run(async () =>
-            {
-                if (!Request.Content.IsMimeMultipartContent())
-                    return new ResultViewModel { Validate = 0, Code = 415, Message = "UnsupportedMediaType" };
+        //TODO make compatible with .net core
+        //[HttpPost]
+        //[Route("UpgradeFirmware")]
+        //public Task<ResultViewModel> UpgradeFirmware(int deviceId)
+        //{
+        //    return Task.Run(async () =>
+        //    {
+        //        if (!Request.Content.IsMimeMultipartContent())
+        //            return new ResultViewModel { Validate = 0, Code = 415, Message = "UnsupportedMediaType" };
 
-                try
-                {
-                    var device = _deviceService.GetDeviceInfo(deviceId);
+        //        try
+        //        {
+        //            var device = _deviceService.GetDeviceInfo(deviceId);
 
-                    if (device is null)
-                        return new ResultViewModel
-                        { Validate = 0, Code = 400, Id = deviceId, Message = "Wrong device id provided" };
+        //            if (device is null)
+        //                return new ResultViewModel
+        //                { Validate = 0, Code = 400, Id = deviceId, Message = "Wrong device id provided" };
 
-                    var multipartMemory = await Request.Content.ReadAsMultipartAsync();
+        //            var multipartMemory = await Request.Content.ReadAsMultipartAsync();
 
-                    foreach (var multipartContent in multipartMemory.Contents)
-                    {
-                        try
-                        {
-                            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/UpgradeFirmware", Method.POST, DataFormat.Json);
-                            restRequest.AddHeader("Content-Type", "multipart/form-data");
-                            restRequest.AddQueryParameter("deviceCode", device.Code.ToString());
-                            restRequest.AddFile(multipartContent.Headers.ContentDisposition.Name.Trim('\"'),
-                                multipartContent.ReadAsByteArrayAsync().Result,
-                                multipartContent.Headers.ContentDisposition.FileName.Trim('\"'),
-                                multipartContent.Headers.ContentType.MediaType);
-                            var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
-                            if (!result.IsSuccessful || result.Data.Validate == 0)
-                                return result.Data;
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception, logType: LogType.Debug);
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception, logType: LogType.Debug);
-                    throw;
-                }
+        //            foreach (var multipartContent in multipartMemory.Contents)
+        //            {
+        //                try
+        //                {
+        //                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/UpgradeFirmware", Method.POST, DataFormat.Json);
+        //                    restRequest.AddHeader("Content-Type", "multipart/form-data");
+        //                    restRequest.AddQueryParameter("deviceCode", device.Code.ToString());
+        //                    restRequest.AddFile(multipartContent.Headers.ContentDisposition.Name.Trim('\"'),
+        //                        multipartContent.ReadAsByteArrayAsync().Result,
+        //                        multipartContent.Headers.ContentDisposition.FileName.Trim('\"'),
+        //                        multipartContent.Headers.ContentType.MediaType);
+        //                    var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+        //                    if (!result.IsSuccessful || result.Data.Validate == 0)
+        //                        return result.Data;
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    Logger.Log(exception, logType: LogType.Debug);
+        //                }
+        //            }
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception, logType: LogType.Debug);
+        //            throw;
+        //        }
 
-                return new ResultViewModel { Validate = 1, Code = 200, Id = deviceId, Message = "Files uploaded and upgrading firmware started." };
-            });
-        }
+        //        return new ResultViewModel { Validate = 1, Code = 200, Id = deviceId, Message = "Files uploaded and upgrading firmware started." };
+        //    });
+        //}
 
 
     }
