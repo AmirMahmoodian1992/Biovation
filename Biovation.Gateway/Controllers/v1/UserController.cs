@@ -1,20 +1,20 @@
-﻿using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
-using MoreLinq;
-using Newtonsoft.Json;
-using RestSharp;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
+using MoreLinq;
+using Newtonsoft.Json;
+using RestSharp;
 
-namespace Biovation.WebService.APIControllers
+namespace Biovation.Gateway.Controllers.v1
 {
     [Route("[controller]")]
     [ApiController]
