@@ -20,7 +20,7 @@ namespace Biovation.Gateway.Controllers.v1
         public TimeZoneController()
         {
             _restServer =
-                (RestClient)new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
+                new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
 

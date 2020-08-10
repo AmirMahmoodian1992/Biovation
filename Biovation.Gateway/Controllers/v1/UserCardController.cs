@@ -58,7 +58,7 @@ namespace Biovation.Gateway.Controllers.v1
                     $"/biovation/api/{brandName}/VirdiDevice/ReadCardNum",
                     Method.GET);
             restRequest.AddParameter("deviceId", deviceId);
-            return (int)_restServer.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data[0].Code;
+            return _restServer.ExecuteAsync<int>(restRequest).Result.Data;
         }
     }
 }
