@@ -14,11 +14,6 @@ namespace DataAccessLayerCore
         //private readonly DbProviderFactory _provider;
         private readonly string _connectionString;
 
-        public DbConnectionFactory()
-        {
-            _connectionString = "";
-        }
-
         /// <summary>
         /// Constructor which accept connection info and set configurations required for creating connection
         /// </summary>

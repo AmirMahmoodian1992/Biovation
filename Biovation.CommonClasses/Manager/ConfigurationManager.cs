@@ -1,12 +1,57 @@
 ﻿using Biovation.CommonClasses.Service;
 using System;
 using System.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace Biovation.CommonClasses.Manager
 {
-    public static class ConfigurationManager
+    public class BiovationConfigurationManager
     {
         private static readonly SettingService SettingService = new SettingService();
+        public IConfiguration Configuration { get; set; }
+
+        public BiovationConfigurationManager(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public string ConnectionStringProviderName()
+        {
+            return Configuration.GetSection("ConnectionStrings")["ProviderName"];
+        }
+
+        public string ConnectionStringInitialCatalog()
+        {
+            return Configuration["InitialCatalog"] ?? Configuration.GetSection("ConnectionStrings")["InitialCatalog"];
+        }
+
+        public string ConnectionStringDataSource()
+        {
+            return Configuration["DataSource"] ?? Configuration.GetSection("ConnectionStrings")["DataSource"];
+        }
+
+        public string DataProtection_Path()
+        {
+            return Configuration["DataProtectionPath"] ?? Configuration.GetSection("DataProtection")["Path"];
+        }
+
+        public string ConnectionStringWorkstationId()
+        {
+            return Configuration.GetSection("ConnectionStrings")["WorkstationId"];
+        }
+
+        public string ConnectionStringParameters()
+            => Configuration.GetSection("ConnectionStrings")["Parameters"];
+
+        public string ConnectionStringUsername()
+        {
+            return Configuration["DBUsername"] ?? Configuration.GetSection("ConnectionStrings")["Username"];
+        }
+
+        public string ConnectionStringPassword()
+        {
+            return Configuration["Password"] ?? Configuration.GetSection("ConnectionStrings")["Password"];
+        }
 
         public static Uri LogMonitoringApiUrl
         {
@@ -16,10 +61,10 @@ namespace Biovation.CommonClasses.Manager
                 {
                     try
                     {
-                        var useHttps = System.Configuration.ConfigurationManager.AppSettings["LegoServerAddress"]
+                        var useHttps = ConfigurationManager.AppSettings["LegoServerAddress"]
                             ?.ToLowerInvariant().Contains(@"https://") == true;
 
-                        var rawUrl = System.Configuration.ConfigurationManager.AppSettings["LegoServerAddress"]?.ToLowerInvariant()
+                        var rawUrl = ConfigurationManager.AppSettings["LegoServerAddress"]?.ToLowerInvariant()
                             .Replace(@"http://", "").Replace(@"https://", "");
                         if (rawUrl is null)
                             return default;
@@ -63,7 +108,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["BiovationEventWebServerPort"] ?? "9038");
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["BiovationEventWebServerPort"] ?? "9038");
                 }
                 catch (Exception exception)
                 {
@@ -79,7 +124,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["BiovationEventServerSocketPort"] ?? "6000");
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["BiovationEventServerSocketPort"] ?? "6000");
                 }
                 catch (Exception exception)
                 {
@@ -95,7 +140,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(System.Configuration.ConfigurationManager.AppSettings["MigrateUp"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["MigrateUp"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -106,12 +151,12 @@ namespace Biovation.CommonClasses.Manager
 
             set
             {
-                var config = System.Configuration.ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
                 //config.AppSettings.Settings["MigrateUp"].Value = bool.FalseString;
                 config.AppSettings.Settings["MigrateUp"].Value = value.ToString();
                 config.Save(ConfigurationSaveMode.Modified, true);
-                System.Configuration.ConfigurationManager.RefreshSection(config.AppSettings.SectionInformation.SectionName);
+                ConfigurationManager.RefreshSection(config.AppSettings.SectionInformation.SectionName);
             }
         }
 
@@ -121,7 +166,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(System.Configuration.ConfigurationManager.AppSettings["WriteLogToDatabase"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["WriteLogToDatabase"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -137,7 +182,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(System.Configuration.ConfigurationManager.AppSettings["WriteLogToFile"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["WriteLogToFile"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -153,12 +198,12 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return System.Configuration.ConfigurationManager.ConnectionStrings["LogConnectionString".ToUpper()]?.ConnectionString ?? System.Configuration.ConfigurationManager.ConnectionStrings["ConnectionString".ToUpper()].ConnectionString;
+                    return ConfigurationManager.ConnectionStrings["LogConnectionString".ToUpper()]?.ConnectionString ?? ConfigurationManager.ConnectionStrings["ConnectionString".ToUpper()].ConnectionString;
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return System.Configuration.ConfigurationManager.ConnectionStrings["ConnectionString".ToUpper()].ConnectionString;
+                    return ConfigurationManager.ConnectionStrings["ConnectionString".ToUpper()].ConnectionString;
                 }
             }
         }
@@ -169,7 +214,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["SupremaDevicesConnectionPort"] ?? "1480");
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["SupremaDevicesConnectionPort"] ?? "1480");
                 }
                 catch (Exception exception)
                 {
@@ -185,7 +230,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["VirdiDevicesConnectionPort"] ?? "9870");
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["VirdiDevicesConnectionPort"] ?? "9870");
                 }
                 catch (Exception exception)
                 {
@@ -201,7 +246,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["MaxaDevicesConnectionPort"]);
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["MaxaDevicesConnectionPort"]);
                 }
                 catch (Exception exception)
                 {
@@ -217,7 +262,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(System.Configuration.ConfigurationManager.AppSettings["GetAllLogWhenConnect"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["GetAllLogWhenConnect"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -233,7 +278,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(System.Configuration.ConfigurationManager.AppSettings["ClearLogAfterRetrieving"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["ClearLogAfterRetrieving"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -249,7 +294,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return System.Configuration.ConfigurationManager.AppSettings["MinimumFileLogLevel"]?.ToLowerInvariant();
+                    return ConfigurationManager.AppSettings["MinimumFileLogLevel"]?.ToLowerInvariant();
                 }
                 catch (Exception exception)
                 {
@@ -265,7 +310,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return System.Configuration.ConfigurationManager.AppSettings["MinimumConsoleLogLevel"]?.ToLowerInvariant();
+                    return ConfigurationManager.AppSettings["MinimumConsoleLogLevel"]?.ToLowerInvariant();
                 }
                 catch (Exception exception)
                 {
@@ -281,7 +326,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return System.Configuration.ConfigurationManager.AppSettings["MinimumDatabaseLogLevel"]?.ToLowerInvariant();
+                    return ConfigurationManager.AppSettings["MinimumDatabaseLogLevel"]?.ToLowerInvariant();
                 }
                 catch (Exception exception)
                 {
@@ -298,7 +343,7 @@ namespace Biovation.CommonClasses.Manager
                 try
                 {
                     var databaseValue = SettingService.GetSetting("ShowLiveImageInMonitoring").Result;
-                    return string.Equals(databaseValue ?? (System.Configuration.ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"] ?? bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(databaseValue ?? (ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"] ?? bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -314,7 +359,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return System.Configuration.ConfigurationManager.AppSettings["SoftwareLockAddress"]?.ToLowerInvariant();
+                    return ConfigurationManager.AppSettings["SoftwareLockAddress"]?.ToLowerInvariant();
                 }
                 catch (Exception exception)
                 {
@@ -330,7 +375,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(System.Configuration.ConfigurationManager.AppSettings["SoftwareLockPort"]);
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["SoftwareLockPort"]);
                 }
                 catch (Exception exception)
                 {
@@ -348,7 +393,7 @@ namespace Biovation.CommonClasses.Manager
                 {
                     try
                     {
-                        return System.Configuration.ConfigurationManager.AppSettings["KafkaServerAddress"]?.ToLowerInvariant()
+                        return ConfigurationManager.AppSettings["KafkaServerAddress"]?.ToLowerInvariant()
                             .Replace(@"http://", "").Replace(@"https://", "");
 
                     }
@@ -372,7 +417,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(System.Configuration.ConfigurationManager.AppSettings["OldRepository"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["OldRepository"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
