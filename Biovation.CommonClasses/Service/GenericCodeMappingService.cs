@@ -7,7 +7,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class GenericCodeMappingService
     {
-        private readonly GenericCodeMappingRepository _genericCodeMappingRepository = new GenericCodeMappingRepository();
+        private readonly GenericCodeMappingRepository _genericCodeMappingRepository;
+
+        public GenericCodeMappingService(GenericCodeMappingRepository genericCodeMappingRepository)
+        {
+            _genericCodeMappingRepository = genericCodeMappingRepository;
+        }
 
         public Task<List<GenericCodeMapping>> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default)
         {

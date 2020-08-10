@@ -8,7 +8,13 @@ namespace Biovation.CommonClasses.Service
 {
     public class UserService
     {
-        private readonly UserRepository _userRepository = new UserRepository();
+        private readonly UserRepository _userRepository;
+
+        public UserService(UserRepository userRepository)
+        {
+            _userRepository = userRepository;
+        }
+
         public Task<ResultViewModel> ModifyUser(User user)
         {
             return Task.Run(() =>_userRepository.ModifyUser(user));

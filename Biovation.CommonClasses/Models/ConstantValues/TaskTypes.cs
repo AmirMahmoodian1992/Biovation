@@ -33,10 +33,6 @@ namespace Biovation.CommonClasses.Models.ConstantValues
         public const string GetLogsInPeriodCode = "11402";
         public const string GetLogsCode = "11403";
 
-
-
-
-
         public const string DeleteUsersCode = "11002";
         public const string DeleteDevicesCode = "11102";
         public const string DeleteFoodsCode = "11507";
@@ -45,41 +41,80 @@ namespace Biovation.CommonClasses.Models.ConstantValues
         public const string DeleteReservationsCode = "11510";
         public const string DeleteMealTimingsCode = "11511";
 
-        public static Lookup SendUsers = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendUsersCode));
-        public static Lookup SendDevices = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendDevicesCode));
-        public static Lookup SendFoods = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendFoodsCode));
-        public static Lookup SendMeals = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendMealsCode));
-        public static Lookup SendMealTimings = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendMealTimingsCode));
-        public static Lookup SendRestaurants = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendRestaurantsCode));
-        public static Lookup SendReservations = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendReservationsCode));
-        public static Lookup GetServeLogs = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetServeLogsCode));
-        public static Lookup DeleteUsers = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteUsersCode));
-        public static Lookup DeleteDevices = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteDevicesCode));
-        public static Lookup DeleteFoods = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteFoodsCode));
-        public static Lookup DeleteMeals = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteMealsCode));
-        public static Lookup DeleteMealTimings = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteMealTimingsCode));
-        public static Lookup DeleteRestaurants = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteRestaurantsCode));
-        public static Lookup DeleteReservations = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteReservationsCode));
+        public TaskTypes()
+        {
+            SendUsers = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendUsersCode));
+            SendDevices = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendDevicesCode));
+            SendFoods = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendFoodsCode));
+            SendMeals = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendMealsCode));
+            SendMealTimings = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendMealTimingsCode));
+            SendRestaurants = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendRestaurantsCode));
+            SendReservations = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendReservationsCode));
+            GetServeLogs = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetServeLogsCode));
+            DeleteUsers = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteUsersCode));
+            DeleteDevices = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteDevicesCode));
+            DeleteFoods = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteFoodsCode));
+            DeleteMeals = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteMealsCode));
+            DeleteMealTimings = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteMealTimingsCode));
+            DeleteRestaurants = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteRestaurantsCode));
+            DeleteReservations = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteReservationsCode));
 
-        public static Lookup UpgradeDeviceFirmware = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UpgradeDeviceFirmwareCode));
-        public static Lookup UnlockDevice = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnlockDeviceCode));
-        public static Lookup SendTimeZoneToTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendTimeZoneToTerminalCode));
-        public static Lookup SendAccessGroupToTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendAccessGroupToTerminalCode));
-        public static Lookup RetrieveUserFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, RetrieveUserFromTerminalCode));
+            UpgradeDeviceFirmware = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UpgradeDeviceFirmwareCode));
+            UnlockDevice = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnlockDeviceCode));
+            SendTimeZoneToTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendTimeZoneToTerminalCode));
+            SendAccessGroupToTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendAccessGroupToTerminalCode));
+            RetrieveUserFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, RetrieveUserFromTerminalCode));
 
-        public static Lookup RetrieveAllUsersFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, RetrieveAllUsersFromTerminalCode));
-        public static Lookup OpenDoor = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, OpenDoorCode));
-        public static Lookup LockDevice = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, LockDeviceCode));
-        public static Lookup EnrollFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollFromTerminalCode));
-        public static Lookup DeleteUserFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteUserFromTerminalCode));
-        public static Lookup EnrollFaceFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollFaceFromTerminalCode));
+            RetrieveAllUsersFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, RetrieveAllUsersFromTerminalCode));
+            OpenDoor = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, OpenDoorCode));
+            LockDevice = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, LockDeviceCode));
+            EnrollFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollFromTerminalCode));
+            DeleteUserFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteUserFromTerminalCode));
+            EnrollFaceFromTerminal = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollFaceFromTerminalCode));
 
-        public static Lookup ClearLog = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, ClearLogCode));
-        public static Lookup GetLogsInPeriod = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsInPeriodCode));
-        public static Lookup GetLogs= Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsCode));
+            ClearLog = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, ClearLogCode));
+            GetLogsInPeriod = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsInPeriodCode));
+            GetLogs = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsCode));
 
 
-        public static Lookup SendBlackList = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendBlackListCode));
+            SendBlackList = Lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendBlackListCode));
+        }
+
+
+        public static Lookup SendUsers { get; set; }
+        public static Lookup SendDevices { get; set; }
+        public static Lookup SendFoods { get; set; }
+        public static Lookup SendMeals { get; set; }
+        public static Lookup SendMealTimings { get; set; }
+        public static Lookup SendRestaurants { get; set; }
+        public static Lookup SendReservations { get; set; }
+        public static Lookup GetServeLogs { get; set; }
+        public static Lookup DeleteUsers { get; set; }
+        public static Lookup DeleteDevices { get; set; }
+        public static Lookup DeleteFoods { get; set; }
+        public static Lookup DeleteMeals { get; set; }
+        public static Lookup DeleteMealTimings { get; set; }
+        public static Lookup DeleteRestaurants { get; set; }
+        public static Lookup DeleteReservations { get; set; }
+                                                             
+        public static Lookup UpgradeDeviceFirmware { get; set; }
+        public static Lookup UnlockDevice { get; set; }
+        public static Lookup SendTimeZoneToTerminal { get; set; }
+        public static Lookup SendAccessGroupToTerminal { get; set; }
+        public static Lookup RetrieveUserFromTerminal { get; set; }
+
+        public static Lookup RetrieveAllUsersFromTerminal { get; set; }
+        public static Lookup OpenDoor { get; set; }
+        public static Lookup LockDevice { get; set; }
+        public static Lookup EnrollFromTerminal { get; set; }
+        public static Lookup DeleteUserFromTerminal { get; set; }
+        public static Lookup EnrollFaceFromTerminal { get; set; }
+
+        public static Lookup ClearLog { get; set; }
+        public static Lookup GetLogsInPeriod { get; set; }
+        public static Lookup GetLogs { get; set; }
+
+        public static Lookup SendBlackList { get; set; }
 
     }
 }

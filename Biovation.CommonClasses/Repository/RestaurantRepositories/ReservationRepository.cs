@@ -11,7 +11,12 @@ namespace Biovation.CommonClasses.Repository.RestaurantRepositories
 {
     public class ReservationRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public ReservationRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<Reservation> GetReservations(int reservationId = default, int deviceId = default)
         {

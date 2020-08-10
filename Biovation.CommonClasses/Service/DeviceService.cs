@@ -1,14 +1,23 @@
 ﻿using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Repository;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Repository;
 
 namespace Biovation.CommonClasses.Service
 {
     public class DeviceService
     {
-        private DeviceRepository _deviceRepository = new DeviceRepository();
+        private readonly DeviceRepository _deviceRepository;
+
+        public DeviceService()
+        {
+            
+        }
+        public DeviceService(DeviceRepository deviceRepository)
+        {
+            _deviceRepository = deviceRepository;
+        }
         /// <summary>
         /// <En>Call a repository method to get all devices from database.</En>
         /// <Fa>با صدا کردن یک تابع در ریپوزیتوری اطلاعات تمامی دستگاه ها را از دیتابیس دریافت میکند.</Fa>
@@ -20,7 +29,7 @@ namespace Biovation.CommonClasses.Service
         }
         public List<DeviceBasicInfo> GetAllDevicesBasicInfosByfilter(long adminUserId = 0, int deviceGroupId = 0, uint Code = 0, int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0)
         {
-            return _deviceRepository.GetAllDevicesBasicInfosByFilter(adminUserId, deviceGroupId,Code,deviceId,brandId,deviceName, deviceModelId);
+            return _deviceRepository.GetAllDevicesBasicInfosByFilter(adminUserId, deviceGroupId, Code, deviceId, brandId, deviceName, deviceModelId);
         }
         /// <summary>
         /// گرفتن لیستی از دستگاه ها بر اساس فیلتر اعمال شده
@@ -87,7 +96,7 @@ namespace Biovation.CommonClasses.Service
         {
             return _deviceRepository.GetDeviceBrandById(brandCode);
         }
-        
+
         public List<DeviceBasicInfo> GetDevicesBasicInfosByName(string name, int userCode = 0)
         {
             return _deviceRepository.GetDevicesBasicInfosByName(name, userCode);
@@ -105,7 +114,7 @@ namespace Biovation.CommonClasses.Service
 
         public List<DeviceModel> GetDeviceModelsByFilter(string brandCode = default, string name = default)
         {
-            return _deviceRepository.GetDeviceModelsByFilter(brandCode,name);
+            return _deviceRepository.GetDeviceModelsByFilter(brandCode, name);
         }
 
 

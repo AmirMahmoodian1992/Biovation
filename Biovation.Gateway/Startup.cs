@@ -1,12 +1,17 @@
 using Biovation.CommonClasses.Manager;
+using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.CommonClasses.Repository;
+using Biovation.CommonClasses.Repository.RestaurantRepositories;
+using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Service.RestaurantServices;
+using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 
 namespace Biovation.Gateway
 {
@@ -15,7 +20,7 @@ namespace Biovation.Gateway
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
 
@@ -23,9 +28,9 @@ namespace Biovation.Gateway
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
             var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
+                .SetBasePath(environment.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -55,10 +60,66 @@ namespace Biovation.Gateway
             };
 
             services.AddSingleton(connectionInfo);
+            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
+            
+            services.AddSingleton<GenericRepository, GenericRepository>();
+
+            services.AddScoped<FoodService, FoodService>();
+            services.AddScoped<MealService, MealService>();
+            services.AddScoped<ReservationService, ReservationService>();
+            services.AddScoped<RestaurantService, RestaurantService>();
+            services.AddScoped<ServeLogService, ServeLogService>();
+            services.AddScoped<AccessGroupService, AccessGroupService>();
+            services.AddScoped<AdminDeviceService, AdminDeviceService>();
+            services.AddScoped<BlackListService, BlackListService>();
+            services.AddScoped<DeviceGroupService, DeviceGroupService>();
+            services.AddScoped<DeviceService, DeviceService>();
+            services.AddScoped<FaceTemplateService, FaceTemplateService>();
+            services.AddScoped<FingerTemplateService, FingerTemplateService>();
+            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddScoped<LogService, LogService>();
+            services.AddSingleton<LookupService, LookupService>();
+            services.AddScoped<PlateDetectionService, PlateDetectionService>();
+            services.AddScoped<SettingService, SettingService>();
+            services.AddScoped<TaskService, TaskService>();
+            services.AddScoped<TimeZoneService, TimeZoneService>();
+            services.AddScoped<UserCardService, UserCardService>();
+            services.AddScoped<UserGroupService, UserGroupService>();
+            services.AddScoped<UserService, UserService>();
+
+            services.AddScoped<FoodRepository, FoodRepository>();
+            services.AddScoped<MealRepository, MealRepository>();
+            services.AddScoped<ReservationRepository, ReservationRepository>();
+            services.AddScoped<RestaurantRepository, RestaurantRepository>();
+            services.AddScoped<ServeLogRepository, ServeLogRepository>();
+            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
+            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
+            services.AddScoped<BlackListRepository, BlackListRepository>();
+            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddScoped<DeviceRepository, DeviceRepository>();
+            services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
+            services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddScoped<LogRepository, LogRepository>();
+            services.AddSingleton<LookupRepository, LookupRepository>();
+            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddScoped<SettingRepository, SettingRepository>();
+            services.AddScoped<TaskRepository, TaskRepository>();
+            services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
+            services.AddScoped<UserCardRepository, UserCardRepository>();
+            services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<UserRepository, UserRepository>();
+
+            services.AddSingleton<Lookups, Lookups>();
+            services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
+
+            //Constant values
+            services.AddSingleton<DeviceBrands, DeviceBrands>();
+            services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-            public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

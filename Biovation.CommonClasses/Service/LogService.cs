@@ -18,12 +18,15 @@ namespace Biovation.CommonClasses.Service
 {
     public class LogService
     {
-        private readonly LogRepository _logRepository = new LogRepository();
+        private readonly LogRepository _logRepository;
+        private readonly BiovationConfigurationManager _configurationManager;
         private readonly RestClient _logExternalSubmissionRestClient;
 
         //private readonly PlateDetectionRepository _plateDetectionRepository = new PlateDetectionRepository();
-        public LogService()
+        public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
         {
+            _logRepository = logRepository;
+            _configurationManager = configurationManager;
             _logExternalSubmissionRestClient = (RestClient)new RestClient(BiovationConfigurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -64,7 +67,7 @@ namespace Biovation.CommonClasses.Service
                             {
                                 // صفحه مانیتورینگ
                                 var restRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
-                                restRequest.AddJsonBody(BiovationConfigurationManager.ShowLiveImageInMonitoring
+                                restRequest.AddJsonBody(_configurationManager.ShowLiveImageInMonitoring
                                     ? log
                                     : new Log
                                     {

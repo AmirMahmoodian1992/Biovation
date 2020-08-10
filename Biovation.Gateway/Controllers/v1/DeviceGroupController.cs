@@ -1,28 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
+    [Route("biovation/api/[controller]")]
     [ApiController]
-    public class DeviceGroupController : ControllerBase
+    public class DeviceGroupController : Controller
     {
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly DeviceGroupService _deviceGroupService = new DeviceGroupService();
+        private readonly DeviceService _deviceService;
+        private readonly DeviceGroupService _deviceGroupService;
 
         private readonly RestClient _restClient;
 
-        public DeviceGroupController()
+        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService)
         {
+            _deviceService = deviceService;
+            _deviceGroupService = deviceGroupService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -127,7 +129,7 @@ namespace Biovation.Gateway.Controllers.v1
                                 deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                                 deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Id));
                                 /*var deletionResult =*/
-                                await _restClient.ExecuteTaskAsync<ResultViewModel>(deleteUserRestRequest);
+                                await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
                             });
                         }
 
@@ -154,7 +156,7 @@ namespace Biovation.Gateway.Controllers.v1
                                 sendUserRestRequest.AddQueryParameter("userId",
                                     JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
                                 /*var additionResult =*/
-                                await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(sendUserRestRequest);
+                                await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
                             });
                         }
                     }

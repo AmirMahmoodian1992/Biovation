@@ -14,18 +14,20 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v1.Restaurant
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class MealController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class MealController : Controller
     {
-        private readonly MealService _mealService = new MealService();
-        private readonly TaskService _taskService = new TaskService();
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly MealService _mealService;
+        private readonly TaskService _taskService;
+        private readonly DeviceService _deviceService;
 
         private readonly RestClient _restClient;
 
-        public MealController()
+        public MealController(MealService mealService, TaskService taskService, DeviceService deviceService)
         {
+            _mealService = mealService;
+            _taskService = taskService;
+            _deviceService = deviceService;
             _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
@@ -130,7 +132,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (mealIds != null)
                             restRequest.AddJsonBody(mealIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -171,7 +173,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (mealIds != null)
                             restRequest.AddJsonBody(mealIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -212,7 +214,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (mealTimingIds != null)
                             restRequest.AddJsonBody(mealTimingIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -253,7 +255,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (mealTimingIds != null)
                             restRequest.AddJsonBody(mealTimingIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

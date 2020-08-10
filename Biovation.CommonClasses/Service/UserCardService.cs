@@ -1,45 +1,47 @@
 ﻿using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Repository;
 using System.Collections.Generic;
+using System.Security.AccessControl;
 
 namespace Biovation.CommonClasses.Service
 {
     public class UserCardService
     {
+        private readonly UserCardRepository _userCardRepository;
+
+        public UserCardService(UserCardRepository userCardRepository)
+        {
+            _userCardRepository = userCardRepository;
+        }
+
         public ResultViewModel ModifyUserCard(UserCard userCard)
         {
-            var userRepository = new UserCardRepository();
-            return userRepository.ModifyUserCard(userCard);
+            return _userCardRepository.ModifyUserCard(userCard);
         }
 
         public List<UserCard> GetActiveUserCard(long userId)
         {
-            var userRepository = new UserCardRepository();
-            return userRepository.GetActiveUserCard(userId);
+            return _userCardRepository.GetActiveUserCard(userId);
         }
 
         public User FindUserByCardNumber(string cardNumber)
         {
-            var userRepository = new UserCardRepository();
-            return userRepository.FindUserByCardNumber(cardNumber);
+            return _userCardRepository.FindUserByCardNumber(cardNumber);
         }
 
         public List<User> FindUsersByCardNumber(string cardNumber)
         {
-            var userRepository = new UserCardRepository();
-            return userRepository.FindUsersByCardNumber(cardNumber);
+            return _userCardRepository.FindUsersByCardNumber(cardNumber);
         }
 
         public List<UserCard> GetAllUserCardsOfUser(int userId)
         {
-            var userRepository = new UserCardRepository();
-            return userRepository.GetAllUserCardsOfUser(userId);
+            return _userCardRepository.GetAllUserCardsOfUser(userId);
         }
 
         public ResultViewModel DeleteUserCard(int userId)
         {
-            var userRepository = new UserCardRepository();
-            return userRepository.DeleteUserCard(userId);
+            return _userCardRepository.DeleteUserCard(userId);
         }
     }
 }

@@ -13,14 +13,25 @@ namespace Biovation.CommonClasses.Models.ConstantValues
         public const string MaxaCode = "15006";
         public const string ShahabCode = "15007";
 
+        public DeviceBrands()
+        {
+            Virdi = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, VirdiCode));
+            Eos = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, EosCode));
+            Suprema = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, SupremaCode));
+            ZkTeco = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ZkTecoCode));
+            ProcessingWorld = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ProcessingWorldCode));
+            Maxa = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, MaxaCode));
+            Shahab = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ShahabCode));
+        }
 
-        public static Lookup Virdi = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, VirdiCode));
-        public static Lookup Eos = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, EosCode));
-        public static Lookup Suprema = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, SupremaCode));
-        public static Lookup ZkTeco = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ZkTecoCode));
-        public static Lookup ProcessingWorld = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ProcessingWorldCode));
-        public static Lookup Maxa = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, MaxaCode));
-        public static Lookup Shahab = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ShahabCode));
+        public static Lookup Virdi { get; set; }
+        public static Lookup Eos { get; set; }
+        public static Lookup Suprema { get; set; }
+        public static Lookup ZkTeco { get; set; }
+        public static Lookup ProcessingWorld { get; set; }
+        public static Lookup Maxa { get; set; }
+        public static Lookup Shahab { get; set; }
+
 
 
         //public static DeviceBrand Virdi = Brands.FirstOrDefault

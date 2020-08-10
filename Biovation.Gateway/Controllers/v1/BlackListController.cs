@@ -1,25 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class BlackListController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class BlackListController : Controller
     {
 
-        private readonly BlackListService _blackListService = new BlackListService();
+        private readonly BlackListService _blackListService;
         private readonly RestClient _restClient;
 
-        public BlackListController()
+        public BlackListController(BlackListService blackListService)
         {
+            _blackListService = blackListService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -60,7 +60,7 @@ namespace Biovation.Gateway.Controllers.v1
                                         Method.POST);
                                 restRequest.AddJsonBody(list);
 
-                                var restResult = await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(restRequest);
+                                var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                                 //result.Add(restResult.Data);
                             }
@@ -119,7 +119,7 @@ namespace Biovation.Gateway.Controllers.v1
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
 
-                            var restResult = await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(restRequest);
+                            var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }
                     }
@@ -159,7 +159,7 @@ namespace Biovation.Gateway.Controllers.v1
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
 
-                            var restResult = await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(restRequest);
+                            var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }
                     }

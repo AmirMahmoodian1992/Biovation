@@ -8,7 +8,12 @@ namespace Biovation.CommonClasses.Service.RestaurantServices
 {
     public class ReservationService
     {
-        private readonly ReservationRepository _reservationRepository = new ReservationRepository();
+        private readonly ReservationRepository _reservationRepository;
+
+        public ReservationService(ReservationRepository reservationRepository)
+        {
+            _reservationRepository = reservationRepository;
+        }
 
         public Task<List<Reservation>> GetReservations(int reservationId = default, int deviceId = default)
         {

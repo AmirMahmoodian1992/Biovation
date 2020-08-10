@@ -7,7 +7,12 @@ namespace Biovation.CommonClasses.Repository
 {
     public class GenericCodeMappingRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public GenericCodeMappingRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<GenericCodeMapping> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default)
         {

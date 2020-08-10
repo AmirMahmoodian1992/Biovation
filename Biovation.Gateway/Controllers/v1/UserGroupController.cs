@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
@@ -10,26 +6,27 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class UserGroupController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class UserGroupController : Controller
     {
-        //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly RestClient _restClient;
-        private readonly RestClient _restServer;
 
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly UserService _userService = new UserService();
-        private readonly UserGroupService _userGroupService = new UserGroupService();
+        private readonly UserService _userService;
+        private readonly DeviceService _deviceService;
+        private readonly UserGroupService _userGroupService;
 
-        public UserGroupController()
+        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService)
         {
-            // _communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-            _restServer =
-                (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
+            _userService = userService;
+            _deviceService = deviceService;
+            _userGroupService = userGroupService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -169,7 +166,7 @@ namespace Biovation.Gateway.Controllers.v1
         //                deleteRequest.AddQueryParameter("userId", $"[{userId}]");
         //                deleteRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
 
-        //                var restResult = await _restClient.ExecuteTaskAsync(restRequest);
+        //                var restResult = await _restClient.ExecuteAsync(restRequest);
 
         //                var deleteRequest = new RestRequest()
         //            }
@@ -371,7 +368,7 @@ namespace Biovation.Gateway.Controllers.v1
                             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Id));
                             /*var deletionResult =*/
-                            await _restClient.ExecuteTaskAsync<ResultViewModel>(deleteUserRestRequest);
+                            await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
                         });
@@ -393,7 +390,7 @@ namespace Biovation.Gateway.Controllers.v1
                             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Id)));
                             /*var additionResult =*/
-                            await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(sendUserRestRequest);
+                            await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
                         });
@@ -435,7 +432,7 @@ namespace Biovation.Gateway.Controllers.v1
                             new RestRequest(
                                 $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
                                 Method.POST);
-                        _restServer.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                        _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                     }
                 });
 
@@ -527,19 +524,17 @@ namespace Biovation.Gateway.Controllers.v1
             {
                 var deviceBrands = _deviceService.GetDeviceBrands();
                 var userGroup = _userGroupService.GetUserGroup(userGroupId);
-                foreach (var userGroupMember in userGroup.Users)
+                foreach (var unused in userGroup.Users)
                 {
-                    var user = _userService.GetUser(userGroupMember.UserId);
+                    //var user = _userService.GetUser(userGroupMember.UserId);
 
                     foreach (var deviceBrand in deviceBrands)
                     {
-                        //_communicationManager.CallRest(
-                        //                        $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", "Post", null, $"{JsonConvert.SerializeObject(user)}");
                         var restRequest =
                             new RestRequest(
                                 $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                 Method.POST);
-                        _restServer.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                        _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                     }
                 }
 

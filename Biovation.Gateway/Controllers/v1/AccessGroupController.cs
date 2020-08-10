@@ -1,29 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Gateway.Controllers.v1
 {
 
-    [Route("[controller]")]
-    [ApiController]
-    public class AccessGroupController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class AccessGroupController : Controller
     {
         //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
-        private readonly AccessGroupService _accessGroupService = new AccessGroupService();
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly AccessGroupService _accessGroupService;
+        private readonly DeviceService _deviceService;
         private readonly RestClient _restServer;
 
-        public AccessGroupController()
+        public AccessGroupController(AccessGroupService accessGroupService, DeviceService deviceService)
         {
+            _accessGroupService = accessGroupService;
+            _deviceService = deviceService;
             _restServer =
                 new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");

@@ -6,6 +6,13 @@ namespace Biovation.CommonClasses.Service
 {
     public class AdminDeviceService
     {
+        private readonly AdminDeviceRepository _adminDeviceRepository;
+
+        public AdminDeviceService(AdminDeviceRepository adminDeviceRepository)
+        {
+            _adminDeviceRepository = adminDeviceRepository;
+        }
+
         /// <summary>
         /// <En>Call a repository method to get all devices from database.</En>
         /// <Fa>با صدا کردن یک تابع در ریپوزیتوری اطلاعات تمامی دستگاه ها را از دیتابیس دریافت میکند.</Fa>
@@ -13,20 +20,17 @@ namespace Biovation.CommonClasses.Service
         /// <returns></returns>
         public List<AdminDeviceGroup> GetAdminDeviceGroupsByUserId(int userId)
         {
-            var adminDeviceRepository = new AdminDeviceRepository();
-            return adminDeviceRepository.GetAdminDeviceGroupsByUserId(userId);
+            return _adminDeviceRepository.GetAdminDeviceGroupsByUserId(userId);
         }
 
         public List<Models.AdminDevice> GetAdminDevicesByUserId(int userId)
         {
-            var adminDeviceRepository = new AdminDeviceRepository();
-            return adminDeviceRepository.GetAdminDevicesByUserId(userId);
+            return _adminDeviceRepository.GetAdminDevicesByUserId(userId);
         }
 
         public ResultViewModel ModifyAdminDevice(string xml)
         {
-            var adminDeviceRepository = new AdminDeviceRepository();
-            return adminDeviceRepository.ModifyAdminDevice(xml);
+            return _adminDeviceRepository.ModifyAdminDevice(xml);
         }
     }
 }

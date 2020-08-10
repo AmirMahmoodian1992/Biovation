@@ -13,18 +13,20 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v1.Restaurant
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class ServeLogController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class ServeLogController : Controller
     {
-        private readonly ServeLogService _serveLogService = new ServeLogService();
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly TaskService _taskService = new TaskService();
+        private readonly ServeLogService _serveLogService;
+        private readonly DeviceService _deviceService;
+        private readonly TaskService _taskService;
 
         private readonly RestClient _restClient;
 
-        public ServeLogController()
+        public ServeLogController(ServeLogService serveLogService, DeviceService deviceService, TaskService taskService)
         {
+            _serveLogService = serveLogService;
+            _deviceService = deviceService;
+            _taskService = taskService;
             _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
@@ -77,7 +79,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                             new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}ServeLog/SendServeLogsDataToDevice");
                         if (deviceId != default)
                             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

@@ -6,28 +6,31 @@ namespace Biovation.CommonClasses.Service
 {
     public class TimeZoneService
     {
+        private readonly TimeZoneRepository _timeZoneRepository;
+
+        public TimeZoneService(TimeZoneRepository timeZoneRepository)
+        {
+            _timeZoneRepository = timeZoneRepository;
+        }
+
         public List<TimeZone> GetAllTimeZones()
         {
-            var timeZoneRepository = new TimeZoneRepository();
-            return timeZoneRepository.GetTimeZones();
+            return _timeZoneRepository.GetTimeZones();
         }
 
         public TimeZone GetTimeZoneById(int timeZoneId)
         {
-            var timeZoneRepository = new TimeZoneRepository();
-            return timeZoneRepository.GetTimeZone(timeZoneId);
+            return _timeZoneRepository.GetTimeZone(timeZoneId);
         }
 
         public ResultViewModel ModifyTimeZoneById(TimeZone timeZone)
         {
-            var timeZoneRepository = new TimeZoneRepository();
-            return timeZoneRepository.ModifyTimeZone(timeZone);
+            return _timeZoneRepository.ModifyTimeZone(timeZone);
         }
 
         public ResultViewModel DeleteTimeZoneById(int timeZoneId)
         {
-            var timeZoneRepository = new TimeZoneRepository();
-            return timeZoneRepository.DeleteTimeZone(timeZoneId);
+            return _timeZoneRepository.DeleteTimeZone(timeZoneId);
         }
     }
 }

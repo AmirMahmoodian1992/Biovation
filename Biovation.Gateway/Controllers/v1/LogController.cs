@@ -14,16 +14,19 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    public class LogController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class LogController : Controller
     {
-        private readonly DeviceService _commonDeviceService = new DeviceService();
-        private readonly UserService _userService = new UserService();
-
-        private readonly LogService _commonLogService = new LogService();
+        private readonly UserService _userService;
+        private readonly LogService _commonLogService;
+        private readonly DeviceService _commonDeviceService;
         private readonly RestClient _restClient;
 
-        public LogController()
+        public LogController(DeviceService deviceService, UserService userService, LogService logService)
         {
+            _userService = userService;
+            _commonLogService = logService;
+            _commonDeviceService = deviceService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -81,7 +84,7 @@ namespace Biovation.Gateway.Controllers.v1
                 restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
 
-                var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //_communicationManager.CallRest(
                 //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
                 //    $"{device.Code}");
@@ -102,7 +105,7 @@ namespace Biovation.Gateway.Controllers.v1
                 restRequest.AddQueryParameter("fromDate", fromDate.ToString(CultureInfo.InvariantCulture));
                 restRequest.AddQueryParameter("toDate", toDate.ToString(CultureInfo.InvariantCulture));
 
-                var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
                 //        _communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Post", null,
                 //JsonConvert.SerializeObject(parameters));
@@ -233,7 +236,7 @@ namespace Biovation.Gateway.Controllers.v1
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
 
-                        var restResult = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         //var address = _localBioAddress +
                         //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";

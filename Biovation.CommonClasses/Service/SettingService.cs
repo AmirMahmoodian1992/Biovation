@@ -8,7 +8,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class SettingService
     {
-        private readonly SettingRepository _settingRepository = new SettingRepository();
+        private readonly SettingRepository _settingRepository;
+
+        public SettingService(SettingRepository settingRepository)
+        {
+            _settingRepository = settingRepository;
+        }
 
         public Task<List<Setting>> GetSettings(string key = default)
         {

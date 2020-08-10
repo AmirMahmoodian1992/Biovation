@@ -8,16 +8,16 @@ using RestSharp;
 namespace Biovation.Gateway.Controllers.v1
 {
 
-    [Route("[controller]")]
-    [ApiController]
-    public class PlateDetectionController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class PlateDetectionController : Controller
     {
-        private readonly PlateDetectionService _plateDetectionService = new PlateDetectionService();
-        private readonly RestClient _restClient;
+        private readonly PlateDetectionService _plateDetectionService;
+        //private readonly RestClient _restClient;
 
-        public PlateDetectionController()
+        public PlateDetectionController(PlateDetectionService plateDetectionService)
         {
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _plateDetectionService = plateDetectionService;
+            //_restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         [HttpPost]

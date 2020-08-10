@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
@@ -13,28 +6,32 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class UserController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class UserController : Controller
     {
-        //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
-        //private readonly CommunicationManager<List<ResultViewModel>> _communicationManagerLst = new CommunicationManager<List<ResultViewModel>>();
-        private readonly UserService _userService = new UserService();
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly UserGroupService _userGroupService = new UserGroupService();
+        private readonly UserService _userService;
+        private readonly DeviceService _deviceService;
+        private readonly UserGroupService _userGroupService;
+        private readonly AccessGroupService _accessGroupService;
 
         private readonly RestClient _restClient;
-        private readonly RestClient _restServer;
 
-        public UserController()
+        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService)
         {
-            //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-            //_communicationManagerLst.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-            _restServer =
-                (RestClient) new RestClient(($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}"));
+            _userService = userService;
+            _deviceService = deviceService;
+            _userGroupService = userGroupService;
+            _accessGroupService = accessGroupService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
         [HttpGet]
@@ -166,7 +163,7 @@ namespace Biovation.Gateway.Controllers.v1
                             var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
                             restRequest.AddJsonBody(user);
 
-                            await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         }
                     });
 
@@ -245,9 +242,9 @@ namespace Biovation.Gateway.Controllers.v1
                         new RestRequest(
                             $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
                             Method.GET);
-                        restRequest.AddParameter("code",deviceBasic.Code);
-                        restRequest.AddParameter("userId", userId);
-                        result.AddRange(_restServer.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                    restRequest.AddParameter("code", deviceBasic.Code);
+                    restRequest.AddParameter("userId", userId);
+                    result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
                 }
 
                 return result;
@@ -291,7 +288,7 @@ namespace Biovation.Gateway.Controllers.v1
                                     Method.POST);
                             restRequest.AddJsonBody(user);
 
-                            var restResult = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
                         }
 
@@ -364,7 +361,7 @@ namespace Biovation.Gateway.Controllers.v1
                             new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
                         restRequest.AddJsonBody(usersToSync);
 
-                        _restClient.ExecuteTaskAsync(restRequest);
+                        _restClient.ExecuteAsync(restRequest);
                     }
                 }
                 catch (Exception exception)
@@ -407,11 +404,10 @@ namespace Biovation.Gateway.Controllers.v1
                     {
                         //updateUsers = updateUsers.Trim(',');
                         //var lstupdateUsers = updateUsers.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
-                        var service = new AccessGroupService();
                         var count = lstUserGroupMember.Count();
                         for (var i = 0; i < count; i++)
                         {
-                            var accessGroups = service.GetAccessGroupsOfUser(lstUserGroupMember[i].UserId);
+                            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(lstUserGroupMember[i].UserId);
                             foreach (var accessGroup in accessGroups)
                             {
                                 if (accessGroup.DeviceGroup == null)
@@ -438,7 +434,7 @@ namespace Biovation.Gateway.Controllers.v1
                                         restRequest.AddQueryParameter("code", device.Code.ToString());
                                         restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
 
-                                        _restClient.ExecuteTaskAsync(restRequest);
+                                        _restClient.ExecuteAsync(restRequest);
                                     }
                                 }
                             }
@@ -564,7 +560,7 @@ namespace Biovation.Gateway.Controllers.v1
                 restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
 
-                var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
             });
         }
@@ -622,7 +618,6 @@ namespace Biovation.Gateway.Controllers.v1
             try
             {
                 var resultList = new List<ResultViewModel>();
-                var accessGroupService = new AccessGroupService();
                 //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
                 var userGroupIdList = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(usersGroupIds);
 
@@ -638,7 +633,7 @@ namespace Biovation.Gateway.Controllers.v1
                     var userGroupsOfUser = _userGroupService.GetUserGroupsOfUser(userId);
                     foreach (var userGroup in userGroupsOfUser)
                     {
-                        var accessGroups = accessGroupService.GetAccessGroupsOfUserGroup(userGroup.Id, 4);
+                        var accessGroups = _accessGroupService.GetAccessGroupsOfUserGroup(userGroup.Id, 4);
                         foreach (var accessGroup in accessGroups)
                         {
                             var deviceGroups = accessGroup.DeviceGroup;
@@ -695,7 +690,7 @@ namespace Biovation.Gateway.Controllers.v1
                     //        var modifyUserGroupRestRequest =
                     //            new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember", Method.POST);
                     //        modifyUserGroupRestRequest.AddJsonBody(new List<UserGroupMember>());
-                    //       await _restClient.ExecuteTaskAsync<ResultViewModel>(modifyUserGroupRestRequest);
+                    //       await _restClient.ExecuteAsync<ResultViewModel>(modifyUserGroupRestRequest);
                     //    });
                     //}
 
@@ -706,7 +701,7 @@ namespace Biovation.Gateway.Controllers.v1
                             Task.Run(async () =>
                             {
                                 var devicesToExistsOn = new List<DeviceBasicInfo>();
-                                var accessGroups = accessGroupService.GetAccessGroupsOfUser(userId, 4);
+                                var accessGroups = _accessGroupService.GetAccessGroupsOfUser(userId, 4);
                                 foreach (var accessGroup in accessGroups)
                                 {
                                     if (accessGroup.DeviceGroup == null)
@@ -740,7 +735,7 @@ namespace Biovation.Gateway.Controllers.v1
                                     restRequest.AddQueryParameter("userId", $"[{userId}]");
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
 
-                                    var restResult = await _restClient.ExecuteTaskAsync(restRequest);
+                                    var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -761,7 +756,7 @@ namespace Biovation.Gateway.Controllers.v1
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
                                     restRequest.AddJsonBody(listOfUserId);
 
-                                    var restResult = await _restClient.ExecuteTaskAsync(restRequest);
+                                    var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -854,7 +849,7 @@ namespace Biovation.Gateway.Controllers.v1
                             if (userIds != null)
                                 restRequest.AddJsonBody(userIds);
 
-                            var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             lock (results)
                             {
                                 if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -882,7 +877,7 @@ namespace Biovation.Gateway.Controllers.v1
                         if (userIds != null)
                             restRequest.AddJsonBody(userIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -905,10 +900,10 @@ namespace Biovation.Gateway.Controllers.v1
 
     public class ParamViewModel
     {
-         public string UpdateUsers { get; set; }
-         public string ChangeUsers { get; set; }
+        public string UpdateUsers { get; set; }
+        public string ChangeUsers { get; set; }
 
-         public string GetJson()
+        public string GetJson()
         {
             var model = new ParamViewModel
             {

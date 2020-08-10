@@ -11,9 +11,9 @@ namespace Biovation.CommonClasses.Repository
     {
         private readonly GenericRepository _repository;
 
-        public FingerTemplateRepository()
+        public FingerTemplateRepository(GenericRepository repository)
         {
-            _repository = new GenericRepository();
+            _repository = repository;
         }
 
         /// <summary>

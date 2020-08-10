@@ -11,9 +11,9 @@
 
 //namespace Biovation.Gateway.Controllers.v1
 //{
-//    [Route("[controller]")]
+//    [Route("biovation/api/[controller]")]
 //    [ApiController]
-//    public class SystemInfoController : ControllerBase
+//    public class SystemInfoController : Controller
 //    {
 //        private readonly RestClient _restClient;
 
@@ -37,7 +37,7 @@
 //                    foreach (var brand in brandList)
 //                    {
 //                        var restRequest = new RestRequest($"{brand.Name}/{brand.Name}SystemInfo/GetInfo");
-//                        var requestResult = await _restClient.ExecuteTaskAsync<ResultViewModel<ModuleInfo>>(restRequest);
+//                        var requestResult = await _restClient.ExecuteAsync<ResultViewModel<ModuleInfo>>(restRequest);
 
 //                        if (requestResult.StatusCode != HttpStatusCode.OK) continue;
 

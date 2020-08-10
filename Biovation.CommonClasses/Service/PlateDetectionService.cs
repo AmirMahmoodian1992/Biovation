@@ -8,7 +8,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class PlateDetectionService
     {
-        private readonly PlateDetectionRepository _plateDetectionRepository = new PlateDetectionRepository();
+        private readonly PlateDetectionRepository _plateDetectionRepository;
+
+        public PlateDetectionService(PlateDetectionRepository plateDetectionRepository)
+        {
+            _plateDetectionRepository = plateDetectionRepository;
+        }
 
         public Task<List<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default,
             int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0,

@@ -8,7 +8,12 @@ namespace Biovation.CommonClasses.Repository
 {
     public class SettingRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public SettingRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<Setting> GetSettings(string key = default)
         {

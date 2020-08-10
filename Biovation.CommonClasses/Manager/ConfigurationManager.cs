@@ -1,18 +1,18 @@
-﻿using Biovation.CommonClasses.Service;
+﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.Configuration;
-using Microsoft.Extensions.Configuration;
 
 namespace Biovation.CommonClasses.Manager
 {
     public class BiovationConfigurationManager
     {
-        private static readonly SettingService SettingService = new SettingService();
+        //private readonly SettingService _settingService;
         public IConfiguration Configuration { get; set; }
 
-        public BiovationConfigurationManager(IConfiguration configuration)
+        public BiovationConfigurationManager(IConfiguration configuration/*, SettingService settingService*/)
         {
             Configuration = configuration;
+            //_settingService = settingService;
         }
 
         public string ConnectionStringProviderName()
@@ -41,7 +41,9 @@ namespace Biovation.CommonClasses.Manager
         }
 
         public string ConnectionStringParameters()
-            => Configuration.GetSection("ConnectionStrings")["Parameters"];
+        {
+            return Configuration.GetSection("ConnectionStrings")["Parameters"];
+        }
 
         public string ConnectionStringUsername()
         {
@@ -336,14 +338,13 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static bool ShowLiveImageInMonitoring
+        public bool ShowLiveImageInMonitoring
         {
             get
             {
                 try
                 {
-                    var databaseValue = SettingService.GetSetting("ShowLiveImageInMonitoring").Result;
-                    return string.Equals(databaseValue ?? (ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"] ?? bool.FalseString), bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {

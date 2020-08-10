@@ -13,9 +13,9 @@ namespace Biovation.CommonClasses.Repository
     {
         private readonly GenericRepository _repository;
 
-        public LogRepository()
+        public LogRepository(GenericRepository repository)
         {
-            _repository = new GenericRepository();
+            _repository = repository;
         }
 
         public Task<ResultViewModel> AddLog(Log log)

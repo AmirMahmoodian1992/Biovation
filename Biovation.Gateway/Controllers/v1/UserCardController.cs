@@ -1,24 +1,23 @@
-﻿using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class UserCardController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class UserCardController : Controller
     {
         //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();
-        private readonly UserCardService _userCard = new UserCardService();
+        private readonly UserCardService _userCard;
         private readonly RestClient _restServer;
 
-        public UserCardController()
+        public UserCardController(UserCardService userCard)
         {
-            _restServer =
-                (RestClient)new RestClient(($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}"));
+            _userCard = userCard;
+            _restServer = new RestClient(($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}"));
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
         [HttpPost]

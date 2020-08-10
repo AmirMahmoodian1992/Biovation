@@ -9,7 +9,12 @@ namespace Biovation.CommonClasses.Service.RestaurantServices
 {
     public class FoodService
     {
-        private readonly FoodRepository _foodRepository = new FoodRepository();
+        private readonly FoodRepository _foodRepository;
+
+        public FoodService(FoodRepository foodRepository)
+        {
+            _foodRepository = foodRepository;
+        }
 
         public Task<List<Food>> GetFoods(int foodId = default)
         {

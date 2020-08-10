@@ -5,18 +5,23 @@ using System.Threading.Tasks;
 
 namespace Biovation.CommonClasses.Manager
 {
-    public static class GenericCodeMappings
+    public class GenericCodeMappings
     {
-        private static readonly GenericCodeMappingService GenericCodeMappingService = new GenericCodeMappingService();
+        private readonly GenericCodeMappingService _genericCodeMappingService;
 
-        public static void FillValues()
+        public GenericCodeMappings(GenericCodeMappingService genericCodeMappingService)
+        {
+            _genericCodeMappingService = genericCodeMappingService;
+        }
+
+        public void FillValues()
         {
             Task.Run(() =>
             {
-                var logEventMappingsQuery = GenericCodeMappingService.GetGenericCodeMappings(1);
-                var logSubEventMappingsQuery = GenericCodeMappingService.GetGenericCodeMappings(2);
-                var fingerTemplateTypeMappingsQuery = GenericCodeMappingService.GetGenericCodeMappings(9);
-                var matchingTypeMappingsQuery = GenericCodeMappingService.GetGenericCodeMappings(15);
+                var logEventMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(1);
+                var logSubEventMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(2);
+                var fingerTemplateTypeMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(9);
+                var matchingTypeMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(15);
 
                 LogEventMappings = logEventMappingsQuery.Result;
                 LogSubEventMappings = logSubEventMappingsQuery.Result;
@@ -25,9 +30,9 @@ namespace Biovation.CommonClasses.Manager
             });
         }
 
-        public static List<GenericCodeMapping> LogSubEventMappings { get; set; }
-        public static List<GenericCodeMapping> LogEventMappings { get; set; }
-        public static List<GenericCodeMapping> FingerTemplateTypeMappings { get; set; }
-        public static List<GenericCodeMapping> MatchingTypeMappings { get; set; }
+        public List<GenericCodeMapping> LogSubEventMappings { get; set; }
+        public List<GenericCodeMapping> LogEventMappings { get; set; }
+        public List<GenericCodeMapping> FingerTemplateTypeMappings { get; set; }
+        public List<GenericCodeMapping> MatchingTypeMappings { get; set; }
     }
 }

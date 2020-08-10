@@ -7,7 +7,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class DeviceGroupService
     {
-        private DeviceGroupRepository _deviceRepository = new DeviceGroupRepository();
+        private readonly DeviceGroupRepository _deviceGroupRepository;
+
+        public DeviceGroupService(DeviceGroupRepository deviceGroupRepository)
+        {
+            _deviceGroupRepository = deviceGroupRepository;
+        }
 
         /// <summary>
         /// <En>Call a repository method to get all devices from database.</En>
@@ -16,22 +21,22 @@ namespace Biovation.CommonClasses.Service
         /// <returns></returns>
         public List<DeviceGroup> GetAllDeviceGroup(long userId)
         {
-            return _deviceRepository.GetDeviceGroups(null, userId);
+            return _deviceGroupRepository.GetDeviceGroups(null, userId);
         }
 
         public List<DeviceGroup> GetDeviceGroup(int id, long userId)
         {
-            return _deviceRepository.GetDeviceGroups(id, userId);
+            return _deviceGroupRepository.GetDeviceGroups(id, userId);
         }
 
         public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
         {
-            return Task.Run(() =>_deviceRepository.ModifyDeviceGroup(deviceGroup));
+            return Task.Run(() =>_deviceGroupRepository.ModifyDeviceGroup(deviceGroup));
         }
 
         public ResultViewModel ModifyDeviceGroupMember(string node, int groupId)
         {
-            return _deviceRepository.ModifyDeviceGroupMember(node, groupId);
+            return _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId);
         }
 
         public List<ResultViewModel> DeleteDeviceGroup(int[] ids)
@@ -40,7 +45,7 @@ namespace Biovation.CommonClasses.Service
 
             foreach (var id in ids)
             {
-                result.Add(_deviceRepository.DeleteDeviceGroup(id));
+                result.Add(_deviceGroupRepository.DeleteDeviceGroup(id));
             }
 
             return result;
@@ -48,12 +53,12 @@ namespace Biovation.CommonClasses.Service
 
         public List<DeviceGroup> GetAccessControlDeviceGroup(int id)
         {
-            return _deviceRepository.GetAccessControlDeviceGroup(id);
+            return _deviceGroupRepository.GetAccessControlDeviceGroup(id);
         }
 
         public List<DeviceGroup> GetDeviceGroupByAccessGroupId(int accessGroupId)
         {
-            return _deviceRepository.GetDeviceGroupsByAccessGroup(accessGroupId);
+            return _deviceGroupRepository.GetDeviceGroupsByAccessGroup(accessGroupId);
         }
     }
 }
