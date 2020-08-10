@@ -83,23 +83,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Arash.Sr7\\.nuget\\packages\\": {},
+    "C:\\Users\\Yazdizadeh\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+      "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
       "projectName": "Biovation.Gateway",
-      "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\Biovation.Gateway.csproj",
-      "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Gateway\\obj\\",
+      "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+      "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+      "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -146,7 +146,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
       }
     }
   }

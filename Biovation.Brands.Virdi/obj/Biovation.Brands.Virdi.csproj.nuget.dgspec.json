@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj": {}
+    "C:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj": {
+    "C:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj",
+        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj",
         "projectName": "Biovation.Brands.Virdi",
-        "projectPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj",
-        "packagesPath": "C:\\Users\\Arash.Sr7\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Arash.Sr7\\Source\\Repos\\biovationcore\\Biovation.Brands.Virdi\\obj\\",
+        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\Biovation.Brands.Virdi.csproj",
+        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
+        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Brands.Virdi\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Arash.Sr7\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -64,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
         }
       }
     }

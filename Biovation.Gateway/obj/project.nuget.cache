@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "6gtFk8kqE0PKRY9+m5VLHpTkv6ni/Mz1ECc9Yc8IVPSKT9g3o0dZrxZ0J+7C51dX9F1zJAQ6hHat62ZlGiIx/w==",
+  "dgSpecHash": "PpFPSc1b7M3XBmkHDMbtM30Md08NYQCWJHEPftv35InCgTmR3VokoeEG73Hn0fGfaVjg9weQtGh/29JS8Z6wiw==",
   "success": true,
-  "projectFilePath": "D:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+  "projectFilePath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\omid_\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.10.9\\microsoft.visualstudio.azure.containers.tools.targets.1.10.9.nupkg.sha512",
-    "C:\\Users\\omid_\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\3.1.2\\microsoft.aspnetcore.app.ref.3.1.2.nupkg.sha512"
+    "C:\\Users\\Yazdizadeh\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.10.9\\microsoft.visualstudio.azure.containers.tools.targets.1.10.9.nupkg.sha512"
   ],
   "logs": []
 }
