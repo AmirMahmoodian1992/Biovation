@@ -8,11 +8,37 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Service\VirdiDeviceService.cs" />
+    <Compile Remove="UniComAPI\AuditData.cs" />
+    <Compile Remove="UniComAPI\ExportAuditData.cs" />
+    <Compile Remove="UniComAPI\WindowCallbackParamOne.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Ninject" Version="3.3.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Interop.UCBioBSPCOMLib">
+      <HintPath>..\packages\Virdi.UnionCommunication\Interop.UCBioBSPCOMLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.UCSAPICOMLib">
+      <HintPath>..\packages\Virdi.UnionCommunication\Interop.UCSAPICOMLib.dll</HintPath>
+    </Reference>
+    <Reference Include="UNIONCOMM.SDK.UCBioBSP">
+      <HintPath>..\packages\Virdi.UnionCommunication\UNIONCOMM.SDK.UCBioBSP.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 

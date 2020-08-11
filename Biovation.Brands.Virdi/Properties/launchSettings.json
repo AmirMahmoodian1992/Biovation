@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "Biovation/Virdi",
+      "launchUrl": "Biovation/Api/Virdi",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,16 +20,16 @@
     "Biovation.Brands.Virdi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "Biovation/Virdi",
+      "launchUrl": "Biovation/Api/Virdi",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+      "applicationUrl": "https://localhost:9041;http://localhost:9040"
     },
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/Biovation/Virdi",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/Biovation/Api/Virdi",
       "publishAllPorts": true,
       "useSSL": true
     }
