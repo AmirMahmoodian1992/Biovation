@@ -89,27 +89,40 @@ namespace Biovation.Gateway.Controllers.v1
             }
         }
 
-        [HttpGet]
-        [Route("SearchUser")]
-        public List<User> SearchUser(string filterText, long userId)
-        {
-            try
-            {
-                return _userService.GetUser(filterText, userId);
-            }
-            catch (Exception)
-            {
-                return new List<User>();
-            }
-        }
+        //for routing problem(same address)
+        //[HttpGet]
+        //[Route("SearchUser")]
+        //public List<User> SearchUser(string filterText, long userId)
+        //{
+        //    try
+        //    {
+        //        return _userService.GetUser(filterText, userId);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return new List<User>();
+        //    }
+        //}
 
         [HttpGet]
-        [Route("SearchUser")]////////
-        public List<User> SearchUser(string filterText, int type, long userId)
+        [Route("SearchUser")]
+        public List<User> SearchUser(string filterText, long userId, int? type = null)
         {
+            if (type is null)
+            {
+                try
+                {
+                    return _userService.GetUser(filterText, userId);
+                }
+                catch (Exception)
+                {
+                    return new List<User>();
+                }
+            }
+
             try
             {
-                return _userService.GetUser(filterText, type, userId);
+                return _userService.GetUser(filterText, (int) type, userId);
             }
             catch (Exception)
             {

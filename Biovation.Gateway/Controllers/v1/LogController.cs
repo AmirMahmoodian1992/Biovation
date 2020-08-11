@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Models.ConstantValues;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using RestSharp;
 
@@ -30,19 +32,26 @@ namespace Biovation.Gateway.Controllers.v1
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
+        //for routing problem(same address)
+        //[HttpGet]
+        //[Route("Logs")]
+        //public Task<List<Log>> Logs()
+        //{
+        //    return _commonLogService.GetOfflineLogs();
+        //}
+
         [HttpGet]
         [Route("Logs")]
-        public Task<List<Log>> Logs()
+        public Task<List<Log>> Logs(DateTime? fromDate = null , DateTime? toDate = null)
         {
-
-            return _commonLogService.GetOfflineLogs();
-        }
-
-        [HttpGet]
-        [Route("Logs")]///////////////////////////////
-        public Task<List<Log>> Logs(DateTime fromDate, DateTime toDate)
-        {
-            return _commonLogService.GetOfflineLogsOfPeriod(fromDate, toDate);
+            return fromDate switch
+            {
+                null when toDate is null => _commonLogService.GetOfflineLogs(),
+                null => _commonLogService.GetOfflineLogsOfPeriod(DateTime.MinValue, (DateTime) toDate),
+                _ => toDate is null
+                    ? _commonLogService.GetOfflineLogsOfPeriod((DateTime) fromDate, DateTime.MaxValue)
+                    : _commonLogService.GetOfflineLogsOfPeriod((DateTime) fromDate, (DateTime) toDate)
+            };
         }
 
         [HttpPost]
@@ -60,50 +69,99 @@ namespace Biovation.Gateway.Controllers.v1
             return _commonLogService.SelectSearchedOfflineLogsWithPaging(dTraffic);
         }
 
+        //for routing problem(same address)
+        //[HttpPost]
+        //[Route("LogsOfDevice")]
+        //public Task<ResultViewModel> LogsOfDevice(int deviceId)
+        //{
+        //    return Task.Run(async () =>
+        //    {
+        //        var creatorUser = _userService.GetUser(123456789, false);
+
+        //        var task = new TaskInfo
+        //        {
+        //            CreatedAt = DateTimeOffset.Now,
+        //            CreatedBy = creatorUser,
+        //            TaskType = TaskTypes.GetServeLogs,
+        //            Priority = TaskPriorities.Medium,
+        //            TaskItems = new List<TaskItem>(),
+
+        //        };
+
+        //        var device = _commonDeviceService.GetDeviceInfo(deviceId);
+        //        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
+        //        restRequest.AddJsonBody(device.Code);
+        //        restRequest.AddQueryParameter("taskId", task.Id.ToString());
+
+
+        //        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+        //        //_communicationManager.CallRest(
+        //        //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
+        //        //    $"{device.Code}");
+        //        return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
+        //    });
+        //}
+
         [HttpPost]
         [Route("LogsOfDevice")]
-        public Task<ResultViewModel> LogsOfDevice(int deviceId)
+        public Task<ResultViewModel> LogsOfDevice(int deviceId, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            return Task.Run(async () =>
+            if (fromDate is null && toDate is null)
             {
-                var creatorUser = _userService.GetUser(123456789, false);
-
-                var task = new TaskInfo
+                return Task.Run(async () =>
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = TaskTypes.GetServeLogs,
-                    Priority = TaskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
+                    var creatorUser = _userService.GetUser(123456789, false);
 
-                };
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = TaskTypes.GetServeLogs,
+                        Priority = TaskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
 
-                var device = _commonDeviceService.GetDeviceInfo(deviceId);
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
-                restRequest.AddJsonBody(device.Code);
-                restRequest.AddQueryParameter("taskId", task.Id.ToString());
+                    };
+
+                    var device = _commonDeviceService.GetDeviceInfo(deviceId);
+                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
+                    restRequest.AddJsonBody(device.Code);
+                    restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
 
-                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                //_communicationManager.CallRest(
-                //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
-                //    $"{device.Code}");
-                return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
-            });
-        }
+                    var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //_communicationManager.CallRest(
+                    //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
+                    //    $"{device.Code}");
+                    return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
+                });
+            }
 
-        [HttpPost]
-        [Route("LogsOfDevice")]////////////////////////////
-        public Task<ResultViewModel> LogsOfDevice(int deviceId, DateTime fromDate, DateTime toDate)
-        {
             return Task.Run(async () =>
             {
                 var device = _commonDeviceService.GetDeviceInfo(deviceId);
 
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", Method.GET);
+                var restRequest =
+                    new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod",
+                        Method.GET);
+                if (fromDate is null)
+                {
+                    restRequest.AddQueryParameter("fromDate", (DateTime.MinValue.ToString(CultureInfo.InvariantCulture)));
+                    restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture)); restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
+
+                }
+                else if (toDate is null)
+                {
+                    restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("fromDate", ((DateTime)fromDate).ToString(CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    restRequest.AddQueryParameter("fromDate", ((DateTime)fromDate).ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
+                }
+
                 restRequest.AddQueryParameter("code", device.Code.ToString());
-                restRequest.AddQueryParameter("fromDate", fromDate.ToString(CultureInfo.InvariantCulture));
-                restRequest.AddQueryParameter("toDate", toDate.ToString(CultureInfo.InvariantCulture));
+                    
 
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
@@ -112,22 +170,32 @@ namespace Biovation.Gateway.Controllers.v1
 
                 //_communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Get", parameters);
 
-                return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
+                return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK
+                    ? result.Data
+                    : new ResultViewModel {Validate = 0, Message = result.ErrorMessage};
             });
         }
 
-        [HttpGet]
-        [Route("OfflineLogsOfDevice")]
-        public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
-        {
-            return _commonLogService.GetOfflineLogsByDeviceId(deviceId);
-        }
+        //for routing problem(same address)
+        //[HttpGet]
+        //[Route("OfflineLogsOfDevice")]
+        //public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
+        //{
+        //    return _commonLogService.GetOfflineLogsByDeviceId(deviceId);
+        //}
 
         [HttpGet]
-        [Route("OfflineLogsOfDevice")]///////////////////////////
-        public Task<List<Log>> OfflineLogsOfDevice(uint deviceId, DateTime fromDate, DateTime toDate)
+        [Route("OfflineLogsOfDevice")]
+        public Task<List<Log>> OfflineLogsOfDevice(uint deviceId, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            return _commonLogService.GetOfflineLogsOfPeriodByDeviceId(deviceId, fromDate, toDate);
+            return fromDate switch
+            {
+                null when toDate is null => _commonLogService.GetOfflineLogsByDeviceId(deviceId),
+                null => _commonLogService.GetOfflineLogsOfPeriodByDeviceId(deviceId, DateTime.MinValue, (DateTime)toDate),
+                _ => toDate is null
+                    ? _commonLogService.GetOfflineLogsOfPeriodByDeviceId(deviceId, (DateTime)fromDate, DateTime.MaxValue)
+                    : _commonLogService.GetOfflineLogsOfPeriodByDeviceId(deviceId ,(DateTime)fromDate, (DateTime)toDate)
+            };
         }
 
         [HttpGet]
@@ -147,18 +215,27 @@ namespace Biovation.Gateway.Controllers.v1
             });
         }
 
-        [HttpGet]
-        [Route("LogsOfUser")]
-        public Task<List<Log>> LogsOfUser(int userId)
-        {
-            return _commonLogService.GetOfflineLogsByUserId(userId);
-        }
+        //for routing problem(same address)
+        //[HttpGet]
+        //[Route("LogsOfUser")]
+        //public Task<List<Log>> LogsOfUser(int userId)
+        //{
+        //    return _commonLogService.GetOfflineLogsByUserId(userId);
+        //}
 
         [HttpGet]
-        [Route("LogsOfUser")]/////////////////////////////
-        public Task<List<Log>> LogsOfUser(int userId, DateTime fromDate, DateTime toDate)
+        [Route("LogsOfUser")]
+        public Task<List<Log>> LogsOfUser(int userId, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            return _commonLogService.GetOfflineLogsOfPeriodByUserId(userId, fromDate, toDate);
+
+            return fromDate switch
+            {
+                null when toDate is null => _commonLogService.GetOfflineLogsByUserId(userId),
+                null => _commonLogService.GetOfflineLogsOfPeriodByUserId(userId, DateTime.MinValue, (DateTime)toDate),
+                _ => toDate is null
+                    ? _commonLogService.GetOfflineLogsOfPeriodByUserId(userId, (DateTime)fromDate, DateTime.MaxValue)
+                    : _commonLogService.GetOfflineLogsOfPeriodByUserId(userId, (DateTime)fromDate, (DateTime)toDate)
+            };
         }
 
         [HttpPost]
