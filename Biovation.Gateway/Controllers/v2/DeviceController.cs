@@ -18,13 +18,15 @@ namespace Biovation.Gateway.Controllers.v2
     [Route("[controller]")]
     public class DeviceController : Controller
     {
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly UserService _userService = new UserService();
+        private readonly DeviceService _deviceService;
+        private readonly UserService _userService;
         private readonly RestClient _restClient;
 
-        
-        public DeviceController()
+
+        public DeviceController(DeviceService deviceService, UserService userService)
         {
+            _deviceService = deviceService;
+            _userService = userService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -40,21 +42,21 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpPost]
-        public Task<JsonResult> DeviceInfo([FromBody]DeviceBasicInfo device)
+        public Task<JsonResult> DeviceInfo([FromBody]DeviceBasicInfo device =default)
         {
             throw null;
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<JsonResult> DeleteDevice(uint id)
+        public Task<JsonResult> DeleteDevice(uint id = default)
         {
             throw null;
         }
 
         [HttpGet]
         [Route("OfflineLog")]
-        public Task<JsonResult> OfflineLogs(string deviceIds, string fromDate, string toDate)
+        public Task<JsonResult> OfflineLogs(string deviceIds = default, string fromDate = default, string toDate = default)
         {
             throw null;
         }
@@ -62,7 +64,7 @@ namespace Biovation.Gateway.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
-        public Task<JsonResult> DeleteDevices([FromBody]List<uint> ids)
+        public Task<JsonResult> DeleteDevices([FromBody]List<uint> ids = default)
         {
             throw null;
         }
@@ -82,7 +84,7 @@ namespace Biovation.Gateway.Controllers.v2
         /// <returns></returns>
         [HttpPut]
         [Route("UserFromDevice")]
-        public async Task<IActionResult> UserDevice(int deviceId, [FromBody]JArray userId)
+        public async Task<IActionResult> UserDevice(int deviceId = default, [FromBody]JArray userId = default)
         {
             //return NotFound();
             throw null;
@@ -90,28 +92,28 @@ namespace Biovation.Gateway.Controllers.v2
 
         [HttpPut]
         [Route("UsersListFromDevice")]
-        public IActionResult UsersOfDevice(int deviceId)
+        public IActionResult UsersOfDevice(int deviceId = default)
         {
             throw null;
         }
 
         [HttpPost]
         [Route("DeleteUserFromDevice")]
-        public Task<JsonResult> UsersFromDevice(int deviceId, [FromBody]JArray userId)
+        public Task<JsonResult> UsersFromDevice(int deviceId = default, [FromBody]JArray userId = default)
         {
             throw null;
         }
 
         [HttpPut]
         [Route("SendUsersToDevice")]
-        public Task<JsonResult> SendUsersToDevice(int deviceId)
+        public Task<JsonResult> SendUsersToDevice(int deviceId = default)
         {
             throw null;
         }
 
         [HttpGet]
         [Route("DeviceInfo")]
-        public Task<JsonResult> DeviceInfo(int deviceId)
+        public Task<JsonResult> DeviceInfo(int deviceId = default)
         {
             throw null;
         }
@@ -120,7 +122,7 @@ namespace Biovation.Gateway.Controllers.v2
         //TODO check it wtf?
         [HttpPost]
         [Route("DevicesDataToDevice")]
-        public Task<JsonResult> DevicesDataToDevice([FromBody]List<int> deviceIds, int deviceId = default)
+        public Task<JsonResult> DevicesDataToDevice([FromBody]List<int> deviceIds = default, int deviceId = default)
         {
             throw null;
         }

@@ -1,0 +1,28 @@
+﻿using System.Threading.Tasks;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Service;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Biovation.Gateway.Controllers.v2
+{
+
+    [Route("biovation/api/[controller]")]
+    public class PlateDetectionController : Controller
+    {
+        private readonly PlateDetectionService _plateDetectionService;
+        //private readonly RestClient _restClient;
+
+        public PlateDetectionController(PlateDetectionService plateDetectionService)
+        {
+            _plateDetectionService = plateDetectionService;
+            //_restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+        }
+
+        [HttpPost]
+        public Task<IActionResult> AddLicensePlate(LicensePlate licensePlate = default)
+        {
+            throw null;
+        }
+
+    }
+}
