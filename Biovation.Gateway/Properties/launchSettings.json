@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "Biovation",
+      "launchUrl": "Biovation/api/device/devices?userId=0",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -29,7 +29,7 @@
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/Biovation",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/Biovation/api/device/devices?userId=0",
       "publishAllPorts": true,
       "useSSL": true
     }
