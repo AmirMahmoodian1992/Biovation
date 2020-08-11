@@ -5,25 +5,30 @@ using System.Threading.Tasks;
 
 namespace Biovation.CommonClasses.Manager
 {
-    public static class Lookups
+    public class Lookups
     {
-        private static readonly LookupService LookupService = new LookupService();
+        private readonly LookupService _lookupService;
 
-        public static void FillValues()
+        public Lookups(LookupService lookupService)
+        {
+            _lookupService = lookupService;
+        }
+
+        public void FillValues()
         {
             Task.Run(() =>
             {
-                var taskStatusesQuery = LookupService.GetLookups(lookupCategoryId: 1);
-                var taskTypesQuery = LookupService.GetLookups(lookupCategoryId: 2);
-                var taskItemTypesQuery = LookupService.GetLookups(lookupCategoryId: 3);
-                var taskPrioritiesQuery = LookupService.GetLookups(lookupCategoryId: 4);
-                var fingerIndexNamesQuery = LookupService.GetLookups(lookupCategoryId: 5);
-                var deviceBrandsQuery = LookupService.GetLookups(lookupCategoryId: 6);
-                var logEventsQuery = LookupService.GetLookups(lookupCategoryId: 7);
-                var logSubEventsQuery = LookupService.GetLookups(lookupCategoryId: 8);
-                var fingerTemplateTypeQuery = LookupService.GetLookups(lookupCategoryId: 9);
-                var faceTemplateTypeQuery = LookupService.GetLookups(lookupCategoryId: 10);
-                var matchingTypeQuery = LookupService.GetLookups(lookupCategoryId: 11);
+                var taskStatusesQuery = _lookupService.GetLookups(lookupCategoryId: 1);
+                var taskTypesQuery = _lookupService.GetLookups(lookupCategoryId: 2);
+                var taskItemTypesQuery = _lookupService.GetLookups(lookupCategoryId: 3);
+                var taskPrioritiesQuery = _lookupService.GetLookups(lookupCategoryId: 4);
+                var fingerIndexNamesQuery = _lookupService.GetLookups(lookupCategoryId: 5);
+                var deviceBrandsQuery = _lookupService.GetLookups(lookupCategoryId: 6);
+                var logEventsQuery = _lookupService.GetLookups(lookupCategoryId: 7);
+                var logSubEventsQuery = _lookupService.GetLookups(lookupCategoryId: 8);
+                var fingerTemplateTypeQuery = _lookupService.GetLookups(lookupCategoryId: 9);
+                var faceTemplateTypeQuery = _lookupService.GetLookups(lookupCategoryId: 10);
+                var matchingTypeQuery = _lookupService.GetLookups(lookupCategoryId: 11);
                 TaskStatuses = taskStatusesQuery.Result;
                 TaskTypes = taskTypesQuery.Result;
                 TaskItemTypes = taskItemTypesQuery.Result;

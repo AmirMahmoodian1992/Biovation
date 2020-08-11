@@ -16,18 +16,20 @@ using Method = RestSharp.Method;
 
 namespace Biovation.Gateway.Controllers.v1.Restaurant
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class FoodController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class FoodController : Controller
     {
-        private readonly FoodService _foodService = new FoodService();
-        private readonly TaskService _taskService = new TaskService();
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly FoodService _foodService;
+        private readonly TaskService _taskService;
+        private readonly DeviceService _deviceService;
 
         private readonly RestClient _restClient;
 
-        public FoodController()
+        public FoodController(FoodService foodService, TaskService taskService, DeviceService deviceService)
         {
+            _foodService = foodService;
+            _taskService = taskService;
+            _deviceService = deviceService;
             _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
@@ -90,7 +92,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (foodIds != null)
                             restRequest.AddJsonBody(foodIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         lock (results)
                         {
@@ -136,7 +138,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (foodIds != null)
                             restRequest.AddJsonBody(foodIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         lock (results)
                         {

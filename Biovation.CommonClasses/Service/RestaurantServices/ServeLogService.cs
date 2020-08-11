@@ -8,7 +8,12 @@ namespace Biovation.CommonClasses.Service.RestaurantServices
 {
     public class ServeLogService
     {
-        private readonly ServeLogRepository _serveLogRepository = new ServeLogRepository();
+        private readonly ServeLogRepository _serveLogRepository;
+
+        public ServeLogService(ServeLogRepository serveLogRepository)
+        {
+            _serveLogRepository = serveLogRepository;
+        }
 
         public Task<List<ServeLog>> GetServeLogs(int serveLogId = default(int))
         {

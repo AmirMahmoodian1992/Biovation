@@ -7,7 +7,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class TaskService
     {
-        private readonly TaskRepository _taskRepository = new TaskRepository();
+        private readonly TaskRepository _taskRepository;
+
+        public TaskService(TaskRepository taskRepository)
+        {
+            _taskRepository = taskRepository;
+        }
 
         public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = null, List<string> excludedTaskStatusCodes = null)
         {

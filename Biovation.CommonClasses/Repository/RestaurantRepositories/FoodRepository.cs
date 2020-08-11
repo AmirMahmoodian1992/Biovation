@@ -9,7 +9,12 @@ namespace Biovation.CommonClasses.Repository.RestaurantRepositories
 {
     public class FoodRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public FoodRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<Food> GetFoods(int foodId = default(int))
         {

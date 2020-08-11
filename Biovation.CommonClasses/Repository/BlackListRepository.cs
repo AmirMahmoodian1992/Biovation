@@ -11,9 +11,9 @@ namespace Biovation.CommonClasses.Repository
     {
         private readonly GenericRepository _repository;
 
-        public BlackListRepository()
+        public BlackListRepository(GenericRepository repository)
         {
-            _repository = new GenericRepository();
+            _repository = repository;
         }
         public ResultViewModel CreateBlackList(BlackList blackList)
         {

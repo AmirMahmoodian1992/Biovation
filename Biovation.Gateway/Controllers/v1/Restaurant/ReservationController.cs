@@ -14,18 +14,20 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v1.Restaurant
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class ReservationController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class ReservationController : Controller
     {
-        private readonly ReservationService _reservationService = new ReservationService();
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly TaskService _taskService = new TaskService();
+        private readonly ReservationService _reservationService;
+        private readonly DeviceService _deviceService;
+        private readonly TaskService _taskService;
 
         private readonly RestClient _restClient;
 
-        public ReservationController()
+        public ReservationController(ReservationService reservationService, DeviceService deviceService, TaskService taskService)
         {
+            _reservationService = reservationService;
+            _deviceService = deviceService;
+            _taskService = taskService;
             _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
@@ -95,7 +97,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (reservationIds != null)
                             restRequest.AddJsonBody(reservationIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -136,7 +138,7 @@ namespace Biovation.Gateway.Controllers.v1.Restaurant
                         if (reservationIds != null)
                             restRequest.AddJsonBody(reservationIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

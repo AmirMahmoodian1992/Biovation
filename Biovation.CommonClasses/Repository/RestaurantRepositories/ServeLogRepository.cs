@@ -13,7 +13,12 @@ namespace Biovation.CommonClasses.Repository.RestaurantRepositories
 {
     public class ServeLogRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public ServeLogRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<ServeLog> GetServeLogs(int serveLogId = default(int))
         {

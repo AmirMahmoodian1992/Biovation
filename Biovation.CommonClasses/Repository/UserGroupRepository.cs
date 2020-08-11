@@ -13,9 +13,9 @@ namespace Biovation.CommonClasses.Repository
     {
         private readonly GenericRepository _repository;
 
-        public UserGroupRepository()
+        public UserGroupRepository(GenericRepository repository)
         {
-            _repository = new GenericRepository();
+            _repository = repository;
         }
 
         /// <summary>

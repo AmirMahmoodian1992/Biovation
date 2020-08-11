@@ -10,7 +10,12 @@ namespace Biovation.CommonClasses.Repository
 {
     public class TaskRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public TaskRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default)
         {

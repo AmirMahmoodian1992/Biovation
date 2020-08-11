@@ -8,17 +8,18 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class TimeZoneController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class TimeZoneController : Controller
     {
         //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
-        private readonly TimeZoneService _timeZoneService = new TimeZoneService();
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly TimeZoneService _timeZoneService;
+        private readonly DeviceService _deviceService;
         private readonly RestClient _restServer;
 
-        public TimeZoneController()
+        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService)
         {
+            _deviceService = deviceService;
+            _timeZoneService = timeZoneService;
             _restServer =
                 (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");

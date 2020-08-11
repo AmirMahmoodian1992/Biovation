@@ -8,7 +8,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class BlackListService
     {
-        private readonly BlackListRepository _blackListRepository = new BlackListRepository();
+        private readonly BlackListRepository _blackListRepository;
+
+        public BlackListService(BlackListRepository blackListRepository)
+        {
+            _blackListRepository = blackListRepository;
+        }
 
         public List<ResultViewModel> CreateBlackList(List<BlackList> blackLists)
         {

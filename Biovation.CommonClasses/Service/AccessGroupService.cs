@@ -6,22 +6,28 @@ namespace Biovation.CommonClasses.Service
 {
     public class AccessGroupService
     {
+        private readonly AccessGroupRepository _accessGroupRepository;
+
+        public AccessGroupService(AccessGroupRepository accessGroupRepository)
+        {
+            _accessGroupRepository = accessGroupRepository;
+        }
+
         public ResultViewModel ModifyAccessGroup(AccessGroup accessGroup, string deviceGroup, string userGroup, string adminUsers)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            var saved = accessGroupRepository.ModifyAccessGroup(accessGroup);
+            var saved = _accessGroupRepository.ModifyAccessGroup(accessGroup);
             if (saved.Validate != 1)
                 return new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
 
-            var dsaved = accessGroupRepository.ModifyAccessGroupDeviceGroup(deviceGroup, (int)saved.Id);
+            var dsaved = _accessGroupRepository.ModifyAccessGroupDeviceGroup(deviceGroup, (int)saved.Id);
             if (dsaved.Validate != 1)
                 return new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
 
-            var asaved = accessGroupRepository.ModifyAccessGroupAdminUsers(adminUsers, (int)saved.Id);
+            var asaved = _accessGroupRepository.ModifyAccessGroupAdminUsers(adminUsers, (int)saved.Id);
             if (asaved.Validate != 1)
                 return new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
 
-            var gsaved = accessGroupRepository.ModifyAccessGroupUserGroup(userGroup, (int)saved.Id);
+            var gsaved = _accessGroupRepository.ModifyAccessGroupUserGroup(userGroup, (int)saved.Id);
             return gsaved;
 
 
@@ -29,30 +35,26 @@ namespace Biovation.CommonClasses.Service
 
         public List<AccessGroup> GetAllAccessGroups(long userId = 0, int getNestingLevel = 3)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.GetAccessGroups(userId, getNestingLevel);
+            return _accessGroupRepository.GetAccessGroups(userId, getNestingLevel);
         }
 
         public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.GetAccessGroupsByFilter(adminUserId,userGroupId,id,deviceId,userId);
+            return _accessGroupRepository.GetAccessGroupsByFilter(adminUserId,userGroupId,id,deviceId,userId);
 
         }
 
         public List<AccessGroup> SearchAccessGroups(int accessGroupId, int deviceGroupId, int userId)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.SearchAccessGroup(accessGroupId, deviceGroupId, userId);
+            return _accessGroupRepository.SearchAccessGroup(accessGroupId, deviceGroupId, userId);
         }
 
         public AccessGroup GetAccessGroupById(int accessGroupId, int getNestingLevel = 3)
         {
-            var accessGroupRepository = new AccessGroupRepository();
             //var deviceGroupRepository = new DeviceGroupRepository();
             //var userGroupRepository = new UserGroupRepository();
 
-            var accessGroup = accessGroupRepository.GetAccessGroup(accessGroupId, getNestingLevel);
+            var accessGroup = _accessGroupRepository.GetAccessGroup(accessGroupId, getNestingLevel);
 
             //if (accessGroup != null)
             //{
@@ -67,11 +69,10 @@ namespace Biovation.CommonClasses.Service
 
         public List<AccessGroup> GetAccessGroupsOfUser(long userId, int getNestingLevel = 3)
         {
-            var accessGroupRepository = new AccessGroupRepository();
             //var deviceGroupRepository = new DeviceGroupRepository();
             //var userGroupRepository = new UserGroupRepository();
 
-            var accessGroups = accessGroupRepository.GetAccessGroupsOfUser(userId, getNestingLevel);
+            var accessGroups = _accessGroupRepository.GetAccessGroupsOfUser(userId, getNestingLevel);
 
             //foreach (var accessGroup in accessGroups)
             //{
@@ -86,11 +87,10 @@ namespace Biovation.CommonClasses.Service
 
         public List<AccessGroup> GetAccessGroupsOfDevice(uint deviceId, int getNestingLevel = 3)
         {
-            var accessGroupRepository = new AccessGroupRepository();
             //var deviceGroupRepository = new DeviceGroupRepository();
             //var userGroupRepository = new UserGroupRepository();
 
-            var accessGroups = accessGroupRepository.GetAccessGroupsOfDevice(deviceId, getNestingLevel);
+            var accessGroups = _accessGroupRepository.GetAccessGroupsOfDevice(deviceId, getNestingLevel);
 
             //foreach (var accessGroup in accessGroups)
             //{
@@ -105,11 +105,10 @@ namespace Biovation.CommonClasses.Service
 
         public List<AccessGroup> GetAccessGroupsOfUserGroup(int userGroupId, int getNestingLevel = 3)
         {
-            var accessGroupRepository = new AccessGroupRepository();
             //var deviceGroupRepository = new DeviceGroupRepository();
             //var userGroupRepository = new UserGroupRepository();
 
-            var accessGroups = accessGroupRepository.GetAccessGroupsOfUserGroup(userGroupId, getNestingLevel);
+            var accessGroups = _accessGroupRepository.GetAccessGroupsOfUserGroup(userGroupId, getNestingLevel);
 
             //foreach (var accessGroup in accessGroups)
             //{
@@ -124,26 +123,22 @@ namespace Biovation.CommonClasses.Service
 
         public ResultViewModel DeleteAccessGroupById(int accessGroupId)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.DeleteAccessGroup(accessGroupId);
+            return _accessGroupRepository.DeleteAccessGroup(accessGroupId);
         }
 
         public List<DeviceBasicInfo> GetDeviceOfAccessGroup(int accessGroupId)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId);
+            return _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId);
         }
 
         public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheNoTemplate(long userId = 0)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.GetServerSideIdentificationCacheNoTemplate(userId);
+            return _accessGroupRepository.GetServerSideIdentificationCacheNoTemplate(userId);
         }
 
         public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId = 0)
         {
-            var accessGroupRepository = new AccessGroupRepository();
-            return accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode, userId);
+            return _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode, userId);
         }
     }
 }

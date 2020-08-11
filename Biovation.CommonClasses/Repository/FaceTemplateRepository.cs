@@ -14,9 +14,9 @@ namespace Biovation.CommonClasses.Repository
     {
         private readonly GenericRepository _repository;
 
-        public FaceTemplateRepository()
+        public FaceTemplateRepository(GenericRepository repository)
         {
-            _repository = new GenericRepository();
+            _repository = repository;
         }
 
         /// <summary>

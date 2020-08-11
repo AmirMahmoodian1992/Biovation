@@ -7,7 +7,12 @@ namespace Biovation.CommonClasses.Service
 {
     public class UserGroupService
     {
-        private readonly UserGroupRepository _userGroupRepository = new UserGroupRepository();
+        private readonly UserGroupRepository _userGroupRepository;
+
+        public UserGroupService(UserGroupRepository userGroupRepository)
+        {
+            _userGroupRepository = userGroupRepository;
+        }
 
         public Task<ResultViewModel> ModifyUserGroup(UserGroup userGroup)
         {
@@ -49,8 +54,7 @@ namespace Biovation.CommonClasses.Service
 
         public ResultViewModel SyncUserGroupMember(string lstUser)
         {
-            var accessGroupRepository = new UserGroupRepository();
-            return accessGroupRepository.SyncUserGroupMember(lstUser);
+            return _userGroupRepository.SyncUserGroupMember(lstUser);
         }
     }
 }

@@ -7,7 +7,12 @@ namespace Biovation.CommonClasses.Repository
 {
     public class LookupRepository
     {
-        private readonly GenericRepository _repository = new GenericRepository();
+        private readonly GenericRepository _repository;
+
+        public LookupRepository(GenericRepository repository)
+        {
+            _repository = repository;
+        }
 
         public List<Lookup> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default)
         {

@@ -8,11 +8,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class TaskController : ControllerBase
+    [Route("biovation/api/[controller]")]
+    public class TaskController : Controller
     {
-        private readonly TaskService _taskService = new TaskService();
+        private readonly TaskService _taskService;
+
+        public TaskController(TaskService taskService)
+        {
+            _taskService = taskService;
+        }
 
         [HttpPatch]
         [Route("TaskExecutionStatus")]
