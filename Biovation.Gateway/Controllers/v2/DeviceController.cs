@@ -18,13 +18,15 @@ namespace Biovation.Gateway.Controllers.v2
     [Route("[controller]")]
     public class DeviceController : Controller
     {
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly UserService _userService = new UserService();
+        private readonly DeviceService _deviceService;
+        private readonly UserService _userService;
         private readonly RestClient _restClient;
 
-        
-        public DeviceController()
+
+        public DeviceController(DeviceService deviceService, UserService userService)
         {
+            _deviceService = deviceService;
+            _userService = userService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
