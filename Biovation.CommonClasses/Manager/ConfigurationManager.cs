@@ -226,7 +226,7 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static int VirdiDevicesConnectionPort
+        public int VirdiDevicesConnectionPort
         {
             get
             {

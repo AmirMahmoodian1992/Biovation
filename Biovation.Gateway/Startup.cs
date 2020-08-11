@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
 
 namespace Biovation.Gateway
 {
@@ -42,6 +44,7 @@ namespace Biovation.Gateway
             services.AddControllers();
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
+            services.AddOcelot();
 
             ConfigureRepositoriesServices(services);
         }
@@ -143,7 +146,7 @@ namespace Biovation.Gateway
                 endpoints.MapControllers();
             });
 
-
+            app.UseOcelot().Wait();
 
             //app.UseEndpoints(endpoints =>
             //{
