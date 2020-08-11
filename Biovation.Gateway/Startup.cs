@@ -132,7 +132,7 @@ namespace Biovation.Gateway
             //        template: "{controller=Main}/{action=Index}/{id?}");
             //});
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 

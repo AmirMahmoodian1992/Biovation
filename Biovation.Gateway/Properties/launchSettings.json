@@ -20,12 +20,11 @@
     "Biovation.Gateway": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "Biovation",
+      "launchUrl": "http://localhost:9038/Biovation/api/device/devices?userId=0",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      //"applicationUrl": "https://localhost:5001;http://localhost:5000",
-      "applicationUrl": "http://192.168.2.196:9038"
+      "applicationUrl": "http://0.0.0.0:9038;https://0.0.0.0:9039"
     },
     "Docker": {
       "commandName": "Docker",
