@@ -42,29 +42,29 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpPost]
-        public Task<JsonResult> DeviceInfo([FromBody]DeviceBasicInfo device)
+        public Task<JsonResult> DeviceInfo([FromBody]DeviceBasicInfo device =default)
         {
             throw null;
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<JsonResult> DeleteDevice(uint id)
+        public Task<JsonResult> DeleteDevice(uint id = default)
         {
             throw null;
         }
 
         [HttpGet]
-        [Route("OfflineLog")]
-        public Task<JsonResult> OfflineLogs(string deviceIds, string fromDate, string toDate)
+        [Route("OfflineLogs/{ids}")]
+        public Task<JsonResult> OfflineLogs(string ids = default, string fromDate = default, string toDate = default)
         {
             throw null;
         }
 
 
         [HttpPost]
-        [Route("DeleteDevices")]
-        public Task<JsonResult> DeleteDevices([FromBody]List<uint> ids)
+        [Route("DeleteDevice")]
+        public Task<JsonResult> DeleteDevice([FromBody]List<uint> ids = default)
         {
             throw null;
         }
@@ -83,37 +83,37 @@ namespace Biovation.Gateway.Controllers.v2
         /// <param name="userId">Json list of userIds</param>
         /// <returns></returns>
         [HttpPut]
-        [Route("UserFromDevice")]
-        public async Task<IActionResult> UserDevice(int deviceId, [FromBody]JArray userId)
+        [Route("UserFromDevice/{id}")]
+        public async Task<IActionResult> UserDevice(int id = default, [FromBody]JArray userId = default)
         {
             //return NotFound();
             throw null;
         }
 
         [HttpPut]
-        [Route("UsersListFromDevice")]
-        public IActionResult UsersOfDevice(int deviceId)
+        [Route("UsersListFromDevice/{id}")]
+        public Task<IActionResult> UsersOfDevice(int id = default)
         {
             throw null;
         }
 
         [HttpPost]
-        [Route("DeleteUserFromDevice")]
-        public Task<JsonResult> UsersFromDevice(int deviceId, [FromBody]JArray userId)
+        [Route("DeleteUserFromDevice/{id}/{userId}")]
+        public Task<JsonResult> UsersFromDevice(int id = default, [FromBody]JArray userId = default)
         {
             throw null;
         }
 
         [HttpPut]
-        [Route("SendUsersToDevice")]
-        public Task<JsonResult> SendUsersToDevice(int deviceId)
+        [Route("SendUsersToDevice/{id}")]
+        public Task<JsonResult> SendUsersToDevice(int id = default)
         {
             throw null;
         }
 
         [HttpGet]
-        [Route("DeviceInfo")]
-        public Task<JsonResult> DeviceInfo(int deviceId)
+        [Route("DeviceInfo/{id}")]
+        public Task<JsonResult> DeviceInfo(int id = default)
         {
             throw null;
         }
@@ -121,8 +121,8 @@ namespace Biovation.Gateway.Controllers.v2
 
         //TODO check it wtf?
         [HttpPost]
-        [Route("DevicesDataToDevice")]
-        public Task<JsonResult> DevicesDataToDevice([FromBody]List<int> deviceIds, int deviceId = default)
+        [Route("DevicesDataToDevice/{id}")]
+        public Task<JsonResult> DevicesDataToDevice([FromBody]List<int> ids = default, int id = default)
         {
             throw null;
         }
