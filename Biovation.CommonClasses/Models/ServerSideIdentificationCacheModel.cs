@@ -7,10 +7,10 @@ namespace Biovation.CommonClasses.Models
         [Id]
         public int Id { get; set; }
         public int AccessGroupId { get; set; }
-        public int UserId { get; set; }
+        public long UserId { get; set; }
         public int UserType { get; set; }
-        public int DeviceId { get; set; }
-        public int DeviceCode { get; set; }
+        public long DeviceId { get; set; }
+        public long DeviceCode { get; set; }
         [OneToOne]
         public FingerTemplate FingerTemplate { get; set; }
         [OneToOne]

@@ -10,10 +10,6 @@ namespace Biovation.CommonClasses.Service
     {
         private readonly DeviceRepository _deviceRepository;
 
-        public DeviceService()
-        {
-            
-        }
         public DeviceService(DeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;

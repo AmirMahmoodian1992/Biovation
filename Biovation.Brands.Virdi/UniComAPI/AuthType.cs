@@ -1,0 +1,33 @@
+﻿namespace Biovation.Brands.Virdi.UniComAPI
+{
+	public enum AuthType : byte
+	{
+		None,
+		Fp,
+		FpCard,
+		Password,
+		Card,
+		CardOrFp,
+		CardAndFp,
+		CardOrPassword,
+		CardAndPassword,
+		IDOrCardAndFp,
+		IDOrCardAndPassword,
+		FpAndPassword,
+		FpOrPassword,
+		CardAndPasswordAndFp,
+		Face,
+		FaceOrPassword,
+		CardOrFace,
+		FpOrFace,
+		CardOrFpOrFace,
+		CardAndFace,
+		IDFaceOrCardFace,
+		FpAndFace,
+		FaceAndPassword,
+		CardAndFpAndFace,
+		CardAndFaceAndPassword,
+		FpAndFaceAndPassword,
+		CardAndFpAndFaceAndPassword
+	}
+}

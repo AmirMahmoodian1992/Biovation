@@ -1,0 +1,28 @@
+{
+  "exclude": [
+    "**/bin",
+    "**/bower_components",
+    "**/jspm_packages",
+    "**/node_modules",
+    "**/obj",
+    "**/platforms"
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:9038",
+    "UseServiceDiscovery": false
+  },
+  "ReRoutes": [
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/virdi/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9040
+        }
+      ]
+    }
+  ]
+}

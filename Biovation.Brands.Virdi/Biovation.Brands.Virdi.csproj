@@ -7,13 +7,83 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Service\VirdiDeviceService.cs" />
+    <Compile Remove="UniComAPI\AuditData.cs" />
+    <Compile Remove="UniComAPI\ExportAuditData.cs" />
+    <Compile Remove="UniComAPI\WindowCallbackParamOne.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Ninject" Version="3.3.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Interop.UCBioBSPCOMLib">
+      <HintPath>Libraries\Interop.UCBioBSPCOMLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.UCSAPICOMLib">
+      <HintPath>Libraries\Interop.UCSAPICOMLib.dll</HintPath>
+    </Reference>
+    <Reference Include="UNIONCOMM.SDK.UCBioBSP">
+      <HintPath>Libraries\UNIONCOMM.SDK.UCBioBSP.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ContentWithTargetPath Include="Libraries\FPLib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>FPLib.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\NSearchMC.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>NSearchMC.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\UCBioBSP.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>UCBioBSP.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\UCBioBSPCOM.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>UCBioBSPCOM.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\UCSAPI40.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>UCSAPI40.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\UCSAPICOM.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>UCSAPICOM.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\VHMLib.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>VHMLib.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\VirdiFP.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>VirdiFP.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\WSEngine.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>WSEngine.dll</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
 
 </Project>

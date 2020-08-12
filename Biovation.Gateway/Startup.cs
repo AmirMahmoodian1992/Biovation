@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
 
 namespace Biovation.Gateway
 {
@@ -31,6 +33,7 @@ namespace Biovation.Gateway
                 .SetBasePath(environment.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
+                .AddJsonFile("ocelot.json")
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -42,6 +45,7 @@ namespace Biovation.Gateway
             services.AddControllers();
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
+            services.AddOcelot(Configuration);
 
             ConfigureRepositoriesServices(services);
         }
@@ -119,7 +123,7 @@ namespace Biovation.Gateway
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -134,6 +138,7 @@ namespace Biovation.Gateway
 
             //app.UseHttpsRedirection();
 
+            await app.UseOcelot();
             app.UseRouting();
 
             app.UseAuthorization();
@@ -142,7 +147,6 @@ namespace Biovation.Gateway
             {
                 endpoints.MapControllers();
             });
-
 
 
             //app.UseEndpoints(endpoints =>
