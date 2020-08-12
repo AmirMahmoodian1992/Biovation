@@ -36,19 +36,27 @@ namespace Biovation.Gateway.Controllers.v2
             throw null;
         }
 
+        [HttpPost]
+        public Task<IActionResult> AddAccessGroup([FromBody]AccessGroup accessGroup)
+        {
+            throw null;
+        }
+
         [HttpPatch]
-        public Task<IActionResult> ModifyAccessGroup(string accessGroup, string deviceGroup, string userGroup, string adminUserIds)
+        public Task<IActionResult> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
             throw null;
         }
 
         [HttpDelete]
-        public Task<IActionResult> DeleteAccessGroups(int id)
+        [Route("{id}")]
+        public Task<IActionResult> DeleteAccessGroups(int id = default)
         {
             throw null;
         }
 
         [HttpPost]
+        [Route("AllUsersToAllDevicesInAccessGroup/{accessGroup}")]
         public Task<IActionResult> SendAllUsersToAllDevicesInAccessGroup(int accessGroupId = default)
         {
             throw null;
