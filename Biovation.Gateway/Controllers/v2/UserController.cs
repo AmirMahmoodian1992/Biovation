@@ -41,6 +41,12 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
 
+        [HttpPost]
+        public Task<IActionResult> AddUser([FromBody] User user)
+        {
+            throw null;
+        }
+
         [HttpPut]
         public Task<IActionResult> ModifyUser([FromBody] User user)
         {
@@ -48,7 +54,17 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpDelete]
-        public Task<IActionResult> DeleteUser(int[] ids = default)
+        [Route("{id}")]
+        public Task<IActionResult> DeleteUser(int id = default)
+        {
+            throw null;
+        }
+
+
+        //batch delete
+        [HttpPost]
+        [Route("/DeleteUser")]
+        public Task<IActionResult> DeleteUser([FromBody]List<int> ids = default)
         {
             throw null;
         }
@@ -56,7 +72,7 @@ namespace Biovation.Gateway.Controllers.v2
 
         //if deviceId == 0 then send ids to all of device
         [HttpPut]
-        [Route("{deviceId}")]
+        [Route("UsersToDevice/{deviceId}")]
         public Task<IActionResult> SendUsersToDevice([FromBody]int[] ids, string deviceId = default)
         {
             throw null;
@@ -64,7 +80,7 @@ namespace Biovation.Gateway.Controllers.v2
 
 
         [HttpPatch]
-        [Route("{id}")]
+        [Route("Password/{id}")]
         public Task<IActionResult> ModifyPassword(int id = default, string password = default)
         {
             throw null;
@@ -196,7 +212,7 @@ namespace Biovation.Gateway.Controllers.v2
 
         [HttpPatch]
         [Route("UserGroupsOfUsers")]
-        public Task<IActionResult> UpdateUserGroupsOfUser(string usersGroupIds = default, long id = default, bool sendUsersToDevice = default)
+        public Task<IActionResult> UpdateUserGroupsOfUser([FromBody]List<int> usersGroupIds = default, long id = default, bool sendUsersToDevice = default)
         {
             throw null;
         }

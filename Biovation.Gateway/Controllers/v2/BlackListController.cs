@@ -24,7 +24,7 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpPost]
-        public Task<IActionResult> CreateBlackList(List<BlackList> blackLists = default)
+        public Task<IActionResult> CreateBlackList([FromBody]List<BlackList> blackLists = default)
         {
 
             throw null;
@@ -34,17 +34,19 @@ namespace Biovation.Gateway.Controllers.v2
 
 
         [HttpGet]
+        [Route("{id}")]
         public Task<IActionResult> GetBlackList(int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
         {
             throw null;
         }
 
         [HttpPut]
-        public Task<IActionResult> ChangeBlackList(BlackList blackList = default)
+        public Task<IActionResult> ChangeBlackList([FromBody]BlackList blackList = default)
         {
             throw null;
         }
         [HttpDelete]
+        [Route("{id}")]
         public Task<IActionResult> DeleteBlackList(int id = default)
         {
             throw null;

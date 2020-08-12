@@ -39,17 +39,10 @@ namespace Biovation.Gateway.Controllers.v2.Restaurant
         }
 
         [HttpGet]
-        [Route("MealTimings")]
-        public Task<IActionResult> GetMealTimings(int mealTimingId = default, int taskItemId = default)
+        [Route("MealTimings/{id}")]
+        public Task<IActionResult> GetMealTimings(int id, int timingId = default, int taskItemId = default)
         {
             throw null;
-        }
-
-        [HttpGet]
-        [Route("GetMealTimingsByMealId")]
-        public Task<List<MealTiming>> GetMealTimingsByMealId(int mealId)
-        {
-            return _mealService.GetMealTimingsByMealId(mealId);
         }
 
         [HttpPost]
@@ -80,9 +73,19 @@ namespace Biovation.Gateway.Controllers.v2.Restaurant
             throw null;
         }
 
-        [HttpDelete]
+
+        //batch delete
+        [HttpPost]
         [Route("MealTimingsFromDevice/{deviceId}")]
         public Task<IActionResult> DeleteMealTimingsFromDevice([FromBody]List<int> timingIds, int deviceId = default)
+        {
+            throw null;
+        }
+
+
+        [HttpDelete]
+        [Route("MealTimingsFromDevice/{timingId}/{deviceId}")]
+        public Task<IActionResult> DeleteMealTimingsFromDevice(int timingId, int deviceId = default)
         {
             throw null;
         }

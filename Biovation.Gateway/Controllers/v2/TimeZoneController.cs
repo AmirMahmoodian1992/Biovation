@@ -32,6 +32,12 @@ namespace Biovation.Gateway.Controllers.v2
             throw null;
         }
 
+        [HttpPost]
+        public Task<IActionResult> AddTimeZone([FromBody]TimeZone timeZone = default)
+        {
+            throw null;
+        }
+
 
         [HttpDelete]
         [Route("{id}")]
@@ -41,8 +47,7 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpPut]
-        [Route("{timeZone}")]
-        public Task<IActionResult> ModifyTimeZone(TimeZone timeZone = default)
+        public Task<IActionResult> ModifyTimeZone([FromBody]TimeZone timeZone = default)
         {
             throw null;
         }

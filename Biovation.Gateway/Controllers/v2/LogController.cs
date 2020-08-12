@@ -39,13 +39,23 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpDelete]
-        public Task<IActionResult> ClearLogOfDevice(string deviceIds = default, string fromDate = default, string toDate = default)
+        [Route("{deviceId}")]
+        public Task<IActionResult> ClearLogOfDevice(int deviceId = default, string fromDate = default, string toDate = default)
+        {
+            throw null;
+        }
+
+
+        //batch delete
+        [HttpPost]
+        [Route("ClearLogOfDevice")]
+        public Task<IActionResult> ClearLogOfDevice([FromBody]List<int> deviceIds = default, string fromDate = default, string toDate = default)
         {
             throw null;
         }
 
         [HttpGet]
-        [Route("LogsOfDevice")]
+        [Route("LogsOfDevice/{deviceId}")]
         public Task<IActionResult> LogsOfDevice(int deviceId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
         {
             throw null;
@@ -53,14 +63,14 @@ namespace Biovation.Gateway.Controllers.v2
 
 
         [HttpGet]
-        [Route("Image")]
+        [Route("Image/{id}")]
         public Task<IActionResult> GetImage(long id = default)
         {
             throw null;
         }
 
         [HttpGet]
-        [Route("LogsOfUser")]
+        [Route("LogsOfUser{userId}")]
         public Task<IActionResult> LogsOfUser(int userId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
         {
             throw null;
@@ -77,7 +87,7 @@ namespace Biovation.Gateway.Controllers.v2
         //convert offline logs
         [HttpPost]
         [Route("OfflineLogs")]
-        public Task<IActionResult> transmitOfflineLogs(long userId, string dTraffic , bool resendLogs = default)
+        public Task<IActionResult> TransmitOfflineLogs(long userId = default, string dTraffic = default , bool resendLogs = default)
         {
             throw null;
         }

@@ -50,6 +50,13 @@ namespace Biovation.Gateway.Controllers.v2.Restaurant
             throw null;
         }
 
+        [HttpDelete]
+        [Route("{id}/{deviceId}")]
+        public Task<IActionResult> DeleteReservationsFromDevice(int id, int deviceId = default)
+        {
+            throw null;
+        }
+
         [HttpPut]
         [Route("ReservationsToDevice/{deviceId}")]
         public Task<IActionResult> SendReservationsToDevice([FromBody]List<int> reservationIds, int deviceId = default)
@@ -57,9 +64,10 @@ namespace Biovation.Gateway.Controllers.v2.Restaurant
             throw null;
         }
 
-        [HttpDelete]
-        [Route("{id}")]
-        public Task<IActionResult> DeleteReservationsFromDevice(int id, int deviceId = default)
+        //batch delete
+        [HttpPost]
+        [Route("DeleteReservationsFromDevice/{deviceId}")]
+        public Task<IActionResult> DeleteReservationsFromDevice([FromBody]List<int> ids, int deviceId = default)
         {
             throw null;
         }

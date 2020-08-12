@@ -20,33 +20,42 @@ namespace Biovation.Gateway.Controllers.v2
 
 
         [HttpGet]
-        public List<FingerTemplate> GetFingerTemplateByUserId(long userId = default, int templateIndex = default)
+        [Route("{userId}")]
+        public Task<IActionResult> GetFingerTemplateByUserId(long userId = default, int templateIndex = default)
         {
             throw null;
         }
 
-        [HttpPut]
-        public ResultViewModel ModifyUser(FingerTemplate fingerTemplate =default)
+        [HttpPost]
+        [Route("{userId}")]
+        public Task<IActionResult> AddUserFingerTemplate([FromBody]FingerTemplate fingerTemplate = default)
+        {
+            throw null;
+        }
+
+        [HttpPatch]
+        public Task<IActionResult> ModifyUserFingerTemplate([FromBody]FingerTemplate fingerTemplate =default)
         {
             throw null;
         }
 
         [HttpDelete]
-        public ResultViewModel DeleteFingerTemplateByUserId(int userId = default, int templateIndex = default)
+        [Route("{userId}")]
+        public Task<IActionResult> DeleteFingerTemplateByUserId(int userId = default, int templateIndex = default)
         {
             throw null;
         }
 
         [HttpGet]
         [Route("TemplateCount")]
-        public List<UserTemplateCount> GetTemplateCount()
+        public Task<IActionResult> GetTemplateCount()
         {
             throw null;
         }
 
         [HttpGet]
         [Route("FingerTemplateTypes")]
-        public Task<ResultViewModel<List<Lookup>>> GetFingerTemplateTypes(string brandId = default)
+        public Task<IActionResult> GetFingerTemplateTypes(string brandId = default)
         {
             throw null;
         }

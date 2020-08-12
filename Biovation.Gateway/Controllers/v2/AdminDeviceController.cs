@@ -28,7 +28,14 @@ namespace Biovation.Gateway.Controllers.v2
         //}
 
         [HttpGet]
-        public Task<IActionResult> GetAdminDevicesByPersonId(int personId = default)
+        [Route("{id}")]
+        public Task<IActionResult> GetAdminDevicesByPersonId(int id = default)
+        {
+            throw null;
+        }
+
+        [HttpPost]
+        public Task<IActionResult> AddAdminDevice([FromBody]AdminDevice adminDevice = default)
         {
             throw null;
         }

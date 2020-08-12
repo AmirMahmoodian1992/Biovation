@@ -39,16 +39,30 @@ namespace Biovation.Gateway.Controllers.v2.Restaurant
             throw null;
         }
 
+        [HttpPost]
+        public Task<IActionResult> AddRestaurants([FromBody]List<CommonClasses.Models.RestaurantModels.Restaurant> restaurants)
+        {
+            throw null;
+        }
+
         [HttpPut]
         public Task<IActionResult> ModifyRestaurants([FromBody]List<CommonClasses.Models.RestaurantModels.Restaurant> restaurants)
         {
             throw null;
         }
 
+        //batch delete
+        [HttpPost]
+        [Route("DeleteRestaurantsFromDevice/{deviceId}")]
+        public Task<IActionResult> DeleteRestaurantsFromDevice([FromBody]List<int> restaurantIds, int deviceId = default)
+        {
+            throw null;
+        }
 
+        
         [HttpDelete]
         [Route("{deviceId}")]
-        public Task<IActionResult> DeleteRestaurantsFromDevice([FromBody]List<int> restaurantIds, int deviceId = default)
+        public Task<IActionResult> DeleteRestaurantsFromDevice(int restaurantId, int deviceId = default)
         {
             throw null;
         }

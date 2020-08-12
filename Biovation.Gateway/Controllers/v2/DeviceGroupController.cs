@@ -29,26 +29,47 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpGet]
+        [Route("{id}")]
         public Task<IActionResult> GetDeviceGroup(int id = default, long userId = default)
         {
             throw null;
         }
 
-        [HttpPut]
-        public Task<IActionResult> ModifyDeviceGroup(DeviceGroup deviceGroup = default)
+        [HttpPost]
+        public Task<IActionResult> AddDeviceGroup([FromBody]DeviceGroup deviceGroup = default)
         {
             throw null;
         }
 
+
+        [HttpPut]
+        public Task<IActionResult> ModifyDeviceGroup([FromBody]DeviceGroup deviceGroup = default)
+        {
+            throw null;
+        }
+
+
+
         [HttpDelete]
+        [Route("{id}")]
+        public Task<IActionResult> DeleteDeviceGroup( int id = default)
+        {
+            throw null;
+        }
+
+
+        //batch delete
+        [HttpPost]
+        [Route("DeleteDeviceGroups")]
         public Task<IActionResult> DeleteDeviceGroup([FromBody] int[] ids = default)
         {
             throw null;
         }
 
 
+
         [HttpGet]
-        [Route("AccessControlDeviceGroup")]
+        [Route("AccessControlDeviceGroup/{id}")]
         public Task<IActionResult> GetAccessControlDeviceGroup(int id =default)
         {
             throw null;

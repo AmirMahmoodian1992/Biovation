@@ -23,8 +23,13 @@ namespace Biovation.Gateway.Controllers.v2
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
 
+        [HttpPost]
+        public Task<IActionResult> MAddUserCard([FromBody]UserCard card = default)
+        {
+            throw null;
+        }
+
         [HttpPut]
-        [Route("{card}")]
         public Task<IActionResult> ModifyUserCard([FromBody]UserCard card = default)
         {
             throw null;
@@ -45,7 +50,7 @@ namespace Biovation.Gateway.Controllers.v2
         }
 
         [HttpGet]
-        [Route("cardNumber")]
+        [Route("cardNumber/{deviceId}")]
         public Task<IActionResult> ReadCardNumber(string brandName = default, int deviceId = default)
         {
             throw null;

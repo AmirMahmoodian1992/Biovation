@@ -33,13 +33,20 @@ namespace Biovation.Gateway.Controllers.v2
 
 
         [HttpGet]
+        [Route("{id}")]
         public Task<IActionResult> GetUsersGroup(long id = default, int groupId = default)
         {
             throw null;
         }
 
+        [HttpPost]
+        public Task<IActionResult> AddUserGroup([FromBody]UserGroup userGroup = default)
+        {
+            throw null;
+        }
+
         [HttpPut]
-        public Task<IActionResult> ModifyUserGroup(UserGroup userGroup = default)
+        public Task<IActionResult> ModifyUserGroup([FromBody]UserGroup userGroup = default)
         {
             throw null;
         }
@@ -74,7 +81,7 @@ namespace Biovation.Gateway.Controllers.v2
 
         [HttpPost]
         [Route("UserGroupMember")]
-        public Task<IActionResult> SyncUserGroupMember(string listUsers = default)
+        public Task<IActionResult> SyncUserGroupMember([FromBody]List<User> listUsers = default)
         {
             throw null;
         }
