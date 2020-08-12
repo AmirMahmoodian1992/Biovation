@@ -13,7 +13,7 @@ namespace Biovation.CommonClasses.Models.ConstantValues
         public const string MaxaCode = "15006";
         public const string ShahabCode = "15007";
 
-        public DeviceBrands()
+        public DeviceBrands(Lookups lookups)
         {
             Virdi = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, VirdiCode));
             Eos = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, EosCode));
