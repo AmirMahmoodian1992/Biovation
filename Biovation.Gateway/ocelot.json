@@ -11,7 +11,7 @@
     "BaseUrl": "http://localhost:9038",
     "UseServiceDiscovery": false
   },
-  "ReRoutes": [
+  "Routes": [
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
@@ -20,7 +20,19 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 9040
+          "Port": 9022
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9020
         }
       ]
     }

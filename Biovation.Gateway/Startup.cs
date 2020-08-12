@@ -42,85 +42,10 @@ namespace Biovation.Gateway
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
-            services.AddSingleton(BiovationConfiguration);
-            services.AddSingleton(BiovationConfiguration.Configuration);
+            //services.AddControllers();
             services.AddOcelot(Configuration);
-
-            ConfigureRepositoriesServices(services);
         }
-
-        private void ConfigureRepositoriesServices(IServiceCollection services)
-        {
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
-
-            services.AddSingleton(connectionInfo);
-            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-            
-            services.AddSingleton<GenericRepository, GenericRepository>();
-
-            services.AddScoped<FoodService, FoodService>();
-            services.AddScoped<MealService, MealService>();
-            services.AddScoped<ReservationService, ReservationService>();
-            services.AddScoped<RestaurantService, RestaurantService>();
-            services.AddScoped<ServeLogService, ServeLogService>();
-            services.AddScoped<AccessGroupService, AccessGroupService>();
-            services.AddScoped<AdminDeviceService, AdminDeviceService>();
-            services.AddScoped<BlackListService, BlackListService>();
-            services.AddScoped<DeviceGroupService, DeviceGroupService>();
-            services.AddScoped<DeviceService, DeviceService>();
-            services.AddScoped<FaceTemplateService, FaceTemplateService>();
-            services.AddScoped<FingerTemplateService, FingerTemplateService>();
-            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
-            services.AddScoped<LogService, LogService>();
-            services.AddSingleton<LookupService, LookupService>();
-            services.AddScoped<PlateDetectionService, PlateDetectionService>();
-            services.AddScoped<SettingService, SettingService>();
-            services.AddScoped<TaskService, TaskService>();
-            services.AddScoped<TimeZoneService, TimeZoneService>();
-            services.AddScoped<UserCardService, UserCardService>();
-            services.AddScoped<UserGroupService, UserGroupService>();
-            services.AddScoped<UserService, UserService>();
-
-            services.AddScoped<FoodRepository, FoodRepository>();
-            services.AddScoped<MealRepository, MealRepository>();
-            services.AddScoped<ReservationRepository, ReservationRepository>();
-            services.AddScoped<RestaurantRepository, RestaurantRepository>();
-            services.AddScoped<ServeLogRepository, ServeLogRepository>();
-            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
-            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
-            services.AddScoped<BlackListRepository, BlackListRepository>();
-            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
-            services.AddScoped<DeviceRepository, DeviceRepository>();
-            services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
-            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
-            services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-            services.AddScoped<LogRepository, LogRepository>();
-            services.AddSingleton<LookupRepository, LookupRepository>();
-            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
-            services.AddScoped<SettingRepository, SettingRepository>();
-            services.AddScoped<TaskRepository, TaskRepository>();
-            services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
-            services.AddScoped<UserCardRepository, UserCardRepository>();
-            services.AddScoped<UserGroupRepository, UserGroupRepository>();
-            services.AddScoped<UserRepository, UserRepository>();
-
-            services.AddSingleton<Lookups, Lookups>();
-            services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
-
-            //Constant values
-            services.AddSingleton<DeviceBrands, DeviceBrands>();
-            services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
-        }
+        
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public async void Configure(IApplicationBuilder app, IWebHostEnvironment env)
