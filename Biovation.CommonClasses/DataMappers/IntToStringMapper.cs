@@ -1,27 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using DataAccessLayerCore;
+﻿using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Extentions;
+using System;
+using System.Data;
+using System.Reflection;
 
 namespace Biovation.CommonClasses.DataMappers
 {
-    public class BigIntToUIntMapper : IDataMapper
+    public class IntToStringMapper : IDataMapper
     {
         public object Map(IDataRecord dataRecord, PropertyInfo property, string columnPrefix = "")
         {
-            if (property.PropertyType != typeof(uint))
+            if (property.PropertyType != typeof(string))
             {
                 throw new DataAccessException(01,
-                    "Invalid property type for BigIntToUIntMapper, you have to use uint property type.");
+                    "Invalid property type for IntToLongMapper, you have to use long property type.");
             }
             if (dataRecord.HasColumn(columnPrefix + property.Name) && !dataRecord.IsDBNull(dataRecord.GetOrdinal(columnPrefix + property.Name)))
             {
-                return Convert.ToUInt32(dataRecord[columnPrefix + property.Name]);
+                return Convert.ToString(dataRecord[columnPrefix + property.Name]);
             }
             return null;
         }

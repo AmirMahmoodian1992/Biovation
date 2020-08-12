@@ -33,6 +33,7 @@ namespace Biovation.Brands.Virdi
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly VirdiLogService _virdiLogService;
+        private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateService _faceTemplateService;
@@ -174,7 +175,7 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes)
+        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -189,6 +190,7 @@ namespace Biovation.Brands.Virdi
             BiovationConfiguration = biovationConfiguration;
             _virdiLogService = virdiLogService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _virdiCodeMappings = virdiCodeMappings;
             _onlineDevices = virdiServer.GetOnlineDevices();
 
             // create UCSAPI Instance

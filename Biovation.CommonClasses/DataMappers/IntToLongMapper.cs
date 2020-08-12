@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using DataAccessLayerCore;
+﻿using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Extentions;
+using System;
+using System.Data;
+using System.Reflection;
 
 namespace Biovation.CommonClasses.DataMappers
 {
@@ -24,11 +21,6 @@ namespace Biovation.CommonClasses.DataMappers
                 return Convert.ToInt64(dataRecord[columnPrefix + property.Name]);
             }
             return null;
-        }
-
-        public object Map(DataRow dataRecord, PropertyInfo property, string columnPrefix = "")
-        {
-            return Convert.ToInt64(0);
         }
     }
 }

@@ -18,18 +18,13 @@ namespace Biovation.CommonClasses.DataMappers
             //if (property.PropertyType != typeof(long))
             //{
             //    throw new DataAccessException(01,
-            //        "Invalid property type for IntToLongMapper, you have to use long proprty type.");
+            //        "Invalid property type for IntToLongMapper, you have to use long property type.");
             //}
             if (dataRecord.HasColumn(columnPrefix + property.Name) && !dataRecord.IsDBNull(dataRecord.GetOrdinal(columnPrefix + property.Name)))
             {
                 return Convert.ToUInt32(dataRecord[columnPrefix + property.Name]);
             }
             return null;
-        }
-
-        public object Map(DataRow dataRecord, PropertyInfo property, string columnPrefix = "")
-        {
-            return 0u;
         }
     }
     public class ToInt64Mapper : IDataMapper
@@ -39,18 +34,13 @@ namespace Biovation.CommonClasses.DataMappers
             //if (property.PropertyType != typeof(long))
             //{
             //    throw new DataAccessException(01,
-            //        "Invalid property type for IntToLongMapper, you have to use long proprty type.");
+            //        "Invalid property type for IntToLongMapper, you have to use long property type.");
             //}
             if (dataRecord.HasColumn(columnPrefix + property.Name) && !dataRecord.IsDBNull(dataRecord.GetOrdinal(columnPrefix + property.Name)))
             {
                 return Convert.ToInt64(dataRecord[columnPrefix + property.Name]);
             }
             return null;
-        }
-
-        public object Map(DataRow dataRecord, PropertyInfo property, string columnPrefix = "")
-        {
-            throw new NotImplementedException();
         }
     }
 }

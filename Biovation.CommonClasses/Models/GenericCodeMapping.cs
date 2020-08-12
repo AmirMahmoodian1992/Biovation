@@ -1,4 +1,5 @@
-﻿using DataAccessLayerCore.Attributes;
+﻿using Biovation.CommonClasses.DataMappers;
+using DataAccessLayerCore.Attributes;
 
 namespace Biovation.CommonClasses.Models
 {
@@ -8,6 +9,7 @@ namespace Biovation.CommonClasses.Models
         public int Id { get; set; }
         [OneToOne]
         public GenericCodeMappingCategory Category { get; set; }
+        [DataMapper(Mapper = typeof(IntToStringMapper))]
         public string ManufactureCode { get; set; }
         [OneToOne]
         public Lookup GenericValue { get; set; }

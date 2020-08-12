@@ -7,27 +7,17 @@ namespace Biovation.CommonClasses.Manager
 {
     public class GenericCodeMappings
     {
-        private readonly GenericCodeMappingService _genericCodeMappingService;
-
         public GenericCodeMappings(GenericCodeMappingService genericCodeMappingService)
         {
-            _genericCodeMappingService = genericCodeMappingService;
-        }
+            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
+            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
+            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
-        public void FillValues()
-        {
-            Task.Run(() =>
-            {
-                var logEventMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(1);
-                var logSubEventMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(2);
-                var fingerTemplateTypeMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(9);
-                var matchingTypeMappingsQuery = _genericCodeMappingService.GetGenericCodeMappings(15);
-
-                LogEventMappings = logEventMappingsQuery.Result;
-                LogSubEventMappings = logSubEventMappingsQuery.Result;
-                FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result;
-                MatchingTypeMappings = matchingTypeMappingsQuery.Result;
-            });
+            LogEventMappings = logEventMappingsQuery.Result;
+            LogSubEventMappings = logSubEventMappingsQuery.Result;
+            FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result;
+            MatchingTypeMappings = matchingTypeMappingsQuery.Result;
         }
 
         public List<GenericCodeMapping> LogSubEventMappings { get; set; }
