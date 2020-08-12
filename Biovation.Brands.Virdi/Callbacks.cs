@@ -31,6 +31,7 @@ namespace Biovation.Brands.Virdi
         private readonly UserCardService _commonUserCardService;
         private readonly AccessGroupService _commonAccessGroupService;
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly VirdiLogService _virdiLogService;
         private readonly LogService _logService;
         private readonly BlackListService _blackListService;
@@ -86,9 +87,9 @@ namespace Biovation.Brands.Virdi
 
         private static Dictionary<uint, DeviceBasicInfo> _onlineDevices = new Dictionary<uint, DeviceBasicInfo>();
         //private readonly Dictionary<int, string> _deviceTypes = new Dictionary<int, string>();
-        private readonly Dictionary<int, IFastSearch> _fastSearchOfDevices = new Dictionary<int, IFastSearch>();
-        private readonly Dictionary<int, IFPData> _fingerPrintDataOfDevices = new Dictionary<int, IFPData>();
-        private readonly Dictionary<int, UCBioBSPClass> _bioBspClasses = new Dictionary<int, UCBioBSPClass>();
+        private readonly Dictionary<long, IFastSearch> _fastSearchOfDevices = new Dictionary<long, IFastSearch>();
+        private readonly Dictionary<long, IFPData> _fingerPrintDataOfDevices = new Dictionary<long, IFPData>();
+        private readonly Dictionary<long, UCBioBSPClass> _bioBspClasses = new Dictionary<long, UCBioBSPClass>();
 
 
         //private readonly Dictionary<int, IFastSearch> _fastSearchOfUsers = new Dictionary<int, IFastSearch>();
@@ -173,7 +174,7 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer)
+        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -187,6 +188,7 @@ namespace Biovation.Brands.Virdi
             _accessGroupService = accessGroupService;
             BiovationConfiguration = biovationConfiguration;
             _virdiLogService = virdiLogService;
+            _fingerTemplateTypes = fingerTemplateTypes;
             _onlineDevices = virdiServer.GetOnlineDevices();
 
             // create UCSAPI Instance
@@ -391,38 +393,16 @@ namespace Biovation.Brands.Virdi
                     {
                         Task.Run(() => Parallel.ForEach(accessGroups, accessGroup =>
                         {
-                            var cachedList =
-                                _accessGroupService.GetServerSideIdentificationCacheOfAccessGroup(accessGroup.Id,
-                                    DeviceBrands.VirdiCode);
-
-                            var identificationObjectsOfDevices = cachedList.GroupBy(cachedObject => cachedObject.DeviceCode)
-                                .Select(group => new
-                                {
-                                    DeviceCode = Convert.ToInt32(group.Key),
-                                    IdentificationModels = group.Select(identificationModel =>
-                                        new ServerSideIdentificationCacheModel
-                                        {
-                                            Id = identificationModel.Id,
-                                            DeviceId = identificationModel.DeviceId,
-                                            UserId = identificationModel.UserId,
-                                            UserType = identificationModel.UserType,
-                                            AccessGroupId = identificationModel.AccessGroupId,
-                                            FingerTemplate = identificationModel.FingerTemplate
-                                        })
-                                });
-
-                            foreach (var cachedIdsForDevice in identificationObjectsOfDevices)
+                            try
                             {
-                                var ucBioBsp = new UCBioBSPClass();
+                                var cachedList =
+                                    _accessGroupService.GetServerSideIdentificationCacheOfAccessGroup(accessGroup.Id,
+                                        DeviceBrands.VirdiCode);
 
-                                if (!(ucBioBsp.FPData is IFPData fpData) ||
-                                    !(ucBioBsp.FastSearch is IFastSearch fastSearch))
-                                    continue;
-
-                                var identificationObjectsOfUsers = cachedIdsForDevice.IdentificationModels
-                                    .GroupBy(cachedObject => cachedObject.UserId).Select(group => new
+                                var identificationObjectsOfDevices = cachedList.GroupBy(cachedObject => cachedObject.DeviceCode)
+                                    .Select(group => new
                                     {
-                                        UserId = Convert.ToInt32(group.Key),
+                                        DeviceCode = group.Key,
                                         IdentificationModels = group.Select(identificationModel =>
                                             new ServerSideIdentificationCacheModel
                                             {
@@ -435,48 +415,81 @@ namespace Biovation.Brands.Virdi
                                             })
                                     });
 
-                                foreach (var identificationObjectsOfUser in identificationObjectsOfUsers)
+                                foreach (var cachedIdsForDevice in identificationObjectsOfDevices)
                                 {
-                                    var templatesOfUser = identificationObjectsOfUser.IdentificationModels.ToList();
-                                    fpData.ClearFPData();
-                                    foreach (var templateOfUser in templatesOfUser)
+                                    var ucBioBsp = new UCBioBSPClass();
+
+                                    if (!(ucBioBsp.FPData is IFPData fpData) ||
+                                        !(ucBioBsp.FastSearch is IFastSearch fastSearch))
+                                        continue;
+
+                                    var identificationObjectsOfUsers = cachedIdsForDevice.IdentificationModels
+                                        .GroupBy(cachedObject => cachedObject.UserId).Select(group => new
+                                        {
+                                            UserId = group.Key,
+                                            IdentificationModels = group.Select(identificationModel =>
+                                                new ServerSideIdentificationCacheModel
+                                                {
+                                                    Id = identificationModel.Id,
+                                                    DeviceId = identificationModel.DeviceId,
+                                                    UserId = identificationModel.UserId,
+                                                    UserType = identificationModel.UserType,
+                                                    AccessGroupId = identificationModel.AccessGroupId,
+                                                    FingerTemplate = identificationModel.FingerTemplate
+                                                }).ToList()
+                                        });
+
+                                    foreach (var identificationObjectsOfUser in identificationObjectsOfUsers)
                                     {
-                                        var minIndexTemplate = templatesOfUser.Where(x =>
-                                                x.UserId == templateOfUser.UserId &&
-                                                x.FingerTemplate.FingerIndex.Code ==templateOfUser.FingerTemplate.FingerIndex.Code &&
-                                                x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index)
-                                            .MinBy(x => x.FingerTemplate.TemplateIndex).FirstOrDefault();
-                                        if (templateOfUser.FingerTemplate.Id != minIndexTemplate?.FingerTemplate.Id)
+                                        if (identificationObjectsOfUser.UserId > int.MaxValue)
                                             continue;
 
-                                        var secondTemplateSample = templatesOfUser.FirstOrDefault(x =>
-                                            x.FingerTemplate.FingerIndex.Code == templateOfUser.FingerTemplate.FingerIndex.Code &&
-                                            x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index &&
-                                            x.FingerTemplate.TemplateIndex == templateOfUser.FingerTemplate.TemplateIndex + 1)?.FingerTemplate.Template;
-                                        fpData.Import(0, templateOfUser.FingerTemplate.FingerIndex.OrderIndex, 2,
-                                            400,400,
-                                            templateOfUser.FingerTemplate.Template,
-                                            secondTemplateSample);
+                                        var templatesOfUser = identificationObjectsOfUser.IdentificationModels.ToList();
+                                        fpData.ClearFPData();
+                                        foreach (var templateOfUser in templatesOfUser)
+                                        {
+                                            var minIndexTemplate = templatesOfUser.Where(x =>
+                                                    x.UserId == templateOfUser.UserId &&
+                                                    x.FingerTemplate.FingerIndex.Code ==templateOfUser.FingerTemplate.FingerIndex.Code &&
+                                                    x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index)
+                                                .MinBy(x => x.FingerTemplate.TemplateIndex).FirstOrDefault();
+                                            if (templateOfUser.FingerTemplate.Id != minIndexTemplate?.FingerTemplate.Id)
+                                                continue;
+
+                                            var secondTemplateSample = templatesOfUser.FirstOrDefault(x =>
+                                                x.FingerTemplate.FingerIndex.Code == templateOfUser.FingerTemplate.FingerIndex.Code &&
+                                                x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index &&
+                                                x.FingerTemplate.TemplateIndex == templateOfUser.FingerTemplate.TemplateIndex + 1)?.FingerTemplate.Template;
+                                            fpData.Import(0, templateOfUser.FingerTemplate.FingerIndex.OrderIndex, 2,
+                                                400,400,
+                                                templateOfUser.FingerTemplate.Template,
+                                                secondTemplateSample);
+                                        }
+
+                                        var firTemplate = fpData.TextFIR;
+                                        fastSearch.AddFIR(firTemplate, Convert.ToInt32(identificationObjectsOfUser.UserId));
+                                        fpData.ClearFPData();
                                     }
 
-                                    var firTemplate = fpData.TextFIR;
-                                    fastSearch.AddFIR(firTemplate, identificationObjectsOfUser.UserId);
-                                    fpData.ClearFPData();
-                                }
-
-                                lock (_bioBspClasses)
-                                {
-                                    if (_bioBspClasses.ContainsKey(cachedIdsForDevice.DeviceCode))
+                                    lock (_bioBspClasses)
                                     {
-                                        _bioBspClasses.Remove(cachedIdsForDevice.DeviceCode);
-                                        _fastSearchOfDevices.Remove(cachedIdsForDevice.DeviceCode);
-                                        _fingerPrintDataOfDevices.Remove(cachedIdsForDevice.DeviceCode);
-                                    }
+                                        if (_bioBspClasses.ContainsKey(cachedIdsForDevice.DeviceCode))
+                                        {
+                                            _bioBspClasses.Remove(cachedIdsForDevice.DeviceCode);
+                                            _fastSearchOfDevices.Remove(cachedIdsForDevice.DeviceCode);
+                                            _fingerPrintDataOfDevices.Remove(cachedIdsForDevice.DeviceCode);
+                                        }
 
-                                    _bioBspClasses.Add(cachedIdsForDevice.DeviceCode, ucBioBsp);
-                                    _fastSearchOfDevices.Add(cachedIdsForDevice.DeviceCode, fastSearch);
-                                    _fingerPrintDataOfDevices.Add(cachedIdsForDevice.DeviceCode, fpData);
+                                        _bioBspClasses.Add(cachedIdsForDevice.DeviceCode, ucBioBsp);
+                                        _fastSearchOfDevices.Add(cachedIdsForDevice.DeviceCode, fastSearch);
+                                        _fingerPrintDataOfDevices.Add(cachedIdsForDevice.DeviceCode, fpData);
+                                    }
                                 }
+
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
                             }
                         })),
 

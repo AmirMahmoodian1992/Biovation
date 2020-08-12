@@ -1,30 +1,30 @@
 {
-  "iisSettings": {
-    "windowsAuthentication": false,
-    "anonymousAuthentication": true,
-    "iisExpress": {
-      "applicationUrl": "http://localhost:56860",
-      "sslPort": 44327
-    }
-  },
+  //"iisSettings": {
+  //  "windowsAuthentication": false,
+  //  "anonymousAuthentication": true,
+  //  "iisExpress": {
+  //    "applicationUrl": "http://localhost:56860",
+  //    "sslPort": 44327
+  //  }
+  //},
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "IIS Express": {
-      "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "Biovation/Api/Virdi",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
+    //"IIS Express": {
+    //  "commandName": "IISExpress",
+    //  "launchBrowser": true,
+    //  "launchUrl": "Biovation/Api/Virdi",
+    //  "environmentVariables": {
+    //    "ASPNETCORE_ENVIRONMENT": "Development"
+    //  }
+    //},
     "Biovation.Brands.Virdi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "Biovation/Api/Virdi",
+      "launchUrl": "Biovation/Api/VirdiDevice/GetOnlineDevices",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:9041;http://localhost:9040"
+      "applicationUrl": "http://localhost:9040;https://localhost:9041"
     },
     "Docker": {
       "commandName": "Docker",

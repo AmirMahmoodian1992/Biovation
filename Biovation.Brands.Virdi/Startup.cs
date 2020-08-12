@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Biovation.Brands.Virdi.Command;
@@ -59,6 +60,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton(BiovationConfiguration.Configuration);
 
             ConfigureRepositoriesServices(services);
+            ConfigureConstantValues(services);
             ConfigureVirdiServices(services);
         }
 
@@ -118,8 +120,18 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
 
+        }
+
+        private void ConfigureConstantValues(IServiceCollection services)
+        {
             //Constant values
+            //services.AddSingleton(new DeviceBrands());
             services.AddSingleton<DeviceBrands, DeviceBrands>();
+            //services.AddSingleton(new LogEvents());
+            services.AddSingleton<LogEvents, LogEvents>();
+            services.AddSingleton<LogSubEvents, LogSubEvents>();
+            //services.AddSingleton(new FingerTemplateTypes());
+            services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
         }
 
@@ -154,7 +166,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
             
-            services.AddScoped<CommandFactory, CommandFactory>();
+            services.AddSingleton<CommandFactory, CommandFactory>();
 
             UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
 

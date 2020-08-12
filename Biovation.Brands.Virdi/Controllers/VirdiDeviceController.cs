@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mime;
-using System.Threading.Tasks;
-using Biovation.Brands.Virdi.Command;
+﻿using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Models;
@@ -14,6 +7,10 @@ using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DeviceBrands = Biovation.CommonClasses.Models.ConstantValues.DeviceBrands;
 using TaskItem = Biovation.CommonClasses.Models.TaskItem;
 
@@ -77,7 +74,7 @@ namespace Biovation.Brands.Virdi.Controllers
        */
 
         [HttpPost]
-        public Task<ResultViewModel> RetrieveLogs([FromBody]uint code)
+        public Task<ResultViewModel> RetrieveLogs([FromBody] uint code)
         {
             return Task.Run(() =>
             {
@@ -265,7 +262,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                         return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
                     }
-                    catch (Exception exception)
+                    catch (Exception)
                     {
                         return new ResultViewModel { Validate = 0, Id = code, Message = "Retriving Log not queued" };
 
@@ -311,7 +308,7 @@ namespace Biovation.Brands.Virdi.Controllers
         */
 
         [HttpPost]
-        public Task<ResultViewModel> LockDevice([FromBody]uint code)
+        public Task<ResultViewModel> LockDevice([FromBody] uint code)
         {
             return Task.Run(() =>
             {
@@ -358,7 +355,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public Task<ResultViewModel> UnlockDevice([FromBody]uint code)
+        public Task<ResultViewModel> UnlockDevice([FromBody] uint code)
         {
             return Task.Run(() =>
             {
@@ -403,7 +400,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public Task<ResultViewModel> ModifyDevice([FromBody]DeviceBasicInfo device)
+        public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
 
             var devices = _deviceService.GetDeviceBasicInfoWithCode(device.Code, DeviceBrands.VirdiCode);
@@ -514,7 +511,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
         */
         [HttpPost]
-        public Task<ResultViewModel> SendUsersOfDevice([FromBody]DeviceBasicInfo device)
+        public Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
             return Task.Run(() =>
             {
@@ -568,12 +565,11 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody]JArray userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] JArray userId)
         {
 
             return Task.Run(() =>
             {
-                var result = new List<ResultViewModel>();
                 try
                 {
 
@@ -653,7 +649,6 @@ namespace Biovation.Brands.Virdi.Controllers
 
             try
             {
-                var result = new ResultViewModel<List<User>>();
                 var creatorUser = _userService.GetUser(123456789, false);
                 var task = new TaskInfo
                 {
@@ -681,8 +676,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 });
 
 
-                result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                     new List<object> { task.TaskItems.FirstOrDefault().DeviceId, task.TaskItems.FirstOrDefault().Id }).Execute();
+                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
+                    new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
 
 
                 return result;
@@ -743,7 +738,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     return false;
 
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -899,7 +894,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpPost]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody]JArray userId, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {

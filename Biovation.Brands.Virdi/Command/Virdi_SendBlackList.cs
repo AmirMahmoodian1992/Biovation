@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using Biovation.Brands.Virdi.Manager;
 using Encoding = System.Text.Encoding;
 
 namespace Biovation.Brands.Virdi.Command
@@ -32,25 +31,16 @@ namespace Biovation.Brands.Virdi.Command
         private int IsBlackList { get; }
 
 
-        private readonly VirdiServer _virdiServer;
-        private readonly TaskService _taskService;
-        private readonly TaskManager _taskManager;
-        private readonly UserService _userService;
-
-        public VirdiSendBlackList(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, UserService userService, DeviceService deviceService, BlackListService blackListService, TaskManager taskManager)
+        public VirdiSendBlackList(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, UserService userService, DeviceService deviceService, BlackListService blackListService)
         {
-            _virdiServer = virdiServer;
-            _taskService = taskService;
-            _userService = userService;
-            _taskManager = taskManager;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
-            var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
+            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
             BlackListId = (int)data["BlackListId"];
-            UserObj = _userService.GetUser(UserId, false);
+            UserObj = userService.GetUser(UserId, false);
 
             var blackList = blackListService.GetActiveBlackList(BlackListId, userid: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
@@ -81,32 +71,33 @@ namespace Biovation.Brands.Virdi.Command
             {
 
 
-                var deviceId = DeviceId;
-                var creatorUser = _userService.GetUser(123456789, false);
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = TaskTypes.SendUsers,
-                    Priority = TaskPriorities.Medium,
-                    DeviceBrand = DeviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>()
-                };
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = TaskStatuses.Queued,
-                    TaskItemType = TaskItemTypes.SendUser,
-                    Priority = TaskPriorities.Medium,
-                    DueDate = DateTime.Today,
-                    DeviceId = deviceId,
+                //Todo: fix command
+                //var deviceId = DeviceId;
+                //var creatorUser = _userService.GetUser(123456789, false);
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = TaskTypes.SendUsers,
+                //    Priority = TaskPriorities.Medium,
+                //    DeviceBrand = DeviceBrands.Virdi,
+                //    TaskItems = new List<TaskItem>()
+                //};
+                //task.TaskItems.Add(new TaskItem
+                //{
+                //    Status = TaskStatuses.Queued,
+                //    TaskItemType = TaskItemTypes.SendUser,
+                //    Priority = TaskPriorities.Medium,
+                //    DueDate = DateTime.Today,
+                //    DeviceId = deviceId,
 
-                    Data = JsonConvert.SerializeObject(new {UserId }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1
-                });
-                _taskService.InsertTask(task).Wait();
-                _taskManager.ProcessQueue();
+                //    Data = JsonConvert.SerializeObject(new {UserId }),
+                //    IsParallelRestricted = true,
+                //    IsScheduled = false,
+                //    OrderIndex = 1
+                //});
+                //_taskService.InsertTask(task).Wait();
+                //_taskManager.ProcessQueue();
 
 
                 Logger.Log($"  +Cannot blacklist user {UserId} to device: {Code}. Error code = erData.ErrorCode\n");

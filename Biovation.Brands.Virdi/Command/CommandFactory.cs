@@ -18,7 +18,7 @@ namespace Biovation.Brands.Virdi.Command
         private readonly LogService _logService;
         private readonly UserService _userService;
         private readonly TaskService _taskService;
-        private readonly TaskManager _taskManager;
+        //private readonly TaskManager _taskManager;
         private readonly DeviceService _deviceService;
         private readonly TimeZoneService _timeZoneService;
         private readonly UserCardService _userCardService;
@@ -30,7 +30,7 @@ namespace Biovation.Brands.Virdi.Command
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, Callbacks callbacks, TaskManager taskManager)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, Callbacks callbacks)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -44,7 +44,6 @@ namespace Biovation.Brands.Virdi.Command
             _faceTemplateService = faceTemplateService;
             _timeZoneService = timeZoneService;
             _callbacks = callbacks;
-            _taskManager = taskManager;
         }
         //private EventDispatcher _eventDispatcherObj;
 
@@ -121,7 +120,7 @@ namespace Biovation.Brands.Virdi.Command
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
 
-                        return new VirdiSendBlackList(transferModelData.Items, _virdiServer, _taskService, _userService, _deviceService, _blackListService, _taskManager);
+                        return new VirdiSendBlackList(transferModelData.Items, _virdiServer, _taskService, _userService, _deviceService, _blackListService);
                     }
 
                 case CommandType.SyncAllUsers:
