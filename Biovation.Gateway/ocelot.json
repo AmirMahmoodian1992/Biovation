@@ -7,12 +7,16 @@
     "**/obj",
     "**/platforms"
   ],
-  "Routes": [
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:9038",
+    "UseServiceDiscovery": false
+  },
+  "ReRoutes": [
     {
-      "DownstreamPathTemplate": "biovation/api/virdi",
+      "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
-      "UpstreamPathTemplate": "biovation/api/virdi",
-      "UpstreamHttpMethod": [ "Get" , "Post"],
+      "UpstreamPathTemplate": "/biovation/api/virdi/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -20,8 +24,5 @@
         }
       ]
     }
-  ],
-  "GlobalConfiguration": {
-    "BaseUrl": "http://0.0.0.0:9038"
-  }
+  ]
 }
