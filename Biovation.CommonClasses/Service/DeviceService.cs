@@ -34,6 +34,10 @@ namespace Biovation.CommonClasses.Service
         { 
             return _deviceRepository.GetDevicesByFilter(id, adminUserId, groupId, code, brandId, name, modelId, typeId);
         }
+        public ResultViewModel AddDevice(DeviceBasicInfo device)
+        {
+            return _deviceRepository.AddDevice(device);
+        }
         /// <summary>
         /// گرفتن لیستی از دستگاه ها بر اساس فیلتر اعمال شده
         /// </summary>
