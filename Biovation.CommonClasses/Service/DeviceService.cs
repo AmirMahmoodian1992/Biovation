@@ -27,6 +27,13 @@ namespace Biovation.CommonClasses.Service
         {
             return _deviceRepository.GetAllDevicesBasicInfosByFilter(adminUserId, deviceGroupId, Code, deviceId, brandId, deviceName, deviceModelId);
         }
+
+
+        public List<DeviceBasicInfo> GetDevicesByfilter(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+                int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
+        { 
+            return _deviceRepository.GetDevicesByFilter(id, adminUserId, groupId, code, brandId, name, modelId, typeId);
+        }
         /// <summary>
         /// گرفتن لیستی از دستگاه ها بر اساس فیلتر اعمال شده
         /// </summary>

@@ -50,6 +50,25 @@ namespace Biovation.CommonClasses.Repository
                 fetchCompositions: true).Data;
         }
 
+
+        public List<DeviceBasicInfo> GetDevicesByFilter(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+            int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
+        { 
+            var sqlParameter = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", SqlDbType.Int) {Value = id},
+                new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId },
+                new SqlParameter("@GroupId", SqlDbType.Int) {Value = groupId},
+                new SqlParameter("@Code", SqlDbType.Int) { Value = code },
+                new SqlParameter("@DeviceBrandId", SqlDbType.Int) { Value = brandId },
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name },
+                new SqlParameter("@DeviceModelId", SqlDbType.Int) {Value = modelId },
+                new SqlParameter("@DeviceTypeId", SqlDbType.Int) {Value = typeId }
+            };
+            return _repository.ToResultList<DeviceBasicInfo>("SelectDevicesByFilter", sqlParameter,
+                fetchCompositions: true).Data;
+        }
+
         public List<DeviceBasicInfo> GetDevicesBasicInfosByFilter(string deviceName, int deviceModelId, int deviceTypeId, long adminUserId = 0)
         {
             var sqlParameter = new List<SqlParameter>
