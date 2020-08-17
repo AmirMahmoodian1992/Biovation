@@ -9,7 +9,8 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v2
 {
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class UserCardController : Controller
     {
         //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();

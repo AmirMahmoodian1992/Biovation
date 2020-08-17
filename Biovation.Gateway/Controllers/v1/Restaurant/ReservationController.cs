@@ -14,7 +14,8 @@ using RestSharp;
 
 namespace Biovation.Gateway.Controllers.v1.Restaurant
 {
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class ReservationController : Controller
     {
         private readonly ReservationService _reservationService;

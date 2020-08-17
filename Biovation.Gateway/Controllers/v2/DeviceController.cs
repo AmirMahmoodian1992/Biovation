@@ -15,7 +15,8 @@ using RestSharp;
 namespace Biovation.Gateway.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class DeviceController : Controller
     {
         private readonly DeviceService _deviceService;

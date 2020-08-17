@@ -9,7 +9,8 @@ using System.Collections.Generic;
 namespace Biovation.Gateway.Controllers.v1
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class AdminDeviceController : Controller
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();

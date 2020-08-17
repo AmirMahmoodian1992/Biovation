@@ -10,7 +10,8 @@ using Newtonsoft.Json.Linq;
 namespace Biovation.Gateway.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class AdminDeviceController : Controller
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();

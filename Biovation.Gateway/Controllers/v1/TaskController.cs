@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class TaskController : Controller
     {
         private readonly TaskService _taskService;
