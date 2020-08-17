@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 
+
+
 namespace Biovation.Gateway
 {
     public class Startup
@@ -56,6 +58,8 @@ namespace Biovation.Gateway
                 config.ReportApiVersions = true;  //the clients of the API know all supported versions
                 config.ApiVersionReader = new HeaderApiVersionReader("api-version"); //if Pass version information in the HTTP headers
             });
+
+            services.AddSwaggerGen();
 
             ConfigureRepositoriesServices(services);
         }
@@ -156,6 +160,16 @@ namespace Biovation.Gateway
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+            });
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
 

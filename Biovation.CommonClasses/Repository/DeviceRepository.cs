@@ -69,7 +69,7 @@ namespace Biovation.CommonClasses.Repository
                 fetchCompositions: true).Data;
         }
 
-        public List<ResultViewModel> AddDevice(DeviceBasicInfo device)
+      /*  public List<ResultViewModel> AddDevice(DeviceBasicInfo device)
         {
             var parameters = new List<SqlParameter>
             {
@@ -108,7 +108,7 @@ namespace Biovation.CommonClasses.Repository
 
             return _repository.ToResultList<ResultViewModel>("AddDevice", parameters).Data.FirstOrDefault();
 
-        }
+        }*/
 
 
         public List<DeviceBasicInfo> GetDevicesBasicInfosByFilter(string deviceName, int deviceModelId, int deviceTypeId, long adminUserId = 0)
