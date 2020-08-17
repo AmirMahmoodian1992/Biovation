@@ -9,15 +9,13 @@ using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
-
-
 
 namespace Biovation.Gateway
 {
@@ -79,7 +77,7 @@ namespace Biovation.Gateway
 
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-            
+
             services.AddSingleton<GenericRepository, GenericRepository>();
 
             services.AddScoped<FoodService, FoodService>();
