@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
@@ -10,11 +9,10 @@ using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Models.ConstantValues;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Biovation.Gateway.Controllers.v1
+namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]

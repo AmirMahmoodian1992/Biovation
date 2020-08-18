@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -46,6 +47,16 @@ namespace Biovation.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddApiVersioning(config =>
+            {
+                config.DefaultApiVersion = new ApiVersion(1, 0);
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                config.ReportApiVersions = true;  //the clients of the API know all supported versions
+                config.ApiVersionReader = new HeaderApiVersionReader("api-version"); //if Pass version information in the HTTP headers
+            });
+
+            services.AddSwaggerGen();
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
@@ -70,29 +81,6 @@ namespace Biovation.Server
 
             services.AddSingleton<GenericRepository, GenericRepository>();
 
-            services.AddScoped<FoodService, FoodService>();
-            services.AddScoped<MealService, MealService>();
-            services.AddScoped<ReservationService, ReservationService>();
-            services.AddScoped<RestaurantService, RestaurantService>();
-            services.AddScoped<ServeLogService, ServeLogService>();
-            services.AddScoped<AccessGroupService, AccessGroupService>();
-            services.AddScoped<AdminDeviceService, AdminDeviceService>();
-            services.AddScoped<BlackListService, BlackListService>();
-            services.AddScoped<DeviceGroupService, DeviceGroupService>();
-            services.AddScoped<DeviceService, DeviceService>();
-            services.AddScoped<FaceTemplateService, FaceTemplateService>();
-            services.AddScoped<FingerTemplateService, FingerTemplateService>();
-            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
-            services.AddScoped<LogService, LogService>();
-            services.AddSingleton<LookupService, LookupService>();
-            services.AddScoped<PlateDetectionService, PlateDetectionService>();
-            services.AddScoped<SettingService, SettingService>();
-            services.AddScoped<TaskService, TaskService>();
-            services.AddScoped<TimeZoneService, TimeZoneService>();
-            services.AddScoped<UserCardService, UserCardService>();
-            services.AddScoped<UserGroupService, UserGroupService>();
-            services.AddScoped<UserService, UserService>();
-
             services.AddScoped<FoodRepository, FoodRepository>();
             services.AddScoped<MealRepository, MealRepository>();
             services.AddScoped<ReservationRepository, ReservationRepository>();
@@ -115,6 +103,29 @@ namespace Biovation.Server
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
             services.AddScoped<UserRepository, UserRepository>();
+
+            services.AddScoped<FoodService, FoodService>();
+            services.AddScoped<MealService, MealService>();
+            services.AddScoped<ReservationService, ReservationService>();
+            services.AddScoped<RestaurantService, RestaurantService>();
+            services.AddScoped<ServeLogService, ServeLogService>();
+            services.AddScoped<AccessGroupService, AccessGroupService>();
+            services.AddScoped<AdminDeviceService, AdminDeviceService>();
+            services.AddScoped<BlackListService, BlackListService>();
+            services.AddScoped<DeviceGroupService, DeviceGroupService>();
+            services.AddScoped<DeviceService, DeviceService>();
+            services.AddScoped<FaceTemplateService, FaceTemplateService>();
+            services.AddScoped<FingerTemplateService, FingerTemplateService>();
+            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddScoped<LogService, LogService>();
+            services.AddSingleton<LookupService, LookupService>();
+            services.AddScoped<PlateDetectionService, PlateDetectionService>();
+            services.AddScoped<SettingService, SettingService>();
+            services.AddScoped<TaskService, TaskService>();
+            services.AddScoped<TimeZoneService, TimeZoneService>();
+            services.AddScoped<UserCardService, UserCardService>();
+            services.AddScoped<UserGroupService, UserGroupService>();
+            services.AddScoped<UserService, UserService>();
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
@@ -142,6 +153,17 @@ namespace Biovation.Server
             {
                 endpoints.MapControllers();
             });
+
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
+            app.UseSwagger();
+
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
+
         }
     }
 }

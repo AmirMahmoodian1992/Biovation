@@ -1,19 +1,12 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
 using Biovation.CommonClasses.Service;
 using Biovation.CommonClasses.Service.RestaurantServices;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using RestSharp;
-using Method = RestSharp.Method;
 
-namespace Biovation.Gateway.Controllers.v2.Restaurant
+namespace Biovation.Server.Controllers.v2.Restaurant
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]

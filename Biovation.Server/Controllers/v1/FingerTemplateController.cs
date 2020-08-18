@@ -1,24 +1,25 @@
-﻿using Biovation.CommonClasses;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Biovation.Gateway.Controllers.v1
+namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class FingerController : Controller
+    public class FingerTemplateController : Controller
     {
         private readonly FingerTemplateService _fingerTemplateService;
 
-        public FingerController(FingerTemplateService fingerTemplateService)
+        public FingerTemplateController(FingerTemplateService fingerTemplateService)
         {
             _fingerTemplateService = fingerTemplateService;
         }
 
+        [HttpPost]
         [Route("ModifyUser")]
         public ResultViewModel ModifyUser(FingerTemplate fingerTemplate)
         {
@@ -108,7 +109,7 @@ namespace Biovation.Gateway.Controllers.v1
             }
         }
 
-
+        [HttpGet]
         [Route("GetFingerTemplateTypes")]
         public Task<ResultViewModel<List<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {

@@ -1,4 +1,11 @@
-﻿using Biovation.CommonClasses;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
@@ -6,15 +13,8 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
 
-namespace Biovation.Gateway.Controllers.v1
+namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]

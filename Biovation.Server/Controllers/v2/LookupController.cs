@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Models;
+﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Biovation.Gateway.Controllers.v2
+namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]

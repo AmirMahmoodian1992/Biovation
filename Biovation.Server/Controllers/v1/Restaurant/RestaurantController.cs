@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using Method = RestSharp.Method;
 
-namespace Biovation.Gateway.Controllers.v1.Restaurant
+namespace Biovation.Server.Controllers.v1.Restaurant
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]

@@ -1,12 +1,12 @@
-﻿using Biovation.CommonClasses.Models;
+﻿using System;
+using System.Collections.Generic;
+using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 
-namespace Biovation.Gateway.Controllers.v1
+namespace Biovation.Server.Controllers.v1
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
