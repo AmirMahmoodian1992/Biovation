@@ -10,7 +10,7 @@ namespace Biovation.Domain
         public T Data { get; set; }
         public int From { get; set; }
         public int PageNumber { get; set; }
-        public int Size { get; set; }
+        public int PageSize { get; set; }
         public int Count { get; set; }
 
     }
