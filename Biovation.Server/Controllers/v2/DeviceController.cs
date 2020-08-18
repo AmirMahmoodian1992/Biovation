@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Service;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Gateway.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class DeviceController : Controller
     {
         private readonly DeviceService _deviceService;
@@ -32,18 +28,21 @@ namespace Biovation.Gateway.Controllers.v2
 
 
         //TODO compatible with paging(az yaser bepors)
+        //TODO loaded brand
         [HttpGet]
         [Route("{id}")]
-        public async Task<JsonResult> Devices(long id =0, long adminUserId = 0, int deviceGroupId = 0, uint code = 0, 
-            int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0, int deviceTypeId = 0, 
-            string brandCode = null, bool loadedBrandsOnly = true)
+        public  Task<List<DeviceBasicInfo>> Devices(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+            int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
         {
+            Task.Run(() => _deviceService.GetDevicesByfilter(id, adminUserId, groupId, code, brandId, name, modelId, typeId));
             throw null;
         }
 
         [HttpPost]
-        public Task<JsonResult> DeviceInfo([FromBody]DeviceBasicInfo device =default)
+        public Task<JsonResult> AddDeviceInfo([FromBody]DeviceBasicInfo device = default)
         {
+
+            Task.Run(() => _deviceService.AddDevice(device));
             throw null;
         }
 
@@ -51,6 +50,8 @@ namespace Biovation.Gateway.Controllers.v2
         [Route("{id}")]
         public Task<JsonResult> DeleteDevice(uint id = default)
         {
+
+            Task.Run(() => _deviceService.DeleteDevice(id));
             throw null;
         }
 
@@ -84,7 +85,7 @@ namespace Biovation.Gateway.Controllers.v2
         /// <returns></returns>
         [HttpPut]
         [Route("UserFromDevice/{id}")]
-        public async Task<IActionResult> UserDevice(int id = default, [FromBody]JArray userId = default)
+        public async Task<IActionResult> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
         {
             //return NotFound();
             throw null;
@@ -92,7 +93,7 @@ namespace Biovation.Gateway.Controllers.v2
 
         [HttpPut]
         [Route("UsersListFromDevice/{id}")]
-        public Task<IActionResult> UsersOfDevice(int id = default)
+        public Task<IActionResult> RetrieveUsersOfDevice(int id = default)
         {
             throw null;
         }
@@ -126,7 +127,7 @@ namespace Biovation.Gateway.Controllers.v2
         {
             throw null;
         }
-            
+
 
         //TODO make compatible with .net core
         //[HttpPost]

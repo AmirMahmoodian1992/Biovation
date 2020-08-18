@@ -7,7 +7,8 @@ using System.Collections.Generic;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class UserCardController : Controller
     {
         //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();

@@ -13,7 +13,8 @@ using RestSharp;
 namespace Biovation.Gateway.Controllers.v2
 {
 
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class AccessGroupController : Controller
     {
         //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();

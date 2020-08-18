@@ -8,7 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Gateway.Controllers.v2
 {
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class FingerController : Controller
     {
         private readonly FingerTemplateService _fingerTemplateService;

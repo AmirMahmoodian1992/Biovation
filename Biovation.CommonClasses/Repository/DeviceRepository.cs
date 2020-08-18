@@ -50,6 +50,67 @@ namespace Biovation.CommonClasses.Repository
                 fetchCompositions: true).Data;
         }
 
+
+        public List<DeviceBasicInfo> GetDevicesByFilter(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+            int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
+        { 
+            var sqlParameter = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", SqlDbType.Int) {Value = id},
+                new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId },
+                new SqlParameter("@GroupId", SqlDbType.Int) {Value = groupId},
+                new SqlParameter("@Code", SqlDbType.Int) { Value = code },
+                new SqlParameter("@DeviceBrandId", SqlDbType.Int) { Value = brandId },
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name },
+                new SqlParameter("@DeviceModelId", SqlDbType.Int) {Value = modelId },
+                new SqlParameter("@DeviceTypeId", SqlDbType.Int) {Value = typeId }
+            };
+            return _repository.ToResultList<DeviceBasicInfo>("SelectDevicesByFilter", sqlParameter,
+                fetchCompositions: true).Data;
+        }
+
+      public ResultViewModel AddDevice(DeviceBasicInfo device)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@ID", SqlDbType.Int) { Value = device.DeviceId },
+                new SqlParameter("@Code", SqlDbType.Int) { Value = device.Code },
+                new SqlParameter("@DeviceModelID", SqlDbType.Int) { Value = device.Model?.Id ?? 0 },
+                new SqlParameter("@Name", SqlDbType.NVarChar) { Value = device.Name },
+                new SqlParameter("@Active", SqlDbType.Bit) { Value = device.Active },
+                new SqlParameter("@IPAddress", SqlDbType.NVarChar) { Value = device.IpAddress },
+                new SqlParameter("@Port", SqlDbType.Int) { Value = device.Port },
+                new SqlParameter("@MacAddress", SqlDbType.NVarChar) { Value = device.MacAddress },
+                new SqlParameter("@SSL", SqlDbType.Bit) { Value = device.SSL },
+                new SqlParameter("@TimeSync", SqlDbType.Bit) { Value = device.TimeSync },
+                new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId }
+            };
+
+            if (device.HardwareVersion != null)
+            {
+                parameters.Add(new SqlParameter("@HardwareVersion", SqlDbType.NVarChar) { Value = device.HardwareVersion });
+            }
+
+            if (device.FirmwareVersion != null)
+            {
+                parameters.Add(new SqlParameter("@FirmwareVersion", SqlDbType.NVarChar) { Value = device.FirmwareVersion });
+            }
+
+            if (device.DeviceLockPassword != null)
+            {
+                parameters.Add(new SqlParameter("@DeviceLockPassword", SqlDbType.NVarChar) { Value = device.DeviceLockPassword });
+            }
+
+            if (device.SerialNumber != null)
+            {
+                parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.NVarChar) { Value = device.SerialNumber });
+            }
+
+            return _repository.ToResultList<ResultViewModel>("AddDevice", parameters).Data.FirstOrDefault();
+
+        }
+
+
         public List<DeviceBasicInfo> GetDevicesBasicInfosByFilter(string deviceName, int deviceModelId, int deviceTypeId, long adminUserId = 0)
         {
             var sqlParameter = new List<SqlParameter>

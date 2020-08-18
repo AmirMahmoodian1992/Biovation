@@ -12,7 +12,8 @@ using System.Threading.Tasks;
 
 namespace Biovation.Gateway.Controllers.v1
 {
-    [Route("biovation/api/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     [ApiController]
     public class DeviceGroupController : Controller
     {
