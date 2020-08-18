@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Service;
-using Biovation.CommonClasses.Service.RestaurantServices;
+using Biovation.Service;
+using Biovation.Service.RestaurantServices;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -34,13 +34,13 @@ namespace Biovation.Server.Controllers.v2.Restaurant
         }
 
         [HttpPost]
-        public Task<IActionResult> AddRestaurants([FromBody]List<CommonClasses.Models.RestaurantModels.Restaurant> restaurants)
+        public Task<IActionResult> AddRestaurants([FromBody]List<Domain.RestaurantModels.Restaurant> restaurants)
         {
             throw null;
         }
 
         [HttpPut]
-        public Task<IActionResult> ModifyRestaurants([FromBody]List<CommonClasses.Models.RestaurantModels.Restaurant> restaurants)
+        public Task<IActionResult> ModifyRestaurants([FromBody]List<Domain.RestaurantModels.Restaurant> restaurants)
         {
             throw null;
         }

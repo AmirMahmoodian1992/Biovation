@@ -1,4 +1,4 @@
-﻿using Biovation.CommonClasses.Models;
+﻿using Biovation.Domain;
 using System.Collections.Generic;
 
 namespace Biovation.CommonClasses.Interface

@@ -4,9 +4,9 @@ using System.Linq;
 using Biovation.Brands.Virdi.UniComAPI;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Constants;
+using Biovation.Service;
 
 namespace Biovation.Brands.Virdi.Command
 {

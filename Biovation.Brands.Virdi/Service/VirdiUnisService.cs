@@ -1,6 +1,6 @@
 ﻿using Biovation.Brands.Virdi.Model.Unis;
 using Biovation.Brands.Virdi.Repository;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 using DataAccessLayerCore.Domain;
 using System.Collections.Generic;
 using System.Threading.Tasks;

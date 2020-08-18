@@ -1,5 +1,5 @@
 ﻿using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;

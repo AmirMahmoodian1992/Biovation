@@ -2,11 +2,11 @@
 using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Models.RestaurantModels;
-using Biovation.CommonClasses.Service;
-using Biovation.CommonClasses.Service.RestaurantServices;
+using Biovation.Domain;
+using Biovation.Constants;
+using Biovation.Domain.RestaurantModels;
+using Biovation.Service;
+using Biovation.Service.RestaurantServices;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;

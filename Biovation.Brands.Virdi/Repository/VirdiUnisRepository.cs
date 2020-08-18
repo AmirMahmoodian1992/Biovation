@@ -1,5 +1,5 @@
 ﻿using Biovation.Brands.Virdi.Model.Unis;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 using System.Collections.Generic;

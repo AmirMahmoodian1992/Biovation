@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.Service;
+using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -236,7 +237,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteDevices")]
-        public Task<Dictionary<uint, bool>> DeleteDevices([FromBody]List<uint> deviceIds)
+        public Task<Dictionary<uint, bool>> DeleteDevices([FromBody] List<uint> deviceIds)
         {
             return Task.Run(async () =>
             {
@@ -297,7 +298,7 @@ namespace Biovation.Server.Controllers.v1
         /// <returns></returns>
         [HttpPost]
         [Route("RetrieveUserFromDevice")]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(int deviceId, [FromBody]JArray userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(int deviceId, [FromBody] JArray userId)
         {
             return Task.Run(async () =>
             {
@@ -315,7 +316,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("RemoveUserFromDevice")]
-        public Task<List<ResultViewModel>> RemoveUserFromDevice(int deviceId, [FromBody]JArray userId)
+        public Task<List<ResultViewModel>> RemoveUserFromDevice(int deviceId, [FromBody] JArray userId)
         {
             return Task.Run(async () =>
             {
@@ -425,7 +426,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("SendDevicesDataToDevice")]
-        public Task<List<ResultViewModel>> SendDevicesDataToDevice([FromBody]List<int> deviceIds, int deviceId = default)
+        public Task<List<ResultViewModel>> SendDevicesDataToDevice([FromBody] List<int> deviceIds, int deviceId = default)
         {
             return Task.Run(() =>
             {

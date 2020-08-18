@@ -4,10 +4,10 @@ using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
-using Biovation.CommonClasses.Service.RestaurantServices;
+using Biovation.Domain;
+using Biovation.Constants;
+using Biovation.Service;
+using Biovation.Service.RestaurantServices;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
@@ -35,7 +35,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
 
         [HttpGet]
         [Route("GetRestaurants")]
-        public Task<List<CommonClasses.Models.RestaurantModels.Restaurant>> GetRestaurants(int restaurantId = default, int taskItemId = default)
+        public Task<List<Domain.RestaurantModels.Restaurant>> GetRestaurants(int restaurantId = default, int taskItemId = default)
         {
             if (taskItemId == default)
                 return _restaurantService.GetRestaurants(restaurantId);
@@ -56,7 +56,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                 if (restaurantIds is null || restaurantIds.Count <= 0)
                     return await _restaurantService.GetRestaurants();
 
-                var restaurants = new List<CommonClasses.Models.RestaurantModels.Restaurant>();
+                var restaurants = new List<Domain.RestaurantModels.Restaurant>();
                 foreach (var id in restaurantIds)
                     restaurants.Add(_restaurantService.GetRestaurants(id).Result.FirstOrDefault());
 
@@ -66,7 +66,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
 
         [HttpPost]
         [Route("ModifyRestaurants")]
-        public Task<List<ResultViewModel>> ModifyRestaurants(List<CommonClasses.Models.RestaurantModels.Restaurant> restaurants)
+        public Task<List<ResultViewModel>> ModifyRestaurants(List<Domain.RestaurantModels.Restaurant> restaurants)
         {
             return _restaurantService.ModifyRestaurants(restaurants);
         }

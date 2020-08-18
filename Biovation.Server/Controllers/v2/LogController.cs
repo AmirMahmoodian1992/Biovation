@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Service;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 

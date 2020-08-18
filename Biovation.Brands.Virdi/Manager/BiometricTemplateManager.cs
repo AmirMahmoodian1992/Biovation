@@ -1,5 +1,5 @@
-﻿using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
+﻿using Biovation.Domain;
+using Biovation.Constants;
 
 namespace Biovation.Brands.Virdi.Manager
 {

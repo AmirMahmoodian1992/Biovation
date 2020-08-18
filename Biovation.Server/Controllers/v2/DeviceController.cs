@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -160,7 +160,7 @@ namespace Biovation.Server.Controllers.v2
         //                        multipartContent.ReadAsByteArrayAsync().Result,
         //                        multipartContent.Headers.ContentDisposition.FileName.Trim('\"'),
         //                        multipartContent.Headers.ContentType.MediaType);
-        //                    var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+        //                    var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
         //                    if (!result.IsSuccessful || result.Data.Validate == 0)
         //                        return result.Data;
         //                }

@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.Virdi.Controllers

@@ -1,12 +1,12 @@
 ﻿using Biovation.Brands.Virdi.UniComAPI;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Constants;
+using Biovation.Service;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

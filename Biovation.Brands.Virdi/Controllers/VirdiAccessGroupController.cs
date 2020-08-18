@@ -1,15 +1,15 @@
 ﻿using Biovation.Brands.Virdi.Command;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Constants;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.Brands.Virdi.Manager;
-using DeviceBrands = Biovation.CommonClasses.Models.ConstantValues.DeviceBrands;
+using DeviceBrands = Biovation.Constants.DeviceBrands;
 
 namespace Biovation.Brands.Virdi.Controllers
 {

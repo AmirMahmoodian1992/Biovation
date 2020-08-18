@@ -1,9 +1,4 @@
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Repository;
-using Biovation.CommonClasses.Repository.RestaurantRepositories;
-using Biovation.CommonClasses.Service;
-using Biovation.CommonClasses.Service.RestaurantServices;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;

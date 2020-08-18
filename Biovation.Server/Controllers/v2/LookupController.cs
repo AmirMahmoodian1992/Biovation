@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Biovation.CommonClasses.Service;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2

@@ -3,9 +3,9 @@ using Biovation.Brands.Virdi.Service;
 using Biovation.Brands.Virdi.UniComAPI;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Constants;
+using Biovation.Service;
 using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -18,7 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
-using DeviceService = Biovation.CommonClasses.Service.DeviceService;
+using DeviceService = Biovation.Service.DeviceService;
 
 namespace Biovation.Brands.Virdi
 {

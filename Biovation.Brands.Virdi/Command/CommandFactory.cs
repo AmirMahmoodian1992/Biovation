@@ -1,6 +1,6 @@
 ﻿using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Service;
 using System;
 using System.Collections.Generic;
 using Biovation.Brands.Virdi.Manager;

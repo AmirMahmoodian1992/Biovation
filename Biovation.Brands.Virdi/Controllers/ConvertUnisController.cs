@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.Brands.Virdi.Model;
 using Biovation.Brands.Virdi.Service;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Constants;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using UNIONCOMM.SDK.UCBioBSP;
 

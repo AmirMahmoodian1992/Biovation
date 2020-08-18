@@ -1,6 +1,6 @@
-﻿using System;
-using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
+﻿using Biovation.Domain;
+using Biovation.Constants;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,13 +11,13 @@ namespace Biovation.Brands.Virdi.Manager
         public VirdiCodeMappings(GenericCodeMappings genericCodeMappings)
         {
             _virdiLogSubEventMappings = genericCodeMappings.LogSubEventMappings.Where(
-                genericCode => genericCode.Brand.Code == CommonClasses.Models.ConstantValues.DeviceBrands.VirdiCode).ToList();
+                genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
 
             _virdiFingerTemplateTypeMappings = genericCodeMappings.FingerTemplateTypeMappings.Where(
-                genericCode => genericCode.Brand.Code == CommonClasses.Models.ConstantValues.DeviceBrands.VirdiCode).ToList();
+                genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
 
             _virdiMatchingTypeMappings = genericCodeMappings.MatchingTypeMappings.Where(
-                genericCode => genericCode.Brand.Code == CommonClasses.Models.ConstantValues.DeviceBrands.VirdiCode).ToList();
+                genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
         }
 
 
