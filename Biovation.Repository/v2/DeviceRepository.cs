@@ -123,16 +123,13 @@ namespace Biovation.Repository.v2
         }
 
 
-        public List<ResultViewModel> DeleteDevices(List<int> deviceIds)
+        public ResultViewModel DeleteDevices(List<int> deviceIds)
         {
-            var resultList = new List<ResultViewModel>();
-            foreach (var deviceId in deviceIds)
-            {
-                var parameters = new List<SqlParameter> { new SqlParameter("@ID", SqlDbType.Int) { Value = deviceId } };
+           
+                var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = deviceIds } };
 
-                resultList.Add(_repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault());
-            }
-            return resultList;
+               return _repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault();
+            
         }
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
