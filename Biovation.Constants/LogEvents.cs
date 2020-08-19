@@ -23,20 +23,6 @@ namespace Biovation.Constants
         public const string IdentifyFaceSuccessCode = "16010";//61suprema;
 
 
-        public LogEvents()
-        {
-            Connect = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, ConnectCode));
-            Disconnect = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, DisconnectCode));
-            Authorized = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, AuthorizedCode));
-            UnAuthorized = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, UnAuthorizedCode));
-            AddUserToDevice = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, AddUserToDeviceCode));
-            RemoveUserFromDevie = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, RemoveUserFromDeviceCode));
-            DeviceEnabled = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceEnabledCode));
-            DeviceDisabled = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceDisabledCode));
-            EnrollSuccess = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollSuccessCode));
-            IdentifySuccessFace = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, IdentifyFaceSuccessCode));
-        }
-
         public static Lookup Connect { get; set; }
         public static Lookup Disconnect { get; set; }
         public static Lookup Authorized { get; set; }

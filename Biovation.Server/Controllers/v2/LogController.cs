@@ -65,7 +65,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("LogsOfUser{userId?}")]
+        [Route("LogsOfUser/{userId?}")]
         public Task<IActionResult> LogsOfUser(int userId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
         {
             throw null;

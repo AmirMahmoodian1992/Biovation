@@ -1,7 +1,8 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.Service;
+using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -272,19 +272,20 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetOnlineDevices")]
         public Task<List<DeviceBasicInfo>> GetOnlineDevices()
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 var resultList = new List<DeviceBasicInfo>();
                 var deviceBrands = _deviceService.GetDeviceBrands();
 
-                foreach (var deviceBrand in deviceBrands)
+                Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
-                    var restRequest = new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
-                    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+                    var restRequest = new RestRequest(
+                        $"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK)
                         resultList.AddRange(result.Data);
-                }
+                });
 
                 return resultList;
             });
