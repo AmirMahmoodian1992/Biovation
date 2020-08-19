@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.Domain;
+using DataAccessLayerCore.Repositories;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+
 
 namespace Biovation.Repository.v2
 {
@@ -52,7 +54,7 @@ namespace Biovation.Repository.v2
         /// </summary>
         /// <returns></returns>
 
-        public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
+        public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int PageSize = default)
         {
             return Task.Run(() =>
             {
@@ -67,26 +69,11 @@ namespace Biovation.Repository.v2
                     new SqlParameter("@FilterText", filterText),
                     new SqlParameter("@Type", type),
                     new SqlParameter("@isAdmin",isAdmin),
+                    new SqlParameter("@PageNumber", pageNumber),
+                    new SqlParameter("@PageSize",PageSize)
 
                 };
                 return _repository.ToResultList<User>("SelectUsersByFilter", parameters, fetchCompositions: true,
-                    compositionDepthLevel: 2).Data;
-            });
-        }
-
-
-        public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@adminUserID", onlineUserId),
-                    new SqlParameter("@from", from),
-                    new SqlParameter("@size", size),
-                    new SqlParameter("@getTemplatesData", getTemplatesData)
-                };
-                return _repository.ToResultList<User>("SelectUsers", parameters, fetchCompositions: true,
                     compositionDepthLevel: 2).Data;
             });
         }
@@ -105,14 +92,6 @@ namespace Biovation.Repository.v2
         /// گرفتن لیست ادمین ها
         /// </summary>
         /// <returns></returns>
-        public List<User> GetAdminUser(long userId = 0)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@adminUserID", userId)
-            };
-            return _repository.ToResultList<User>("SelectAdminUser", parameters).Data;
-        }
 
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
@@ -132,63 +111,8 @@ namespace Biovation.Repository.v2
         /// <param name="userId"></param>
         /// <param name="withPicture"></param>
         /// <returns></returns>
-        public User GetUser(long userId, bool withPicture = true)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", userId),
-                new SqlParameter("@WithPicture", withPicture)
-            };
 
-            return _repository.ToResultList<User>("SelectUserById", parameters, fetchCompositions: true).Data.FirstOrDefault();
-        }
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="filterText"></param>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public List<User> GetUser(string filterText, long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@FilterText", filterText),
-                new SqlParameter("@adminUserId", userId),
-
-            };
-
-            return _repository.ToResultList<User>("SelectSearchUser", parameters).Data;
-        }
-
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="type"></param>
-        /// <param name="userId"></param>
-        /// <param name="filterText"></param>
-        /// <returns></returns>
-        public List<User> GetUser(string filterText, int type, long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@FilterText", filterText),
-                new SqlParameter("@Type", type),
-                new SqlParameter("@adminUserId", userId),
-
-            };
-
-            return _repository.ToResultList<User>("SelectSearchUserByType", parameters).Data;
-        }
-
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
         public ResultViewModel DeleteUser(int userId)
         {
             var parameters = new List<SqlParameter>
@@ -197,6 +121,15 @@ namespace Biovation.Repository.v2
             };
 
             return _repository.ToResultList<ResultViewModel>("DeleteUserByID", parameters).Data.FirstOrDefault();
+        }
+
+        public ResultViewModel DeleteUsers(List<int> deviceIds)
+        {
+
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = deviceIds } };
+
+            return _repository.ToResultList<ResultViewModel>("DeleteUsers", parameters).Data.FirstOrDefault();
+
         }
 
         /// <summary>
