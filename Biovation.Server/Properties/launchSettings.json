@@ -20,7 +20,7 @@
     "Biovation.Server": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:9040/Biovation/api/device/devices?userId=0",
+      "launchUrl": "http://localhost:9020/Biovation/api/device/devices?userId=0",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
