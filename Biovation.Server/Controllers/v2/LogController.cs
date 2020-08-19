@@ -43,7 +43,7 @@ namespace Biovation.Server.Controllers.v2
 
         //batch delete
         [HttpPost]
-        [Route("ClearLogOfDevice")]
+        [Route("ClearLogsOfDevice")]
         public Task<IActionResult> ClearLogOfDevice([FromBody]List<int> deviceIds = default, string fromDate = default, string toDate = default)
         {
             throw null;
