@@ -21,7 +21,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Ninject;
+using Serilog;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -178,7 +180,7 @@ namespace Biovation.Brands.Virdi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -190,6 +192,8 @@ namespace Biovation.Brands.Virdi
             app.UseRouting();
 
             app.UseAuthorization();
+
+            loggerFactory.AddSerilog();
 
             app.UseEndpoints(endpoints =>
             {
