@@ -11,6 +11,29 @@ namespace Biovation.Repository.v2
     {
         private readonly GenericRepository _repository;
 
+
+
+        /// <summary>
+        /// <En>Get the device info from database.</En>
+        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
+        /// </summary>
+        /// <returns></returns>
+        public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int PageSize = default)
+        {
+            var parameters = new List<SqlParameter>
+            {
+
+                new SqlParameter("@Id", id),
+                new SqlParameter("@DeviceId ", deviceId),
+                new SqlParameter("@UserId", userId ),
+                new SqlParameter("@adminUserId", adminUserId),
+                new SqlParameter("@UserGroupId", userGroupId),
+                new SqlParameter("@PageNumber", pageNumber),
+                new SqlParameter("@PageSize",PageSize)
+            };
+            return _repository.ToResultList<AccessGroup>("SelectAccessGroupsByFilter", parameters, fetchCompositions: true).Data;
+        }
+
         public AccessGroupRepository(GenericRepository repository)
         {
             _repository = repository;
@@ -28,12 +51,23 @@ namespace Biovation.Repository.v2
                 new SqlParameter("@Id", accessGroup.Id),
                 new SqlParameter("@Name", accessGroup.Name),
                 new SqlParameter("@Description", accessGroup.Description),
-                new SqlParameter("@TimeZoneId", accessGroup.TimeZone != null ? accessGroup.TimeZone.Id : 0),
-                //new SqlParameter("@AdminUserId", accessGroup.AdminUserId)
-
+                new SqlParameter("@TimeZoneId", accessGroup.TimeZone != null ? accessGroup.TimeZone.Id : 0)            
             };
 
             return _repository.ToResultList<ResultViewModel>("ModifyAccessGroup", parameters).Data.FirstOrDefault();
+        }
+
+        public ResultViewModel AddAccessGroup(AccessGroup accessGroup)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", accessGroup.Id),
+                new SqlParameter("@Name", accessGroup.Name),
+                new SqlParameter("@Description", accessGroup.Description),
+                new SqlParameter("@TimeZoneId", accessGroup.TimeZone != null ? accessGroup.TimeZone.Id : 0)
+            };
+
+            return _repository.ToResultList<ResultViewModel>("InsertAccessGroup", parameters).Data.FirstOrDefault();
         }
 
         /// <summary>
@@ -87,26 +121,6 @@ namespace Biovation.Repository.v2
             return _repository.ToResultList<ResultViewModel>("ModifyAccessGroupDeviceGroup", parameters).Data.FirstOrDefault();
         }
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <returns></returns>
-        public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int PageSize = default)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                
-                new SqlParameter("@Id", id),
-                new SqlParameter("@DeviceId ", deviceId),
-                new SqlParameter("@UserId", userId ),
-                new SqlParameter("@adminUserId", adminUserId),
-                new SqlParameter("@UserGroupId", userGroupId),
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",PageSize)
-            };
-            return _repository.ToResultList<AccessGroup>("SelectAccessGroupsByFilter", parameters, fetchCompositions: true).Data;
-        }
 
 
         public List<AccessGroup> GetAccessGroupsOfUser(long userId, int nestingDepthLevel)
