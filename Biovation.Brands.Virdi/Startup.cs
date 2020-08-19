@@ -194,6 +194,7 @@ namespace Biovation.Brands.Virdi
             app.UseAuthorization();
 
             loggerFactory.AddSerilog();
+            app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>
             {
