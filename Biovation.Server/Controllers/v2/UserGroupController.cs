@@ -29,7 +29,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> GetUsersGroup(long id = default, int groupId = default)
         {
             throw null;
@@ -48,7 +48,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("{groupId}")]
+        [Route("{groupId?}")]
         public Task<IActionResult> DeleteUserGroups( int groupId = default)
         {
             throw null;
@@ -62,14 +62,14 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("AccessControlUserGroup/{id}")]
+        [Route("AccessControlUserGroup/{id?}")]
         public Task<IActionResult> GetAccessControlUserGroup(int id = default)
         {
             throw null;
         }
 
         [HttpPut]
-        [Route("UsersOfGroup/{groupId}")]
+        [Route("UsersOfGroup/{groupId?}")]
         public Task<IActionResult> SendUsersOfGroup(int groupId)
         {
             throw null;

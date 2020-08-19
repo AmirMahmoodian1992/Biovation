@@ -35,21 +35,21 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> GetUserCard(int id = default)
         {
             throw null;
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> DeleteUserCard(int id = default)
         {
             throw null;
         }
 
         [HttpGet]
-        [Route("cardNumber/{deviceId}")]
+        [Route("cardNumber/{deviceId?}")]
         public Task<IActionResult> ReadCardNumber(string brandName = default, int deviceId = default)
         {
             throw null;

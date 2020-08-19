@@ -24,7 +24,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> GetDeviceGroup(int id = default, long userId = default)
         {
             throw null;
@@ -46,7 +46,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> DeleteDeviceGroup( int id = default)
         {
             throw null;
@@ -64,7 +64,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("AccessControlDeviceGroup/{id}")]
+        [Route("AccessControlDeviceGroup/{id?}")]
         public Task<IActionResult> GetAccessControlDeviceGroup(int id =default)
         {
             throw null;

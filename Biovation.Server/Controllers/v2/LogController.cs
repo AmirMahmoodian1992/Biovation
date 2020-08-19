@@ -34,7 +34,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("{deviceId}")]
+        [Route("{deviceId?}")]
         public Task<IActionResult> ClearLogOfDevice(int deviceId = default, string fromDate = default, string toDate = default)
         {
             throw null;
@@ -50,7 +50,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("LogsOfDevice/{deviceId}")]
+        [Route("LogsOfDevice/{deviceId?}")]
         public Task<IActionResult> LogsOfDevice(int deviceId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
         {
             throw null;
@@ -58,14 +58,14 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("Image/{id}")]
+        [Route("Image/{id?}")]
         public Task<IActionResult> GetImage(long id = default)
         {
             throw null;
         }
 
         [HttpGet]
-        [Route("LogsOfUser{userId}")]
+        [Route("LogsOfUser{userId?}")]
         public Task<IActionResult> LogsOfUser(int userId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
         {
             throw null;

@@ -48,7 +48,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> DeleteUser(int id = default)
         {
             throw null;
@@ -66,7 +66,7 @@ namespace Biovation.Server.Controllers.v2
 
         //if deviceId == 0 then send ids to all of device
         [HttpPut]
-        [Route("UsersToDevice/{deviceId}")]
+        [Route("UsersToDevice/{deviceId?}")]
         public Task<IActionResult> SendUsersToDevice([FromBody]int[] ids, string deviceId = default)
         {
             throw null;
@@ -74,7 +74,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPatch]
-        [Route("Password/{id}")]
+        [Route("Password/{id?}")]
         public Task<IActionResult> ModifyPassword(int id = default, string password = default)
         {
             throw null;
@@ -166,7 +166,7 @@ namespace Biovation.Server.Controllers.v2
         //                {
         //                    if (accessGroup.DeviceGroup == null)
         //                    {
-        //                        Logger.Log($"Not a standard access group, [{accessGroup.Id}].\n", "The access group does not have any device group.");
+        //                        Logger.Log($"Not a standard access group, [{accessGroup.Id?}].\n", "The access group does not have any device group.");
         //                        continue;
         //                    }
         //                    foreach (var deviceGroup in accessGroup.DeviceGroup)
@@ -178,7 +178,7 @@ namespace Biovation.Server.Controllers.v2
         //                        foreach (var device in deviceGroup.Devices)
         //                        {
         //                            var deviceBrand = deviceBrands.FirstOrDefault(devBrand => devBrand.Id == device.BrandId);
-        //                            var parameters = new List<object> { $"code={device.Code}", $"userId=[{lstUserGroupMember[i].UserId}]", };
+        //                            var parameters = new List<object> { $"code={device.Code}", $"userId=[{lstUserGroupMember[i].UserId?}]", };
         //                            _communicationManager.CallRest(
         //                                $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice", "Get", parameters, null);
         //                        }
@@ -198,7 +198,7 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPost]
-        [Route("FaceTemplate/{id}")]
+        [Route("FaceTemplate/{id?}")]
         public Task<IActionResult> EnrollFaceTemplate(int id =default, int deviceId = default)
         {
             throw null;
