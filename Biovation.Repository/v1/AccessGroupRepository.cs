@@ -15,7 +15,6 @@ namespace Biovation.Repository
         {
             _repository = repository;
         }
-
         /// <summary>
         /// <En>Get the device info from database.</En>
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>

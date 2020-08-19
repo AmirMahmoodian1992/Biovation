@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -13,6 +13,10 @@
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="v2\" />
   </ItemGroup>
 
 </Project>
