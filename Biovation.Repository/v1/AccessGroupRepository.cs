@@ -100,7 +100,7 @@ namespace Biovation.Repository
             };
             return _repository.ToResultList<AccessGroup>($"SelectAccessGroups{(nestingDepthLevel == 0 ? "" : "NestedProperties")}", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data;
         }
-        public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0)
+        public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0,int pageNumber = default, int PageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -110,6 +110,8 @@ namespace Biovation.Repository
                 new SqlParameter("@UserId", userId ),
                 new SqlParameter("@adminUserId", adminUserId),
                 new SqlParameter("@UserGroupId", userGroupId),
+                new SqlParameter("@PageNumber", pageNumber),
+                new SqlParameter("@PageSize",PageSize)
             };
             return _repository.ToResultList<AccessGroup>("SelectAccessGroupsByFilter", parameters, fetchCompositions: true).Data;
         }
