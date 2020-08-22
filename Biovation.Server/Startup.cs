@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -20,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MoreLinq.Extensions;
 
 namespace Biovation.Server
 {
@@ -163,6 +165,54 @@ namespace Biovation.Server
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
+
+
+            //app.MapWhen(context =>
+            //{
+            //    {
+            //        var url = context.Request.Path.Value;
+            //        if (url.Contains("Biovation/api"))
+            //        {
+            //            if (!(Regex.IsMatch(url, @"api/[v][1 - 9] /")))
+            //            {
+            //                var splittedUrl = url.Split("/");
+            //                var indexUrl = splittedUrl.Select((value, index) => new {value, index})
+            //                    .First(urlSegment => urlSegment.value == "api").index + 1;
+            //                //splittedUrl.Insert(new[] {"v1"}, indexUrl);/////whyyyyyyyyyy it doesn't work???
+            //                var listSplittedUrl = splittedUrl.ToList();
+            //                listSplittedUrl.Insert(indexUrl, "v1");
+            //                context.Request.Path = string.Join("/", listSplittedUrl);
+            //            }
+            //        }
+
+            //        return false;
+            //    },
+            //    {
+            //        req => req.Run(
+            //            ctx => Task.Run(() => ctx.Response.Redirect("/setup"))
+            //    }
+            //    //await next();
+            //});
+
+            //app.Use(async (context, next) =>
+            //{
+            //    var url = context.Request.Path.Value;
+            //    if (url.Contains("Biovation/api"))
+            //    {
+            //        if (!(Regex.IsMatch(url, @"api/[v][1 - 9] /")))
+            //        {
+            //            var splittedUrl = url.Split("/");
+            //            var indexUrl = splittedUrl.Select((value, index) => new {value, index})
+            //                .First(urlSegment => urlSegment.value == "api").index + 1;
+            //            //splittedUrl.Insert(new[] {"v1"}, indexUrl);/////whyyyyyyyyyy it doesn't work???
+            //            var listSplittedUrl = splittedUrl.ToList();
+            //            listSplittedUrl.Insert(indexUrl, "v1");
+            //            context.Request.Path = string.Join("/", listSplittedUrl);
+            //        }
+            //    }
+
+            //    //await next();
+            //});
 
         }
     }

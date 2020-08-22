@@ -43,6 +43,7 @@ namespace Biovation.Server.Extension
             jsonResult = new JsonResult(new ResultViewModel<T>
             {
                 Validate = result.Validate,
+                Success = result.Success,
                 Message = result.Message,
                 Data = result.Data,
                 Id = result.Id
@@ -102,15 +103,13 @@ namespace Biovation.Server.Extension
 
 
 
-        public static JsonResult JsonFromBriefResult(this HttpResponse response, bool validate = default, long code = 200, string message = default,
+        public static JsonResult JsonFromBriefResult(this HttpResponse response, int validate = default, bool success = default, long code = 200, string message = default,
             string title = default, long id = default, int? httpStatusCode = null)
         {
-            JsonResult jsonResult;
-
-
-            jsonResult = new JsonResult(new ResultViewModel()
+            var jsonResult = new JsonResult(new ResultViewModel()
             {
                 Validate = validate,
+                Success = success,
                 Message = message,
                 Id = id
 
@@ -124,15 +123,13 @@ namespace Biovation.Server.Extension
 
 
         //T = data.getType()
-        public static JsonResult JsonFromBriefResult<T>(this HttpResponse response, bool validate = default, long code = 200, string message = default,
+        public static JsonResult JsonFromBriefResult<T>(this HttpResponse response, bool success = default , int validate = default, long code = 200, string message = default,
             string title = default, long id = default, object data = default, int? httpStatusCode = null)
         {
-            JsonResult jsonResult;
-
-
-            jsonResult = new JsonResult(new ResultViewModel<T>()
+            var jsonResult = new JsonResult(new ResultViewModel<T>()
             {
                 Validate = validate,
+                Success = success,
                 Message = message,
                 Id = id,
                 Data = (T)data
@@ -150,6 +147,7 @@ namespace Biovation.Server.Extension
             return new ResultViewModel()
             {
                 Validate = result.Validate,
+                Success = result.Success,
                 Message = result.Message,
                 Id = result.Id,
                 Code = httpStatusCode
