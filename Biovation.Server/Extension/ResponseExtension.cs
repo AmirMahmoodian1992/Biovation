@@ -9,38 +9,7 @@ namespace Biovation.Server.Extension
     {
         public static JsonResult JsonFromResultViewModel<T>(this HttpResponse response, ResultViewModel<T> result, int? httpStatusCode = null)
         {
-            JsonResult jsonResult;
-            //if (Enum.IsDefined(typeof(HttpStatusCode), (int)result.Code))
-            //{
-            //    jsonResult = new JsonResult(new ResultViewModel<T>
-            //    {
-            //        Validate = result.Validate,
-            //        Message = result.Message,
-            //        Data = result.Data,
-            //        Id = result.Id
-            //    })
-            //    {
-            //        StatusCode = (int)result.Code
-            //    };
-
-            //}
-            //else
-            //{
-            //    jsonResult = new JsonResult(new ResultViewModel<T>()
-            //    {
-            //        Validate = result.Validate,
-            //        Message = result.Message,
-            //        Data = result.Data,
-            //        Id = result.Id,
-            //        Code = result.Code
-            //    })
-            //    {
-            //        StatusCode = httpStatusCode
-            //    };
-            //}
-
-
-            jsonResult = new JsonResult(new ResultViewModel<T>
+            var jsonResult = new JsonResult(new ResultViewModel<T>
             {
                 Validate = result.Validate,
                 Success = result.Success,
@@ -49,44 +18,14 @@ namespace Biovation.Server.Extension
                 Id = result.Id
             })
             {
-                StatusCode = httpStatusCode ?? (int)result.Code
+                StatusCode = httpStatusCode ?? ((int)result.Code != 0 ? (int)result.Code: 200)
             };
             return jsonResult;
-
         }
 
         public static JsonResult JsonFromResultViewModel(this HttpResponse response, ResultViewModel result, int? httpStatusCode = null)
         {
-
-            JsonResult jsonResult;
-            //if (Enum.IsDefined(typeof(HttpStatusCode), (int)result.Code))
-            //{
-            //    jsonResult = new JsonResult(new ResultViewModel
-            //    {
-            //        Validate = result.Validate,
-            //        Message = result.Message,
-            //        Id = result.Id
-            //    })
-            //    {
-            //        StatusCode = (int)result.Code
-            //    };
-
-            //}
-            //else
-            //{
-            //    jsonResult = new JsonResult(new ResultViewModel()
-            //    {
-            //        Validate = result.Validate,
-            //        Message = result.Message,
-            //        Id = result.Id,
-            //        Code = result.Code
-            //    })
-            //    {
-            //        StatusCode = httpStatusCode
-            //    };
-            //}
-
-            jsonResult = new JsonResult(new ResultViewModel()
+            var jsonResult = new JsonResult(new ResultViewModel()
             {
                 Validate = result.Validate,
                 Message = result.Message,
@@ -94,11 +33,10 @@ namespace Biovation.Server.Extension
                 Code = result.Code
             })
             {
-                StatusCode = httpStatusCode ?? (int)result.Code
+                StatusCode = httpStatusCode ?? ((int)result.Code != 0 ? (int)result.Code : 200)
             };
 
             return jsonResult;
-
         }
 
 
@@ -115,7 +53,7 @@ namespace Biovation.Server.Extension
 
             })
             {
-                StatusCode = httpStatusCode ?? (int)code
+                StatusCode = (int?) (httpStatusCode ?? (code != 0 ? code : 200))
             };
 
             return jsonResult;
@@ -136,34 +74,10 @@ namespace Biovation.Server.Extension
 
             })
             {
-                StatusCode = httpStatusCode ?? (int)code
+                StatusCode = (int?)(httpStatusCode ?? (code != 0 ? code : 200))
             };
 
             return jsonResult;
-        }
-
-        public static ResultViewModel SubstitutionCode(this HttpResponse response, ResultViewModel result, int httpStatusCode = (int)HttpStatusCode.OK)
-        {
-            return new ResultViewModel()
-            {
-                Validate = result.Validate,
-                Success = result.Success,
-                Message = result.Message,
-                Id = result.Id,
-                Code = httpStatusCode
-            };
-        }
-
-        public static ResultViewModel<T> SubstitutionCode<T>(this HttpResponse response, ResultViewModel<T> result, int httpStatusCode = (int)HttpStatusCode.OK)
-        {
-            return new ResultViewModel<T>()
-            {
-                Validate = result.Validate,
-                Message = result.Message,
-                Id = result.Id,
-                Data = result.Data,
-                Code = httpStatusCode
-            };
         }
 
 
