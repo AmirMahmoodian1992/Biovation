@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Biovation.Domain;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
 {
@@ -36,7 +38,7 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel<DeviceBasicInfo>>("SelectDeviceBasicInfoById", sqlParameter,
                     fetchCompositions: true).Data.FirstOrDefault();
         }
-        public PagingResult<DeviceBasicInfo> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
+        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
         {
             var sqlParameter = new List<SqlParameter>
@@ -49,10 +51,10 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@DeviceModelId", SqlDbType.Int) {Value = modelId},
                 new SqlParameter("@DeviceTypeId", SqlDbType.Int) {Value = typeId},
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},                            
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
                 };
             return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDevicesByFilter", sqlParameter,
-                    fetchCompositions: true).Data.FirstOrDefault();
+                   fetchCompositions: true).FetchFromResultList();
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device)
@@ -109,7 +111,7 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<PagingResult<Lookup>>("SelectDeviceBrandsByFilter", Parameter,
                     fetchCompositions: true).Data.FirstOrDefault();
         }
-        public PagingResult<DeviceModel> GetDeviceModels(long id=0,string brandId = default, string name = default, int pageNumber = default, int PageSize = default)
+        public PagingResult<DeviceModel> GetDeviceModels(long id = 0, string brandId = default, string name = default, int pageNumber = default, int PageSize = default)
         {
 
             var parameters = new List<SqlParameter>
@@ -135,11 +137,11 @@ namespace Biovation.Repository.SQL.v2
 
         public ResultViewModel DeleteDevices(List<int> deviceIds)
         {
-           
-                var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = deviceIds } };
 
-               return _repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault();
-            
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = deviceIds } };
+
+            return _repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault();
+
         }
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel)

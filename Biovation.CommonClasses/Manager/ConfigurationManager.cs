@@ -55,6 +55,13 @@ namespace Biovation.CommonClasses.Manager
             return Configuration["Password"] ?? Configuration.GetSection("ConnectionStrings")["Password"];
         }
 
+        public string AppSettingsDataQueriesPort()
+        {
+            return Configuration["DataQueriesPort"] ?? Configuration.GetSection("AppSettings")["DataQueriesPort"];
+        }
+            
+
+
         public static Uri LogMonitoringApiUrl
         {
             get

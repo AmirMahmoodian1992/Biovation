@@ -22,7 +22,7 @@ namespace Biovation.Server.Controllers.v2
 
         public DeviceController(DeviceService deviceService, UserService userService)
         {
-            _deviceService = deviceService;
+             _deviceService = deviceService;
             _userService = userService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }

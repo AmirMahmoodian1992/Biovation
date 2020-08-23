@@ -84,7 +84,8 @@ namespace Biovation.Server
             services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
             services.AddScoped<BlackListRepository, BlackListRepository>();
             services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
-            services.AddScoped<DeviceRepository, DeviceRepository>();
+            services.AddScoped<Repository.API.v2.DeviceRepository, Repository.API.v2.DeviceRepository>();
+            //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
             services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
@@ -107,7 +108,8 @@ namespace Biovation.Server
             services.AddScoped<AdminDeviceService, AdminDeviceService>();
             services.AddScoped<BlackListService, BlackListService>();
             services.AddScoped<DeviceGroupService, DeviceGroupService>();
-            services.AddScoped<DeviceService, DeviceService>();
+            services.AddScoped<Service.API.v2.DeviceService, Service.API.v2.DeviceService>();
+            //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddScoped<FaceTemplateService, FaceTemplateService>();
             services.AddScoped<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();

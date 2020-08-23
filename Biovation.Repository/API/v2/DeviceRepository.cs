@@ -13,7 +13,7 @@ namespace Biovation.Repository.API.v2
         public DeviceRepository(GenericRepository repository)
         {
             _repository = repository;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/dataFlow/queries/v2").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api/queries/v2").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Biovation.Repository.API.v2
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
         {
-            var restRequest = new RestRequest("Devices", Method.GET);
+            var restRequest = new RestRequest("Device", Method.GET);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
             return requestResult.Result.Data;
         }
