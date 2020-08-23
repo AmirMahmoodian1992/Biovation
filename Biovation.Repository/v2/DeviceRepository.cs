@@ -1,4 +1,6 @@
 ﻿using Biovation.Domain;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using System;
 using System.Collections.Generic;
@@ -36,7 +38,7 @@ namespace Biovation.Repository.v2
             return _repository.ToResultList<ResultViewModel<DeviceBasicInfo>>("SelectDeviceBasicInfoById", sqlParameter,
                     fetchCompositions: true).Data.FirstOrDefault();
         }
-        public PagingResult<DeviceBasicInfo> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
+        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
         {
             var sqlParameter = new List<SqlParameter>
@@ -51,8 +53,8 @@ namespace Biovation.Repository.v2
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},                            
                 };
-            return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDevicesByFilter", sqlParameter,
-                    fetchCompositions: true).Data.FirstOrDefault();
+             return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDevicesByFilter", sqlParameter,
+                    fetchCompositions: true).FetchFromResultList();
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device)
