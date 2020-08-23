@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.Brands.Virdi.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository;
-using Biovation.Repository.RestaurantRepositories;
 using Biovation.Service;
-using Biovation.Service.RestaurantServices;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
@@ -24,6 +19,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Ninject;
 using Serilog;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -44,7 +42,11 @@ namespace Biovation.Brands.Virdi
         {
             Configuration = configuration;
 
-            //Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
+            Serilog.Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                .Enrich.With(new ThreadIdEnricher())
+                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+                .CreateLogger();
+
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
             var builder = new ConfigurationBuilder()
@@ -261,7 +263,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<VirdiServer, VirdiServer>();
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
-            
+
             services.AddSingleton<CommandFactory, CommandFactory>();
 
             UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);

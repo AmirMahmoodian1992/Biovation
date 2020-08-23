@@ -1,3 +1,4 @@
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository;
@@ -10,16 +11,14 @@ using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Versioning;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using System.Reflection;
 
 namespace Biovation.Server
 {
@@ -28,11 +27,15 @@ namespace Biovation.Server
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
 
-            //Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                .Enrich.With(new ThreadIdEnricher())
+                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+                .CreateLogger();
+
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
             var builder = new ConfigurationBuilder()

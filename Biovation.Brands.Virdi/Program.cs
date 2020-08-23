@@ -16,20 +16,15 @@ namespace Biovation.Brands.Virdi
     {
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .MinimumLevel.Verbose()
-                .Enrich.With(new ThreadIdEnricher())
-                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
-                //.Enrich.WithHttpRequestId()
-                //.Enrich.WithWebApiActionName()
-                //.Enrich.WithWebApiControllerName()
-                //.Enrich.WithWebApiRouteData()
-                //.WriteTo.Console();
-                .WriteTo.Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}, {ThreadId}] {Message}{NewLine}{Exception}"
-                    /*,restrictedToMinimumLevel: minimumConsoleLogLevel*/)
-                .CreateLogger();
+            //Log.Logger = new LoggerConfiguration()
+            //    .Enrich.FromLogContext()
+            //    .MinimumLevel.Verbose()
+            //    .Enrich.With(new ThreadIdEnricher())
+            //    .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+            //    .WriteTo.Console(
+            //        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}, {ThreadId}] {Message}{NewLine}{Exception}"
+            //        /*,restrictedToMinimumLevel: minimumConsoleLogLevel*/)
+            //    .CreateLogger();
 
             CreateHostBuilder(args).Build().Run();
         }
