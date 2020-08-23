@@ -138,8 +138,8 @@ namespace Biovation.Repository
                 new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId }
             };
 
-            return _repository.ToResultList<DeviceBasicInfo>("SelectDeviceBasicInfoByID", parameters,
-                    fetchCompositions: true).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel<DeviceBasicInfo>>("SelectDeviceBasicInfoByID", parameters,
+                    fetchCompositions: true).Data.FirstOrDefault().Data;                  
         }
 
         public List<Lookup> GetDeviceBrands()
