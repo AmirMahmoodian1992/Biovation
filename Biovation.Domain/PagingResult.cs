@@ -10,6 +10,7 @@ namespace Biovation.Domain
         [OneToMany]
         public  List<T> Data { get; set; }
         public int From { get; set; }
+        [Id]
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public int Count { get; set; }

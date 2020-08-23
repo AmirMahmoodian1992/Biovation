@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RestSharp;
 
 namespace Biovation.Server
 {
@@ -69,7 +70,9 @@ namespace Biovation.Server
                 UserId = BiovationConfiguration.ConnectionStringUsername(),
                 Password = BiovationConfiguration.ConnectionStringPassword()
             };
+            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
+            services.AddSingleton(restClient);
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 

@@ -39,7 +39,7 @@ namespace Biovation.Repository.SQL.v2
                     fetchCompositions: true).Data.FirstOrDefault();
         }
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
+            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = 0, int PageSize = 0)
         {
             var sqlParameter = new List<SqlParameter>
                 {
