@@ -25,7 +25,18 @@ namespace Biovation.Repository.v2
         /// </summary>
         /// <returns></returns>
         /// 
-        public PagingResult<DeviceBasicInfo> GetAllDevicesBasicInfos(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+
+        public PagingResult<DeviceBasicInfo> GetDevice(long id, int adminUserId = 0)
+        {
+            var sqlParameter = new List<SqlParameter>
+                {
+                new SqlParameter("@Id", SqlDbType.Int) {Value = id }  ,
+                new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId }
+                };
+            return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDeviceBasicInfoById", sqlParameter,
+                    fetchCompositions: true).Data.FirstOrDefault();
+        }
+        public PagingResult<DeviceBasicInfo> GetDevices(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
         {
             var sqlParameter = new List<SqlParameter>
