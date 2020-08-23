@@ -15,6 +15,20 @@ namespace Biovation.Repository.v2
             _repository = repository;
         }
 
+
+
+        public List<UserCard> GetCardsByFilter(long userId,bool isactive,int pageNumber = default, int PageSize = default)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@IsActive", isactive),
+                new SqlParameter("@PageNumber", pageNumber),
+                new SqlParameter("@PageSize",PageSize)
+            };
+            return _repository.ToResultList<UserCard>("SelectUserCardByFilter", parameters).Data;
+
+        }
         /// <summary>
         /// <En>Get the device info from database.</En>
         /// <Fa>ذخیره اطلاعات کارت کاربر.</Fa>
@@ -33,14 +47,14 @@ namespace Biovation.Repository.v2
             return _repository.ToResultList<ResultViewModel>("ModifyUserCard", parameters).Data.FirstOrDefault();
         }
         
-        public List<UserCard> GetActiveUserCard(long userId)
+       /* public List<UserCard> GetActiveUserCard(long userId)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@UserId", userId),
             };
             return _repository.ToResultList<UserCard>("SelectActiveUserCardByUserId", parameters).Data;
-        }
+        }*/
 
         public User FindUserByCardNumber(string cardNumber)
         {
@@ -60,14 +74,14 @@ namespace Biovation.Repository.v2
             return _repository.ToResultList<User>("SelectUserByCardNumber", parameters).Data;
         }
 
-        public List<UserCard> GetAllUserCardsOfUser(int userId)
+      /* public List<UserCard> GetAllUserCardsOfUser(int userId)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@UserId", userId),
             };
             return _repository.ToResultList<UserCard>("SelectUserCardByUserId", parameters).Data;
-        }
+        }*/
 
         public ResultViewModel DeleteUserCard(int id)
         {
