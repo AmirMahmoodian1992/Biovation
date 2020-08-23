@@ -16,7 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="v2\" />
+    <Folder Include="API\v1\" />
+    <Folder Include="SQL\v2\" />
   </ItemGroup>
 
 </Project>
