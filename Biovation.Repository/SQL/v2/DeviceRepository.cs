@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Biovation.Repository.SQL.v2
@@ -28,24 +29,28 @@ namespace Biovation.Repository.SQL.v2
         /// <returns></returns>
         /// 
 
-        public ResultViewModel<DeviceBasicInfo> GetDevice(long id, int adminUserId = 0)
+        public ResultViewModel<DeviceBasicInfo> GetDevice(long id, int adminUserId = 0, int nestingDepthLevel = 4)
         {
             var sqlParameter = new List<SqlParameter>
                 {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id }  ,
                 new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId }
                 };
-            return _repository.ToResultList<ResultViewModel<DeviceBasicInfo>>("SelectDeviceBasicInfoById", sqlParameter,
-                    fetchCompositions: true).Data.FirstOrDefault();
+            //return _repository.ToResultList<ResultViewModel<DeviceBasicInfo>>("SelectDeviceBasicInfoById", sqlParameter,
+            //     fetchCompositions: true).Data.FirstOrDefault();
+
+            return _repository.ToResultList<DeviceBasicInfo>("SelectDeviceBasicInfoById", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+           
         }
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = 0, int PageSize = 0)
+            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = 0, int PageSize = 0,int nestingDepthLevel = 4)
         {
+           
             var sqlParameter = new List<SqlParameter>
                 {
                 new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId },
                 new SqlParameter("@GroupId", SqlDbType.Int) {Value = groupId },
-                new SqlParameter("@Code", SqlDbType.Int) {Value = code},
+                new SqlParameter("@DeviceCode", SqlDbType.Int) {Value = code},
                 new SqlParameter("@DeviceBrandId", SqlDbType.Int) {Value = brandId},
                 new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
                 new SqlParameter("@DeviceModelId", SqlDbType.Int) {Value = modelId},
@@ -53,8 +58,8 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
                 };
-            return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDevicesByFilter", sqlParameter,
-                   fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<DeviceBasicInfo>>($"SelectDevicesByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+       
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device)
@@ -135,10 +140,10 @@ namespace Biovation.Repository.SQL.v2
         }
 
 
-        public ResultViewModel DeleteDevices(List<int> deviceIds)
+        public ResultViewModel DeleteDevices(List<uint> deviceIds)
         {
-
-            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = deviceIds } };
+            
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = JsonSerializer.Serialize(deviceIds) } };
 
             return _repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault();
 

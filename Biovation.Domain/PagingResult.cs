@@ -8,7 +8,7 @@ namespace Biovation.Domain
     public class PagingResult<T>
     {
         [OneToMany]
-        public  List<T> Data { get; set; }
+        public  List<T> Data { get; set; }     
         public int From { get; set; }
         [Id]
         public int PageNumber { get; set; }

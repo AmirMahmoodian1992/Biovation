@@ -20,5 +20,17 @@ namespace DataAccessLayerCore.Extentions
                 Data = data.Data.FirstOrDefault()
             };
         }
+        public static ResultViewModel<List<T>> FetchResultList<T>(this Result<List<T>> data)
+        {
+            return new ResultViewModel<List<T>>
+            {
+                Success = data.Success,
+                Code = Convert.ToInt64(data.Code),
+                //Title = data.Title,
+                Message = data.Message,
+                //SeverityLevel = data.SeverityLevel,
+                Data = data.Data
+            };
+        }
     }
 }
