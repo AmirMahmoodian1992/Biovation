@@ -26,7 +26,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> TimeZones(int id = default)
         {
             throw null;
@@ -40,7 +40,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> DeleteTimeZone(int id = default)
         {
             throw null;

@@ -27,7 +27,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{userId}")]
+        [Route("{userId?}")]
         public Task<IActionResult> AccessGroups(long userId = default, int adminUserId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default)
         {
             throw null;
@@ -46,14 +46,14 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> DeleteAccessGroups(int id = default)
         {
             throw null;
         }
 
         [HttpPost]
-        [Route("AllUsersToAllDevicesInAccessGroup/{accessGroupId}")]
+        [Route("AllUsersToAllDevicesInAccessGroup/{accessGroupId?}")]
         public Task<IActionResult> SendAllUsersToAllDevicesInAccessGroup(int accessGroupId = default)
         {
             throw null;
@@ -61,7 +61,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPost]
-        [Route("AccessGroupToDevice/{accessGroupId}")]
+        [Route("AccessGroupToDevice/{accessGroupId?}")]
         public Task<IActionResult> SendAccessGroupToDevice(int accessGroupId = default,int deviceId = default)
         {
             throw null;

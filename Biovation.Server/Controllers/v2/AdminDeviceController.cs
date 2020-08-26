@@ -25,7 +25,7 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> GetAdminDevicesByPersonId(int id = default)
         {
             throw null;

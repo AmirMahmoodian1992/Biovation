@@ -18,14 +18,14 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("{userId}")]
+        [Route("{userId?}")]
         public Task<IActionResult> GetFingerTemplateByUserId(long userId = default, int templateIndex = default)
         {
             throw null;
         }
 
         [HttpPost]
-        [Route("{userId}")]
+        [Route("{userId?}")]
         public Task<IActionResult> AddUserFingerTemplate([FromBody]FingerTemplate fingerTemplate = default)
         {
             throw null;
@@ -38,7 +38,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("{userId}")]
+        [Route("{userId?}")]
         public Task<IActionResult> DeleteFingerTemplateByUserId(int userId = default, int templateIndex = default)
         {
             throw null;

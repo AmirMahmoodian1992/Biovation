@@ -1,18 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.Brands.Virdi.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository;
-using Biovation.Repository.RestaurantRepositories;
 using Biovation.Service;
-using Biovation.Service.RestaurantServices;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
@@ -21,7 +16,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Ninject;
+using Serilog;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -42,7 +42,11 @@ namespace Biovation.Brands.Virdi
         {
             Configuration = configuration;
 
-            //Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
+            Serilog.Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                .Enrich.With(new ThreadIdEnricher())
+                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+                .CreateLogger();
+
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
             var builder = new ConfigurationBuilder()
@@ -122,18 +126,112 @@ namespace Biovation.Brands.Virdi
 
         }
 
-        private void ConfigureConstantValues(IServiceCollection services)
+        public void ConfigureConstantValues(IServiceCollection services)
         {
+            var serviceCollection = new ServiceCollection();
+            var connectionInfo = new DatabaseConnectionInfo
+            {
+                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
+                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
+                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
+                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
+                Parameters = BiovationConfiguration.ConnectionStringParameters(),
+                UserId = BiovationConfiguration.ConnectionStringUsername(),
+                Password = BiovationConfiguration.ConnectionStringPassword()
+            };
+
+            serviceCollection.AddSingleton(connectionInfo);
+            serviceCollection.AddSingleton<IConnectionFactory, DbConnectionFactory>();
+
+            serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
+            serviceCollection.AddScoped<LookupRepository, LookupRepository>();
+            serviceCollection.AddScoped<LookupService, LookupService>();
+            serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
+
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            var lookupService = serviceProvider.GetService<LookupService>();
+
+            var taskStatusesQuery = lookupService.GetLookups(lookupCategoryId: 1);
+            var taskTypesQuery = lookupService.GetLookups(lookupCategoryId: 2);
+            var taskItemTypesQuery = lookupService.GetLookups(lookupCategoryId: 3);
+            var taskPrioritiesQuery = lookupService.GetLookups(lookupCategoryId: 4);
+            var fingerIndexNamesQuery = lookupService.GetLookups(lookupCategoryId: 5);
+            var deviceBrandsQuery = lookupService.GetLookups(lookupCategoryId: 6);
+            var logEventsQuery = lookupService.GetLookups(lookupCategoryId: 7);
+            var logSubEventsQuery = lookupService.GetLookups(lookupCategoryId: 8);
+            var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
+            var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
+            var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+
+
+            Lookups.TaskStatuses = taskStatusesQuery.Result;
+            Lookups.TaskTypes = taskTypesQuery.Result;
+            Lookups.TaskItemTypes = taskItemTypesQuery.Result;
+            Lookups.TaskPriorities = taskPrioritiesQuery.Result;
+            Lookups.FingerIndexNames = fingerIndexNamesQuery.Result;
+            Lookups.DeviceBrands = deviceBrandsQuery.Result;
+            Lookups.LogSubEvents = logSubEventsQuery.Result;
+            Lookups.FingerTemplateType = fingerTemplateTypeQuery.Result;
+            Lookups.FaceTemplateType = faceTemplateTypeQuery.Result;
+            Lookups.LogEvents = logEventsQuery.Result;
+            Lookups.MatchingTypes = matchingTypeQuery.Result;
+
+            //var lookups = new Lookups
+            //{
+            //    TaskStatuses = taskStatusesQuery.Result,
+            //    TaskTypes = taskTypesQuery.Result,
+            //    TaskItemTypes = taskItemTypesQuery.Result,
+            //    TaskPriorities = taskPrioritiesQuery.Result,
+            //    FingerIndexNames = fingerIndexNamesQuery.Result,
+            //    DeviceBrands = deviceBrandsQuery.Result,
+            //    LogSubEvents = logSubEventsQuery.Result,
+            //    FingerTemplateType = fingerTemplateTypeQuery.Result,
+            //    FaceTemplateType = faceTemplateTypeQuery.Result,
+            //    LogEvents = logEventsQuery.Result,
+            //    MatchingTypes = matchingTypeQuery.Result
+            //};
+
+            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
+
+            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
+            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
+            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+
+
+            var genericCodeMappings = new GenericCodeMappings
+            {
+                LogEventMappings = logEventMappingsQuery.Result,
+                LogSubEventMappings = logSubEventMappingsQuery.Result,
+                FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result,
+                MatchingTypeMappings = matchingTypeMappingsQuery.Result
+            };
+
+
+            LogEvents.Connect = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.ConnectCode));
+            LogEvents.Disconnect = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.DisconnectCode));
+            LogEvents.Authorized = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.AuthorizedCode));
+            LogEvents.UnAuthorized = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.UnAuthorizedCode));
+            LogEvents.AddUserToDevice = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.AddUserToDeviceCode));
+            LogEvents.RemoveUserFromDevie = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.RemoveUserFromDeviceCode));
+            LogEvents.DeviceEnabled = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.DeviceEnabledCode));
+            LogEvents.DeviceDisabled = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.DeviceDisabledCode));
+            LogEvents.EnrollSuccess = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.EnrollSuccessCode));
+            LogEvents.IdentifySuccessFace = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.IdentifyFaceSuccessCode));
+
+            services.AddSingleton<Lookups, Lookups>();
+            services.AddSingleton(genericCodeMappings);
             //Constant values
-            //services.AddSingleton(new DeviceBrands());
             services.AddSingleton<DeviceBrands, DeviceBrands>();
-            //services.AddSingleton(new LogEvents());
             services.AddSingleton<LogEvents, LogEvents>();
             services.AddSingleton<LogSubEvents, LogSubEvents>();
-            //services.AddSingleton(new FingerTemplateTypes());
-            services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
+            services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
+
 
         private void ConfigureVirdiServices(IServiceCollection services)
         {
@@ -165,7 +263,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<VirdiServer, VirdiServer>();
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
-            
+
             services.AddSingleton<CommandFactory, CommandFactory>();
 
             UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
@@ -178,7 +276,7 @@ namespace Biovation.Brands.Virdi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -190,6 +288,9 @@ namespace Biovation.Brands.Virdi
             app.UseRouting();
 
             app.UseAuthorization();
+
+            loggerFactory.AddSerilog();
+            app.UseSerilogRequestLogging();
 
             app.UseEndpoints(endpoints =>
             {

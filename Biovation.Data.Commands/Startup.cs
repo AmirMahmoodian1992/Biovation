@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Biovation.Data.Commands
 {
@@ -18,6 +21,11 @@ namespace Biovation.Data.Commands
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                .Enrich.With(new ThreadIdEnricher())
+                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+                .CreateLogger();
         }
 
         public IConfiguration Configuration { get; }

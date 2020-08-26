@@ -34,7 +34,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> GetBlackList(int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
         {
             throw null;
@@ -46,7 +46,7 @@ namespace Biovation.Server.Controllers.v2
             throw null;
         }
         [HttpDelete]
-        [Route("{id}")]
+        [Route("{id?}")]
         public Task<IActionResult> DeleteBlackList(int id = default)
         {
             throw null;

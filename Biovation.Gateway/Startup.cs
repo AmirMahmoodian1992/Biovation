@@ -1,3 +1,5 @@
+using System.Reflection;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
@@ -9,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Serilog;
 
 namespace Biovation.Gateway
 {
@@ -17,11 +20,15 @@ namespace Biovation.Gateway
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
 
-            //Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+                .Enrich.With(new ThreadIdEnricher())
+                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+                .CreateLogger();
+
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
             var builder = new ConfigurationBuilder()
