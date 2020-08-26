@@ -55,7 +55,7 @@ namespace Biovation.CommonClasses.Manager
             return Configuration["Password"] ?? Configuration.GetSection("ConnectionStrings")["Password"];
         }
 
-        public static Uri LogMonitoringApiUrl
+        public Uri LogMonitoringApiUrl
         {
             get
             {
@@ -63,10 +63,13 @@ namespace Biovation.CommonClasses.Manager
                 {
                     try
                     {
-                        var useHttps = ConfigurationManager.AppSettings["LegoServerAddress"]
+                        //var useHttps = ConfigurationManager.AppSettings["LegoServerAddress"]
+                        //    ?.ToLowerInvariant().Contains(@"https://") == true;
+                        var useHttps = Configuration.GetSection("AppSettings")["LegoServerAddress"]
                             ?.ToLowerInvariant().Contains(@"https://") == true;
 
-                        var rawUrl = ConfigurationManager.AppSettings["LegoServerAddress"]?.ToLowerInvariant()
+
+                        var rawUrl = Configuration.GetSection("AppSettings")["LegoServerAddress"]?.ToLowerInvariant()
                             .Replace(@"http://", "").Replace(@"https://", "");
                         if (rawUrl is null)
                             return default;
@@ -344,7 +347,8 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    //return string.Equals(ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {

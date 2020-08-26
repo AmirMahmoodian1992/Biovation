@@ -565,7 +565,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] JArray userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
 
             return Task.Run(() =>
@@ -583,8 +583,9 @@ namespace Biovation.Brands.Virdi.Controllers
                         Priority = TaskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
-                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
                     //int[] userIds =new[] {Convert.ToInt32(userId)};
+                    
                     var devices = _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.VirdiCode);
                     var deviceId = devices.DeviceId;
                     foreach (var id in userIds)

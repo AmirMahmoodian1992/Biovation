@@ -26,7 +26,7 @@ namespace Biovation.Service
         {
             _logRepository = logRepository;
             _configurationManager = configurationManager;
-            _logExternalSubmissionRestClient = (RestClient)new RestClient(BiovationConfigurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+            _logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         public Task<ResultViewModel> AddLog(Log log)

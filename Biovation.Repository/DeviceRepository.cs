@@ -51,12 +51,12 @@ namespace Biovation.Repository
         }
 
 
-        public List<DeviceBasicInfo> GetDevicesByFilter(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+        public List<DeviceBasicInfo> GetDevicesByFilter(/*long id = 0,*/ long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
         {
             var sqlParameter = new List<SqlParameter>
             {
-                new SqlParameter("@Id", SqlDbType.Int) {Value = id},
+                /*new SqlParameter("@Id", SqlDbType.Int) {Value = id},*/
                 new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId },
                 new SqlParameter("@GroupId", SqlDbType.Int) {Value = groupId},
                 new SqlParameter("@Code", SqlDbType.Int) { Value = code },

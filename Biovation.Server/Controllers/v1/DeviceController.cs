@@ -46,10 +46,10 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(() => _deviceService.GetAllDevicesBasicInfosByfilter(adminUserId, deviceGroupId, code, deviceId, brandId, deviceName, deviceModelId));
         }
 
-        //ToDo: Check and fix route duplicate
+        ////ToDo: Check and fix route duplicate
         //[HttpGet]
         //[Route("Devices")]
-        //public Task<List<DeviceBasicInfo>> Devices(string deviceName, int deviceModelId, int deviceTypeId, long userId)
+        //public Task<List<DeviceBasicInfo>> GetDevices(string deviceName, int deviceModelId, int deviceTypeId, long userId)
         //{
         //    return Task.Run(() => _deviceService.GetDevicesBasicInfosByFilter(deviceName, deviceModelId, deviceTypeId, userId));
         //}
@@ -165,7 +165,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
-        [Route("DeviceBrandsDeviceBrands")]
+        [Route("DeviceBrands")]
         public async Task<List<Lookup>> DeviceBrands(bool loadedOnly = true)
         {
             if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
@@ -299,7 +299,7 @@ namespace Biovation.Server.Controllers.v1
         /// <returns></returns>
         [HttpPost]
         [Route("RetrieveUserFromDevice")]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(int deviceId, [FromBody] JArray userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice([FromQuery]int deviceId, [FromBody] List<int> userId)
         {
             return Task.Run(async () =>
             {

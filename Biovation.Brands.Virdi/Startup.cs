@@ -266,6 +266,8 @@ namespace Biovation.Brands.Virdi
 
             services.AddSingleton<CommandFactory, CommandFactory>();
 
+            services.BuildServiceProvider().GetService<Callbacks>();
+
             UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
 
             Logger.Log(UcsApi.ErrorCode != 0

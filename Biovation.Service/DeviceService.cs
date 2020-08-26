@@ -29,10 +29,10 @@ namespace Biovation.Service
         }
 
 
-        public List<DeviceBasicInfo> GetDevicesByfilter(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
+        public List<DeviceBasicInfo> GetDevicesByfilter(/*long id = 0,*/long adminUserId = 0, int groupId = 0, uint code = 0,
                 int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
         { 
-            return _deviceRepository.GetDevicesByFilter(id, adminUserId, groupId, code, brandId, name, modelId, typeId);
+            return _deviceRepository.GetDevicesByFilter(/*id,*/ adminUserId, groupId, code, brandId, name, modelId, typeId);
         }
         public ResultViewModel AddDevice(DeviceBasicInfo device)
         {

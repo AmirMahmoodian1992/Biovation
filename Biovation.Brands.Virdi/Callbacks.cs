@@ -37,7 +37,8 @@ namespace Biovation.Brands.Virdi
         private readonly LogService _logService;
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateService _faceTemplateService;
-        private readonly RestClient _monitoringRestClient = new RestClient(BiovationConfigurationManager.LogMonitoringApiUrl);
+        private readonly BiovationConfigurationManager _configurationManager;
+        private readonly RestClient _monitoringRestClient;//= new RestClient(_configurationManager.LogMonitoringApiUrl);
         public static bool ModifyUserData = false;
         public static bool GetUserTaskFinished = true;
         public static bool GetLogTaskFinished = true;
@@ -91,7 +92,6 @@ namespace Biovation.Brands.Virdi
         private readonly Dictionary<long, IFastSearch> _fastSearchOfDevices = new Dictionary<long, IFastSearch>();
         private readonly Dictionary<long, IFPData> _fingerPrintDataOfDevices = new Dictionary<long, IFPData>();
         private readonly Dictionary<long, UCBioBSPClass> _bioBspClasses = new Dictionary<long, UCBioBSPClass>();
-
 
         //private readonly Dictionary<int, IFastSearch> _fastSearchOfUsers = new Dictionary<int, IFastSearch>();
         //private readonly Dictionary<int, IFPData> _fingerPrintDataOfUsers = new Dictionary<int, IFPData>();
@@ -175,7 +175,7 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings)
+        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -192,6 +192,9 @@ namespace Biovation.Brands.Virdi
             _fingerTemplateTypes = fingerTemplateTypes;
             _virdiCodeMappings = virdiCodeMappings;
             _onlineDevices = virdiServer.GetOnlineDevices();
+
+            _configurationManager = configurationManager;
+            _monitoringRestClient = (RestClient)new RestClient(_configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             // create UCSAPI Instance
             UcsApi = ucsapi;
@@ -1711,6 +1714,12 @@ namespace Biovation.Brands.Virdi
 
         private void GetUserListCallback(int clientId, int terminalId)
         {
+            //Todo: Fix it!!
+            if (TerminalUserData.UserID == 0)
+            {
+                return;
+            }
+
             var isoEncoding = Encoding.GetEncoding(28591);
             var windowsEncoding = Encoding.GetEncoding(1256);
 
