@@ -49,6 +49,13 @@ namespace Biovation.Server.Controllers.v2
             return result;
         }
 
+        /* [HttpPost]
+        public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
+        {
+
+            Task.Run(() => _deviceService.AddDevice(device));
+            throw null;
+        }*/
        /* [HttpPost]
         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
         {

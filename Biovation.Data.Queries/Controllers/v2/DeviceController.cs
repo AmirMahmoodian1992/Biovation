@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
-using RestSharp;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -22,7 +20,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             _deviceRepository = deviceRepository;
         }
 
-
         [HttpGet]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
@@ -35,7 +32,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _deviceRepository.GetDevice(id, adminUserId));
         }
-
 
         [HttpPost]
         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
@@ -51,17 +47,22 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel>  DeleteDevice(uint id)
+        public Task<ResultViewModel> DeleteDevice(uint id)
         {
             return Task.Run(() => _deviceRepository.DeleteDevice(id));
         }
 
-
         [HttpDelete]
         [Route("DeleteDevices")]
-        public Task<ResultViewModel> DeleteDevices([FromBody]List<uint> ids = default)      
+        public Task<ResultViewModel> DeleteDevices([FromBody]List<uint> ids = default)
         {
             return Task.Run(() => _deviceRepository.DeleteDevices(ids));
+        }
+
+        [HttpPut]
+        public Task<ResultViewModel> ModifyDevice([FromBody]DeviceBasicInfo device = default)
+        {
+            return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfo(device));
         }
     }
 }

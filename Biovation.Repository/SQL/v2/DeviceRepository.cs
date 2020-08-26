@@ -165,7 +165,7 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("InsertDeviceModel", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel ModifyDeviceBasicInfoByID(DeviceBasicInfo device)
+        public ResultViewModel ModifyDeviceBasicInfo(DeviceBasicInfo device)
         {
             var parameters = new List<SqlParameter>
             {
