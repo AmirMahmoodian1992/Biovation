@@ -23,8 +23,7 @@ namespace Biovation.CommonClasses.Migration
 GO
 SET QUOTED_IDENTIFIER ON
 GO", "");
-
-            var parser = new TSql150Parser(true);
+            var parser = new TSql130Parser(true);
             var fragments = parser.Parse(new StringReader(contents), out IList<ParseError> errors);
 
             var options = new SqlScriptGeneratorOptions
@@ -43,7 +42,7 @@ GO", "");
                 //IncludeSemicolons = false
             };
 
-            var scriptGen = new Sql150ScriptGenerator(options);
+            var scriptGen = new Sql130ScriptGenerator(options);
             scriptGen.GenerateScript(fragments, out var script);
 
             var resultContent = string.Empty;
