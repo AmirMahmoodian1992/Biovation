@@ -1,13 +1,13 @@
-﻿using System;
+﻿using DataAccessLayerCore.Attributes;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Extentions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
-using DataAccessLayerCore.Attributes;
-using DataAccessLayerCore.Domain;
-using DataAccessLayerCore.Extentions;
 
 // ReSharper disable once CheckNamespace
 namespace DataAccessLayerCore.Repositories
@@ -139,9 +139,32 @@ namespace DataAccessLayerCore.Repositories
                     Map(reader, typeof(Result<List<T>>), result, depth: 0, maxDepth: 0, columnPrefix: "e_");
                     result.Data = entities;
                 }
-                var entity = (T)Activator.CreateInstance(typeof(T));
-                entities.Add(entity);
-                Map(reader, typeof(T), entity, 0, 0);
+
+                if (typeof(T) == typeof(string))
+                    entities.Add((T)reader[0]);
+                else
+                {
+                    if (typeof(T).IsPrimitive)
+                    {
+                        try
+                        {
+                            var value = Convert.ChangeType(reader[0], typeof(T));
+                            entities.Add((T)value);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                    }
+
+                    else
+                    {
+                        var entity = (T)Activator.CreateInstance(typeof(T));
+                        entities.Add(entity);
+                        Map(reader, typeof(T), entity, 0, 0);
+                    }
+                }
             }
 
             return result;
@@ -164,7 +187,12 @@ namespace DataAccessLayerCore.Repositories
                 if (instance == null) throw new ArgumentNullException(nameof(instance));
                 var objT = instance;
 
-                if (type.IsGenericType && depth < maxDepth && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))
+                if (type.IsPrimitive)
+                {
+                    instance = Convert.ChangeType(record[0], type);
+                }
+
+                else if (type.IsGenericType && depth < maxDepth && type.GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))
                 {
                     var idProperty = GetPropertiesByAttribute(type.GenericTypeArguments.Single(), typeof(IdAttribute)).FirstOrDefault();
                     if (idProperty == null)
@@ -270,12 +298,7 @@ namespace DataAccessLayerCore.Repositories
                         {
                             if (!record.HasColumn(propertyName)) continue;
                             property.SetValue(objT,
-                                record.IsDBNull(record.GetOrdinal(propertyName)) ? null : record[propertyName]);
-                            var tt = record[propertyName].GetType();
-
-
-
-
+                                record.IsDBNull(record.GetOrdinal(propertyName)) ? null : Convert.ChangeType(record[propertyName], propertyType), null);
                         }
                     }
                 }
