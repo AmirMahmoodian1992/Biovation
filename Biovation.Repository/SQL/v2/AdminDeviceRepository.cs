@@ -23,17 +23,17 @@ namespace Biovation.Repository.v2
         /// </summary>
         /// <param name="userId">کد دستگاه</param>
         /// <returns></returns>
-        public List<AdminDeviceGroup> GetAdminDeviceGroupsByUserId(int userId)
+        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDeviceGroupsByUserId(int userId)
         {
 
             var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
             { new SqlParameter("@UserId", SqlDbType.BigInt) { Value = userId }};
 
-            return _repository.ToResultList<AdminDeviceGroup>("SelectAdminDeviceGroupsByUserId", parameters).Data;
-
+            return _repository.ToResultList<PagingResult<AdminDeviceGroup>>("SelectAdminDeviceGroupsByUserId", parameters).Data;
+           
         }
 
-        public List<AdminDevice> GetAdminDevicesByUserId(int userId)
+        public ResultViewModel<PagingResult<AdminDevice>> GetAdminDevicesByUserId(int userId)
         {
 
             var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
