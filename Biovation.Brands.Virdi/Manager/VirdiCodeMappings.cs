@@ -21,22 +21,22 @@ namespace Biovation.Brands.Virdi.Manager
         }
 
 
-        private static List<GenericCodeMapping> _virdiLogSubEventMappings;
+        private readonly List<GenericCodeMapping> _virdiLogSubEventMappings;
 
-        private static List<GenericCodeMapping> _virdiFingerTemplateTypeMappings;
+        private readonly List<GenericCodeMapping> _virdiFingerTemplateTypeMappings;
 
-        private static List<GenericCodeMapping> _virdiMatchingTypeMappings;
+        private readonly List<GenericCodeMapping> _virdiMatchingTypeMappings;
 
-        public static Lookup GetLogSubEventGenericLookup(int virdiCode)
+        public Lookup GetLogSubEventGenericLookup(int virdiCode)
         {
             return _virdiLogSubEventMappings.FirstOrDefault(subEvent => string.Equals(subEvent.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
         }
 
-        public static Lookup GetFingerTemplateTypeLookup(int virdiCode)
+        public Lookup GetFingerTemplateTypeLookup(int virdiCode)
         {
             return _virdiFingerTemplateTypeMappings.FirstOrDefault(fingerTemplateType => string.Equals(fingerTemplateType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
         }
-        public static Lookup GetMatchingTypeGenericLookup(int virdiCode)
+        public Lookup GetMatchingTypeGenericLookup(int virdiCode)
         {
             return _virdiMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
         }

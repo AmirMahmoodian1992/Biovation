@@ -24,13 +24,13 @@ namespace Biovation.Constants
             Shahab = Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ShahabCode));
         }
 
-        public static Lookup Virdi { get; set; }
-        public static Lookup Eos { get; set; }
-        public static Lookup Suprema { get; set; }
-        public static Lookup ZkTeco { get; set; }
-        public static Lookup ProcessingWorld { get; set; }
-        public static Lookup Maxa { get; set; }
-        public static Lookup Shahab { get; set; }
+        public Lookup Virdi { get; set; }
+        public Lookup Eos { get; set; }
+        public Lookup Suprema { get; set; }
+        public Lookup ZkTeco { get; set; }
+        public Lookup ProcessingWorld { get; set; }
+        public Lookup Maxa { get; set; }
+        public Lookup Shahab { get; set; }
 
 
 

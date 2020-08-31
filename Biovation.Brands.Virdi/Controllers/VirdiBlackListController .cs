@@ -1,30 +1,30 @@
-﻿using Biovation.Domain;
+﻿using Biovation.Brands.Virdi.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.Brands.Virdi.Manager;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiBlackListController : Controller
     {
-        private readonly VirdiServer _virdiServer;
+        private readonly DeviceBrands _deviceBrands;
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
 
-        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, TaskManager taskManager)
+        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager)
         {
             _taskService = taskService;
             _userService = userService;
             _deviceService = deviceService;
-            _virdiServer = virdiServer;
+            _deviceBrands = deviceBrands;
             _taskManager = taskManager;
         }
 
@@ -44,7 +44,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = TaskTypes.SendBlackList,
                         Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
 

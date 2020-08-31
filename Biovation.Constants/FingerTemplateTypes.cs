@@ -16,9 +16,9 @@ namespace Biovation.Constants
             VX10 = Lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, VX10Code));
         }
 
-        public static Lookup V400;
-        public static Lookup SU384;
-        public static Lookup VX10;
+        public Lookup V400;
+        public Lookup SU384;
+        public Lookup VX10;
 
     }
 }

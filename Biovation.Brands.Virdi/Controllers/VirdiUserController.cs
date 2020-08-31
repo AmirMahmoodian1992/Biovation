@@ -21,11 +21,12 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
         private readonly UserService _userService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
 
-        public VirdiUserController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager)
+        public VirdiUserController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands)
         {
             _taskService = taskService;
             _userService = userService;
@@ -35,6 +36,7 @@ namespace Biovation.Brands.Virdi.Controllers
             _accessGroupService = accessGroupService;
             _commandFactory = commandFactory;
             _taskManager = taskManager;
+            _deviceBrands = deviceBrands;
         }
 
         [HttpPost]
@@ -117,7 +119,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = TaskTypes.SendUsers,
                         Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
                     foreach (var id in userIds)
@@ -222,7 +224,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = TaskTypes.EnrollFaceFromTerminal,
                         Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
 

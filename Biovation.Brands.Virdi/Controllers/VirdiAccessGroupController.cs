@@ -17,22 +17,22 @@ namespace Biovation.Brands.Virdi.Controllers
     public class VirdiAccessGroupController : Controller
     {
         private readonly Callbacks _callbacks;
-        private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
         private readonly UserService _userService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
 
-        public VirdiAccessGroupController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager)
+        public VirdiAccessGroupController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands)
         {
             _taskService = taskService;
             _userService = userService;
             _deviceService = deviceService;
-            _virdiServer = virdiServer;
             _callbacks = callbacks;
             _commandFactory = commandFactory;
             _taskManager = taskManager;
+            _deviceBrands = deviceBrands;
         }
 
         [HttpPost]
@@ -50,7 +50,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = TaskTypes.SendUsers,
                         Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
                     foreach (var device in devices)

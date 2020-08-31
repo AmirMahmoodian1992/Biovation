@@ -25,11 +25,12 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
         private readonly UserService _userService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
 
-        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager)
+        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands)
         {
             _callbacks = callbacks;
             _virdiServer = virdiServer;
@@ -38,6 +39,7 @@ namespace Biovation.Brands.Virdi.Controllers
             _deviceService = deviceService;
             _commandFactory = commandFactory;
             _taskManager = taskManager;
+            _deviceBrands = deviceBrands;
             _accessGroupService = accessGroupService;
         }
 
@@ -93,7 +95,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = TaskTypes.GetServeLogs,
                         Priority = TaskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                     };
 
                     if (deviceId != default)
@@ -165,7 +167,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                 TaskType = TaskTypes.GetServeLogs,
                                 Priority = TaskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
-                                DeviceBrand = DeviceBrands.Virdi,
+                                DeviceBrand = _deviceBrands.Virdi,
 
                             };
 
@@ -217,7 +219,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                 TaskType = TaskTypes.GetServeLogs,
                                 Priority = TaskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
-                                DeviceBrand = DeviceBrands.Virdi,
+                                DeviceBrand = _deviceBrands.Virdi,
                             };
 
                             if (deviceId != default)
@@ -324,7 +326,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = TaskTypes.LockDevice,
                         Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
@@ -415,7 +417,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         {
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
-                            DeviceBrand = DeviceBrands.Virdi,
+                            DeviceBrand = _deviceBrands.Virdi,
                             TaskType = TaskTypes.UnlockDevice,
                             Priority = TaskPriorities.Medium,
                             TaskItems = new List<TaskItem>()
@@ -455,7 +457,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = TaskTypes.LockDevice,
                         Priority = TaskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                     };
                     task.TaskItems.Add(new TaskItem
                     {
@@ -522,7 +524,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskType = TaskTypes.SendUsers,
                         Priority = TaskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
@@ -578,7 +580,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskType = TaskTypes.RetrieveUserFromTerminal,
                         Priority = TaskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
@@ -657,7 +659,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     CreatedBy = creatorUser,
                     TaskType = TaskTypes.RetrieveAllUsersFromTerminal,
                     Priority = TaskPriorities.Medium,
-                    DeviceBrand = DeviceBrands.Virdi,
+                    DeviceBrand = _deviceBrands.Virdi,
                     TaskItems = new List<TaskItem>()
                 };
                 var devices = _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.VirdiCode);
@@ -713,7 +715,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = TaskTypes.OpenDoor,
                         Priority = TaskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                     };
                     task.TaskItems.Add(new TaskItem
                     {
@@ -920,7 +922,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                         TaskType = TaskTypes.DeleteUsers,
                         Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
 

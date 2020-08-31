@@ -32,13 +32,13 @@ namespace Biovation.Brands.Virdi
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
-        public UCBioAPI UCBioApi;
-        public UCBioAPI.Export UCBioApiExport;
+        public UCBioAPI UcBioApi;
+        public UCBioAPI.Export UcBioApiExport;
         // UCSAPI
         public UCSAPI UcsApi;
         public readonly Dictionary<uint, DeviceBasicInfo> OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
 
@@ -54,6 +54,8 @@ namespace Biovation.Brands.Virdi
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
+
+            Configuration = builder.Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -225,9 +227,9 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton(genericCodeMappings);
             //Constant values
-            services.AddSingleton<DeviceBrands, DeviceBrands>();
             services.AddSingleton<LogEvents, LogEvents>();
             services.AddSingleton<LogSubEvents, LogSubEvents>();
+            services.AddSingleton<DeviceBrands, DeviceBrands>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
@@ -236,8 +238,8 @@ namespace Biovation.Brands.Virdi
         private void ConfigureVirdiServices(IServiceCollection services)
         {
             UcsApi = new UCSAPIClass();
-            UCBioApi = new UCBioAPI();
-            UCBioApiExport = new UCBioAPI.Export(UCBioApi);
+            UcBioApi = new UCBioAPI();
+            UcBioApiExport = new UCBioAPI.Export(UcBioApi);
 
             var kernel = new StandardKernel();
 
@@ -255,8 +257,8 @@ namespace Biovation.Brands.Virdi
 
 
             services.AddSingleton(UcsApi);
-            services.AddSingleton(UCBioApi);
-            services.AddSingleton(UCBioApiExport);
+            services.AddSingleton(UcBioApi);
+            services.AddSingleton(UcBioApiExport);
             services.AddSingleton(OnlineDevices);
             services.AddSingleton<Virdi, Virdi>();
             services.AddSingleton<Callbacks, Callbacks>();

@@ -3,8 +3,8 @@ using Biovation.Brands.Virdi.Service;
 using Biovation.Brands.Virdi.UniComAPI;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Service;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -35,9 +35,9 @@ namespace Biovation.Brands.Virdi
         private readonly VirdiLogService _virdiLogService;
         private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateService _faceTemplateService;
-        private readonly BiovationConfigurationManager _configurationManager;
         private readonly RestClient _monitoringRestClient;//= new RestClient(_configurationManager.LogMonitoringApiUrl);
         public static bool ModifyUserData = false;
         public static bool GetUserTaskFinished = true;
@@ -47,7 +47,6 @@ namespace Biovation.Brands.Virdi
         public static List<User> RetrieveUsers = new List<User>();
         public static List<Log> RetrieveLogs = new List<Log>();
         public static Dictionary<int, List<Log>> RetrievedLogs = new Dictionary<int, List<Log>>();
-        private static readonly List<TaskInfo> Tasks = new List<TaskInfo>();
         private readonly TaskService _taskService;
         private readonly AccessGroupService _accessGroupService;
 
@@ -175,7 +174,7 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager)
+        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager, DeviceBrands deviceBrands)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -193,8 +192,8 @@ namespace Biovation.Brands.Virdi
             _virdiCodeMappings = virdiCodeMappings;
             _onlineDevices = virdiServer.GetOnlineDevices();
 
-            _configurationManager = configurationManager;
-            _monitoringRestClient = (RestClient)new RestClient(_configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+            _deviceBrands = deviceBrands;
+            _monitoringRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             // create UCSAPI Instance
             UcsApi = ucsapi;
@@ -517,7 +516,7 @@ namespace Biovation.Brands.Virdi
                             {
                                 var tempTemplates =
                                     _fingerTemplateService.GetAllFingerTemplatesByFingerTemplateType(
-                                        FingerTemplateTypes.V400, index * groupSize, groupSize);
+                                        _fingerTemplateTypes.V400, index * groupSize, groupSize);
 
                                 lock (fingerTemplates)
                                     fingerTemplates.AddRange(tempTemplates);
@@ -819,7 +818,7 @@ namespace Biovation.Brands.Virdi
                 device = new DeviceBasicInfo
                 {
                     Code = (uint)terminalId,
-                    Brand = DeviceBrands.Virdi,
+                    Brand = _deviceBrands.Virdi,
                     Model = new DeviceModel { Id = 1001 },
                     IpAddress = terminalIp,
                     Port = BiovationConfiguration.VirdiDevicesConnectionPort,
@@ -864,7 +863,7 @@ namespace Biovation.Brands.Virdi
                         return;
 
                     var fingerTemplatesCount =
-                        _fingerTemplateService.GetAllFingerTemplatesCountByFingerTemplateType(FingerTemplateTypes.V400);
+                        _fingerTemplateService.GetAllFingerTemplatesCountByFingerTemplateType(_fingerTemplateTypes.V400);
 
                     const int groupSize = 800;
                     var loopUpperBound = fingerTemplatesCount / groupSize;
@@ -877,7 +876,7 @@ namespace Biovation.Brands.Virdi
                     {
                         var tempTemplates =
                             _fingerTemplateService.GetAllFingerTemplatesByFingerTemplateType(
-                                FingerTemplateTypes.V400, index * groupSize, groupSize);
+                                _fingerTemplateTypes.V400, index * groupSize, groupSize);
 
                         lock (fingerTemplates)
                             fingerTemplates.AddRange(tempTemplates);
@@ -1048,8 +1047,8 @@ namespace Biovation.Brands.Virdi
                 AuthResult = AccessLogData.AuthResult,
                 //MatchingType = AccessLogData.AuthType,
                 //MatchingType = authMode?.BioCode,
-                MatchingType = VirdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthMode),
-                SubEvent = VirdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthMode),
+                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                 TnaEvent = 0,
                 PicByte = picture
             };
@@ -1582,9 +1581,9 @@ namespace Biovation.Brands.Virdi
                 LogDateTime = DateTime.Parse(AccessLogData.DateTime),
                 //MatchingType = AccessLogData.AuthType,
                 //MatchingType = authMode.BioCode,
-                MatchingType = VirdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
                 AuthType = AccessLogData.AuthType,
-                SubEvent = VirdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                 PicByte = picture,
                 TnaEvent = 0
             };
@@ -1928,7 +1927,7 @@ namespace Biovation.Brands.Virdi
                                     Template = firstTemplateSample,
                                     CheckSum = firstSampleCheckSum,
                                     UserId = user.Id,
-                                    FingerTemplateType = FingerTemplateTypes.V400
+                                    FingerTemplateType = _fingerTemplateTypes.V400
                                 });
 
 
@@ -1943,7 +1942,7 @@ namespace Biovation.Brands.Virdi
                                         Template = secondTemplateSample,
                                         CheckSum = secondSampleCheckSum,
                                         UserId = user.Id,
-                                        FingerTemplateType = FingerTemplateTypes.V400
+                                        FingerTemplateType = _fingerTemplateTypes.V400
                                     });
                                 }
                             }
@@ -1975,7 +1974,7 @@ namespace Biovation.Brands.Virdi
                                     Template = firstTemplateSample,
                                     CheckSum = firstSampleCheckSum,
                                     UserId = user.Id,
-                                    FingerTemplateType = FingerTemplateTypes.V400
+                                    FingerTemplateType = _fingerTemplateTypes.V400
                                 });
 
                                 if (secondTemplateSample != null)
@@ -1989,7 +1988,7 @@ namespace Biovation.Brands.Virdi
                                         Template = secondTemplateSample,
                                         CheckSum = secondSampleCheckSum,
                                         UserId = user.Id,
-                                        FingerTemplateType = FingerTemplateTypes.V400
+                                        FingerTemplateType = _fingerTemplateTypes.V400
                                     });
                                 }
                             }
@@ -2410,8 +2409,8 @@ namespace Biovation.Brands.Virdi
                 UserId = AccessLogData.UserID,
                 LogDateTime = DateTime.Now,
                 //MatchingType = authMode.BioCode,
-                MatchingType = VirdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthMode),
-                SubEvent = VirdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthMode),
+                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                 TnaEvent = 0,
                 PicByte = picture
             };

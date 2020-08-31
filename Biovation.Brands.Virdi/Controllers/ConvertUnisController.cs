@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Biovation.Brands.Virdi.Manager;
+using Biovation.Brands.Virdi.Model;
+using Biovation.Brands.Virdi.Service;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.Virdi.Manager;
-using Biovation.Brands.Virdi.Model;
-using Biovation.Brands.Virdi.Service;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Service;
-using Microsoft.AspNetCore.Mvc;
 using UNIONCOMM.SDK.UCBioBSP;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -16,17 +16,19 @@ namespace Biovation.Brands.Virdi.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class ConvertUnisController : Controller
     {
-        private static UserService _userService;
-        private static UserCardService _userCardService;
-        private static FaceTemplateService _faceTemplateService;
-        private static FingerTemplateService _fingerTemplateService;
+        private readonly UserService _userService;
+        private readonly UserCardService _userCardService;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly FingerTemplateService _fingerTemplateService;
 
-        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService)
+        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes)
         {
             _userService = userService;
             _userCardService = userCardService;
             _faceTemplateService = faceTemplateService;
             _fingerTemplateService = fingerTemplateService;
+            _fingerTemplateTypes = fingerTemplateTypes;
         }
 
         [HttpPost]
@@ -62,7 +64,7 @@ namespace Biovation.Brands.Virdi.Controllers
             }
         }
 
-        private static Task ConvertToUnis(DatabaseConnectionParameters connectionParameters)
+        private Task ConvertToUnis(DatabaseConnectionParameters connectionParameters)
         {
             return Task.Run(async () =>
             {
@@ -128,7 +130,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                 CheckSum = templateSample.Data.Sum(x => x),
                                 Size = templateSample.Data.Length,
                                 TemplateIndex = k + 1,
-                                FingerTemplateType = FingerTemplateTypes.V400
+                                FingerTemplateType = _fingerTemplateTypes.V400
                             });
                         }
                     }
