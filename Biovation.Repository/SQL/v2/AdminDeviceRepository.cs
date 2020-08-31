@@ -6,6 +6,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
+
 namespace Biovation.Repository.SQL.v2
 {
     public class AdminDeviceRepository

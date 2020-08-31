@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text.Json;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -38,7 +39,7 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("DeleteBlackLists", parameters).Data.FirstOrDefault();
         }
-        public List<BlackList> GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null,bool isDeleted=default)
+        public ResultViewModel<PagingResult<BlackList>>GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null,bool isDeleted=default, int pageNumber = default, int PageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -48,11 +49,13 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@StartDate", startDate),
                 new SqlParameter("@EndDate", endDate),
                 new SqlParameter("@IsDeleted", isDeleted),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
             };
 
-            return _repository.ToResultList<BlackList>("SelectBlackList", parameters, fetchCompositions: true).Data;
+            return _repository.ToResultList<PagingResult<BlackList>>("SelectBlackList", parameters, fetchCompositions: true).FetchFromResultList();
         }
-        public List<BlackList> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? Today = null, bool isDeleted = default)
+        public ResultViewModel<PagingResult<BlackList>> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? Today = null, bool isDeleted = default, int pageNumber = default, int PageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -61,9 +64,11 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@DeviceId", deviceId),
                 new SqlParameter("@Today", Today),
                 new SqlParameter("@IsDeleted", isDeleted),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
             };
 
-            return _repository.ToResultList<BlackList>("SelectActiveBlackList", parameters, fetchCompositions: true).Data;
+            return _repository.ToResultList<PagingResult<BlackList>>("SelectActiveBlackList", parameters, fetchCompositions: true).FetchFromResultList();
         }
 
         public ResultViewModel DeleteBlackList(int id)

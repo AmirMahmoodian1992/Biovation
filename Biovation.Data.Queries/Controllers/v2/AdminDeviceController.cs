@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Repository.v2;
+using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
