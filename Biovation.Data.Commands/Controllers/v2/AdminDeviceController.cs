@@ -19,8 +19,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("ModifyAdminDevice")]
-        public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
+        public Task<ResultViewModel> ModifyAdminDevice([FromBody] JObject adminDevice)
         {
+
             try
             {
                 var ss = adminDevice.ToString();
@@ -30,13 +31,13 @@ namespace Biovation.Server.Controllers.v2
                 ss = ss.Replace(@"\", "");
 
                 string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-                var result = _adminDeviceService.ModifyAdminDevice(node);
-                return result;
+                return Task.Run(() => _adminDeviceRepository.ModifyAdminDevice(node));
+               
             }
             catch (Exception e)
             {
-                return new ResultViewModel { Message = e.Message, Validate = 0 };
-            }
+                return Task.Run(() => new ResultViewModel { Message = e.Message, Validate = 0 ,Code = 400});
+            }          
         }
     }
 }
