@@ -73,16 +73,19 @@ namespace Biovation.Repository.SQL.v2
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@GroupId",id)
-                };
+            };
 
             return _repository.ToResultList<ResultViewModel>("DeleteGroupDeviceMemeber", parameters).Data.FirstOrDefault();
         }
 
         public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id, int pageNumber = 0, int PageSize = 0, int nestingDepthLevel = 4)
         {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessControlId",id)
-                };
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@AccessControlId", id),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize}
+            };
 
             return _repository.ToResultList< PagingResult<DeviceGroup>>("SelectAccessControlDeviceGroup", parameters).FetchFromResultList();
         }
@@ -90,9 +93,11 @@ namespace Biovation.Repository.SQL.v2
         public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroupsByAccessGroup(int accessGroupId, int pageNumber = 0, int PageSize = 0, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessGroupId", accessGroupId)
-                };
-            return _repository.ToResultList <PagingResult<DeviceGroup>> ("SelectDeviceGroupsByAccessGroupId", parameters, fetchCompositions: true).FetchFromResultList();
+                new SqlParameter("@AccessGroupId", accessGroupId),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+            new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize}
+            };
+            return _repository.ToResultList<PagingResult<DeviceGroup>>("SelectDeviceGroupsByAccessGroupId", parameters, fetchCompositions: true).FetchFromResultList();
         }
     }
 }
