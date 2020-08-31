@@ -2,22 +2,27 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
 using DataAccessLayerCore.Repositories;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository
+namespace Biovation.Data.Queries.Controllers.v2
 {
 
-    public class DeviceGroupRepository
+
+    //[ApiVersion("1.0")]
+    [Route("biovation/api/queries/v2/[controller]")]
+    public class DeviceGroupController : Controller
     {
-        private readonly GenericRepository _repository;
+        private readonly DeviceGroupRepository _deviceGroupRepository;
 
-        public DeviceGroupRepository(GenericRepository repository)
+        public DeviceGroupController(DeviceGroupRepository deviceGroupRepository)
         {
-            _repository = repository;
+            _deviceGroupRepository = deviceGroupRepository;
         }
-
 
         /// <summary>
         /// <En>Get the device info from database.</En>
@@ -25,73 +30,31 @@ namespace Biovation.Repository
         /// </summary>
         /// <param name="deviceGroupId">کد گروه</param>
         /// <returns></returns>
-        public List<DeviceGroup> GetDeviceGroups(int? deviceGroupId, long userId)
+        ///
+        [HttpGet]
+        [Route("GetDeviceGroups")]
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int? deviceGroupId, long userId,
+            int pageNumber = default, int PageSize = default)
         {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@Id", SqlDbType.Int) { Value = deviceGroupId },
-                new SqlParameter("@AdminUserId", SqlDbType.BigInt) { Value = userId },
-
-            };
-
-            return _repository.ToResultList<DeviceGroup>("SelectDeviceGroupById", parameters,
-                    fetchCompositions: true).Data;
+            return Task.Run(() => _deviceGroupRepository.GetDeviceGroups(deviceGroupId, userId, pageNumber, PageSize));
         }
 
-        public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup)
+        [HttpGet]
+        [Route("GetAccessControlDeviceGroup")]
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id,
+            int pageNumber = default, int PageSize = default)
         {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@Id",deviceGroup.Id),
-                new SqlParameter("@Name",deviceGroup.Name),
-                new SqlParameter("@Description",deviceGroup.Description),
-                new SqlParameter("@Devices", JsonConvert.SerializeObject(deviceGroup.Devices.Select(device => new {device.DeviceId} )))
-                };
-
-            return _repository.ToResultList<ResultViewModel>("InsertDeviceGroup", parameters).Data.FirstOrDefault();
+            return Task.Run(() => _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, PageSize));
         }
 
-        public ResultViewModel ModifyDeviceGroupMember(string node, int groupId)
+
+        [HttpGet]
+        [Route("GetDeviceGroupsByAccessGroup")]
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroupsByAccessGroup(int accessGroupId,
+            int pageNumber = default, int PageSize = default)
         {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@DeviceGroupMember",node),
-                new SqlParameter("@DeviceGroupId",groupId)
-            };
-            return _repository.ToResultList<ResultViewModel>("InsertDeviceGroupMember", parameters).Data.FirstOrDefault();
-        }
+            return Task.Run(() => _deviceGroupRepository.GetDeviceGroupsByAccessGroup(accessGroupId, pageNumber, PageSize));
 
-        public ResultViewModel DeleteDeviceGroup(int id)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@GroupId",id)
-                };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteGroupDevice", parameters).Data.FirstOrDefault();
-        }
-
-        public ResultViewModel DeleteDeviceGroupMember(uint id)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@GroupId",id)
-                };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteGroupDeviceMemeber", parameters).Data.FirstOrDefault();
-        }
-
-        public List<DeviceGroup> GetAccessControlDeviceGroup(int id)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessControlId",id)
-                };
-
-            return _repository.ToResultList<DeviceGroup>("SelectAccessControlDeviceGroup", parameters).Data;
-        }
-
-        public List<DeviceGroup> GetDeviceGroupsByAccessGroup(int accessGroupId)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessGroupId", accessGroupId)
-                };
-
-            return _repository.ToResultList<DeviceGroup>("SelectDeviceGroupsByAccessGroupId", parameters, fetchCompositions: true).Data;
         }
     }
 }

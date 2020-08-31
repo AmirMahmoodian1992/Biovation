@@ -2,11 +2,14 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Threading.Tasks;
 using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
 using Biovation.Repository.v2;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using DeviceRepository = Biovation.Repository.DeviceRepository;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -15,11 +18,11 @@ namespace Biovation.Data.Commands.Controllers.v2
     [Route("biovation/api/queries/v2/[controller]")]
     public class DeviceGroupController : Controller
     {
-        private readonly GenericRepository _repository;
+        private readonly DeviceGroupRepository _deviceGroupRepository;
 
-        public DeviceGroupController(GenericRepository repository)
+        public DeviceGroupController(DeviceGroupRepository deviceGroupRepository)
         {
-            _repository = repository;
+            _deviceGroupRepository = deviceGroupRepository;
         }
 
 
@@ -30,53 +33,26 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// <param name="deviceGroupId">کد گروه</param>
         /// <returns></returns>
 
-
-        private readonly DeviceGroupRepository _deviceGroupRepository;
-
-
-        public DeviceGroupController(DeviceGroupRepository deviceGroupRepository)
+        public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
         {
-            _deviceGroupRepository = deviceGroupRepository;
-        }
-        public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@Id",deviceGroup.Id),
-                new SqlParameter("@Name",deviceGroup.Name),
-                new SqlParameter("@Description",deviceGroup.Description),
-                new SqlParameter("@Devices", JsonConvert.SerializeObject(deviceGroup.Devices.Select(device => new {device.DeviceId} )))
-                };
-
-            return _repository.ToResultList<ResultViewModel>("InsertDeviceGroup", parameters).Data.FirstOrDefault();
+            return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroup(deviceGroup));
         }
 
-        public ResultViewModel ModifyDeviceGroupMember(string node, int groupId)
+        public Task<ResultViewModel> ModifyDeviceGroupMember(string node, int groupId)
         {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@DeviceGroupMember",node),
-                new SqlParameter("@DeviceGroupId",groupId)
-            };
-            return _repository.ToResultList<ResultViewModel>("InsertDeviceGroupMember", parameters).Data.FirstOrDefault();
-        }
-
-        public ResultViewModel DeleteDeviceGroup(int id)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@GroupId",id)
-                };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteGroupDevice", parameters).Data.FirstOrDefault();
-        }
-
-        public ResultViewModel DeleteDeviceGroupMember(uint id)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@GroupId",id)
-                };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteGroupDeviceMemeber", parameters).Data.FirstOrDefault();
+            return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId));
         }
 
 
+        public Task<ResultViewModel> DeleteDeviceGroup(int id)
+        {
+            return Task.Run(() => _deviceGroupRepository.DeleteDeviceGroup(id));
+        }
+
+        public Task<ResultViewModel> DeleteDeviceGroupMember(uint id)
+        {
+            return Task.Run(() => _deviceGroupRepository.DeleteDeviceGroupMember(id));
+        }
     }
+
 }

@@ -21,6 +21,10 @@ namespace Biovation.Data.Queries.Controllers.v2
             _deviceRepository = deviceRepository;
         }
 
+
+
+
+
         [HttpGet]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = 0, int groupId = 0,
             uint code = 0,
