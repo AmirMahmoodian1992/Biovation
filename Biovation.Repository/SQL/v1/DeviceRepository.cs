@@ -320,7 +320,7 @@ namespace Biovation.Repository
             //    return _repository.ToResultList<ResultViewModel>("InsertDeviceBasicInfo", parameters).Data.FirstOrDefault();
             //}
 
-            public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
+        public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
         {
             var parameters = new List<SqlParameter>
             {

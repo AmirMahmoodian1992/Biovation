@@ -3,17 +3,21 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using Biovation.Repository.v2;
 using DataAccessLayerCore.Repositories;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
 
-    public class DeviceGroupRepository
+    //[ApiVersion("1.0")]
+    [Route("biovation/api/queries/v2/[controller]")]
+    public class DeviceGroupController : Controller
     {
         private readonly GenericRepository _repository;
 
-        public DeviceGroupRepository(GenericRepository repository)
+        public DeviceGroupController(GenericRepository repository)
         {
             _repository = repository;
         }
@@ -25,18 +29,15 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// </summary>
         /// <param name="deviceGroupId">کد گروه</param>
         /// <returns></returns>
-        public List<DeviceGroup> GetDeviceGroups(int? deviceGroupId, long userId)
+
+
+        private readonly DeviceGroupRepository _deviceGroupRepository;
+
+
+        public DeviceGroupController(DeviceGroupRepository deviceGroupRepository)
         {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@Id", SqlDbType.Int) { Value = deviceGroupId },
-                new SqlParameter("@AdminUserId", SqlDbType.BigInt) { Value = userId },
-
-            };
-
-            return _repository.ToResultList<DeviceGroup>("SelectDeviceGroupById", parameters,
-                    fetchCompositions: true).Data;
+            _deviceGroupRepository = deviceGroupRepository;
         }
-
         public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup)
         {
             var parameters = new List<SqlParameter> {
@@ -76,22 +77,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             return _repository.ToResultList<ResultViewModel>("DeleteGroupDeviceMemeber", parameters).Data.FirstOrDefault();
         }
 
-        public List<DeviceGroup> GetAccessControlDeviceGroup(int id)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessControlId",id)
-                };
 
-            return _repository.ToResultList<DeviceGroup>("SelectAccessControlDeviceGroup", parameters).Data;
-        }
-
-        public List<DeviceGroup> GetDeviceGroupsByAccessGroup(int accessGroupId)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessGroupId", accessGroupId)
-                };
-
-            return _repository.ToResultList<DeviceGroup>("SelectDeviceGroupsByAccessGroupId", parameters, fetchCompositions: true).Data;
-        }
     }
 }

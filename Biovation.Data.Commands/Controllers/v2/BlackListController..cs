@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.Repository.v2;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {

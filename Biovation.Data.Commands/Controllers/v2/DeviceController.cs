@@ -56,10 +56,8 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device = default)
         {
-            return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfo(device));
-        }
-
-      
+            return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfoByID(device));
+        }     
 
         [HttpPost]
         [Route("AddNetworkConnectionLog")]

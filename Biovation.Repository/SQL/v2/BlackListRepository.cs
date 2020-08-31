@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text.Json;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 
@@ -28,6 +30,13 @@ namespace Biovation.Repository.v2
 
             };
             return _repository.ToResultList<ResultViewModel>("InsertBlackList", parameters).Data.FirstOrDefault();
+        }
+        public ResultViewModel DeleteBlackLists(List<uint> deviceIds)
+        {
+
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = JsonSerializer.Serialize(deviceIds) } };
+
+            return _repository.ToResultList<ResultViewModel>("DeleteBlackLists", parameters).Data.FirstOrDefault();
         }
         public List<BlackList> GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null,bool isDeleted=default)
         {
