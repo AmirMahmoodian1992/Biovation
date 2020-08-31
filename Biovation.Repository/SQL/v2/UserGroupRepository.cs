@@ -6,7 +6,7 @@ using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository.v2
+namespace Biovation.Repository.SQL.v2
 {
     public class UserGroupRepository
     {

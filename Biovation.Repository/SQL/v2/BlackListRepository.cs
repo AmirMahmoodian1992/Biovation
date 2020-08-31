@@ -7,7 +7,7 @@ using System.Text.Json;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository.v2
+namespace Biovation.Repository.SQL.v2
 {
     public class BlackListRepository
     {

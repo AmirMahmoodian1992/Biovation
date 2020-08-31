@@ -8,7 +8,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [Microsoft.AspNetCore.Mvc.Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/queries/v2/[controller]")]
     //[ApiVersion("1.0")]
     public class AccessGroupController : Controller
     {
@@ -29,7 +29,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// 
 
         [HttpPut]
-        [Microsoft.AspNetCore.Mvc.Route("ModifyAccessGroup")]
+        [Route("ModifyAccessGroup")]
         public Task<ResultViewModel> ModifyAccessGroup(AccessGroup accessGroup)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroup(accessGroup));
@@ -45,7 +45,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// 
 
         [HttpPut]
-        [Microsoft.AspNetCore.Mvc.Route("ModifyAccessGroupUserGroup")]
+        [Route("ModifyAccessGroupUserGroup")]
         public Task<ResultViewModel> ModifyAccessGroupUserGroup(string xmlUserGroup, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupUserGroup(xmlUserGroup, accessGroupId));

@@ -3,7 +3,7 @@ using System.Data.SqlClient;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository.v2
+namespace Biovation.Repository.SQL.v2
 {
     public class LookupRepository
     {

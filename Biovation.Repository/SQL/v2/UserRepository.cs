@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace Biovation.Repository.v2
+namespace Biovation.Repository.SQL.v2
 {
     public class UserRepository
     {

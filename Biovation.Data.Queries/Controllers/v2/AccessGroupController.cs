@@ -1,131 +1,49 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
+using System.Threading.Tasks;
 using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+using Biovation.Repository.v2;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Biovation.Repository
+namespace Biovation.Data.Queries.Controllers.v2
 {
-    public class AccessGroupRepository
+    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/queries/v2/[controller]")]
+    //[ApiVersion("1.0")]
+    public class AccessGroupController : Controller
     {
-        private readonly GenericRepository _repository;
+        private readonly AccessGroupRepository _accessGroupRepository;
 
-        public AccessGroupRepository(GenericRepository repository)
+
+        public AccessGroupController(AccessGroupRepository accessGroupRepository)
         {
-            _repository = repository;
-        }
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="accessGroup"></param>
-        /// <returns></returns>
-        public ResultViewModel ModifyAccessGroup(AccessGroup accessGroup)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", accessGroup.Id),
-                new SqlParameter("@Name", accessGroup.Name),
-                new SqlParameter("@Description", accessGroup.Description),
-                new SqlParameter("@TimeZoneId", accessGroup.TimeZone != null ? accessGroup.TimeZone.Id : 0),
-                //new SqlParameter("@AdminUserId", accessGroup.AdminUserId)
-
-            };
-
-            return _repository.ToResultList<ResultViewModel>("ModifyAccessGroup", parameters).Data.FirstOrDefault();
+            _accessGroupRepository = accessGroupRepository;
         }
 
-        /// <summary>
-        /// <En></En>
-        /// <Fa>ذخیره جدول کاربران گروه دسترسی</Fa>
-        /// </summary>
-        /// <param name="xmlUserGroup">رشته آبجکت</param>
-        /// <param name="accessGroupId">شناهس گرئه دسترسی</param>
-        /// <returns></returns>
-        public ResultViewModel ModifyAccessGroupUserGroup(string xmlUserGroup, int accessGroupId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Xml", xmlUserGroup),
-                new SqlParameter("@AccessGroupId", accessGroupId)
-            };
-            return _repository.ToResultList<ResultViewModel>("ModifyAccessGroupUserGroup", parameters).Data.FirstOrDefault();
-        }
-
-        /// <summary>
-        /// <En></En>
-        /// <Fa>ذخیره ادمین های گروه دسترسی</Fa>
-        /// </summary>
-        /// <param name="xmlAdminUsers">رشته آبجکت</param>
-        /// <param name="accessGroupId">شناهس گرئه دسترسی</param>
-        /// <returns></returns>
-        public ResultViewModel ModifyAccessGroupAdminUsers(string xmlAdminUsers, int accessGroupId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Xml", xmlAdminUsers),
-                new SqlParameter("@AccessGroupId", accessGroupId)
-            };
-            return _repository.ToResultList<ResultViewModel>("ModifyAccessGroupAdminUser", parameters).Data.FirstOrDefault();
-        }
-
-        /// <summary>
-        /// <En></En>
-        /// <Fa>ذخیره جدول دستگاه گروه دسترسی</Fa>
-        /// </summary>
-        /// <param name="xmlDeviceGroup">رشته آبجکت</param>
-        /// <param name="accessGroupId">شناسه گروه دسترسی</param>
-        /// <returns></returns>
-        public ResultViewModel ModifyAccessGroupDeviceGroup(string xmlDeviceGroup, int accessGroupId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Xml", xmlDeviceGroup),
-                new SqlParameter("@AccessGroupId", accessGroupId)
-            };
-            return _repository.ToResultList<ResultViewModel>("ModifyAccessGroupDeviceGroup", parameters).Data.FirstOrDefault();
-        }
 
         /// <summary>
         /// <En>Get the device info from database.</En>
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public List<AccessGroup> GetAccessGroups(long userId, int nestingDepthLevel)
+        [HttpGet]
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int PageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@adminUserId", userId)
-            };
-            return _repository.ToResultList<AccessGroup>($"SelectAccessGroups{(nestingDepthLevel == 0 ? "" : "NestedProperties")}", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data;
-        }
-        public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0,int pageNumber = default, int PageSize = default)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                
-                new SqlParameter("@Id", id),
-                new SqlParameter("@DeviceId ", deviceId),
-                new SqlParameter("@UserId", userId ),
-                new SqlParameter("@adminUserId", adminUserId),
-                new SqlParameter("@UserGroupId", userGroupId),
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",PageSize)
-            };
-            return _repository.ToResultList<AccessGroup>("SelectAccessGroupsByFilter", parameters, fetchCompositions: true).Data;
+            return Task.Run(() => _accessGroupRepository.GetAccessGroupsByFilter(adminUserId, userGroupId, id, deviceId, userId,
+                 pageNumber, PageSize));
         }
 
-
-        public List<AccessGroup> GetAccessGroupsOfUser(long userId, int nestingDepthLevel)
+        [HttpGet]
+        [Route("GetAccessGroupsOfUser")]
+        public Task<ResultViewModel<PagingResult<AccessGroup>> GetAccessGroupsOfUser(long userId, int nestingDepthLevel, int pageNumber = default, int PageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
-            return _repository.ToResultList<AccessGroup>($"SelectAccessGroupsByUserId{(nestingDepthLevel == 0 ? "" : "NestedProperties")}", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data;
+            return Task.Run(() => _accessGroupRepository.GetAccessGroupsOfUser(userId,pageNumber, PageSize));
         }
 
+        [HttpGet]
+        [Route("GetAccessGroupsOfDevice")]
         public List<AccessGroup> GetAccessGroupsOfDevice(uint deviceId, int nestingDepthLevel)
         {
             var parameters = new List<SqlParameter>
@@ -135,6 +53,8 @@ namespace Biovation.Repository
             return _repository.ToResultList<AccessGroup>($"SelectAccessGroupsByDeviceId{(nestingDepthLevel == 0 ? "" : "NestedProperties")}", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data;
         }
 
+        [HttpGet]
+        [Route("GetAccessGroupsOfUserGroup")]
         public List<AccessGroup> GetAccessGroupsOfUserGroup(int userGroupId, int nestingDepthLevel)
         {
             var parameters = new List<SqlParameter>
@@ -145,6 +65,8 @@ namespace Biovation.Repository
         }
 
 
+        [HttpGet]
+        [Route("GetAccessGroup")]
         /// <summary>
         /// <En></En>
         /// <Fa></Fa>
@@ -162,6 +84,9 @@ namespace Biovation.Repository
             return _repository.ToResultList<AccessGroup>("SelectAccessGroupByID", parameters, fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
         }
 
+
+        [HttpGet]
+        [Route("SearchAccessGroup")]
         /// <summary>
         /// <En></En>
         /// <Fa></Fa>
@@ -182,22 +107,15 @@ namespace Biovation.Repository
             return _repository.ToResultList<AccessGroup>("SelectSearchAccessGroup", parameters, fetchCompositions: true).Data;
         }
 
+
+        [HttpGet]
+        [Route("GetDeviceOfAccessGroup")]
         /// <summary>
         /// <En></En>
         /// <Fa></Fa>
         /// </summary>
         /// <param name="accessGroupId"></param>
         /// <returns></returns>
-        public ResultViewModel DeleteAccessGroup(int accessGroupId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", accessGroupId)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteAccessGroupByID", parameters).Data.FirstOrDefault();
-        }
-
         public List<DeviceBasicInfo> GetDeviceOfAccessGroup(int accessGroupId)
         {
             var parameters = new List<SqlParameter>
@@ -208,6 +126,8 @@ namespace Biovation.Repository
             return _repository.ToResultList<DeviceBasicInfo>("SelectDeviceOfAccessGroup", parameters, fetchCompositions: true).Data;
         }
 
+        [HttpGet]
+        [Route("GetServerSideIdentificationCacheNoTemplate")]
         public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheNoTemplate(long userId)
         {
             var parameters = new List<SqlParameter>
@@ -218,6 +138,9 @@ namespace Biovation.Repository
             return _repository.ToResultList<ServerSideIdentificationCacheModel>("SelectServerSideIdentificationCacheNoTemplate", parameters).Data;
         }
 
+
+        [HttpGet]
+        [Route("GetServerSideIdentificationCacheOfAccessGroup")]
         public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId)
         {
             var parameters = new List<SqlParameter>
