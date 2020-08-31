@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.v2;
+using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -29,15 +31,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("GetAdminDevicesByPersonId")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDevicesByPersonId(int personId, int pageNumber = default,int PageSize = default)
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDevicesByPersonId(int personId)
         {
-              return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId,pageNumber,PageSize));         
-        }
-        [HttpGet]
-        [Route("GetAdminDevicesByUserId")]
-        public Task<ResultViewModel<PagingResult<AdminDevice>>> GetAdminDevicesByUserId(int userId, int pageNumber = 0, int PageSize = 0)
-        {
-            return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(userId, pageNumber, PageSize));
+              return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId));         
         }
 
     [HttpPost]
@@ -53,7 +49,7 @@ namespace Biovation.Server.Controllers.v2
             ss = ss.Replace(@"\", "");
 
             string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-            var result = _adminDeviceRepository.ModifyAdminDevice(node);
+            var result = _adminDeviceService.ModifyAdminDevice(node);
             return result;
         }
         catch (Exception e)

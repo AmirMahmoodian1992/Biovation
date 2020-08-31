@@ -1,19 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Biovation.Data.Queries
 {
@@ -21,10 +14,10 @@ namespace Biovation.Data.Queries
     {
 
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
-        public Startup(IConfiguration configuration,IWebHostEnvironment environment)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
-         
+
 
             //Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
@@ -50,7 +43,8 @@ namespace Biovation.Data.Queries
             ConfigureRepositoriesServices(services);
         }
 
-        private void ConfigureRepositoriesServices(IServiceCollection services) {
+        private void ConfigureRepositoriesServices(IServiceCollection services)
+        {
             var connectionInfo = new DatabaseConnectionInfo
             {
                 ProviderName = BiovationConfiguration.ConnectionStringProviderName(),

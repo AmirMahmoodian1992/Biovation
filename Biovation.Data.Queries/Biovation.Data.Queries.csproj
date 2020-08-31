@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
     <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.csproj" />
   </ItemGroup>
 

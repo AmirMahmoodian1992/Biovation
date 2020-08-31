@@ -1,9 +1,18 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Text.Json;
+
+
+
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -101,19 +110,19 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.AddNetworkConnectionLog(device));
         }
 
-        /* [HttpGet]
-         [Route("GetAuthorizedUsersOfDevice")]
-         public Task<PagingResult<List<User>>> GetAuthorizedUsersOfDevice(int deviceId)
-         {
-             return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
-         }*/
+       /* [HttpGet]
+        [Route("GetAuthorizedUsersOfDevice")]
+        public Task<PagingResult<List<User>>> GetAuthorizedUsersOfDevice(int deviceId)
+        {
+            return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
+        }*/
 
         [HttpGet]
         [Route("GetDeviceBrands")]
         public Task<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int PageSize = default)
         {
-            return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, PageSize));
+            return Task.Run(() => _deviceRepository.GetDeviceBrands(code,name,pageNumber,PageSize));
         }
     }
 }

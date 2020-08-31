@@ -2,10 +2,8 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Threading.Tasks;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
