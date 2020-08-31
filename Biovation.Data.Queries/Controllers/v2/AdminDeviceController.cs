@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Biovation.Server.Controllers.v2
+namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     [Route("biovation/api/v{version:apiVersion}/[controller]")]

@@ -39,7 +39,7 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("DeleteBlackLists", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel<PagingResult<BlackList>>GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null,bool isDeleted=default, int pageNumber = default, int PageSize = default)
+        public ResultViewModel<PagingResult<BlackList>>GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null,bool isDeleted=default, int pageNumber = default, int pageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -50,7 +50,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@EndDate", endDate),
                 new SqlParameter("@IsDeleted", isDeleted),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
 
             return _repository.ToResultList<PagingResult<BlackList>>("SelectBlackList", parameters, fetchCompositions: true).FetchFromResultList();
@@ -70,7 +70,6 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<PagingResult<BlackList>>("SelectActiveBlackList", parameters, fetchCompositions: true).FetchFromResultList();
         }
-
         public ResultViewModel DeleteBlackList(int id)
         {
             var parameters = new List<SqlParameter>

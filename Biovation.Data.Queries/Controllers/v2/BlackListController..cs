@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 
-
- namespace Biovation.Data.q.Controllers.Controllers.v2
+namespace Biovation.Data.Queries.Controllers.v2
 {
     public class BlackListController : Controller
     {
@@ -26,9 +23,9 @@ using Microsoft.AspNetCore.Mvc;
         }
         [HttpGet]
         [Route("GetActiveBlacklist")]
-        public Task<ResultViewModel<PagingResult<BlackList>>> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? Today = null, bool isDeleted = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<BlackList>>> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? today = null, bool isDeleted = default, int pageNumber = default, int pageSize = default)
         {
-        return Task.Run(() => _blackListRepository.GetActiveBlacklist(id, userId, deviceId, Today, isDeleted, pageNumber, pageSize));
+        return Task.Run(() => _blackListRepository.GetActiveBlacklist(id, userId, deviceId, today, isDeleted, pageNumber, pageSize));
     }
 
 
