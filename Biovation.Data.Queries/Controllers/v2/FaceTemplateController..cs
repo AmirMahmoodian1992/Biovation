@@ -1,11 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -16,27 +12,29 @@ namespace Biovation.Data.Queries.Controllers.v2
     public class FaceTemplateController : Controller
     {
 
-        private readonly FaceTemplateRepository _FaceTemplateRepository;
+        private readonly FaceTemplateRepository _faceTemplateRepository;
 
 
         public FaceTemplateController(FaceTemplateRepository faceTemplateRepository)
         {
-            _FaceTemplateRepository = faceTemplateRepository;
+            _faceTemplateRepository = faceTemplateRepository;
         }
 
         /// <summary>
         /// <En>Get the device info from database.</En>
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
-        /// <param name="faceTemplate"></param>
-        /// <returns></returns>
-
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="fingerTemplateTypeCode"></param>
+        /// <param name="userId"></param>
+        /// <param name="index"></param>
+        /// <returns>FaceTemplate</returns>
         [HttpGet]
         public Task<ResultViewModel<PagingResult<FaceTemplate>>> FaceTemplates(string fingerTemplateTypeCode = default, long userId = 0, int index = 0, int pageNumber = default,
-            int PageSize = default)
+            int pageSize = default)
         {
-            return Task.Run(() =>
-                _FaceTemplateRepository.GetFaceTemplates(fingerTemplateTypeCode, userId, index, pageNumber, PageSize);
+            return Task.Run(() => _faceTemplateRepository.GetFaceTemplates(fingerTemplateTypeCode, userId, index, pageNumber, pageSize));
         }
 
     }

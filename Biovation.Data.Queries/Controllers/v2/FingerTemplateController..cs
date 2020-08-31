@@ -54,6 +54,26 @@ namespace Biovation.Repository
         {
             return _repository.ToResultList<FingerTemplate>("SelectFingerTemplates", fetchCompositions: true).Data;
         }
+        public List<FingerTemplate> GetFingerTemplateByUserId(long userId)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@UserId", userId)
+            };
+
+            return _repository.ToResultList<FingerTemplate>("SelectFingerTemplatesByUserId", parameters, fetchCompositions: true).Data;
+        }
+
+        public List<FingerTemplate> GetFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@TemplateIndex", templateIndex)
+            };
+
+            return _repository.ToResultList<FingerTemplate>("SelectFingerTemplatesByUserIdAndTemplateIndex", parameters, fetchCompositions: true).Data;
+        }
 
         public List<FingerTemplate> GetAllFingerTemplatesByFingerTemplateType(Lookup fingerTemplateType, int from = 0, int size = 0)
         {
@@ -93,26 +113,6 @@ namespace Biovation.Repository
             }
         }
 
-        public List<FingerTemplate> GetFingerTemplateByUserId(long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
-
-            return _repository.ToResultList<FingerTemplate>("SelectFingerTemplatesByUserId", parameters, fetchCompositions: true).Data;
-        }
-
-        public List<FingerTemplate> GetFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@TemplateIndex", templateIndex)
-            };
-
-            return _repository.ToResultList<FingerTemplate>("SelectFingerTemplatesByUserIdAndTemplateIndex", parameters, fetchCompositions: true).Data;
-        }
 
         public ResultViewModel DeleteFingerTemplateByUserId(int userId)
         {
