@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Repository.SQL.v2;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace Biovation.Data.Commands.Controllers.v2
@@ -27,7 +27,11 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// <param name="accessGroup"></param>
         /// <returns></returns>
         /// 
-
+        [HttpPost]
+        public Task<ResultViewModel> AddAccessGroup([FromBody] AccessGroup accessGroup = default)
+        {
+            return Task.Run(() => _accessGroupRepository.AddAccessGroup(accessGroup));
+        }
         [HttpPut]
         [Route("ModifyAccessGroup")]
         public Task<ResultViewModel> ModifyAccessGroup(AccessGroup accessGroup)

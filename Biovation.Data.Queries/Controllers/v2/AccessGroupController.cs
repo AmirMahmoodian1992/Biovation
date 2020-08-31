@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
-using Biovation.Domain;
-using Biovation.Repository.v2;
+﻿using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -29,128 +26,75 @@ namespace Biovation.Data.Queries.Controllers.v2
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.GetAccessGroupsByFilter(adminUserId, userGroupId, id, deviceId, userId,
-                 pageNumber, PageSize));
+                 pageNumber, pageSize));
         }
 
         [HttpGet]
         [Route("GetAccessGroupsOfUser")]
-        public Task<ResultViewModel<PagingResult<AccessGroup>> GetAccessGroupsOfUser(long userId, int nestingDepthLevel, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsOfUser(long userId, int nestingDepthLevel, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _accessGroupRepository.GetAccessGroupsOfUser(userId,pageNumber, PageSize));
+
+            return Task.Run(() => _accessGroupRepository.GetAccessGroupsOfUser(userId, nestingDepthLevel, pageNumber, pageSize));
         }
 
         [HttpGet]
         [Route("GetAccessGroupsOfDevice")]
-        public List<AccessGroup> GetAccessGroupsOfDevice(uint deviceId, int nestingDepthLevel)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsOfDevice(uint deviceId, int nestingDepthLevel, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@DeviceId", SqlDbType.Int) {Value = deviceId}
-            };
-            return _repository.ToResultList<AccessGroup>($"SelectAccessGroupsByDeviceId{(nestingDepthLevel == 0 ? "" : "NestedProperties")}", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data;
+            return Task.Run(() => _accessGroupRepository.GetAccessGroupsOfDevice(deviceId, nestingDepthLevel, pageNumber, pageSize));
         }
 
         [HttpGet]
         [Route("GetAccessGroupsOfUserGroup")]
-        public List<AccessGroup> GetAccessGroupsOfUserGroup(int userGroupId, int nestingDepthLevel)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsOfUserGroup(int userGroupId, int nestingDepthLevel, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserGroupId", SqlDbType.Int) {Value = userGroupId}
-            };
-            return _repository.ToResultList<AccessGroup>($"SelectAccessGroupsByUserGroupId{(nestingDepthLevel == 0 ? "" : "NestedProperties")}", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data;
+            return Task.Run(() => _accessGroupRepository.GetAccessGroupsOfUserGroup(userGroupId, nestingDepthLevel, pageNumber, pageSize));
         }
 
 
         [HttpGet]
-        [Route("GetAccessGroup")]
-        /// <summary>
-        /// <En></En>
-        /// <Fa></Fa>
-        /// </summary>
-        /// <param name="accessGroupId"></param>
-        /// <param name="nestingDepthLevel"></param>
-        /// <returns></returns>
-        public AccessGroup GetAccessGroup(int accessGroupId, int nestingDepthLevel)
+        [Route("{id?}")]
+        public Task<ResultViewModel<AccessGroup>> GetAccessGroup([FromRoute]int id, int nestingDepthLevel=default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", accessGroupId)
-            };
+            return Task.Run(() => _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel));
 
-            return _repository.ToResultList<AccessGroup>("SelectAccessGroupByID", parameters, fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
         }
 
 
         [HttpGet]
         [Route("SearchAccessGroup")]
-        /// <summary>
-        /// <En></En>
-        /// <Fa></Fa>
-        /// </summary>
-        /// <param name="accessGroupId"></param>
-        /// <param name="deviceGroupId"></param>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public List<AccessGroup> SearchAccessGroup(int accessGroupId, int deviceGroupId, int userId)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> SearchAccessGroup(int accessGroupId, int deviceGroupId, int userId, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", accessGroupId),
-                new SqlParameter("@DeviceGroupId", deviceGroupId),
-                new SqlParameter("@UserId", userId)
-            };
-
-            return _repository.ToResultList<AccessGroup>("SelectSearchAccessGroup", parameters, fetchCompositions: true).Data;
+            return Task.Run(() => _accessGroupRepository.SearchAccessGroup(accessGroupId, deviceGroupId, userId, pageNumber, pageSize));
         }
 
 
         [HttpGet]
         [Route("GetDeviceOfAccessGroup")]
-        /// <summary>
-        /// <En></En>
-        /// <Fa></Fa>
-        /// </summary>
-        /// <param name="accessGroupId"></param>
-        /// <returns></returns>
-        public List<DeviceBasicInfo> GetDeviceOfAccessGroup(int accessGroupId)
+        public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDeviceOfAccessGroup(int accessGroupId, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", accessGroupId)
-            };
+            return Task.Run(() => _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize));
 
-            return _repository.ToResultList<DeviceBasicInfo>("SelectDeviceOfAccessGroup", parameters, fetchCompositions: true).Data;
         }
 
         [HttpGet]
         [Route("GetServerSideIdentificationCacheNoTemplate")]
-        public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheNoTemplate(long userId)
+        public Task<ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>> GetServerSideIdentificationCacheNoTemplate(long userId, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@adminUserId", userId)
-            };
+            return Task.Run(() => _accessGroupRepository.GetServerSideIdentificationCacheNoTemplate(userId, pageNumber, pageSize));
 
-            return _repository.ToResultList<ServerSideIdentificationCacheModel>("SelectServerSideIdentificationCacheNoTemplate", parameters).Data;
         }
 
 
         [HttpGet]
         [Route("GetServerSideIdentificationCacheOfAccessGroup")]
-        public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId)
+        public Task<ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@adminUserId", userId),
-                new SqlParameter("@brandCode", brandCode),
-                new SqlParameter("@accessGroupId", accessGroupId)
-            };
+            return Task.Run(() => _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode, userId, pageNumber, pageSize));
 
-            return _repository.ToResultList<ServerSideIdentificationCacheModel>("SelectServerSideIdentificationCacheOfAccessGroup", parameters, fetchCompositions: true, compositionDepthLevel: 4).Data;
         }
     }
 }
