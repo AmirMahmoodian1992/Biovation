@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
@@ -266,53 +267,60 @@ namespace Biovation.Repository
 
             return _repository.ToResultList<ResultViewModel>("DeleteDeviceBasicInfoByID", parameters).Data.FirstOrDefault();
         }
+        public ResultViewModel DeleteDevices(List<uint> deviceIds)
+        {
 
-        //public ResultViewModel AddDevice(DeviceBasicInfo device)
-        //{
-        //    var parameters = new List<SqlParameter>
-        //    {
-        //        new SqlParameter("@ID", SqlDbType.Int) { Value = device.DeviceId },
-        //        new SqlParameter("@Code", SqlDbType.Int) { Value = device.Code },
-        //        new SqlParameter("@DeviceModelID", SqlDbType.Int) { Value = device.Model.Id },
-        //        new SqlParameter("@Name", SqlDbType.NVarChar) { Value = device.Name },
-        //        new SqlParameter("@Active", SqlDbType.Bit) { Value = device.Active },
-        //        new SqlParameter("@IPAddress", SqlDbType.NVarChar) { Value = device.IpAddress },
-        //        new SqlParameter("@Port", SqlDbType.Int) { Value = device.Port },
-        //        new SqlParameter("@RegisterDate", SqlDbType.SmallDateTime) { Value = device.RegisterDate },
-        //        new SqlParameter("@SSL", SqlDbType.Bit) { Value = device.SSL },
-        //        new SqlParameter("@TimeSync", SqlDbType.Bit) { Value = device.TimeSync },
-        //        new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId }
-        //    };
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = JsonSerializer.Serialize(deviceIds) } };
 
-        //    if (device.MacAddress != null)
-        //    {
-        //        parameters.Add(new SqlParameter("@MacAddress", SqlDbType.NVarChar) { Value = device.MacAddress });
-        //    }
+            return _repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault();
+        }
 
-        //    if (device.HardwareVersion != null)
-        //    {
-        //        parameters.Add(new SqlParameter("@HardwareVersion", SqlDbType.NVarChar) { Value = device.HardwareVersion });
-        //    }
+            //public ResultViewModel AddDevice(DeviceBasicInfo device)
+            //{
+            //    var parameters = new List<SqlParameter>
+            //    {
+            //        new SqlParameter("@ID", SqlDbType.Int) { Value = device.DeviceId },
+            //        new SqlParameter("@Code", SqlDbType.Int) { Value = device.Code },
+            //        new SqlParameter("@DeviceModelID", SqlDbType.Int) { Value = device.Model.Id },
+            //        new SqlParameter("@Name", SqlDbType.NVarChar) { Value = device.Name },
+            //        new SqlParameter("@Active", SqlDbType.Bit) { Value = device.Active },
+            //        new SqlParameter("@IPAddress", SqlDbType.NVarChar) { Value = device.IpAddress },
+            //        new SqlParameter("@Port", SqlDbType.Int) { Value = device.Port },
+            //        new SqlParameter("@RegisterDate", SqlDbType.SmallDateTime) { Value = device.RegisterDate },
+            //        new SqlParameter("@SSL", SqlDbType.Bit) { Value = device.SSL },
+            //        new SqlParameter("@TimeSync", SqlDbType.Bit) { Value = device.TimeSync },
+            //        new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId }
+            //    };
 
-        //    if (device.FirmwareVersion != null)
-        //    {
-        //        parameters.Add(new SqlParameter("@FirmwareVersion", SqlDbType.NVarChar) { Value = device.FirmwareVersion });
-        //    }
+            //    if (device.MacAddress != null)
+            //    {
+            //        parameters.Add(new SqlParameter("@MacAddress", SqlDbType.NVarChar) { Value = device.MacAddress });
+            //    }
 
-        //    if (device.DeviceLockPassword != null)
-        //    {
-        //        parameters.Add(new SqlParameter("@DeviceLockPassword", SqlDbType.NVarChar) { Value = device.DeviceLockPassword });
-        //    }
+            //    if (device.HardwareVersion != null)
+            //    {
+            //        parameters.Add(new SqlParameter("@HardwareVersion", SqlDbType.NVarChar) { Value = device.HardwareVersion });
+            //    }
 
-        //    if (device.SerialNumber != null)
-        //    {
-        //        parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.NVarChar) { Value = device.SerialNumber });
-        //    }
+            //    if (device.FirmwareVersion != null)
+            //    {
+            //        parameters.Add(new SqlParameter("@FirmwareVersion", SqlDbType.NVarChar) { Value = device.FirmwareVersion });
+            //    }
 
-        //    return _repository.ToResultList<ResultViewModel>("InsertDeviceBasicInfo", parameters).Data.FirstOrDefault();
-        //}
+            //    if (device.DeviceLockPassword != null)
+            //    {
+            //        parameters.Add(new SqlParameter("@DeviceLockPassword", SqlDbType.NVarChar) { Value = device.DeviceLockPassword });
+            //    }
 
-        public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
+            //    if (device.SerialNumber != null)
+            //    {
+            //        parameters.Add(new SqlParameter("@SerialNumber", SqlDbType.NVarChar) { Value = device.SerialNumber });
+            //    }
+
+            //    return _repository.ToResultList<ResultViewModel>("InsertDeviceBasicInfo", parameters).Data.FirstOrDefault();
+            //}
+
+            public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
         {
             var parameters = new List<SqlParameter>
             {

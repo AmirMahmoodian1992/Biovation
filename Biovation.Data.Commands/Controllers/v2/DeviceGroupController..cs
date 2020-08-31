@@ -6,7 +6,7 @@ using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository
+namespace Biovation.Data.Commands.Controllers.v2
 {
 
     public class DeviceGroupRepository

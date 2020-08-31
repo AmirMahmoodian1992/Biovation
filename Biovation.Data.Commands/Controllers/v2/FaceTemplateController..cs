@@ -4,7 +4,7 @@ using System.Linq;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository
+namespace Biovation.Data.Commands.Controllers.v2
 {
     public class FaceTemplateRepository
     {

@@ -1,86 +1,47 @@
-﻿using System;
+﻿using Biovation.Domain;
+using Biovation.Repository;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+using System.Threading.Tasks;
 
-namespace Biovation.Repository
+namespace Biovation.Data.Commands.Controllers.v2
 {
-    public class BlackListRepository
+    [Route("biovation/api/queries/v2/[controller]")]
+    public class BlackListController : Controller
     {
-        private readonly GenericRepository _repository;
+        private readonly BlackListRepository _blackListRepository;
 
-        public BlackListRepository(GenericRepository repository)
+
+        public BlackListController(BlackListRepository blackListRepository)
         {
-            _repository = repository;
+            _blackListRepository = blackListRepository;
         }
-        public ResultViewModel CreateBlackList(BlackList blackList)
+        [HttpPost]
+        public Task<ResultViewModel> CreateBlackList(BlackList blackList)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Description",blackList.Description),
-                new SqlParameter("@DeviceId", blackList.Device.DeviceId),
-                new SqlParameter("@UserId", blackList.User.Id),
-                new SqlParameter("@StartDate", blackList.StartDate),
-                new SqlParameter("@EndDate", blackList.EndDate),
-                new SqlParameter("@IsDeleted", blackList.IsDeleted),
-
-            };
-            return _repository.ToResultList<ResultViewModel>("InsertBlackList", parameters).Data.FirstOrDefault();
-        }
-        public List<BlackList> GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null,bool isDeleted=default)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", id),
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@DeviceId", deviceId),
-                new SqlParameter("@StartDate", startDate),
-                new SqlParameter("@EndDate", endDate),
-                new SqlParameter("@IsDeleted", isDeleted),
-            };
-
-            return _repository.ToResultList<BlackList>("SelectBlackList", parameters, fetchCompositions: true).Data;
-        }
-        public List<BlackList> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? Today = null, bool isDeleted = default)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", id),
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@DeviceId", deviceId),
-                new SqlParameter("@Today", Today),
-                new SqlParameter("@IsDeleted", isDeleted),
-            };
-
-            return _repository.ToResultList<BlackList>("SelectActiveBlackList", parameters, fetchCompositions: true).Data;
+            return Task.Run(() => _blackListRepository.CreateBlackList(blackList));
         }
 
-        public ResultViewModel DeleteBlackList(int id)
+        [HttpDelete]
+        [Route("{id}")]
+        public Task<ResultViewModel> DeleteBlackList(int id)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", id),
-            };
-            var result = _repository.ToResultList<ResultViewModel>("DeleteBlackList", parameters).Data.FirstOrDefault();
-            return result;
+            return Task.Run(() => _blackListRepository.DeleteBlackList(id));
         }
-        public ResultViewModel ChangeBlackList(BlackList blackList)
+
+        [HttpDelete]
+        [Route("DeleteDevices")]
+        public Task<ResultViewModel> DeleteBlackLists([FromBody] List<uint> ids = default)
         {
-            var parameters = new List<SqlParameter> 
-            {
-                new SqlParameter("@Id", blackList.Id),
-                new SqlParameter("@Description", blackList.Description),
-                new SqlParameter("@DeviceId", blackList.Device.DeviceId),
-                new SqlParameter("@UserId",blackList.User.Id),
-                new SqlParameter("@StartDate", blackList.StartDate),
-                new SqlParameter("@EndDate", blackList.EndDate),
-                new SqlParameter("@IsDeleted", blackList.IsDeleted),
-            };
-            var result = _repository.ToResultList<ResultViewModel>("ChangeBlackList", parameters).Data.FirstOrDefault();
-            return result;
+            return Task.Run(() => _blackListRepository.DeleteBlackLists(ids));
         }
-    
+
+
+        [HttpPut]
+        public Task<ResultViewModel> ChangeBlackList(BlackList blackList)
+        {
+            return Task.Run(() => _blackListRepository.ChangeBlackList(blackList));
+        }
+
     }
 }
