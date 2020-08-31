@@ -1,19 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+using System.Threading.Tasks;
+
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-    public class FaceTemplateRepository
+    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/queries/v2/[controller]")]
+    //[ApiVersion("1.0")]
+    public class FaceTemplateController : Controller
     {
-        private readonly GenericRepository _repository;
+        private readonly FaceTemplateRepository _faceTemplateRepository;
 
-        public FaceTemplateRepository(GenericRepository repository)
+
+        public FaceTemplateController(FaceTemplateRepository faceTemplateRepository)
         {
-            _repository = repository;
+            _faceTemplateRepository = faceTemplateRepository;
         }
+
 
         /// <summary>
         /// <En>Get the device info from database.</En>
@@ -21,79 +29,19 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// </summary>
         /// <param name="faceTemplate"></param>
         /// <returns></returns>
-        public ResultViewModel ModifyFaceTemplate(FaceTemplate faceTemplate)
+        [HttpPut]
+        public Task<ResultViewModel> ModifyFaceTemplate(FaceTemplate faceTemplate)
         {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", faceTemplate.Id),
-                new SqlParameter("@UserId", faceTemplate.UserId),
-                new SqlParameter("@Template", faceTemplate.Template),
-                new SqlParameter("@CheckSum", faceTemplate.CheckSum),
-                new SqlParameter("@SecurityLevel", faceTemplate.SecurityLevel),
-                new SqlParameter("@Size", faceTemplate.Size),
-                new SqlParameter("@Index", faceTemplate.Index),
-                new SqlParameter("@EnrollQuality", faceTemplate.EnrollQuality),
-                new SqlParameter("@FaceTemplateType", faceTemplate.FaceTemplateType.Code)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("ModifyFaceTemplate", parameters).Data.FirstOrDefault();
+            return Task.Run(() => _faceTemplateRepository.ModifyFaceTemplate(faceTemplate));
         }
 
-        public List<FaceTemplate> GetAllFaceTemplates()
+        [HttpDelete]
+        [Route("DeleteFaceTemplate")]
+        public Task<ResultViewModel> DeleteFaceTemplate(long userId = 0 , int index = 0)
         {
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplates", fetchCompositions: true).Data;
+            return Task.Run(() => _faceTemplateRepository.DeleteFaceTemplate(userId ,index));
         }
 
-        public List<FaceTemplate> GetAllFaceTemplatesByFaceTemplateType(string fingerTemplateTypeCode)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@FaceTemplateType", fingerTemplateTypeCode)
-            };
-
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplatesByFaceTemplateType", parameters, fetchCompositions: true).Data;
-        }
-
-        public List<FaceTemplate> GetFaceTemplateByUserId(long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
-
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplatesByUserId", parameters, fetchCompositions: true).Data;
-        }
-
-        public List<FaceTemplate> GetFaceTemplateByUserIdAndIndex(long userId, int index)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@Index", index)
-            };
-
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplatesByUserIdAndIndex", parameters, fetchCompositions: true).Data;
-        }
-
-        public ResultViewModel DeleteFaceTemplateByUserId(long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteFaceTemplatesByUserId", parameters).Data.FirstOrDefault();
-        }
-
-        public ResultViewModel DeleteFaceTemplateByUserIdAndIndex(long userId, int index)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@Index", index)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteFaceTemplatesByUserIdAndIndex", parameters).Data.FirstOrDefault();
-        }
+ 
     }
 }

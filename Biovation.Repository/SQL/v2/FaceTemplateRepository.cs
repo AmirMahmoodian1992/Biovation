@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -39,32 +41,27 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("ModifyFaceTemplate", parameters).Data.FirstOrDefault();
         }
 
-        public List<FaceTemplate> GetAllFaceTemplates()
-        {
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplates", fetchCompositions: true).Data;
-        }
-
-        public List<FaceTemplate> GetAllFaceTemplatesByFaceTemplateType(string fingerTemplateTypeCode)
+        public ResultViewModel<PagingResult<FaceTemplate>> GetFaceTemplates(string faceTemplateType, long userId,
+            int index, int pageNumber, int pageSize, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@FaceTemplateType", fingerTemplateTypeCode)
-            };
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@Index", index),
+                new SqlParameter("@FaceTemplateType", faceTemplateType),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
 
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplatesByFaceTemplateType", parameters, fetchCompositions: true).Data;
+            };
+            return _repository.ToResultList<PagingResult<FaceTemplate>>("SelectFaceTemplatesByFilter", parameters,
+                    fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel)
+                .FetchFromResultList();
         }
 
-        public List<FaceTemplate> GetFaceTemplateByUserId(long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
 
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplatesByUserId", parameters, fetchCompositions: true).Data;
-        }
 
-        public List<FaceTemplate> GetFaceTemplateByUserIdAndIndex(long userId, int index)
+
+        public ResultViewModel DeleteFaceTemplate(long userId, int index)
         {
             var parameters = new List<SqlParameter>
             {
@@ -72,28 +69,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@Index", index)
             };
 
-            return _repository.ToResultList<FaceTemplate>("SelectFaceTemplatesByUserIdAndIndex", parameters, fetchCompositions: true).Data;
-        }
-
-        public ResultViewModel DeleteFaceTemplateByUserId(long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteFaceTemplatesByUserId", parameters).Data.FirstOrDefault();
-        }
-
-        public ResultViewModel DeleteFaceTemplateByUserIdAndIndex(long userId, int index)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@Index", index)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteFaceTemplatesByUserIdAndIndex", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("DeleteFaceTemplates", parameters).Data.FirstOrDefault();
         }
     }
 }
