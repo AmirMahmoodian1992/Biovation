@@ -15,7 +15,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
     public class FingerTemplateController : Controller
     {
-/*
+
         private readonly FingerTemplateRepository _fingerTemplateRepository;
 
 
@@ -35,6 +35,20 @@ namespace Biovation.Data.Queries.Controllers.v2
             return _repository.ToResultList<UserTemplateCount>("SelectTemplatesCount").Data;
         }
 
+
+        [HttpGet]
+        [Route("TemplateCount")]
+        public Task<IActionResult> GetTemplateCount()
+        {
+            throw null;
+        }
+
+        [HttpGet]
+        [Route("FingerTemplateTypes")]
+        public Task<IActionResult> GetFingerTemplateTypes(string brandId = default)
+        {
+            throw null;
+        }
 
         [HttpGet]
         public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex,Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default,
@@ -70,6 +84,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             };
 
             return _repository.ToResultList<Lookup>("SelectFingerTemplateTypes", parameters, fetchCompositions: true).Data;
-        }*/
+        }
     }
 }
