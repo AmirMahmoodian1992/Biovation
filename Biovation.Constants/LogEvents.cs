@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
+using System.Linq;
 
 namespace Biovation.Constants
 {
@@ -23,16 +23,40 @@ namespace Biovation.Constants
         public const string IdentifyFaceSuccessCode = "16010";//61suprema;
 
 
-        public static Lookup Connect { get; set; }
-        public static Lookup Disconnect { get; set; }
-        public static Lookup Authorized { get; set; }
-        public static Lookup UnAuthorized { get; set; }
-        public static Lookup AddUserToDevice { get; set; }
-        public static Lookup RemoveUserFromDevie { get; set; }
-        public static Lookup DeviceEnabled { get; set; }
-        public static Lookup DeviceDisabled { get; set; }
-        public static Lookup EnrollSuccess { get; set; }
-        public static Lookup IdentifySuccessFace { get; set; }
+        public LogEvents(Lookups lookups)
+        {
+            Connect =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, ConnectCode));
+            Disconnect =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, DisconnectCode));
+            Authorized =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, AuthorizedCode));
+            UnAuthorized =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, UnAuthorizedCode));
+            AddUserToDevice =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, AddUserToDeviceCode));
+            RemoveUserFromDevice =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, RemoveUserFromDeviceCode));
+            DeviceEnabled =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceEnabledCode));
+            DeviceDisabled =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceDisabledCode));
+            EnrollSuccess =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollSuccessCode));
+            IdentifySuccessFace =
+                lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, IdentifyFaceSuccessCode));
+        }
+
+        public Lookup Connect { get; set; }
+        public Lookup Disconnect { get; set; }
+        public Lookup Authorized { get; set; }
+        public Lookup UnAuthorized { get; set; }
+        public Lookup AddUserToDevice { get; set; }
+        public Lookup RemoveUserFromDevice { get; set; }
+        public Lookup DeviceEnabled { get; set; }
+        public Lookup DeviceDisabled { get; set; }
+        public Lookup EnrollSuccess { get; set; }
+        public Lookup IdentifySuccessFace { get; set; }
     }
 }
 

@@ -1,9 +1,9 @@
-﻿using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
+using System.Linq;
 
 namespace Biovation.Constants
 {
-    public static class TaskPriorities
+    public class TaskPriorities
     {
         public const string LowestCode = "13001";
         public const string LowCode = "13002";
@@ -11,10 +11,19 @@ namespace Biovation.Constants
         public const string HighCode = "13004";
         public const string ImmediateCode = "13005";
 
-        public static Lookup Lowest = Lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, LowestCode));
-        public static Lookup Low = Lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, LowCode));
-        public static Lookup Medium = Lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, MediumCode));
-        public static Lookup High = Lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, HighCode));
-        public static Lookup Immediate = Lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, ImmediateCode));
+        public TaskPriorities(Lookups lookups)
+        {
+            Lowest = lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, LowestCode));
+            Low = lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, LowCode));
+            Medium = lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, MediumCode));
+            High = lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, HighCode));
+            Immediate = lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, ImmediateCode));
+        }
+
+        public static Lookup Lowest;
+        public static Lookup Low;
+        public static Lookup Medium;
+        public static Lookup High;
+        public static Lookup Immediate;
     }
 }

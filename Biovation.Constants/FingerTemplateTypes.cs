@@ -11,9 +11,9 @@ namespace Biovation.Constants
 
         public FingerTemplateTypes(Lookups lookups)
         {
-            V400 = Lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, V400Code));
-            SU384 = Lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, SU384Code));
-            VX10 = Lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, VX10Code));
+            V400 = lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, V400Code));
+            SU384 = lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, SU384Code));
+            VX10 = lookups.FingerTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, VX10Code));
         }
 
         public Lookup V400;

@@ -17,13 +17,15 @@ namespace Biovation.Service
 {
     public class LogService
     {
+        private readonly LogEvents _logEvents;
         private readonly LogRepository _logRepository;
         private readonly BiovationConfigurationManager _configurationManager;
         private readonly RestClient _logExternalSubmissionRestClient;
 
         //private readonly PlateDetectionRepository _plateDetectionRepository = new PlateDetectionRepository();
-        public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
+        public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager, LogEvents logEvents)
         {
+            _logEvents = logEvents;
             _logRepository = logRepository;
             _configurationManager = configurationManager;
             _logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
@@ -37,7 +39,7 @@ namespace Biovation.Service
                 {
                     var insertionResult = await _logRepository.AddLog(log);
 
-                    if (log.EventLog.Code == LogEvents.Authorized.Code || log.EventLog.Code == LogEvents.UnAuthorized.Code)
+                    if (log.EventLog.Code == _logEvents.Authorized.Code || log.EventLog.Code == _logEvents.UnAuthorized.Code)
                     {
                         await Task.Run(async () =>
                         {

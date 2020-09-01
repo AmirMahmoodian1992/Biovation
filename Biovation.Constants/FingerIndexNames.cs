@@ -17,16 +17,31 @@ namespace Biovation.Constants
         public const string LeftThumbCode = "140010";
         public const string UnknownCode = "140011";
 
-        public static Lookup RightThumb = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightThumbCode));
-        public static Lookup RightIndex = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightIndexCode));
-        public static Lookup RightMiddle = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightMiddleCode));
-        public static Lookup RightRing = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightRingCode));
-        public static Lookup RightLittle = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightLittleCode));
-        public static Lookup LeftLittle = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftLittleCode));
-        public static Lookup LeftRing = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftRingCode));
-        public static Lookup LeftMiddle = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftMiddleCode));
-        public static Lookup LeftIndex = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftIndexCode));
-        public static Lookup LeftThumb = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftThumbCode));
-        public static Lookup Unknown = Lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, UnknownCode));
+        public FingerIndexNames(Lookups lookups)
+        {
+            RightThumb = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightThumbCode));
+            RightIndex = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightIndexCode));
+            RightMiddle = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightMiddleCode));
+            RightRing = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightRingCode));
+            RightLittle = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, RightLittleCode));
+            LeftLittle = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftLittleCode));
+            LeftRing = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftRingCode));
+            LeftMiddle = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftMiddleCode));
+            LeftIndex = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftIndexCode));
+            LeftThumb = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, LeftThumbCode));
+            Unknown = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, UnknownCode));
+        }
+
+        public static Lookup RightThumb;
+        public static Lookup RightIndex;
+        public static Lookup RightMiddle;
+        public static Lookup RightRing;
+        public static Lookup RightLittle;
+        public static Lookup LeftLittle;
+        public static Lookup LeftRing;
+        public static Lookup LeftMiddle;
+        public static Lookup LeftIndex;
+        public static Lookup LeftThumb;
+        public static Lookup Unknown;
     }
 }

@@ -35,6 +35,7 @@ namespace Biovation.Brands.Virdi
         private readonly VirdiLogService _virdiLogService;
         private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
+        private readonly LogEvents _logEvents;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateService _faceTemplateService;
@@ -174,7 +175,7 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager, DeviceBrands deviceBrands)
+        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager, DeviceBrands deviceBrands, LogEvents logEvents)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -193,6 +194,7 @@ namespace Biovation.Brands.Virdi
             _onlineDevices = virdiServer.GetOnlineDevices();
 
             _deviceBrands = deviceBrands;
+            _logEvents = logEvents;
             _monitoringRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             // create UCSAPI Instance
@@ -782,7 +784,7 @@ namespace Biovation.Brands.Virdi
                         {
                             DeviceId = existDevice?.DeviceId ?? 0,
                             LogDateTime = DateTime.Now,
-                            EventLog = LogEvents.Connect
+                            EventLog = _logEvents.Connect
                         });
                     }
                     catch (Exception)
@@ -1040,7 +1042,7 @@ namespace Biovation.Brands.Virdi
             {
 
                 DeviceCode = (uint)terminalId,
-                EventLog = AccessLogData.AuthResult == 0 ? LogEvents.Authorized : LogEvents.UnAuthorized,
+                EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
                 UserId = AccessLogData.UserID,
                 LogDateTime = logDateTime,
                 AuthType = AccessLogData.AuthType,
@@ -1576,7 +1578,7 @@ namespace Biovation.Brands.Virdi
             var log = new Log
             {
                 DeviceCode = (uint)terminalId,
-                EventLog = AccessLogData.AuthResult == 0 ? LogEvents.Authorized : LogEvents.UnAuthorized,
+                EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
                 UserId = AccessLogData.UserID,
                 LogDateTime = DateTime.Parse(AccessLogData.DateTime),
                 //MatchingType = AccessLogData.AuthType,
@@ -1657,7 +1659,7 @@ namespace Biovation.Brands.Virdi
                     {
                         DeviceId = device.DeviceId,
                         LogDateTime = DateTime.Now,
-                        EventLog = LogEvents.Disconnect
+                        EventLog = _logEvents.Disconnect
                     });
                 }
                 catch (Exception)
@@ -2405,7 +2407,7 @@ namespace Biovation.Brands.Virdi
             var log = new Log
             {
                 DeviceCode = (uint)terminalId,
-                EventLog = AccessLogData.IsAuthorized == 1 ? LogEvents.Authorized : LogEvents.UnAuthorized,
+                EventLog = AccessLogData.IsAuthorized == 1 ? _logEvents.Authorized : _logEvents.UnAuthorized,
                 UserId = AccessLogData.UserID,
                 LogDateTime = DateTime.Now,
                 //MatchingType = authMode.BioCode,
