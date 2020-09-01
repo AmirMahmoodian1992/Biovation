@@ -24,16 +24,12 @@ namespace Biovation.Data.Queries.Controllers.v2
             _deviceGroupRepository = deviceGroupRepository;
         }
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک گروه را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="deviceGroupId">کد گروه</param>
-        /// <returns></returns>
-        ///
+
+
+     
         [HttpGet]
         [Route("GetDeviceGroups")]
-        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int? deviceGroupId, long userId,
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int deviceGroupId, long userId,
             int pageNumber = default, int PageSize = default)
         {
             return Task.Run(() => _deviceGroupRepository.GetDeviceGroups(deviceGroupId, userId, pageNumber, PageSize));
@@ -56,5 +52,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceGroupRepository.GetDeviceGroupsByAccessGroup(accessGroupId, pageNumber, PageSize));
 
         }
+
     }
 }

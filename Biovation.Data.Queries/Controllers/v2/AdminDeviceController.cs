@@ -22,11 +22,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             _adminDeviceRepository = adminDeviceRepository;
         }
 
-        //public AdminDeviceController()
-        //{
-        //    //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-        //}
-
         [HttpGet]
         [Route("GetAdminDevicesByPersonId")]
         public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDevicesByPersonId(int personId, int pageNumber = default,int PageSize = default)
@@ -40,26 +35,5 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(userId, pageNumber, PageSize));
         }
 
-    [HttpPost]
-    [Route("ModifyAdminDevice")]
-    public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
-    {
-        try
-        {
-            var ss = adminDevice.ToString();
-            ss = ss.Replace("]}\"", "]}");
-            ss = ss.Replace("\"{", "{");
-            ss = ss.Replace("\r\n", "");
-            ss = ss.Replace(@"\", "");
-
-            string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-            var result = _adminDeviceRepository.ModifyAdminDevice(node);
-            return result;
-        }
-        catch (Exception e)
-        {
-            return new ResultViewModel { Message = e.Message, Validate = 0 };
-        }
-    }
 }
 }

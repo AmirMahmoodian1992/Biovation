@@ -45,6 +45,7 @@ namespace Biovation.Server.Controllers.v2
             throw null;
         }
 
+
         [HttpDelete]
         [Route("{id}")]
         public Task<IActionResult> DeleteAccessGroups(int id = default)

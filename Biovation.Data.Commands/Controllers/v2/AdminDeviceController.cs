@@ -14,30 +14,51 @@ namespace Biovation.Data.Commands.Controllers.v2
     public class AdminDeviceController : Controller
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
-/*
-        private readonly AdminDeviceRepository _adminDeviceRepository;
-
-        [HttpPost]
-        [Route("ModifyAdminDevice")]
-        public Task<ResultViewModel> ModifyAdminDevice([FromBody] JObject adminDevice)
-        {
-
-            try
+        /*
+                private readonly AdminDeviceRepository _adminDeviceRepository;
+                    [HttpPost]
+            [Route("ModifyAdminDevice")]
+            public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
             {
-                var ss = adminDevice.ToString();
-                ss = ss.Replace("]}\"", "]}");
-                ss = ss.Replace("\"{", "{");
-                ss = ss.Replace("\r\n", "");
-                ss = ss.Replace(@"\", "");
+                try
+                {
+                    var ss = adminDevice.ToString();
+                    ss = ss.Replace("]}\"", "]}");
+                    ss = ss.Replace("\"{", "{");
+                    ss = ss.Replace("\r\n", "");
+                    ss = ss.Replace(@"\", "");
 
-                string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-                return Task.Run(() => _adminDeviceRepository.ModifyAdminDevice(node));
+                    string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
+                    var result = _adminDeviceRepository.ModifyAdminDevice(node);
+                    return result;
+                }
+                catch (Exception e)
+                {
+                    return new ResultViewModel { Message = e.Message, Validate = 0 };
+                }
+            }
 
-            }
-            catch (Exception e)
-            {
-                return Task.Run(() => new ResultViewModel { Message = e.Message, Validate = 0, Code = 400 });
-            }
-        }*/
+                [HttpPost]
+                [Route("ModifyAdminDevice")]
+                public Task<ResultViewModel> ModifyAdminDevice([FromBody] JObject adminDevice)
+                {
+
+                    try
+                    {
+                        var ss = adminDevice.ToString();
+                        ss = ss.Replace("]}\"", "]}");
+                        ss = ss.Replace("\"{", "{");
+                        ss = ss.Replace("\r\n", "");
+                        ss = ss.Replace(@"\", "");
+
+                        string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
+                        return Task.Run(() => _adminDeviceRepository.ModifyAdminDevice(node));
+
+                    }
+                    catch (Exception e)
+                    {
+                        return Task.Run(() => new ResultViewModel { Message = e.Message, Validate = 0, Code = 400 });
+                    }
+                }*/
     }
 }

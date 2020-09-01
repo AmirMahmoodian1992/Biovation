@@ -21,13 +21,13 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _blackListRepository.GetBlacklist(id,userId,deviceId,startDate,endDate,isDeleted, pageNumber, pageSize));
         }
+        
         [HttpGet]
         [Route("GetActiveBlacklist")]
         public Task<ResultViewModel<PagingResult<BlackList>>> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? today = null, bool isDeleted = default, int pageNumber = default, int pageSize = default)
         {
         return Task.Run(() => _blackListRepository.GetActiveBlacklist(id, userId, deviceId, today, isDeleted, pageNumber, pageSize));
     }
-
 
     }
 }
