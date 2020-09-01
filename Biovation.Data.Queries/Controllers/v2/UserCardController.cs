@@ -1,12 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
-using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
-using RestSharp;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -14,7 +9,7 @@ namespace Biovation.Data.Queries.Controllers.v2
     //[ApiVersion("2.0")]
     public class UserCardController : Controller
     {
- 
+
         private readonly UserCardRepository _userCardRepository;
 
         public UserCardController(UserCardRepository userCardRepository)
@@ -31,7 +26,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         public Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId, bool isactive, int pageNumber = default, int PageSize = default)
         {
-            return Task.Run(() => _userCardRepository.GetCardsByFilter(userId,isactive,pageNumber,PageSize));
+            return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isactive, pageNumber, PageSize));
         }
 
 
