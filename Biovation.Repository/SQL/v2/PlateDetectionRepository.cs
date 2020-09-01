@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -17,11 +18,10 @@ namespace Biovation.Repository.SQL.v2
         {
             _repository = repository;
         }
-        public Task<List<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false)
+        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+        int pageSize = default)
         {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
+            var parameters = new List<SqlParameter>
                 {
                      new SqlParameter("@LogId", SqlDbType.Int) {Value = logId},
                      new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
@@ -31,10 +31,11 @@ namespace Biovation.Repository.SQL.v2
                      new SqlParameter("@MinPrecision", SqlDbType.TinyInt) {Value = minPrecision},
                      new SqlParameter("@MaxPrecision", SqlDbType.TinyInt) {Value = maxPrecision},
                      new SqlParameter("@WithPic", SqlDbType.Bit ){Value = withPic},
-                     new SqlParameter("@SuccessTransfer", SqlDbType.Bit) {Value = successTransfer}
+                     new SqlParameter("@SuccessTransfer", SqlDbType.Bit) {Value = successTransfer},
+                     new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                     new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
                 };
-                return _repository.ToResultList<PlateDetectionLog>("SelectPlateDetectionLogs", parameters, fetchCompositions: true).Data;
-            });
+                return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: true).FetchFromResultList();
         }
 
         public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log)
@@ -74,20 +75,15 @@ namespace Biovation.Repository.SQL.v2
             });
         }
 
-        public Task<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
+        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
         {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
+            var parameters = new List<SqlParameter>
                 {
                     new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
                     new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value = entityId}
                 };
 
-                return _repository.ToResultList<LicensePlate>("SelectLicensePlateByFilter", parameters).Data.FirstOrDefault();
-            });
+                return _repository.ToResultList<LicensePlate>("SelectLicensePlateByFilter", parameters).FetchFromResultList();
         }
-
-
     }
 }

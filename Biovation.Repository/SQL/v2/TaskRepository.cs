@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
@@ -17,7 +18,12 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default)
+
+
+
+
+        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default,int pageNumber = default,
+        int pageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -26,20 +32,22 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@deviceId", deviceId),
                 new SqlParameter("@taskTypeCode", taskTypeCode),
                 new SqlParameter("@taskStatusCodes", taskStatusCodes),
-                new SqlParameter("@excludedTaskStatusCodes", excludedTaskStatusCodes)
+                new SqlParameter("@excludedTaskStatusCodes", excludedTaskStatusCodes),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
 
-            return _repository.ToResultList<TaskInfo>("SelectTasks", parameters, fetchCompositions: true, compositionDepthLevel: 3).Data;
+            return _repository.ToResultList<PagingResult<TaskInfo>>("SelectTasks", parameters, fetchCompositions: true, compositionDepthLevel: 3).FetchFromResultList();
         }
 
-        public TaskItem GetTaskItem(int taskItemId = default)
+        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", taskItemId)
             };
 
-            return _repository.ToResultList<TaskItem>("SelectTaskItems", parameters, fetchCompositions: true, compositionDepthLevel: 3).Data.FirstOrDefault();
+            return _repository.ToResultList<TaskItem>("SelectTaskItems", parameters, fetchCompositions: true, compositionDepthLevel: 3).FetchFromResultList();
         }
 
         public ResultViewModel InsertTask(TaskInfo task)

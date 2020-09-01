@@ -20,16 +20,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             _faceTemplateRepository = faceTemplateRepository;
         }
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="pageNumber"></param>
-        /// <param name="pageSize"></param>
-        /// <param name="fingerTemplateTypeCode"></param>
-        /// <param name="userId"></param>
-        /// <param name="index"></param>
-        /// <returns>FaceTemplate</returns>
         [HttpGet]
         public Task<ResultViewModel<PagingResult<FaceTemplate>>> FaceTemplates(string fingerTemplateTypeCode = default, long userId = 0, int index = 0, int pageNumber = default,
             int pageSize = default)
