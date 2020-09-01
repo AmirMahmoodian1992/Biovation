@@ -19,20 +19,21 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 4)
+        public ResultViewModel<PagingResult<AccessGroup>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default,int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
 
                 new SqlParameter("@Id", id),
                 new SqlParameter("@DeviceId ", deviceId),
+                new SqlParameter("@DeviceGroupId", deviceGroupId),
                 new SqlParameter("@UserId", userId ),
                 new SqlParameter("@adminUserId", adminUserId),
                 new SqlParameter("@UserGroupId", userGroupId),
                 new SqlParameter("@PageNumber", pageNumber),
                 new SqlParameter("@PageSize",pageSize)
             };
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByFilter", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroups", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public AccessGroupRepository(GenericRepository repository)
@@ -123,41 +124,6 @@ namespace Biovation.Repository.SQL.v2
         }
 
 
-
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroupsOfUser(long userId, int nestingDepthLevel=4, int pageNumber = default, int pageSize = default)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",pageSize)
-            };
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByUserId",parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
-        }
-
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroupsOfDevice(uint deviceId, int nestingDepthLevel, int pageNumber = 0, int pageSize = 0)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@DeviceId", SqlDbType.Int) {Value = deviceId},
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",pageSize)
-            };
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByDeviceId", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
-        }
-
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroupsOfUserGroup(int userGroupId, int nestingDepthLevel, int pageNumber = 0, int pageSize = 0)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserGroupId", SqlDbType.Int) {Value = userGroupId},
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",pageSize)
-            };
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByUserGroupId", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
-        }
-
-
         /// <summary>
         /// <En></En>
         /// <Fa></Fa>
@@ -165,7 +131,7 @@ namespace Biovation.Repository.SQL.v2
         /// <param name="accessGroupId"></param>
         /// <param name="nestingDepthLevel"></param>
         /// <returns></returns>
-        public ResultViewModel<AccessGroup> GetAccessGroup(int accessGroupId, int nestingDepthLevel=4)
+        public ResultViewModel<AccessGroup> AccessGroup(int accessGroupId, int nestingDepthLevel=4)
         {
             var parameters = new List<SqlParameter>
             {
@@ -176,28 +142,7 @@ namespace Biovation.Repository.SQL.v2
 
         }
 
-        /// <summary>
-        /// <En></En>
-        /// <Fa></Fa>
-        /// </summary>
-        /// <param name="accessGroupId"></param>
-        /// <param name="deviceGroupId"></param>
-        /// <param name="userId"></param>
-        /// <param name="pageNumber"></param>
-        /// <param name="pageSize"></param>
-        /// <returns></returns>
-        public ResultViewModel<PagingResult<AccessGroup>> SearchAccessGroup(int accessGroupId, int deviceGroupId, int userId, int pageNumber = 0, int pageSize = 0)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", accessGroupId),
-                new SqlParameter("@DeviceGroupId", deviceGroupId),
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",pageSize)
-            };
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectSearchAccessGroup", parameters, fetchCompositions: true).FetchFromResultList();
-        }
+
 
         /// <summary>
         /// <En></En>
@@ -225,18 +170,6 @@ namespace Biovation.Repository.SQL.v2
             };
 
             return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDeviceOfAccessGroup", parameters, fetchCompositions: true).FetchFromResultList();
-        }
-
-        public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>> GetServerSideIdentificationCacheNoTemplate(long userId, int pageNumber = 0, int pageSize = 0)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@adminUserId", userId),
-                new SqlParameter("@PageNumber", pageNumber),
-                new SqlParameter("@PageSize",pageSize)
-            };
-
-            return _repository.ToResultList<PagingResult<ServerSideIdentificationCacheModel>>("SelectServerSideIdentificationCacheNoTemplate", parameters, fetchCompositions: true).FetchFromResultList();
         }
 
         public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId, int pageNumber = 0, int pageSize = 0)
