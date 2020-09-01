@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -16,9 +17,10 @@ namespace Biovation.Data.Queries.Controllers.v2
             _lookupRepository = lookupRepository;
         }
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<Lookup>>> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default)
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default, int pageNumber = default,
+            int pageSize = default)
         {
-            throw null;
+            return Task.Run(() => _lookupRepository.GetLookups(code, name, lookupCategoryId, codePrefix, pageNumber, pageSize));
         }
     }
 }

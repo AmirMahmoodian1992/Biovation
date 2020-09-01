@@ -1,10 +1,7 @@
 ﻿using Biovation.Domain;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -15,7 +12,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
     public class FingerTemplateController : Controller
     {
-/*
+
         private readonly FingerTemplateRepository _fingerTemplateRepository;
 
 
@@ -23,53 +20,31 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             _fingerTemplateRepository = fingerTemplateRepository;
         }
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="fingerTemplate"></param>
-        /// <returns></returns>
 
-        public List<UserTemplateCount> GetFingerTemplatesCount()
+
+
+        [HttpGet]
+        [Route("TemplateCount")]
+        public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
-            return _repository.ToResultList<UserTemplateCount>("SelectTemplatesCount").Data;
+            return Task.Run(() => _fingerTemplateRepository.GetFingerTemplatesCount());
         }
 
 
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex,Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default,
+        public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex, Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default,
             int PageSize = default)
         {
-            return Task.Run(() => _fingerTemplateRepository.FingerTemplates(userId,templateIndex,fingerTemplateType,from,size,pageNumber,PageSize));
+            return Task.Run(() => _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size, pageNumber, PageSize));
         }
 
-        public int GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
+        [HttpGet]
+        [Route("FingerTemplateTypes")]
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId)
         {
-            try
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@FingerTemplateType", fingerTemplateType.Code)
-                };
-
-                return _repository.ToResultList<int>("SelectFingerTemplatesCountByFingerTemplateType", parameters).Data.FirstOrDefault();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            return Task.Run(() => _fingerTemplateRepository.GetFingerTemplateTypes(brandId));
         }
 
 
-        public List<Lookup> GetFingerTemplateTypes(string brandId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@brandId", brandId)
-            };
-
-            return _repository.ToResultList<Lookup>("SelectFingerTemplateTypes", parameters, fetchCompositions: true).Data;
-        }*/
     }
 }

@@ -32,6 +32,9 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() => _accessGroupRepository.AddAccessGroup(accessGroup));
         }
+
+
+     
         [HttpPut]
         [Route("ModifyAccessGroup")]
         public Task<ResultViewModel> ModifyAccessGroup(AccessGroup accessGroup)
@@ -39,14 +42,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroup(accessGroup));
         }
 
-        /// <summary>
-        /// <En></En>
-        /// <Fa>ذخیره جدول کاربران گروه دسترسی</Fa>
-        /// </summary>
-        /// <param name="xmlUserGroup">رشته آبجکت</param>
-        /// <param name="accessGroupId">شناهس گرئه دسترسی</param>
-        /// <returns></returns>
-        /// 
 
         [HttpPut]
         [Route("ModifyAccessGroupUserGroup")]
@@ -55,13 +50,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupUserGroup(xmlUserGroup, accessGroupId));
         }
 
-        /// <summary>
-        /// <En></En>
-        /// <Fa>ذخیره ادمین های گروه دسترسی</Fa>
-        /// </summary>
-        /// <param name="xmlAdminUsers">رشته آبجکت</param>
-        /// <param name="accessGroupId">شناهس گرئه دسترسی</param>
-        /// <returns></returns>
+
         [HttpPut]
         [Route("ModifyAccessGroupAdminUsers")]
         public Task<ResultViewModel> ModifyAccessGroupAdminUsers(string xmlAdminUsers, int accessGroupId)
@@ -69,13 +58,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupAdminUsers(xmlAdminUsers, accessGroupId));
         }
 
-        /// <summary>
-        /// <En></En>
-        /// <Fa>ذخیره جدول دستگاه گروه دسترسی</Fa>
-        /// </summary>
-        /// <param name="xmlDeviceGroup">رشته آبجکت</param>
-        /// <param name="accessGroupId">شناسه گروه دسترسی</param>
-        /// <returns></returns>
+
         [HttpPut]
         [Route("ModifyAccessGroupDeviceGroup")]
         public Task<ResultViewModel> ModifyAccessGroupDeviceGroup(string xmlDeviceGroup, int accessGroupId)

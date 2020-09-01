@@ -38,16 +38,7 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<PagingResult<AdminDeviceGroup>>("SelectAdminDeviceGroupsByUserIdByPaging", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
-        public ResultViewModel<PagingResult<AdminDevice>> GetAdminDevicesByUserId(int userId, int pageNumber = 0, int PageSize = 0, int nestingDepthLevel = 4)
-        {
-
-            var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
-            { new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
-              new SqlParameter("@PageNumber", SqlDbType.Int) { Value = pageNumber },
-              new SqlParameter("@PageSize", SqlDbType.Int) { Value = PageSize }
-             };
-            return _repository.ToResultList<PagingResult<AdminDevice>>("SelectAdminDevicesByUserIdByPaging", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
-        }
+     
 
         /// <summary>
         /// <En>Get the device info from database.</En>
