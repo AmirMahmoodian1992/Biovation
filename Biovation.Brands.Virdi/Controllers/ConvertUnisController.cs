@@ -22,8 +22,9 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
 
-        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
+        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager)
         {
             _userService = userService;
             _userCardService = userCardService;
@@ -31,6 +32,7 @@ namespace Biovation.Brands.Virdi.Controllers
             _fingerTemplateService = fingerTemplateService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
+            _biometricTemplateManager = biometricTemplateManager;
         }
 
         [HttpPost]
@@ -127,7 +129,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 UserId = fingerTemplate.UserId,
                                 Index = export.FingerInfo[j].FingerID,
-                                FingerIndex = BiometricTemplateManager.GetFingerIndex(export.FingerInfo[j].FingerID),
+                                FingerIndex = _biometricTemplateManager.GetFingerIndex(export.FingerInfo[j].FingerID),
                                 Template = templateSample.Data,
                                 CheckSum = templateSample.Data.Sum(x => x),
                                 Size = templateSample.Data.Length,

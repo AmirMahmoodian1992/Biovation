@@ -32,16 +32,16 @@ namespace Biovation.Constants
             Unknown = lookups.FingerIndexNames.FirstOrDefault(lookup => string.Equals(lookup.Code, UnknownCode));
         }
 
-        public static Lookup RightThumb;
-        public static Lookup RightIndex;
-        public static Lookup RightMiddle;
-        public static Lookup RightRing;
-        public static Lookup RightLittle;
-        public static Lookup LeftLittle;
-        public static Lookup LeftRing;
-        public static Lookup LeftMiddle;
-        public static Lookup LeftIndex;
-        public static Lookup LeftThumb;
-        public static Lookup Unknown;
+        public Lookup RightThumb;
+        public Lookup RightIndex;
+        public Lookup RightMiddle;
+        public Lookup RightRing;
+        public Lookup RightLittle;
+        public Lookup LeftLittle;
+        public Lookup LeftRing;
+        public Lookup LeftMiddle;
+        public Lookup LeftIndex;
+        public Lookup LeftThumb;
+        public Lookup Unknown;
     }
 }

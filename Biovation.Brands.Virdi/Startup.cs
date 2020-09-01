@@ -249,6 +249,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<VirdiServer, VirdiServer>();
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
+            services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
 
