@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -45,10 +46,11 @@ namespace Biovation.Repository.SQL.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0 };
+                    return new ResultViewModel {Validate = 0};
                 }
             });
         }
+
         public Task<ResultViewModel> AddLog(DataTable logs)
         {
             return Task.Run(() =>
@@ -66,15 +68,16 @@ namespace Biovation.Repository.SQL.v2
                             .FirstOrDefault();
                     }
 
-                    return new ResultViewModel { Validate = 1, Message = "0" };
+                    return new ResultViewModel {Validate = 1, Message = "0"};
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = "0" };
+                    return new ResultViewModel {Validate = 0, Message = "0"};
                 }
             });
         }
+
         public Task<ResultViewModel> UpdateLog(DataTable logs)
         {
             return Task.Run(() =>
@@ -86,12 +89,15 @@ namespace Biovation.Repository.SQL.v2
                         new SqlParameter("@LogTable", logs)
                     };
 
-                    return logs.Rows.Count > 0 ? _repository.ToResultList<ResultViewModel>("SetLogIsTransferedBatch", parameters).Data.FirstOrDefault() : new ResultViewModel { Validate = 1, Message = "0" };
+                    return logs.Rows.Count > 0
+                        ? _repository.ToResultList<ResultViewModel>("SetLogIsTransferedBatch", parameters).Data
+                            .FirstOrDefault()
+                        : new ResultViewModel {Validate = 1, Message = "0"};
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = "0" };
+                    return new ResultViewModel {Validate = 0, Message = "0"};
                 }
             });
         }
@@ -208,7 +214,7 @@ namespace Biovation.Repository.SQL.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0 };
+                    return new ResultViewModel {Validate = 0};
                 }
             });
         }
@@ -234,142 +240,22 @@ namespace Biovation.Repository.SQL.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0 };
+                    return new ResultViewModel {Validate = 0};
                 }
             });
         }
-        public Task<List<Log>> GetOfflineLogs()
-        {
-            return Task.Run(() => _repository.ToResultList<Log>("SelectOfflineLogs", fetchCompositions: true).Data);
-        }
 
-        public Task<List<Log>> GetLastLogsOfDevice(uint deviceId)
+        //doit
+        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default,
+            DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() =>
+            var parameters = new List<SqlParameter>
             {
-                var parameters = new List<SqlParameter> { new SqlParameter("@DeviceId", SqlDbType.BigInt) { Value = deviceId } };
-                return _repository.ToResultList<Log>("SelectLastLogsByDeviceId", parameters, fetchCompositions: true).Data;
-            });
-        }
+                new SqlParameter("@Id", SqlDbType.BigInt) {Value = id}
+            };
 
-        public Task<List<Log>> GetOfflineLogsByDeviceId(uint deviceId)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter> { new SqlParameter("@DeviceId", SqlDbType.BigInt) { Value = deviceId } };
-                return _repository.ToResultList<Log>("SelectOfflineLogsByDeviceId", parameters, fetchCompositions: true).Data;
-            });
-        }
+            return _repository.ToResultList<PagingResult<Log>>("GetLog", parameters, fetchCompositions: true).FetchFromResultList();
 
-        public Task<List<Log>> GetOfflineLogsByUserId(int userId)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter> { new SqlParameter("@UserId", SqlDbType.Int) { Value = userId } };
-                return _repository.ToResultList<Log>("SelectOfflineLogsByUserId", parameters, fetchCompositions: true).Data;
-            });
-        }
-
-        public Task<List<Log>> GetOfflineLogsOfPeriod(DateTime fromDate, DateTime toDate)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate},
-                    new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate}
-                };
-
-                return _repository.ToResultList<Log>("SelectOfflineLogsOfPeriod", parameters, fetchCompositions: true).Data;
-            });
-        }
-        public Task<List<Log>> SelectSearchedOfflineLogs(DeviceTraffic deviceTraffic)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                    {
-                        new SqlParameter("@UserId", deviceTraffic.UserId),
-                        new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceTraffic.DeviceId},
-                        new SqlParameter("@FromDate", deviceTraffic.FromDate),
-                        new SqlParameter("@ToDate", deviceTraffic.ToDate),
-                        new SqlParameter("@AdminUserId", deviceTraffic.OnlineUserId),
-                        new SqlParameter("@State", deviceTraffic.State)
-                    };
-                return _repository.ToResultList<Log>("SelectSearchedOfflineLogs", parameters, fetchCompositions: true).Data;
-            });
-        }
-        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic deviceTraffic)
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    var parameters = new List<SqlParameter>
-                    {
-                        new SqlParameter("@UserId", deviceTraffic.UserId),
-                        new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceTraffic.DeviceId},
-                        new SqlParameter("@FromDate", deviceTraffic.FromDate),
-                        new SqlParameter("@ToDate", deviceTraffic.ToDate),
-                        new SqlParameter("@PageNumber", deviceTraffic.PageNumber),
-                        new SqlParameter("@PageSize", deviceTraffic.PageSize),
-                        new SqlParameter("@Where", deviceTraffic.Where),
-                        new SqlParameter("@Order", deviceTraffic.Order),
-                        new SqlParameter("@AdminUserId", deviceTraffic.OnlineUserId),
-                        new SqlParameter("@State", deviceTraffic.State)
-                    };
-
-                    return _repository.ToResultList<Log>("SelectSearchedOfflineLogsWithPaging", parameters,
-                        fetchCompositions: true).Data;
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new List<Log>();
-                }
-            });
-        }
-        public Task<List<Log>> GetOfflineLogsOfPeriodByDeviceId(uint deviceId, DateTime fromDate, DateTime toDate)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceId},
-                    new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate},
-                    new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate}
-                };
-
-                return _repository.ToResultList<Log>("SelectOfflineLogsOfPeriodByDeviceId", parameters, fetchCompositions: true).Data;
-            });
-        }
-
-        public Task<List<Log>> GetOfflineLogsOfPeriodByUserId(int userId, DateTime fromDate, DateTime toDate)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@UserId", SqlDbType.Int) {Value = userId},
-                    new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate},
-                    new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate}
-                };
-
-                return _repository.ToResultList<Log>("SelectOfflineLogsOfPeriodByUserId", parameters, fetchCompositions: true).Data;
-            });
-        }
-
-        public Task<Log> GetLog(long id)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@Id", SqlDbType.BigInt) {Value = id}
-                };
-
-                return _repository.ToResultList<Log>("GetLog", parameters, fetchCompositions: true).Data.FirstOrDefault();
-            });
         }
     }
 }
