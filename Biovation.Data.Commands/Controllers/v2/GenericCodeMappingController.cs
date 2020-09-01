@@ -4,7 +4,7 @@ using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Data.Commands.Controllers.v2
-{
+{/*
     public class GenericCodeMappingRepository
     {
         private readonly GenericRepository _repository;
@@ -26,5 +26,5 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             return _repository.ToResultList<GenericCodeMapping>("SelectGenericCodeMappings", parameters, fetchCompositions: true).Data;
         }
-    }
+    }*/
 }

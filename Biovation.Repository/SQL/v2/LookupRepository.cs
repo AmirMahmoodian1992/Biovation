@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlClient;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -14,7 +15,7 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-        public List<Lookup> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default)
+        public ResultViewModel<PagingResult<Lookup>> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -24,7 +25,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@codePrefix", codePrefix)
             };
 
-            return _repository.ToResultList<Lookup>("SelectLookups", parameters).Data;
+            return _repository.ToResultList<PagingResult<Lookup>>("SelectLookups", parameters).FetchFromResultList();
         }
     }
 }

@@ -11,10 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />

@@ -1,20 +1,20 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.Domain;
-using Biovation.Repository.v2;
+﻿using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Threading.Tasks;
 
-namespace Biovation.Server.Controllers.v2
+namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/commands/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class AdminDeviceController : Controller
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
-
+/*
         private readonly AdminDeviceRepository _adminDeviceRepository;
 
         [HttpPost]
@@ -32,12 +32,12 @@ namespace Biovation.Server.Controllers.v2
 
                 string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
                 return Task.Run(() => _adminDeviceRepository.ModifyAdminDevice(node));
-               
+
             }
             catch (Exception e)
             {
-                return Task.Run(() => new ResultViewModel { Message = e.Message, Validate = 0 ,Code = 400});
-            }          
-        }
+                return Task.Run(() => new ResultViewModel { Message = e.Message, Validate = 0, Code = 400 });
+            }
+        }*/
     }
 }

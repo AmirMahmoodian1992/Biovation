@@ -1,15 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/queries/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class AdminDeviceController : Controller
     {

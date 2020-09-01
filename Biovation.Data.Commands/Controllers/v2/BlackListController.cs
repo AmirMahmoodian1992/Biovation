@@ -7,7 +7,7 @@ using Biovation.Repository.SQL.v2;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/commands/v2/[controller]")]
     public class BlackListController : Controller
     {
         private readonly BlackListRepository _blackListRepository;

@@ -42,11 +42,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.GetDevice(id, adminUserId));
         }
 
-        [HttpPost]
-        public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
-        {
-            return Task.Run(() => _deviceRepository.AddDevice(device));
-        }
 
         [HttpGet]
         [Route("GetDeviceModels/{id}")]
@@ -56,33 +51,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
         }
 
-        [HttpPost]
-        [Route("AddDevice")]
-
-        public Task<ResultViewModel> AddDeviceModel(DeviceModel deviceModel)
-        {
-            return Task.Run(() => _deviceRepository.AddDeviceModel(deviceModel));
-        }
-
-        [HttpDelete]
-        [Route("{id}")]
-        public Task<ResultViewModel> DeleteDevice(uint id)
-        {
-            return Task.Run(() => _deviceRepository.DeleteDevice(id));
-        }
-
-        [HttpDelete]
-        [Route("DeleteDevices")]
-        public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
-        {
-            return Task.Run(() => _deviceRepository.DeleteDevices(ids));
-        }
-
-        [HttpPut]
-        public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device = default)
-        {
-            return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfo(device));
-        }
 
         [HttpGet]
         [Route("GetBioAuthModeWithDeviceId")]
@@ -98,19 +66,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.GetLastConnectedTime(deviceId));
         }
 
-        [HttpPost]
-        [Route("AddNetworkConnectionLog")]
-        public Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device)
-        {
-            return Task.Run(() => _deviceRepository.AddNetworkConnectionLog(device));
-        }
-
-        /* [HttpGet]
-         [Route("GetAuthorizedUsersOfDevice")]
-         public Task<PagingResult<List<User>>> GetAuthorizedUsersOfDevice(int deviceId)
-         {
-             return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
-         }*/
 
         [HttpGet]
         [Route("GetDeviceBrands")]

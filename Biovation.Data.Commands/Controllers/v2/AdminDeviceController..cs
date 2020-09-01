@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
+﻿using System.Threading.Tasks;
 using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+using Biovation.Repository.SQL.v2;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Biovation.Data.Queries.Controllers.v2
+namespace Biovation.Data.Commands.Controllers.v2
 {
+    [Route("biovation/api/queries/v2/[controller]")]
     public class AdminDeviceController : Controller
     {
-        [Route("biovation/api/queries/v2/[controller]")]
+        
         private readonly AdminDeviceRepository _adminDeviceRepository;
 
 
@@ -24,20 +23,22 @@ namespace Biovation.Data.Queries.Controllers.v2
         /// <Fa>اطلاعات یک دستگاه را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <param name="userId">کد دستگاه</param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
         /// <returns></returns>
         /// [HttpGet]
         [HttpGet]
         [Route("GetAdminDeviceGroupsByUserId")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int userId, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int userId, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(userId, pageNumber, PageSize));
+            return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(userId, pageNumber, pageSize));
         }
 
         [HttpGet]
         [Route("GetAdminDevicesByUserId")]
-        public Task<List<AdminDevice>> GetAdminDevicesByUserId(int userId, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<AdminDevice>>> GetAdminDevicesByUserId(int userId, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(userId, pageNumber, PageSize));
+            return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(userId, pageNumber, pageSize));
         }
 
         /// <summary>

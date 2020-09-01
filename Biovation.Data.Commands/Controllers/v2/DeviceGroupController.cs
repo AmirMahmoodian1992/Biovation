@@ -1,21 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
-using Biovation.Repository.v2;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using DeviceRepository = Biovation.Repository.DeviceRepository;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
 
     //[ApiVersion("1.0")]
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/commands/v2/[controller]")]
     public class DeviceGroupController : Controller
     {
         private readonly DeviceGroupRepository _deviceGroupRepository;
@@ -24,7 +16,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             _deviceGroupRepository = deviceGroupRepository;
         }
-
 
         /// <summary>
         /// <En>Get the device info from database.</En>

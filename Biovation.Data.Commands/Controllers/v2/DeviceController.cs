@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.Repository.SQL.v2;
 
 
 
@@ -11,7 +11,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/commands/v2/[controller]")]
     //[ApiVersion("1.0")]
     public class DeviceController : Controller
     {
@@ -56,7 +56,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device = default)
         {
-            return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfoByID(device));
+            return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfo(device));
         }     
 
         [HttpPost]

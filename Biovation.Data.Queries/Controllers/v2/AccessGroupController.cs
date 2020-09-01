@@ -26,7 +26,13 @@ namespace Biovation.Data.Queries.Controllers.v2
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0, int pageNumber = default, int pageSize = default)
+
+
+        [HttpGet]
+        [Route("{userId}")]
+        //public Task<IActionResult> AccessGroups(long userId = default, int adminUserId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default)
+        //{
+            public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0,int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.GetAccessGroupsByFilter(adminUserId, userGroupId, id, deviceId, userId,
                  pageNumber, pageSize));
