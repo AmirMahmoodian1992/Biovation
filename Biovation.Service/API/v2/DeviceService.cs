@@ -24,5 +24,28 @@ namespace Biovation.Service.API.v2
         {
             return _deviceRepository.GetDevices(adminUserId, deviceGroupId, Code, brandId, deviceName, deviceModelId, typeId,pageNumber,PageSize);
         }
+
+        public ResultViewModel<DeviceBasicInfo> GetDevice(long id = default, long adminUserId = default)
+        {
+            return _deviceRepository.GetDevice(id, (int)adminUserId);
+        }
+        
+        //public PagingResult<DeviceModel> GetDeviceModels(long id = default, int brandId = default, string deviceName = null, int pageNumber = default, int PageSize = default)
+        //{
+        //    return _deviceRepository.GetDeviceModels(id, brandId.ToString(), deviceName, pageNumber, PageSize);
+        //}
+
+        //public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode)
+        //{
+        //    return _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode);
+        //}
+
+        //public ResultViewModel<AuthModeMap> GetLastConnectedTime(int id)
+        //{
+        //    return _deviceRepository.GetLastConnectedTime((uint) id);
+        //}
+
+
+        
     }
 }

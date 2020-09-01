@@ -22,7 +22,6 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-
         public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0,int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.AccessGroups(adminUserId, userGroupId, id, deviceId, userId,
@@ -30,7 +29,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id?}")]
+        [Route("{id}")]
         public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute]int id, int nestingDepthLevel=default)
         {
             return Task.Run(() => _accessGroupRepository.AccessGroup(id, nestingDepthLevel));

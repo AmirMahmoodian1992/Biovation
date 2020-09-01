@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
+using Biovation.Server.Dashboard;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Biovation.Server
 {
@@ -13,11 +17,27 @@ namespace Biovation.Server
     {
         public static void Main(string[] args)
         {
+            //Log.Logger = new LoggerConfiguration()
+            //    .Enrich.FromLogContext()
+            //    .MinimumLevel.Verbose()
+            //    .Enrich.With(new ThreadIdEnricher())
+            //    .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+            //    //.Enrich.WithHttpRequestId()
+            //    //.Enrich.WithWebApiActionName()
+            //    //.Enrich.WithWebApiControllerName()
+            //    //.Enrich.WithWebApiRouteData()
+            //    //.WriteTo.Console();
+            //    .WriteTo.Console(
+            //        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}, {ThreadId}] {Message}{NewLine}{Exception}"
+            //        /*,restrictedToMinimumLevel: minimumConsoleLogLevel*/)
+            //    .CreateLogger();
+
+            Influxtest.MainDisabled(args);
             CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+            Host.CreateDefaultBuilder(args).UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

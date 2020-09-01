@@ -27,7 +27,6 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{userId}")]
         public Task<IActionResult> AccessGroups(long userId = default, int adminUserId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default)
         {
             throw null;
@@ -43,6 +42,14 @@ namespace Biovation.Server.Controllers.v2
         public Task<IActionResult> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
             throw null;
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute]int id, int nestingDepthLevel = default)
+        {
+            throw null;
+
         }
 
         [HttpDelete]
