@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using DataAccessLayerCore.Extentions;
 
 
 namespace Biovation.Repository.SQL.v2
@@ -54,7 +55,7 @@ namespace Biovation.Repository.SQL.v2
         /// </summary>
         /// <returns></returns>
 
-        public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int PageSize = default)
         {
             return Task.Run(() =>
             {
@@ -73,8 +74,8 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@PageSize",PageSize)
 
                 };
-                return _repository.ToResultList<User>("SelectUsersByFilter", parameters, fetchCompositions: true,
-                    compositionDepthLevel: 2).Data;
+                return _repository.ToResultList<PagingResult<User>>("SelectUsersByFilter", parameters, fetchCompositions: true,
+                    compositionDepthLevel: 2).FetchFromResultList();
             });
         }
 
@@ -93,7 +94,7 @@ namespace Biovation.Repository.SQL.v2
         /// </summary>
         /// <returns></returns>
 
-        public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
+        public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
             var parameters = new List<SqlParameter>
             {
@@ -101,7 +102,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@accessGroupId", accessGroupId)
 
             };
-            return _repository.ToResultList<User>("SelectAdminUser", parameters).Data;
+            return _repository.ToResultList<User>("SelectAdminUser", parameters).FetchResultList();
         }
 
         /// <summary>

@@ -17,20 +17,15 @@ namespace Biovation.Data.Queries.Controllers.v2
             _userCardRepository = userCardRepository;
         }
 
-        [HttpGet]
-        [Route("{id}")]
-        public Task<IActionResult> GetUserCard(int id = default)
-        {
-            throw null;
-        }
 
+        [HttpGet]
         public Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId, bool isactive, int pageNumber = default, int PageSize = default)
         {
             return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isactive, pageNumber, PageSize));
         }
 
 
-
+        [HttpGet]
         public Task<ResultViewModel<User>> FindUserByCardNumber(string cardNumber)
         {
             return Task.Run(() => _userCardRepository.FindUserByCardNumber(cardNumber));
