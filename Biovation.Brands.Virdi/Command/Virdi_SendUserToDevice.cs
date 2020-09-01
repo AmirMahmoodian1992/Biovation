@@ -39,7 +39,10 @@ namespace Biovation.Brands.Virdi.Command
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
 
-        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents)
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
+
+        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _callbacks = callbacks;
             _logService = logService;
@@ -48,6 +51,8 @@ namespace Biovation.Brands.Virdi.Command
             _accessGroupService = accessGroupService;
             _faceTemplateService = faceTemplateService;
             _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -230,8 +235,8 @@ namespace Biovation.Brands.Virdi.Command
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.AddUserToDevice,
                         UserId = UserId,
-                        MatchingType = MatchingTypes.Unknown,
-                        SubEvent = LogSubEvents.Normal,
+                        MatchingType = _matchingTypes.Unknown,
+                        SubEvent = _logSubEvents.Normal,
                         TnaEvent = 0
                     };
 

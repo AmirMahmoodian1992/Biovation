@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
+using System.Linq;
 
 namespace Biovation.Constants
 {

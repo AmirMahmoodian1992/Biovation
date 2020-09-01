@@ -20,6 +20,8 @@ namespace Biovation.Brands.Virdi.Command
         private readonly UserService _userService;
         private readonly TaskService _taskService;
         //private readonly TaskManager _taskManager;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes; 
         private readonly DeviceService _deviceService;
         private readonly TimeZoneService _timeZoneService;
         private readonly UserCardService _userCardService;
@@ -31,7 +33,7 @@ namespace Biovation.Brands.Virdi.Command
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, Callbacks callbacks, LogEvents logEvents)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, Callbacks callbacks, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -46,6 +48,8 @@ namespace Biovation.Brands.Virdi.Command
             _timeZoneService = timeZoneService;
             _callbacks = callbacks;
             _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
         }
         //private EventDispatcher _eventDispatcherObj;
 
@@ -113,7 +117,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _callbacks, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents);
+                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _callbacks, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes);
                     }
 
                 case CommandType.SendBlackList:
@@ -192,7 +196,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiDeleteUserFromTerminal(transferModelData.Items, _virdiServer, _callbacks, _taskService, _logService, _deviceService, _logEvents);
+                        return new VirdiDeleteUserFromTerminal(transferModelData.Items, _virdiServer, _callbacks, _taskService, _logService, _deviceService, _logEvents, _logSubEvents, _matchingTypes);
                     }
 
                 case CommandType.RetrieveUserFromDevice:

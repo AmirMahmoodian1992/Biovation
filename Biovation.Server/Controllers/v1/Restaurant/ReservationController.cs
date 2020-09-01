@@ -20,15 +20,17 @@ namespace Biovation.Server.Controllers.v1.Restaurant
     {
         private readonly ReservationService _reservationService;
         private readonly DeviceService _deviceService;
+        private readonly TaskStatuses _taskStatuses;
         private readonly TaskService _taskService;
 
         private readonly RestClient _restClient;
 
-        public ReservationController(ReservationService reservationService, DeviceService deviceService, TaskService taskService)
+        public ReservationController(ReservationService reservationService, DeviceService deviceService, TaskService taskService, TaskStatuses taskStatuses)
         {
             _reservationService = reservationService;
             _deviceService = deviceService;
             _taskService = taskService;
+            _taskStatuses = taskStatuses;
             _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
@@ -42,7 +44,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
             return Task.Run(async () =>
             {
                 var taskItem = await _taskService.GetTaskItem(taskItemId);
-                taskItem.Status = TaskStatuses.Done;
+                taskItem.Status = _taskStatuses.Done;
                 taskItem.Result = JsonConvert.SerializeObject(new ResultViewModel
                 { Validate = 1, Message = $"Foods retrieved from server. Request from device: {taskItem.DeviceId}" });
                 var unused = _taskService.UpdateTaskStatus(taskItem);

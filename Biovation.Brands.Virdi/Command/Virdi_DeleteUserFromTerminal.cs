@@ -31,8 +31,10 @@ namespace Biovation.Brands.Virdi.Command
         private readonly DeviceService _deviceService;
 
         private readonly LogEvents _logEvents;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
 
-        public VirdiDeleteUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, LogService logService, DeviceService deviceService, LogEvents logEvents)
+        public VirdiDeleteUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, LogService logService, DeviceService deviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             DeviceId = Convert.ToInt32(items[0]);
 
@@ -49,6 +51,8 @@ namespace Biovation.Brands.Virdi.Command
             _taskService = taskService;
             _deviceService = deviceService;
             _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
         }
         public object Execute()
         {
@@ -75,8 +79,8 @@ namespace Biovation.Brands.Virdi.Command
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.RemoveUserFromDevice,
                         UserId = UserId,
-                        MatchingType = MatchingTypes.Unknown,
-                        SubEvent = LogSubEvents.Normal,
+                        MatchingType = _matchingTypes.Unknown,
+                        SubEvent = _logSubEvents.Normal,
                         TnaEvent = 0,
                         SuccessTransfer = true
                     };

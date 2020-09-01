@@ -16,8 +16,8 @@ namespace Biovation.Constants
             SFACE = lookups.FaceTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, SFACECode));
         }
 
-        public static Lookup VFACE { get; set; }
-        public static Lookup ZKVX7 { get; set; }
-        public static Lookup SFACE { get; set; }
+        public Lookup VFACE { get; set; }
+        public Lookup ZKVX7 { get; set; }
+        public Lookup SFACE { get; set; }
     }
 }

@@ -78,39 +78,39 @@ namespace Biovation.Constants
             GetLogsInPeriod = lookups.TaskItemTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsInPeriodCode));
         }
 
-        public static Lookup SendUser;
-        public static Lookup SendDevice;
-        public static Lookup SendFood;
-        public static Lookup SendMeal;
-        public static Lookup SendMealTimings;
-        public static Lookup SendRestaurant;
-        public static Lookup SendReservation;
-        public static Lookup GetServeLogs;
-        public static Lookup GetServeLogsInPeriod;
-        public static Lookup UpgradeDeviceFirmware;
-        public static Lookup UnlockDevice;
-        public static Lookup SendTimeZoneToTerminal;
-        public static Lookup SendAccessGroupToTerminal;
-        public static Lookup RetrieveUserFromTerminal;
-        public static Lookup RetrieveAllUsersFromTerminal;
-        public static Lookup OpenDoor;
-        public static Lookup LockDevice;
-        public static Lookup EnrollFromTerminal;
-        public static Lookup DeleteUserFromTerminal;
-        public static Lookup EnrollFaceFromTerminal;
-        public static Lookup SendBlackList;
+        public Lookup SendUser;
+        public Lookup SendDevice;
+        public Lookup SendFood;
+        public Lookup SendMeal;
+        public Lookup SendMealTimings;
+        public Lookup SendRestaurant;
+        public Lookup SendReservation;
+        public Lookup GetServeLogs;
+        public Lookup GetServeLogsInPeriod;
+        public Lookup UpgradeDeviceFirmware;
+        public Lookup UnlockDevice;
+        public Lookup SendTimeZoneToTerminal;
+        public Lookup SendAccessGroupToTerminal;
+        public Lookup RetrieveUserFromTerminal;
+        public Lookup RetrieveAllUsersFromTerminal;
+        public Lookup OpenDoor;
+        public Lookup LockDevice;
+        public Lookup EnrollFromTerminal;
+        public Lookup DeleteUserFromTerminal;
+        public Lookup EnrollFaceFromTerminal;
+        public Lookup SendBlackList;
 
-        public static Lookup DeleteUser;
-        public static Lookup DeleteDevice;
-        public static Lookup DeleteFood;
-        public static Lookup DeleteMeal;
-        public static Lookup DeleteMealTimings;
-        public static Lookup DeleteRestaurant;
-        public static Lookup DeleteReservation;
+        public Lookup DeleteUser;
+        public Lookup DeleteDevice;
+        public Lookup DeleteFood;
+        public Lookup DeleteMeal;
+        public Lookup DeleteMealTimings;
+        public Lookup DeleteRestaurant;
+        public Lookup DeleteReservation;
 
-        public static Lookup GetLogs;
-        public static Lookup ClearLog;
-        public static Lookup GetLogsInPeriod;
+        public Lookup GetLogs;
+        public Lookup ClearLog;
+        public Lookup GetLogsInPeriod;
 
     }
 }

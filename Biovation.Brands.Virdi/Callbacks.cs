@@ -38,6 +38,7 @@ namespace Biovation.Brands.Virdi
         private readonly LogEvents _logEvents;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly RestClient _monitoringRestClient;//= new RestClient(_configurationManager.LogMonitoringApiUrl);
         public static bool ModifyUserData = false;
@@ -175,7 +176,7 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager, DeviceBrands deviceBrands, LogEvents logEvents)
+        public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService, LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService, VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, BiovationConfigurationManager configurationManager, DeviceBrands deviceBrands, LogEvents logEvents, FaceTemplateTypes faceTemplateTypes)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -195,6 +196,7 @@ namespace Biovation.Brands.Virdi
 
             _deviceBrands = deviceBrands;
             _logEvents = logEvents;
+            _faceTemplateTypes = faceTemplateTypes;
             _monitoringRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             // create UCSAPI Instance
@@ -2028,7 +2030,7 @@ namespace Biovation.Brands.Virdi
                             var faceTemplate = new FaceTemplate
                             {
                                 Index = faceCount,
-                                FaceTemplateType = FaceTemplateTypes.VFACE,
+                                FaceTemplateType = _faceTemplateTypes.VFACE,
                                 UserId = user.Id,
                                 Template = faceData,
                                 CheckSum = faceData.Sum(x => x),
@@ -2333,7 +2335,7 @@ namespace Biovation.Brands.Virdi
                     var faceTemplate = new FaceTemplate
                     {
                         Index = currentIndex,
-                        FaceTemplateType = FaceTemplateTypes.VFACE,
+                        FaceTemplateType = _faceTemplateTypes.VFACE,
                         UserId = userId,
                         Template = faceData,
                         CheckSum = faceData.Sum(x => x),

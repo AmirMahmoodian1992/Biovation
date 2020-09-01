@@ -177,6 +177,9 @@ namespace Biovation.Server
             serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
 
+            //serviceCollection.AddScoped<Lookups, Lookups>();
+            //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
+
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -225,11 +228,21 @@ namespace Biovation.Server
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result
             };
 
+
             services.AddSingleton(lookups);
             services.AddSingleton(genericCodeMappings);
             //Constant values
+            services.AddSingleton<LogEvents, LogEvents>();
+            services.AddSingleton<TaskTypes, TaskTypes>();
+            services.AddSingleton<LogSubEvents, LogSubEvents>();
             services.AddSingleton<DeviceBrands, DeviceBrands>();
+            services.AddSingleton<TaskStatuses, TaskStatuses>();
+            services.AddSingleton<MatchingTypes, MatchingTypes>();
+            services.AddSingleton<TaskItemTypes, TaskItemTypes>();
+            services.AddSingleton<TaskPriorities, TaskPriorities>();
+            services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
+            services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

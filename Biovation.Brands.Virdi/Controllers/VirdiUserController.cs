@@ -25,8 +25,13 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
+        
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
 
-        public VirdiUserController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands)
+        public VirdiUserController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _userService = userService;
@@ -37,6 +42,10 @@ namespace Biovation.Brands.Virdi.Controllers
             _commandFactory = commandFactory;
             _taskManager = taskManager;
             _deviceBrands = deviceBrands;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
         }
 
         [HttpPost]
@@ -54,15 +63,15 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.EnrollFromTerminal,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.EnrollFromTerminal,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
                     {
-                        Status = TaskStatuses.Queued,
-                        TaskItemType = TaskItemTypes.EnrollFromTerminal,
-                        Priority = TaskPriorities.Medium,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.EnrollFromTerminal,
+                        Priority = _taskPriorities.Medium,
                         DueDate = DateTime.Today,
                         DeviceId = devices.DeviceId,
                         Data = JsonConvert.SerializeObject(new { deviceId }),
@@ -117,8 +126,8 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.SendUsers,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
@@ -126,9 +135,9 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.SendUser,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendUser,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = deviceId,
 
@@ -222,17 +231,17 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.EnrollFaceFromTerminal,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.EnrollFaceFromTerminal,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
 
                     task.TaskItems.Add(new TaskItem
                     {
-                        Status = TaskStatuses.Queued,
-                        TaskItemType = TaskItemTypes.EnrollFaceFromTerminal,
-                        Priority = TaskPriorities.Medium,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.EnrollFaceFromTerminal,
+                        Priority = _taskPriorities.Medium,
                         DueDate = DateTime.Today,
                         DeviceId = deviceId,
 

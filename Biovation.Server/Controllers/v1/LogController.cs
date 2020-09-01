@@ -23,10 +23,15 @@ namespace Biovation.Server.Controllers.v1
         private readonly DeviceService _commonDeviceService;
         private readonly RestClient _restClient;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities)
         {
             _userService = userService;
             _commonLogService = logService;
+            _taskTypes = taskTypes;
+            _taskPriorities = taskPriorities;
             _commonDeviceService = deviceService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
@@ -115,8 +120,8 @@ namespace Biovation.Server.Controllers.v1
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.GetServeLogs,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.GetServeLogs,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
 
                     };
@@ -142,11 +147,16 @@ namespace Biovation.Server.Controllers.v1
                 var restRequest =
                     new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod",
                         Method.GET);
-                if (fromDate is null)
+
+                if (fromDate is null && toDate is null)
+                {
+                    restRequest.AddQueryParameter("fromDate", DateTime.MinValue.ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                }
+                else if (fromDate is null)
                 {
                     restRequest.AddQueryParameter("fromDate", (DateTime.MinValue.ToString(CultureInfo.InvariantCulture)));
                     restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture)); restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
-
                 }
                 else if (toDate is null)
                 {

@@ -207,12 +207,17 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton(genericCodeMappings);
             //Constant values
             services.AddSingleton<LogEvents, LogEvents>();
+            services.AddSingleton<TaskTypes, TaskTypes>();
             services.AddSingleton<LogSubEvents, LogSubEvents>();
             services.AddSingleton<DeviceBrands, DeviceBrands>();
+            services.AddSingleton<TaskStatuses, TaskStatuses>();
+            services.AddSingleton<MatchingTypes, MatchingTypes>();
+            services.AddSingleton<TaskItemTypes, TaskItemTypes>();
+            services.AddSingleton<TaskPriorities, TaskPriorities>();
+            services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
-
 
         private void ConfigureVirdiServices(IServiceCollection services)
         {

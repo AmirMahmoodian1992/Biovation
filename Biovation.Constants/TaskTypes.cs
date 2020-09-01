@@ -81,40 +81,40 @@ namespace Biovation.Constants
         }
 
 
-        public static Lookup SendUsers { get; set; }
-        public static Lookup SendDevices { get; set; }
-        public static Lookup SendFoods { get; set; }
-        public static Lookup SendMeals { get; set; }
-        public static Lookup SendMealTimings { get; set; }
-        public static Lookup SendRestaurants { get; set; }
-        public static Lookup SendReservations { get; set; }
-        public static Lookup GetServeLogs { get; set; }
-        public static Lookup DeleteUsers { get; set; }
-        public static Lookup DeleteDevices { get; set; }
-        public static Lookup DeleteFoods { get; set; }
-        public static Lookup DeleteMeals { get; set; }
-        public static Lookup DeleteMealTimings { get; set; }
-        public static Lookup DeleteRestaurants { get; set; }
-        public static Lookup DeleteReservations { get; set; }
-                                                             
-        public static Lookup UpgradeDeviceFirmware { get; set; }
-        public static Lookup UnlockDevice { get; set; }
-        public static Lookup SendTimeZoneToTerminal { get; set; }
-        public static Lookup SendAccessGroupToTerminal { get; set; }
-        public static Lookup RetrieveUserFromTerminal { get; set; }
+        public Lookup SendUsers { get; set; }
+        public Lookup SendDevices { get; set; }
+        public Lookup SendFoods { get; set; }
+        public Lookup SendMeals { get; set; }
+        public Lookup SendMealTimings { get; set; }
+        public Lookup SendRestaurants { get; set; }
+        public Lookup SendReservations { get; set; }
+        public Lookup GetServeLogs { get; set; }
+        public Lookup DeleteUsers { get; set; }
+        public Lookup DeleteDevices { get; set; }
+        public Lookup DeleteFoods { get; set; }
+        public Lookup DeleteMeals { get; set; }
+        public Lookup DeleteMealTimings { get; set; }
+        public Lookup DeleteRestaurants { get; set; }
+        public Lookup DeleteReservations { get; set; }
+                                                      
+        public Lookup UpgradeDeviceFirmware { get; set; }
+        public Lookup UnlockDevice { get; set; }
+        public Lookup SendTimeZoneToTerminal { get; set; }
+        public Lookup SendAccessGroupToTerminal { get; set; }
+        public Lookup RetrieveUserFromTerminal { get; set; }
 
-        public static Lookup RetrieveAllUsersFromTerminal { get; set; }
-        public static Lookup OpenDoor { get; set; }
-        public static Lookup LockDevice { get; set; }
-        public static Lookup EnrollFromTerminal { get; set; }
-        public static Lookup DeleteUserFromTerminal { get; set; }
-        public static Lookup EnrollFaceFromTerminal { get; set; }
+        public Lookup RetrieveAllUsersFromTerminal { get; set; }
+        public Lookup OpenDoor { get; set; }
+        public Lookup LockDevice { get; set; }
+        public Lookup EnrollFromTerminal { get; set; }
+        public Lookup DeleteUserFromTerminal { get; set; }
+        public Lookup EnrollFaceFromTerminal { get; set; }
 
-        public static Lookup ClearLog { get; set; }
-        public static Lookup GetLogsInPeriod { get; set; }
-        public static Lookup GetLogs { get; set; }
+        public Lookup ClearLog { get; set; }
+        public Lookup GetLogsInPeriod { get; set; }
+        public Lookup GetLogs { get; set; }
 
-        public static Lookup SendBlackList { get; set; }
+        public Lookup SendBlackList { get; set; }
 
     }
 }

@@ -22,15 +22,15 @@ namespace Biovation.Constants
             DeviceDisconnected = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceDisconnectedCode));
         }
 
-        public static Lookup Queued;
-        public static Lookup Done;
-        public static Lookup Failed;
-        public static Lookup InProgress;
-        public static Lookup Scheduled;
-        public static Lookup DeviceDisconnected;
+        public Lookup Queued;
+        public Lookup Done;
+        public Lookup Failed;
+        public Lookup InProgress;
+        public Lookup Scheduled;
+        public Lookup DeviceDisconnected;
 
 
-        public static Lookup GetTaskStatusByCode(string statusCode)
+        public Lookup GetTaskStatusByCode(string statusCode)
         {
             switch (statusCode)
             {

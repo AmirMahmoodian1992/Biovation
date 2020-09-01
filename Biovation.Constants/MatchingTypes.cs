@@ -22,11 +22,11 @@ namespace Biovation.Constants
             UnIdentify = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnIdentifyCode));
         }
 
-        public static Lookup Face;
-        public static Lookup Finger;
-        public static Lookup Car;
-        public static Lookup Card;
-        public static Lookup Unknown;
-        public static Lookup UnIdentify;
+        public Lookup Face;
+        public Lookup Finger;
+        public Lookup Car;
+        public Lookup Card;
+        public Lookup Unknown;
+        public Lookup UnIdentify;
     }
 }

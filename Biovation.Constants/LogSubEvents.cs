@@ -20,10 +20,10 @@ namespace Biovation.Constants
             FourthFunction = lookups.LogSubEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, FourthFunctionCode));
         }
 
-        public static Lookup Normal;
-        public static Lookup FirstFunction;
-        public static Lookup SecondFunction;
-        public static Lookup ThirdFunction;
-        public static Lookup FourthFunction;
+        public Lookup Normal;
+        public Lookup FirstFunction;
+        public Lookup SecondFunction;
+        public Lookup ThirdFunction;
+        public Lookup FourthFunction;
     }
 }

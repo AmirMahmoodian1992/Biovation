@@ -18,17 +18,19 @@ namespace Biovation.Brands.Virdi.Controllers
     {
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
 
-        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes)
+        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
         {
             _userService = userService;
             _userCardService = userCardService;
             _faceTemplateService = faceTemplateService;
             _fingerTemplateService = fingerTemplateService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _faceTemplateTypes = faceTemplateTypes;
         }
 
         [HttpPost]
@@ -156,7 +158,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var biovationFaceTemplates = faceTemplates.Select(template => new FaceTemplate
                     {
-                        FaceTemplateType = FaceTemplateTypes.VFACE,
+                        FaceTemplateType = _faceTemplateTypes.VFACE,
                         Index = 1,
                         Template = template.Template,
                         UserId = template.UserId,

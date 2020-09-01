@@ -20,10 +20,10 @@ namespace Biovation.Constants
             Immediate = lookups.TaskPriorities.FirstOrDefault(lookup => string.Equals(lookup.Code, ImmediateCode));
         }
 
-        public static Lookup Lowest;
-        public static Lookup Low;
-        public static Lookup Medium;
-        public static Lookup High;
-        public static Lookup Immediate;
+        public Lookup Lowest;
+        public Lookup Low;
+        public Lookup Medium;
+        public Lookup High;
+        public Lookup Immediate;
     }
 }

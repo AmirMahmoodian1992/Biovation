@@ -24,7 +24,12 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
 
-        public VirdiAccessGroupController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public VirdiAccessGroupController(TaskService taskService, UserService userService, DeviceService deviceService, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _userService = userService;
@@ -33,6 +38,10 @@ namespace Biovation.Brands.Virdi.Controllers
             _commandFactory = commandFactory;
             _taskManager = taskManager;
             _deviceBrands = deviceBrands;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
         }
 
         [HttpPost]
@@ -48,8 +57,8 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.SendUsers,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
@@ -57,9 +66,9 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.SendAccessGroupToTerminal,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { accessGroupId }),
