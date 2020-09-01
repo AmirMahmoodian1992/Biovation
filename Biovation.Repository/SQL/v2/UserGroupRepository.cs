@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
@@ -88,24 +89,29 @@ namespace Biovation.Repository.SQL.v2
         /// </summary>
         /// <param name="userGroupId"></param>
         /// <returns></returns>
-        public UserGroup GetUserGroup(int userGroupId)
+        ///
+        ///
+        ///
+        /// doit:select filter
+        public ResultViewModel<List<UserGroup>> GetUserGroup(long userId, int userGroupId)
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@Id", userGroupId)
+                new SqlParameter("@Id", userGroupId),
+                new SqlParameter("@UserId",userId)
             };
 
-            return _repository.ToResultList<UserGroup>("SelectUserGroupByID", parameters, fetchCompositions: true).Data.FirstOrDefault();
+            return _repository.ToResultList<UserGroup>("SelectUserGroup", parameters, fetchCompositions: true).FetchResultList();
         }
 
-        public List<UserGroup> GetAccessControlUserGroup(int id)
+        public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@AccessControlId", id)
             };
 
-            return _repository.ToResultList<UserGroup>("SelectAccessControlUserGroup", parameters, fetchCompositions: true).Data;
+            return _repository.ToResultList<UserGroup>("SelectAccessControlUserGroup", parameters, fetchCompositions: true).FetchResultList();
         }
 
 

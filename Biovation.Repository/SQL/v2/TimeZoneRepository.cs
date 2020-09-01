@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 
 namespace Biovation.Repository.SQL.v2
 {
@@ -64,9 +65,9 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public List<TimeZone> GetTimeZones()
+        public ResultViewModel<List<TimeZone>> GetTimeZones()
         {
-            return _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).Data;
+            return _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
         }
 
         /// <summary>
@@ -75,14 +76,14 @@ namespace Biovation.Repository.SQL.v2
         /// </summary>
         /// <param name="timeZoneId"></param>
         /// <returns></returns>
-        public TimeZone GetTimeZone(int timeZoneId)
+        public ResultViewModel<TimeZone> GetTimeZone(int timeZoneId)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", timeZoneId)
             };
 
-            return _repository.ToResultList<TimeZone>("SelectTimeZoneByID", parameters, fetchCompositions: true).Data.FirstOrDefault();
+            return _repository.ToResultList<TimeZone>("SelectTimeZoneByID", parameters, fetchCompositions: true).FetchFromResultList();
         }
 
         /// <summary>

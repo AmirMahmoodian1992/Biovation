@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -17,7 +18,7 @@ namespace Biovation.Repository.SQL.v2
 
 
 
-        public List<UserCard> GetCardsByFilter(long userId,bool isactive,int pageNumber = default, int PageSize = default)
+        public ResultViewModel<PagingResult<UserCard>> GetCardsByFilter(long userId,bool isactive,int pageNumber = default, int PageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -26,7 +27,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageNumber", pageNumber),
                 new SqlParameter("@PageSize",PageSize)
             };
-            return _repository.ToResultList<UserCard>("SelectUserCardByFilter", parameters).Data;
+            return _repository.ToResultList<PagingResult<UserCard>>("SelectUserCardByFilter", parameters).FetchFromResultList();
 
         }
         /// <summary>
@@ -56,13 +57,13 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<UserCard>("SelectActiveUserCardByUserId", parameters).Data;
         }*/
 
-        public User FindUserByCardNumber(string cardNumber)
+        public ResultViewModel<User> FindUserByCardNumber(string cardNumber)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@CardNumber", cardNumber),
             };
-            return _repository.ToResultList<User>("SelectUserByCardNumber", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<User>("SelectUserByCardNumber", parameters).FetchFromResultList();
         }
 
         public List<User> FindUsersByCardNumber(string cardNumber)
