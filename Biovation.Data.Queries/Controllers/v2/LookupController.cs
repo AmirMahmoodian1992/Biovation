@@ -23,5 +23,4 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _lookupRepository.GetLookups(code, name, lookupCategoryId, codePrefix, pageNumber, pageSize));
         }
     }
-    }
 }

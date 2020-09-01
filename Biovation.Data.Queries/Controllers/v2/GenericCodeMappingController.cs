@@ -2,9 +2,12 @@
 using System.Data.SqlClient;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
+using Microsoft.AspNetCore.Components;
 
-namespace Biovation.Repository
+namespace Biovation.Data.Queries.Controllers.v2
 {
+
+    [Route("biovation/api/queries/v2/[controller]")]
     public class GenericCodeMappingRepository
     {
         private readonly GenericRepository _repository;
