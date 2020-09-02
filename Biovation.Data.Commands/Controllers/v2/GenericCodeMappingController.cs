@@ -1,30 +1,20 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+﻿using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+
 
 namespace Biovation.Data.Commands.Controllers.v2
-{/*
-    public class GenericCodeMappingRepository
+{
+    [Route("biovation/api/commands/v2/[controller]")]
+    public class GenericCodeMappingController : Controller
     {
-        private readonly GenericRepository _repository;
+        private readonly GenericCodeMappingRepository _genericCodeMappingRepository;
 
-        public GenericCodeMappingRepository(GenericRepository repository)
+        public GenericCodeMappingController(GenericCodeMappingRepository genericCodeMappingRepository)
         {
-            _repository = repository;
+            _genericCodeMappingRepository = genericCodeMappingRepository;
         }
 
-        public List<GenericCodeMapping> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@categoryId", categoryId),
-                new SqlParameter("@brandCode", brandCode),
-                new SqlParameter("@manufactureCode", manufactureCode),
-                new SqlParameter("@genericCode", genericCode)
-            };
-
-            return _repository.ToResultList<GenericCodeMapping>("SelectGenericCodeMappings", parameters, fetchCompositions: true).Data;
-        }
-    }*/
+    }
 }

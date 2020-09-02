@@ -1,33 +1,29 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
-using Microsoft.AspNetCore.Components;
+﻿using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
 
     [Route("biovation/api/queries/v2/[controller]")]
-    public class GenericCodeMappingRepository
-    {
-        private readonly GenericRepository _repository;
 
-        public GenericCodeMappingRepository(GenericRepository repository)
+        public class GenericCodeMappingController : Controller
         {
-            _repository = repository;
-        }
 
-        public List<GenericCodeMapping> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default)
-        {
-            var parameters = new List<SqlParameter>
+            private readonly GenericCodeMappingRepository _genericCodeMappingRepository;
+
+
+            public GenericCodeMappingController(GenericCodeMappingRepository genericCodeMappingRepository)
             {
-                new SqlParameter("@categoryId", categoryId),
-                new SqlParameter("@brandCode", brandCode),
-                new SqlParameter("@manufactureCode", manufactureCode),
-                new SqlParameter("@genericCode", genericCode)
-            };
+                _genericCodeMappingRepository = genericCodeMappingRepository;
+            }
 
-            return _repository.ToResultList<GenericCodeMapping>("SelectGenericCodeMappings", parameters, fetchCompositions: true).Data;
+            [HttpGet]
+        [Route("FingerTemplateTypes")]
+        public Task<ResultViewModel<PagingResult<GenericCodeMapping>>> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default, int pageNumber = default, int PageSize = default)
+        {
+            return Task.Run(() => _genericCodeMappingRepository.GetGenericCodeMappings(categoryId,brandCode,manufactureCode,genericCode,pageNumber,PageSize));
         }
     }
 }
