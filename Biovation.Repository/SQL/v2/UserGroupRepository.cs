@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -67,20 +68,18 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public List<UserGroup> GetUserGroups(long userId)
+        public ResultViewModel<PagingResult<UserGroup>> GetUserGroups(int id, long userId, int accessGroupId, int pageNumber = default,
+            int PageSize = default)
         {
             var parameters = new List<SqlParameter> {
-                new SqlParameter("@adminUserId",userId)
+                new SqlParameter("@Id",id),
+                new SqlParameter("@adminUserId",userId),              
+                new SqlParameter("@accessGroupId",accessGroupId ),
+                new SqlParameter("@UserId",userId),
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
             };
-            return _repository.ToResultList<UserGroup>("SelectUserGroups", parameters, fetchCompositions: true).Data;
-        }
-
-        public List<UserGroup> GetUserGroupsOfUser(long userId)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@UserId",userId)
-            };
-            return _repository.ToResultList<UserGroup>("SelectUserGroupsByUserId", parameters).Data;
+            return _repository.ToResultList<PagingResult<UserGroup>>("SelectUserGroups", parameters, fetchCompositions: true).FetchFromResultList();
         }
 
         /// <summary>
@@ -93,16 +92,6 @@ namespace Biovation.Repository.SQL.v2
         ///
         ///
         /// doit:select filter
-        public ResultViewModel<List<UserGroup>> GetUserGroup(long userId, int userGroupId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", userGroupId),
-                new SqlParameter("@UserId",userId)
-            };
-
-            return _repository.ToResultList<UserGroup>("SelectUserGroup", parameters, fetchCompositions: true).FetchResultList();
-        }
 
         public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id)
         {
@@ -125,14 +114,6 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("DeleteUserGroup", parameters).Data.FirstOrDefault();
         }
 
-        public List<UserGroup> GetUserGroupsByAccessGroup(int accessGroupId)
-        {
-            var parameters = new List<SqlParameter> {
-                new SqlParameter("@AccessGroupId", accessGroupId)
-                };
-
-            return _repository.ToResultList<UserGroup>("SelectUserGroupsByAccessGroupId", parameters, fetchCompositions: true).Data;
-        }
 
         public ResultViewModel SyncUserGroupMember(string lstUser)
         {
