@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -30,9 +30,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<IActionResult> GetUsersGroup(long id = default, int groupId = default)
+        public Task<ResultViewModel<List<UserGroup>>> GetUsersGroup(long userId, int userGroupId)
         {
-            throw null;
+            return Task.Run(async () => { return _userGroupService.UsersGroup(userId, userGroupId); });
         }
 
         [HttpPost]
@@ -63,9 +63,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("AccessControlUserGroup/{id}")]
-        public Task<IActionResult> GetAccessControlUserGroup(int id = default)
+        public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default)
         {
-            throw null;
+            return Task.Run(async () => { return _userGroupService.GetAccessControlUserGroup(id); });
         }
 
         [HttpPut]

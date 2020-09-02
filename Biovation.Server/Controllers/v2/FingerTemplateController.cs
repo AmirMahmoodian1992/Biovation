@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
@@ -19,9 +19,10 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{userId}")]
-        public Task<IActionResult> GetFingerTemplateByUserId(long userId = default, int templateIndex = default)
+        public Task<ResultViewModel<PagingResult<FingerTemplate>>> GetFingerTemplateByUserId(Lookup fingerTemplateType,int userId = default, int templateIndex = default, int from = 0, int size = 0, int pageNumber = default,
+        int PageSize = default)
         {
-            throw null;
+            return Task.Run(async () => { return _fingerTemplateService.FingerTemplates(userId,templateIndex,fingerTemplateType,from,size,pageNumber,PageSize); });
         }
 
         [HttpPost]
@@ -46,16 +47,16 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("TemplateCount")]
-        public Task<IActionResult> GetTemplateCount()
+        public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
-            throw null;
+            return Task.Run(async () => { return _fingerTemplateService.GetTemplateCount(); });
         }
 
         [HttpGet]
         [Route("FingerTemplateTypes")]
-        public Task<IActionResult> GetFingerTemplateTypes(string brandId = default)
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {
-            throw null;
+            return Task.Run(async () => { return _fingerTemplateService.GetFingerTemplateTypes(brandId); });
         }
     }
 }

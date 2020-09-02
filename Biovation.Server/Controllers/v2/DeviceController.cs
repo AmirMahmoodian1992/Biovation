@@ -2,11 +2,10 @@
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using RestSharp;
-using DeviceService = Biovation.Service.API.v2.DeviceService;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -29,25 +28,44 @@ namespace Biovation.Server.Controllers.v2
 
 
 
-        //[HttpGet]
-        //[Route("{id}")]
-        //public Task<> Device(long id = 0, long adminUserId = 0, int groupId = 0, uint code = 0,
-        //    int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
-        //{
-        //    //Task.Run(() => _deviceService.GetDevicesByfilter(id, adminUserId, groupId, code, brandId, name, modelId, typeId));
-        //    throw null;
-        //}
+        [HttpGet]
+        [Route("{id}")]
+        public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
+        {
+            return Task.Run(() => _deviceService.GetDevice(id, adminUserId));
+        }
 
 
         //TODO loaded brand
         [HttpGet]
-        [Route("{id?}")]
-        public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long id, long adminUserId = 0, int groupId = 0, uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int PageSize = default)
+        public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
+            int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int PageSize = default)
         {
             var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId, name, modelId, typeId, pageNumber, PageSize));
             return result;
         }
+
+        ///////////////////////////////////
+        //[HttpGet]
+        //[Route("GetDeviceModels/{id}")]
+        //public Task<PagingResult<DeviceModel>> DeviceModels(int id = default, int brandId = default, string name = default, int pageNumber = default, int PageSize = default)
+        //{
+        //    var result = Task.Run(() => _deviceService.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
+        //    return result;
+        //}
+
+
+        //[HttpGet]
+        //[Route("BioAuthMode/{id}")]
+        //public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id = default, int authMode = default)
+        //{
+        //    var result = Task.Run(() => _deviceService.GetBioAuthModeWithDeviceId(id, authMode));
+        //    return result;
+        //}
+        //////////////////////////////////////////
+
+
+
 
         /* [HttpPost]
         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
@@ -56,13 +74,13 @@ namespace Biovation.Server.Controllers.v2
             Task.Run(() => _deviceService.AddDevice(device));
             throw null;
         }*/
-       /* [HttpPost]
-        public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
-        {
+        /* [HttpPost]
+         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
+         {
 
-            Task.Run(() => _deviceService.AddDevice(device));
-            throw null;
-        }*/
+             Task.Run(() => _deviceService.AddDevice(device));
+             throw null;
+         }*/
 
         //[HttpDelete]
         //[Route("{id}")]

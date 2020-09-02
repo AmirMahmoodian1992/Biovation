@@ -19,7 +19,10 @@ namespace Biovation.Data.Queries.Controllers.v2
         public Task<ResultViewModel<PagingResult<Lookup>>> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _lookupRepository.GetLookups(code, name, lookupCategoryId, codePrefix, pageNumber, pageSize));
+            return Task.Run(async () =>
+            {
+               return _lookupRepository.GetLookups(code, name, lookupCategoryId, codePrefix, pageNumber, pageSize);
+            });
         }
     }
 }

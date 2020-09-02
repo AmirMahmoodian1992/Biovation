@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -13,14 +14,14 @@ namespace Biovation.Server.Controllers.v2
     public class LogController : Controller
     {
         private readonly UserService _userService;
-        private readonly LogService _commonLogService;
+        private readonly LogService _logService;
         private readonly DeviceService _commonDeviceService;
         private readonly RestClient _restClient;
 
         public LogController(DeviceService deviceService, UserService userService, LogService logService)
         {
             _userService = userService;
-            _commonLogService = logService;
+            _logService = logService;
             _commonDeviceService = deviceService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
@@ -28,9 +29,11 @@ namespace Biovation.Server.Controllers.v2
         //we should consider the without parameter input version of log
         // and handle searchOfflineLogs with paging or not with  [FromBody]DeviceTraffic dTraffic
         [HttpGet]
-        public Task<IActionResult> Logs(DateTime? fromDate = null, DateTime? toDate = null)
+        public Task<ResultViewModel<PagingResult<Domain.Log>>> Logs(int id = default, int deviceId = default,
+            int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
+            int pageSize = default)
         {
-            throw null;
+            return Task.Run(async () => { return _logService.Logs(id,deviceId,userId,fromDate,toDate,pageNumber,pageSize); });
         }
 
         [HttpDelete]

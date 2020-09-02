@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
@@ -16,22 +16,24 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
-        private readonly AccessGroupService _accessGroupService;
 
         private readonly RestClient _restClient;
 
-        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService)
+        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService)
         {
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
-            _accessGroupService = accessGroupService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
         [HttpGet]
-        public Task<IActionResult> GetUsersByFilter(long onlineId = default, int from = default, int size = default, bool getTemplatesData = default, long id = default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineId = default, int from = default,
+            int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
+            int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
+            int pageSize = default)
         {
-            throw null;
+            return Task.Run(async () => { return _userService.GetUsers(onlineId, from, size, getTemplatesData, userId, filterText, type,
+                withPicture, isAdmin, pageNumber, pageSize); });
         }
 
 
@@ -82,9 +84,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("AdminUserOfAccessGroup")]
-        public Task<IActionResult> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
+        public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
         {
-            throw null;
+            return Task.Run(async () => { return _userService.GetAdminUserOfAccessGroup(id,accessGroupId); });
         }
 
         ///// <param name="updateUsers">لیست افرادی که تغییر کرده و در گروه بایویی هم حضور دارند و باید به دستگاههای جدید ارسال شوند</param>

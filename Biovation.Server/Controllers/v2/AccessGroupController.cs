@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -14,23 +14,25 @@ namespace Biovation.Server.Controllers.v2
     {
         //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
         private readonly AccessGroupService _accessGroupService;
-        private readonly DeviceService _deviceService;
-        private readonly RestClient _restServer;
+        private readonly RestClient _restClient;
 
-        public AccessGroupController(AccessGroupService accessGroupService, DeviceService deviceService)
+        public AccessGroupController(AccessGroupService accessGroupService)
         {
             _accessGroupService = accessGroupService;
-            _deviceService = deviceService;
-            _restServer =
+            _restClient =
                 new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
 
         [HttpGet]
-        [Route("{userId}")]
-        public Task<IActionResult> AccessGroups(long userId = default, int adminUserId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int adminUserId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
-            throw null;
+            return Task.Run(async () =>
+            {
+                return _accessGroupService.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId,
+                    deviceGroupId,
+                    pageNumber, pageSize);
+            });
         }
 
         [HttpPost]
@@ -45,6 +47,15 @@ namespace Biovation.Server.Controllers.v2
             throw null;
         }
 
+        [HttpGet]
+        [Route("{id}")]
+        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute]int id, int nestingDepthLevel = default)
+        {
+            return Task.Run(async () =>
+            {
+                return _accessGroupService.GetAccessGroup(id,nestingDepthLevel);
+            });
+        }
 
         [HttpDelete]
         [Route("{id}")]
