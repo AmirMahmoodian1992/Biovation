@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Biovation.Data.Queries.Controllers.v2
 {
 
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class PlateDetectionController : Controller
     {

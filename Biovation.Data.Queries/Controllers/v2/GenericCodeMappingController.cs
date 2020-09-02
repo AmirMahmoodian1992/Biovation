@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 namespace Biovation.Data.Queries.Controllers.v2
 {
 
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
 
-        public class GenericCodeMappingController : Controller
+    public class GenericCodeMappingController : Controller
         {
 
             private readonly GenericCodeMappingRepository _genericCodeMappingRepository;

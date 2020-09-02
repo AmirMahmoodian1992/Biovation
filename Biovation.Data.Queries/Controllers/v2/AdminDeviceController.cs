@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class AdminDeviceController : Controller
     {
