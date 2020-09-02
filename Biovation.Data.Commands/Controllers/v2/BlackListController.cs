@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
+using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.Repository.SQL.v2;
 
 
 namespace Biovation.Data.Commands.Controllers.v2
@@ -12,13 +12,13 @@ namespace Biovation.Data.Commands.Controllers.v2
     {
         private readonly BlackListRepository _blackListRepository;
 
-
         public BlackListController(BlackListRepository blackListRepository)
         {
             _blackListRepository = blackListRepository;
         }
         [HttpPost]
-        public Task<ResultViewModel> CreateBlackList(BlackList blackList)
+        [Route("CreateBlackList")]
+        public Task<ResultViewModel> CreateBlackList([FromBody]BlackList blackList)
         {
             return Task.Run(() => _blackListRepository.CreateBlackList(blackList));
         }
@@ -31,7 +31,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("DeleteDevices")]
+        [Route("DeleteBlackLists")]
         public Task<ResultViewModel> DeleteBlackLists([FromBody] List<uint> ids = default)
         {
             return Task.Run(() => _blackListRepository.DeleteBlackLists(ids));
@@ -39,6 +39,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
+        [Route("ChangeBlackList")]
         public Task<ResultViewModel> ChangeBlackList(BlackList blackList)
         {
             return Task.Run(() => _blackListRepository.ChangeBlackList(blackList));
