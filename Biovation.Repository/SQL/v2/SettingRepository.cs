@@ -2,6 +2,7 @@
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
@@ -15,24 +16,24 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-        public List<Setting> GetSettings(string key = default)
+        public ResultViewModel<List<Setting>> GetSettings(string key = default)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@key", key)
             };
 
-            return _repository.ToResultList<Setting>("SelectSettings", parameters).Data;
+            return _repository.ToResultList<Setting>("SelectSettings", parameters).FetchResultList();
         }
 
-        public string GetSetting(string key)
+        public ResultViewModel<string> GetSetting(string key)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@key", key)
             };
 
-            return _repository.ToResultList<Setting>("SelectSettings", parameters).Data.FirstOrDefault()?.Value;
+            return _repository.ToResultList<string>("SelectSettings", parameters).FetchFromResultList();
         }
 
         public ResultViewModel ModifyFood(string key, string value)
