@@ -251,7 +251,14 @@ namespace Biovation.Repository.SQL.v2
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@Id", SqlDbType.BigInt) {Value = id}
+                new SqlParameter("@Id", SqlDbType.BigInt) {Value = id},
+                new SqlParameter("@DeviceId", SqlDbType.BigInt) { Value = deviceId },
+                new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate},
+                new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate},
+                new SqlParameter("@PageNumber", SqlDbType.Int) { Value = pageNumber },
+                new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize }
+
             };
 
             return _repository.ToResultList<PagingResult<Log>>("GetLog", parameters, fetchCompositions: true).FetchFromResultList();
