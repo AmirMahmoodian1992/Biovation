@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.Domain;
 using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    //[ApiVersion("2.0")]
+    [Route("biovation/api/queries/v2/[controller]")]
+
     public class TimeZoneController : Controller
     {
-        //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
-
         private readonly TimeZoneRepository _timeZoneRepository;
 
         public TimeZoneController(TimeZoneRepository timeZoneRepository)

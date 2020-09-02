@@ -14,9 +14,9 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         private readonly PlateDetectionRepository _plateDetectionRepository;
 
-        public PlateDetectionController(PlateDetectionRepository PlateDetectionRepository)
+        public PlateDetectionController(PlateDetectionRepository plateDetectionRepository)
         {
-            _plateDetectionRepository = PlateDetectionRepository;
+            _plateDetectionRepository = plateDetectionRepository;
         }
 
         [HttpGet]

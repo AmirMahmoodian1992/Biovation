@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+
     [Route("biovation/api/queries/v2/[controller]")]
 
     public class FaceTemplateController : Controller

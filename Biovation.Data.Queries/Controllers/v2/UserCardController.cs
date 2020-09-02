@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/queries/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class UserCardController : Controller
     {
@@ -19,9 +19,9 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId, bool isactive, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId, bool isActive, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isactive, pageNumber, PageSize));
+            return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize));
         }
 
 

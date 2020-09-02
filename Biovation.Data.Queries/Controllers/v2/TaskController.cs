@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    //[ApiVersion("2.0")]
+    [Route("biovation/api/queries/v2/[controller]")]
+   
     public class TaskController : Controller
     {
 

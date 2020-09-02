@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Domain;
-using Biovation.Repository.SQL.v2;
+﻿using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
-
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    //[ApiVersion("2.0")]
+    [Route("biovation/api/queries/v2/[controller]")]
+   
     public class LogController : Controller
     {
 
@@ -20,6 +15,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             _logRepository = logRepository;
         }
+
         //we should consider the without parameter input version of log
         // and handle searchOfflineLogs with paging or not with  [FromBody]DeviceTraffic dTraffic
         /*[HttpGet]

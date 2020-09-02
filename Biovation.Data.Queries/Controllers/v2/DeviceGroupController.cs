@@ -1,13 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -25,31 +19,29 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
 
-
-     
         [HttpGet]
         [Route("GetDeviceGroups")]
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int deviceGroupId, long userId,
-            int pageNumber = default, int PageSize = default)
+            int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceGroupRepository.GetDeviceGroups(deviceGroupId, userId, pageNumber, PageSize));
+            return Task.Run(() => _deviceGroupRepository.GetDeviceGroups(deviceGroupId, userId, pageNumber, pageSize));
         }
 
         [HttpGet]
         [Route("GetAccessControlDeviceGroup")]
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id,
-            int pageNumber = default, int PageSize = default)
+            int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, PageSize));
+            return Task.Run(() => _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize));
         }
 
 
         [HttpGet]
         [Route("GetDeviceGroupsByAccessGroup")]
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroupsByAccessGroup(int accessGroupId,
-            int pageNumber = default, int PageSize = default)
+            int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceGroupRepository.GetDeviceGroupsByAccessGroup(accessGroupId, pageNumber, PageSize));
+            return Task.Run(() => _deviceGroupRepository.GetDeviceGroupsByAccessGroup(accessGroupId, pageNumber, pageSize));
 
         }
 

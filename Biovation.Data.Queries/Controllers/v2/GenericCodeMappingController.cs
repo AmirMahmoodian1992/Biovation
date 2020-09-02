@@ -21,9 +21,9 @@ namespace Biovation.Data.Queries.Controllers.v2
 
             [HttpGet]
         [Route("FingerTemplateTypes")]
-        public Task<ResultViewModel<PagingResult<GenericCodeMapping>>> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<GenericCodeMapping>>> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _genericCodeMappingRepository.GetGenericCodeMappings(categoryId,brandCode,manufactureCode,genericCode,pageNumber,PageSize));
+            return Task.Run(() => _genericCodeMappingRepository.GetGenericCodeMappings(categoryId,brandCode,manufactureCode,genericCode,pageNumber,pageSize));
         }
     }
 }
