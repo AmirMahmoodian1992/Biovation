@@ -118,6 +118,16 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("DeleteFingerTemplatesByUserIdAndTemplateIndex", parameters).Data.FirstOrDefault();
         }
 
+        public ResultViewModel DeleteFingerTemplate(int userId, int templateIndex)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@UserId", userId),
+                new SqlParameter("@TemplateIndex", templateIndex)
+            };
+
+            return _repository.ToResultList<ResultViewModel>("DeleteFingerTemplates", parameters).Data.FirstOrDefault();
+        }
         public ResultViewModel<PagingResult<Lookup>> GetFingerTemplateTypes(string brandId)
         {
             var parameters = new List<SqlParameter>
