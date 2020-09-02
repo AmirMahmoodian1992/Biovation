@@ -19,13 +19,13 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             
         //todo:add user
-        [HttpPost] 
+        /*[HttpPost] 
         [Route("AddUser")]
         public Task<IActionResult> AddUser([FromBody] User user)
         {
             /* return Task.Run(() => _userRepository.());*/
-            throw null;
-        }
+         /*   throw null;
+        }*/
 
         [HttpPut]
         public Task<ResultViewModel> ModifyUser([FromBody] User user)
@@ -40,7 +40,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _userRepository.DeleteUser(id));
         }
 
-
         //batch delete
         [HttpDelete]
         [Route("/DeleteUsers")]
@@ -48,7 +47,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() => _userRepository.DeleteUsers(ids));
         }
-
 
         [HttpPatch]
         [Route("Password/{id}")]

@@ -31,7 +31,5 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _taskRepository.UpdateTaskStatus(taskItem));
         }
 
-
-        
     }
 }

@@ -39,6 +39,5 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _timeZoneRepository.DeleteTimeZone(id));
         }
 
-
     }
 }
