@@ -33,5 +33,11 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _userGroupRepository.GetAccessControlUserGroup(id));
         }
 
+        [HttpGet]
+        [Route("SyncUserGroupMember")]
+        public Task<ResultViewModel> SyncUserGroupMember(string lstUser)
+        {
+            return Task.Run(() => _userGroupRepository.SyncUserGroupMember(lstUser));
+        }
     }
 }

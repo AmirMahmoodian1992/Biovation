@@ -1,12 +1,12 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Biovation.Data.Queries.Controllers.v2
+namespace Biovation.Data.Commands.Controllers.v2
 {
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/commands/v2/[controller]")]
 
     public class UserGroupController : Controller
     {
@@ -18,20 +18,41 @@ namespace Biovation.Data.Queries.Controllers.v2
             _userGroupRepository = userGroupRepository;
         }
 
-        [HttpGet]
-        [Route("GetUsersGroup")]
-        public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, int pageNumber = default,
-            int pageSize = default)
+
+
+        //todo:add UserGroup
+        /*[HttpPost]
+        public Task<ResultViewModel> AddUserGroup([FromBody]UserGroup userGroup = default)
         {
-            return Task.Run(() => _userGroupRepository.GetUserGroups(id,userId,accessGroupId,pageNumber,pageSize));
+            /*return Task.Run(() => _userGroupRepository.(userGroup));*/
+        /*  throw null;
+       }*/
+
+        [HttpPost]
+        [Route("AddUserGroup")]
+        public Task<ResultViewModel> AddUserGroup([FromBody]UserGroupMember userGroupMember = default)
+        {
+            return Task.Run(() => _userGroupRepository.AddUserGroupMember(userGroupMember));
         }
 
-        [HttpGet]
-        [Route("AccessControlUserGroup/{id}")]
-        public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default)
+        [HttpPut]
+        public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup = default)
         {
-            return Task.Run(() => _userGroupRepository.GetAccessControlUserGroup(id));
+            return Task.Run(() => _userGroupRepository.ModifyUserGroup(userGroup));
         }
 
+        [HttpDelete]
+        [Route("{groupId}")]
+        public Task<ResultViewModel> DeleteUserGroups(int groupId = default)
+        {
+            return Task.Run(() => _userGroupRepository.DeleteUserGroup(groupId));
+        }
+
+        [HttpPut]
+        [Route("UserGroupMember")]
+        public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member,int userGroupId)
+        {
+            return Task.Run(() => _userGroupRepository.ModifyUserGroupMember(member,userGroupId));
+        }
     }
 }

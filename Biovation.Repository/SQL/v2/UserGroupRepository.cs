@@ -18,13 +18,6 @@ namespace Biovation.Repository.SQL.v2
         {
             _repository = repository;
         }
-
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="userGroup"></param>
-        /// <returns></returns>
         public Task<ResultViewModel> ModifyUserGroup(UserGroup userGroup)
         {
             return Task.Run(() =>
@@ -41,7 +34,6 @@ namespace Biovation.Repository.SQL.v2
                 return _repository.ToResultList<ResultViewModel>("ModifyUserGroup", parameters).Data.FirstOrDefault();
             });
         }
-
         public ResultViewModel AddUserGroupMember(UserGroupMember userMember)
         {
             var parameters = new List<SqlParameter>
@@ -53,23 +45,18 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("InsertUserGroupMember", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel ModifyUserGroupMember(string node, int userGroupId)
+        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId)
         {
-
+            
             var parameters = new List<SqlParameter> {
-                new SqlParameter("@UserGroupMember",node),
+                new SqlParameter("@UserGroupMember",JsonConvert.SerializeObject(member)),
                 new SqlParameter("@UserGroupId",userGroupId)
             };
 
             return _repository.ToResultList<ResultViewModel>("ModifyUserGroupMember", parameters).Data.FirstOrDefault();
         }
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <returns></returns>
         public ResultViewModel<PagingResult<UserGroup>> GetUserGroups(int id, long userId, int accessGroupId, int pageNumber = default,
-            int PageSize = default)
+            int pageSize = default)
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@Id",id),
@@ -77,22 +64,10 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@accessGroupId",accessGroupId ),
                 new SqlParameter("@UserId",userId),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
             return _repository.ToResultList<PagingResult<UserGroup>>("SelectUserGroups", parameters, fetchCompositions: true).FetchFromResultList();
         }
-
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="userGroupId"></param>
-        /// <returns></returns>
-        ///
-        ///
-        ///
-        /// doit:select filter
-
         public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id)
         {
             var parameters = new List<SqlParameter>
@@ -102,8 +77,6 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<UserGroup>("SelectAccessControlUserGroup", parameters, fetchCompositions: true).FetchResultList();
         }
-
-
         public ResultViewModel DeleteUserGroup(int userGroupId)
         {
             var parameters = new List<SqlParameter>
@@ -113,8 +86,6 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("DeleteUserGroup", parameters).Data.FirstOrDefault();
         }
-
-
         public ResultViewModel SyncUserGroupMember(string lstUser)
         {
             var parameters = new List<SqlParameter>

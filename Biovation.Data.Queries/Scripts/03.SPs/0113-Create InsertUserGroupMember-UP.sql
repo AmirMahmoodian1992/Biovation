@@ -2,7 +2,7 @@
 @UserId BIGINT, @GroupId INT,@UserType INt = 1
 AS
 BEGIN
-    DECLARE @Message AS NVARCHAR (200) = N'ایجاد با موفقیت انجام گرفت', @Validate AS INT = 1, @Code AS INT = 0;
+    DECLARE @Message AS NVARCHAR (200) = N'ایجاد با موفقیت انجام گرفت', @Validate AS INT = 1, @Code AS INT = 201;
     BEGIN TRY
         BEGIN TRANSACTION T1;
         
@@ -23,10 +23,12 @@ BEGIN
             BEGIN
                 ROLLBACK TRANSACTION T1;
                 SET @Validate = 0;
+                SET @Code = 400;
                 SET @Message = N'ایجاد انجام نشد';
             END
     END CATCH
     SELECT @Message AS [Message],
            @Code AS Id,
+           @Code AS Code,
            @Validate AS Validate;
 END
