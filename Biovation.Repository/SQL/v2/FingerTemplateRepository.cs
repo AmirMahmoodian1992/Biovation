@@ -53,7 +53,7 @@ namespace Biovation.Repository.SQL.v2
         }
 
         public ResultViewModel<PagingResult<FingerTemplate>> FingerTemplates(int userId, int templateIndex, Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default,
-        int PageSize = default)
+        int pageSize = default)
         {
             try
             {
@@ -65,10 +65,10 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@from", from),
                     new SqlParameter("@size", size),
                     new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                    new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
+                    new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
                 };
 
-                return _repository.ToResultList<PagingResult<FingerTemplate>>("SelectFingerTemplateByFilter", fetchCompositions: true).FetchFromResultList();
+                return _repository.ToResultList<PagingResult<FingerTemplate>>("SelectFingerTemplateByFilter", parameters,fetchCompositions: true).FetchFromResultList();
             }
             catch (Exception e)
             {
@@ -78,7 +78,7 @@ namespace Biovation.Repository.SQL.v2
         }
 
 
-        public int GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
+        public ResultViewModel<int> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@FingerTemplateType", fingerTemplateType.Code)
                 };
 
-                return _repository.ToResultList<int>("SelectFingerTemplatesCountByFingerTemplateType", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<int>("SelectFingerTemplatesCountByFingerTemplateType", parameters).FetchFromResultList();
             }
             catch (Exception e)
             {
@@ -98,12 +98,12 @@ namespace Biovation.Repository.SQL.v2
 
 
 
-        public ResultViewModel DeleteFingerTemplate(int userId, int templateIndex)
+        public ResultViewModel DeleteFingerTemplate(int userId, int fingerIndex)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@UserId", userId),
-                new SqlParameter("@TemplateIndex", templateIndex)
+                new SqlParameter("@FingerIndex", fingerIndex)
             };
 
             return _repository.ToResultList<ResultViewModel>("DeleteFingerTemplates", parameters).Data.FirstOrDefault();

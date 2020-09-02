@@ -45,6 +45,16 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _fingerTemplateRepository.GetFingerTemplateTypes(brandId));
         }
 
+        [HttpGet]
+        [Route("GetFingerTemplatesCountByFingerTemplateType")]
+        public Task<ResultViewModel<int>> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
+        {
+            return Task.Run(() => _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType));
+        }
+
+
+        
+
 
     }
 }

@@ -28,9 +28,9 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
         [HttpDelete]
         [Route("{userId}")]
-        public Task<ResultViewModel> DeleteFingerTemplate(int userId, int templateIndex)
+        public Task<ResultViewModel> DeleteFingerTemplate(int userId, int FingerIndex)
         {
-            return Task.Run(() => _fingerTemplateRepository.DeleteFingerTemplate(userId,templateIndex));
+            return Task.Run(() => _fingerTemplateRepository.DeleteFingerTemplate(userId, FingerIndex));
         }
     }
 }
