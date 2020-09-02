@@ -1,10 +1,9 @@
-﻿using Biovation.Domain;
+﻿using System.Threading.Tasks;
+using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
-namespace Biovation.Data.Queries.Controllers.v2
+namespace Biovation.Data.Commands.Controllers.v2
 {
 
     [Route("biovation/api/commands/v2/[controller]")]
@@ -14,9 +13,9 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         private readonly PlateDetectionRepository _plateDetectionRepository;
 
-        public PlateDetectionController(PlateDetectionRepository PlateDetectionRepository)
+        public PlateDetectionController(PlateDetectionRepository plateDetectionRepository)
         {
-            _plateDetectionRepository = PlateDetectionRepository;
+            _plateDetectionRepository = plateDetectionRepository;
         }
 
 
