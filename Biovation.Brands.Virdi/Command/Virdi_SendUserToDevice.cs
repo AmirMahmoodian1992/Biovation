@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using Biovation.Service.SQL.v1;
 using UNIONCOMM.SDK.UCBioBSP;
 using Encoding = System.Text.Encoding;
 

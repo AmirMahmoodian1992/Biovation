@@ -22,11 +22,11 @@ namespace Biovation.Repository.API.v2
             int pageNumber = default, int PageSize = default)
         {
             var restRequest = new RestRequest($"Queries/v2/DeviceGroupController/GetDeviceGroups", Method.GET);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceGroup>>>(restRequest);
             restRequest.AddQueryParameter("deviceGroupId", deviceGroupId.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", PageSize.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceGroup>>>(restRequest);
 
             return requestResult.Result.Data;
         }
@@ -35,10 +35,10 @@ namespace Biovation.Repository.API.v2
             int pageNumber = default, int PageSize = default)
         {
             var restRequest = new RestRequest($"Queries/v2/DeviceGroupController/GetAccessControlDeviceGroup", Method.GET);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceGroup>>>(restRequest);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", PageSize.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceGroup>>>(restRequest);
 
             return requestResult.Result.Data;
         }

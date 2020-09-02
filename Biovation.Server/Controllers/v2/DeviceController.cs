@@ -2,11 +2,10 @@
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using RestSharp;
-using DeviceService = Biovation.Service.API.v2.DeviceService;
 
 namespace Biovation.Server.Controllers.v2
 {

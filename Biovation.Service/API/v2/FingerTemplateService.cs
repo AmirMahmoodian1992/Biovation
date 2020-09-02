@@ -30,4 +30,5 @@ namespace Biovation.Service.API.v2
             return _fingerTemplateRepository.GetFingerTemplateTypes(brandId);
 
         }
+    }
 }

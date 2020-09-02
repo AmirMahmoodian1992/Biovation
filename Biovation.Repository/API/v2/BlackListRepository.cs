@@ -23,7 +23,6 @@ namespace Biovation.Repository.API.v2
             int pageNumber = default, int pageSize = default)
         {
             var restRequest = new RestRequest($"Queries/v2/BlackList/{id}", Method.GET);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<BlackList>>>(restRequest);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
@@ -32,6 +31,7 @@ namespace Biovation.Repository.API.v2
             restRequest.AddQueryParameter("isDeleted", isDeleted.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<BlackList>>>(restRequest);
             return requestResult.Result.Data;
         }
 

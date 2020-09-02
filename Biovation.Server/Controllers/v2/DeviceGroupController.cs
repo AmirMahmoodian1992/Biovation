@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -25,9 +25,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<IActionResult> GetDeviceGroup(int id = default, long userId = default)
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroup(int id = default, long userId = default, int pageNumber = default, int pageSize = default)
         {
-            throw null;
+            return Task.Run(async () => { return _deviceGroupService.GetDeviceGroups(id,userId,pageNumber,pageSize); });
         }
 
         [HttpPost]
@@ -65,9 +65,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("AccessControlDeviceGroup/{id}")]
-        public Task<IActionResult> GetAccessControlDeviceGroup(int id =default)
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id =default, int pageNumber = default, int pageSize = default)
         {
-            throw null;
+            return Task.Run(async () => { return _deviceGroupService.GetAccessControlDeviceGroup(id, pageNumber, pageSize); });
         }
     }
 }

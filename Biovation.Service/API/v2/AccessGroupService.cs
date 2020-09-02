@@ -12,7 +12,7 @@ namespace Biovation.Service.API.v2
             _accessGroupRepository = accessGroupRepository;
         }
 
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(int userId = default, int adminUserId = default,
+        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default, int adminUserId = default,
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
             return _accessGroupRepository.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,

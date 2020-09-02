@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -27,9 +27,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<IActionResult> TimeZones(int id = default)
+        public Task<ResultViewModel<Domain.TimeZone>> TimeZones(int id = default)
         {
-            throw null;
+            return Task.Run(async () => { return _timeZoneService.TimeZones(id); });
         }
 
         [HttpPost]

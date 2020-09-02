@@ -23,13 +23,13 @@ namespace Biovation.Repository.API.v2
             int pageSize = default)
         {
             var restRequest = new RestRequest($"Queries/v2/Lookup", Method.GET);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
             restRequest.AddQueryParameter("code", code.ToString());
             restRequest.AddQueryParameter("name", name.ToString());
             restRequest.AddQueryParameter("lookupCategoryId", lookupCategoryId.ToString());
             restRequest.AddQueryParameter("codePrefix", codePrefix.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
             return requestResult.Result.Data;
         }
 

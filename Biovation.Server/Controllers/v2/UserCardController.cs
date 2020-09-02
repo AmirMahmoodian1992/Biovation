@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -36,9 +36,10 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<IActionResult> GetUserCard(int id = default)
+        public Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard(long userId, bool isActive,
+        int pageNumber = default, int pageSize = default)
         {
-            throw null;
+            return Task.Run(async () => { return _userCard.GetCardsByFilter(userId, isActive, pageNumber, pageSize); });
         }
 
         [HttpDelete]
@@ -50,9 +51,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("cardNumber/{deviceId}")]
-        public Task<IActionResult> ReadCardNumber(string brandName = default, int deviceId = default)
+        public Task<int> ReadCardNumber(string brandName = default, int deviceId = default)
         {
-            throw null;
+            return Task.Run(async () => { return _userCard.ReadCardNumber(brandName,deviceId); });
         }
     }
 }

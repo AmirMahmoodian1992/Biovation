@@ -18,7 +18,17 @@ namespace Biovation.Repository.API.v2
             _restClient = restClient;
         }
 
-        
+        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDevicesByPersonId(int personId,
+            int pageNumber = default, int PageSize = default)
+        {
+            var restRequest = new RestRequest($"Queries/v2/AdminDevice/GetAdminDevicesByPersonId/{personId}", Method.GET);
+            restRequest.AddQueryParameter("personId", personId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("PageSize", PageSize.ToString());
+           
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
+            return requestResult.Result.Data;
+        }
 
 
     }

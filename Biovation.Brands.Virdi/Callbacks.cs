@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Service.SQL.v1;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
 using DeviceService = Biovation.Service.DeviceService;

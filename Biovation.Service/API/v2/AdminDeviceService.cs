@@ -11,9 +11,13 @@ namespace Biovation.Service.API.v2
         {
             _adminDeviceRepository = adminDeviceRepository;
         }
-        
+
+        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDevicesByPersonId(int personId,
+            int pageNumber = default, int PageSize = default)
+        {
+            return _adminDeviceRepository.GetAdminDevicesByPersonId(personId, pageNumber, PageSize);
+        }
 
 
-        
     }
 }
