@@ -97,26 +97,6 @@ namespace Biovation.Repository.SQL.v2
         }
 
 
-        public ResultViewModel DeleteFingerTemplateByUserId(int userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteFingerTemplatesByUserId", parameters).Data.FirstOrDefault();
-        }
-
-        public ResultViewModel DeleteFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-                new SqlParameter("@TemplateIndex", templateIndex)
-            };
-
-            return _repository.ToResultList<ResultViewModel>("DeleteFingerTemplatesByUserIdAndTemplateIndex", parameters).Data.FirstOrDefault();
-        }
 
         public ResultViewModel DeleteFingerTemplate(int userId, int templateIndex)
         {
