@@ -21,9 +21,9 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Route("GetUsersGroup")]
         public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, int pageNumber = default,
-            int PageSize = default)
+            int pageSize = default)
         {
-            return Task.Run(() => _userGroupRepository.GetUserGroups(id,userId,accessGroupId,pageNumber,PageSize));
+            return Task.Run(() => _userGroupRepository.GetUserGroups(id,userId,accessGroupId,pageNumber,pageSize));
         }
 
         [HttpGet]

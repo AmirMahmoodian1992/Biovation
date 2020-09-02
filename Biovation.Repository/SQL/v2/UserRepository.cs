@@ -55,7 +55,7 @@ namespace Biovation.Repository.SQL.v2
         /// </summary>
         /// <returns></returns>
 
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int PageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() =>
             {
@@ -71,7 +71,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@Type", type),
                     new SqlParameter("@isAdmin",isAdmin),
                     new SqlParameter("@PageNumber", pageNumber),
-                    new SqlParameter("@PageSize",PageSize)
+                    new SqlParameter("@PageSize",pageSize)
 
                 };
                 return _repository.ToResultList<PagingResult<User>>("SelectUsersByFilter", parameters, fetchCompositions: true,
@@ -110,10 +110,7 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="withPicture"></param>
         /// <returns></returns>
-
-
         public ResultViewModel DeleteUser(int userId)
         {
             var parameters = new List<SqlParameter>
@@ -124,10 +121,10 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("DeleteUserByID", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel DeleteUsers(List<int> deviceIds)
+        public ResultViewModel DeleteUsers(List<int> userIds)
         {
 
-            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = deviceIds } };
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = userIds } };
 
             return _repository.ToResultList<ResultViewModel>("DeleteUsers", parameters).Data.FirstOrDefault();
 
@@ -174,7 +171,7 @@ namespace Biovation.Repository.SQL.v2
             return result;
         }
 
-        public Task<List<DeviceBasicInfo>> GetAuthorizedDevicesOfUser(long userId)
+        public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(long userId)
         {
             return Task.Run(() =>
             {
@@ -183,7 +180,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@UserId", userId)
                 };
 
-                return _repository.ToResultList<DeviceBasicInfo>("SelectAuthorizedDevicesOfUser", parameters).Data;
+                return _repository.ToResultList<DeviceBasicInfo>("SelectAuthorizedDevicesOfUser", parameters).FetchResultList();
             });
         }
     }

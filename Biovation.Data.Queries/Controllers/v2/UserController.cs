@@ -31,5 +31,20 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _userRepository.GetAdminUserOfAccessGroup(id,accessGroupId));
         }
 
+        [HttpGet]
+        [Route("GetUsersCount")]
+        public Task<ResultViewModel<int>> GetUsers()
+        {
+            return Task.Run(() => _userRepository.GetUsersCount());
+        }
+
+
+        [HttpGet]
+        [Route("GetAuthorizedDevicesOfUser")]
+        public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(int userId)
+        {
+            return Task.Run(() => _userRepository.GetAuthorizedDevicesOfUser(userId));
+        }
+
     }
 }
