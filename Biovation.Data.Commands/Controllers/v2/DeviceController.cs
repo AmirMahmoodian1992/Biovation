@@ -31,7 +31,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
       
         [HttpPost]
-        [Route("AddDevice")]
+        [Route("AddDeviceModel")]
 
         public Task<ResultViewModel> AddDeviceModel(DeviceModel deviceModel)
         {

@@ -34,7 +34,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
 
-     
+
         [HttpPut]
         [Route("ModifyAccessGroup")]
         public Task<ResultViewModel> ModifyAccessGroup(AccessGroup accessGroup)
