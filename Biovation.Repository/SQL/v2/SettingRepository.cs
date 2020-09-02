@@ -36,7 +36,7 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<string>("SelectSettings", parameters).FetchFromResultList();
         }
 
-        public ResultViewModel ModifyFood(string key, string value)
+        public ResultViewModel ModifySetting(string key, string value)
         {
             var parameters = new List<SqlParameter>
             {
