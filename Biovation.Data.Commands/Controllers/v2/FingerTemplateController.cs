@@ -1,11 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using DataAccessLayerCore.Repositories;
 
 
 namespace Biovation.Data.Commands.Controllers.v2
@@ -17,7 +13,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         public FingerTemplateController(FingerTemplateRepository fingerTemplateRepository)
         {
-           _fingerTemplateRepository = fingerTemplateRepository;
+            _fingerTemplateRepository = fingerTemplateRepository;
         }
 
         [HttpPatch]
@@ -28,9 +24,9 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
         [HttpDelete]
         [Route("{userId}")]
-        public Task<ResultViewModel> DeleteFingerTemplate(int userId, int FingerIndex)
+        public Task<ResultViewModel> DeleteFingerTemplate(int userId, int fingerIndex)
         {
-            return Task.Run(() => _fingerTemplateRepository.DeleteFingerTemplate(userId, FingerIndex));
+            return Task.Run(() => _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex));
         }
     }
 }
