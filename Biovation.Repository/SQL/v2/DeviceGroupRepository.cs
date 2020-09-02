@@ -38,7 +38,7 @@ namespace Biovation.Repository.SQL.v2
             
         }
 
-
+        
         public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup)
         {
             var parameters = new List<SqlParameter> {

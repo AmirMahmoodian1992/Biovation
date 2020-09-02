@@ -17,29 +17,36 @@ namespace Biovation.Data.Commands.Controllers.v2
             _deviceGroupRepository = deviceGroupRepository;
         }
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک گروه را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="deviceGroupId">کد گروه</param>
-        /// <returns></returns>
+        //TODO:Add DeviceGroup
+        [HttpPost]
+        /*public Task<ResultViewModel> AddDeviceGroup([FromBody]DeviceGroup deviceGroup = default)
+         {
 
+         }*/
+        [HttpPut]
+        [Route("ModifyDeviceGroup")]
         public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
         {
             return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroup(deviceGroup));
         }
 
+
+        [HttpPut]
+        [Route("ModifyDeviceGroupMember")]
         public Task<ResultViewModel> ModifyDeviceGroupMember(string node, int groupId)
         {
             return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId));
         }
 
-
+        [HttpDelete]
+        [Route("{id}")]     
         public Task<ResultViewModel> DeleteDeviceGroup(int id)
         {
             return Task.Run(() => _deviceGroupRepository.DeleteDeviceGroup(id));
         }
 
+        [HttpDelete]
+        [Route("DeleteDeviceGroupMember")]
         public Task<ResultViewModel> DeleteDeviceGroupMember(uint id)
         {
             return Task.Run(() => _deviceGroupRepository.DeleteDeviceGroupMember(id));
