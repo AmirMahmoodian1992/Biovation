@@ -20,7 +20,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             _adminDeviceRepository = adminDeviceRepository;
         }
 
-  
+
         [HttpPost]
         [Route("ModifyAdminDevice")]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
