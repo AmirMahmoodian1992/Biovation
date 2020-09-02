@@ -23,7 +23,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        public Task<IActionResult> MAddUserCard([FromBody]UserCard card = default)
+        public Task<IActionResult> AddUserCard([FromBody]UserCard card = default)
         {
             throw null;
         }
