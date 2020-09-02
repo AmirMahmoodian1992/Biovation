@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Repository;
+using Biovation.Repository.SQL.v1;
 
-namespace Biovation.Service
+namespace Biovation.Service.SQL.v1
 {
     public class AdminDeviceService
     {

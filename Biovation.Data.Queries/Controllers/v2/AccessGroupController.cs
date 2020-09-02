@@ -38,7 +38,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        [Route("GetDeviceOfAccessGroup")]
+        [Route("DeviceOfAccessGroup")]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDeviceOfAccessGroup(int accessGroupId, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize));
@@ -46,7 +46,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("GetServerSideIdentificationCacheOfAccessGroup")]
+        [Route("ServerSideIdentificationCacheOfAccessGroup")]
         public Task<ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode, userId, pageNumber, pageSize));

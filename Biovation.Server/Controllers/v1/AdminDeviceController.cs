@@ -5,6 +5,7 @@ using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -15,11 +16,11 @@ namespace Biovation.Server.Controllers.v1
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
 
-        private readonly AdminDeviceService _adminDeviceService;
+        private readonly RestClient _restClient;
 
-        public AdminDeviceController(AdminDeviceService adminDeviceService)
+        public AdminDeviceController(RestClient restClient)
         {
-            _adminDeviceService = adminDeviceService;
+            _restClient = restClient;
         }
 
         //public AdminDeviceController()
@@ -27,15 +28,16 @@ namespace Biovation.Server.Controllers.v1
         //    //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         //}
 
-        [HttpGet]
-        [Route("GetAdminDevicesByPersonId")]
+        [HttpGet, Route("GetAdminDevicesByPersonId")]
         public List<AdminDeviceGroup> GetAdminDevicesByPersonId(int personId)
         {
-            return _adminDeviceService.GetAdminDeviceGroupsByUserId(personId);
+            var restRequest = new RestRequest($"Queries/v2/AdminDevice/AdminDevicesByPersonId", Method.GET);
+            restRequest.AddQueryParameter("personId", personId.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
+            return requestResult.Result.Data.Data.Data;
         }
 
-        [HttpPost]
-        [Route("ModifyAdminDevice")]
+        [HttpPost, Route("ModifyAdminDevice")]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
         {
             try
@@ -47,8 +49,12 @@ namespace Biovation.Server.Controllers.v1
                 ss = ss.Replace(@"\", "");
 
                 string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-                var result = _adminDeviceService.ModifyAdminDevice(node);
-                return result;
+
+
+                var restRequest = new RestRequest($"Queries/v2/AdminDevice/ModifyAdminDevice", Method.GET);
+                restRequest.AddJsonBody("Admin", node);
+                var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                return requestResult.Result.Data;
             }
             catch (Exception e)
             {

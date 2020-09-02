@@ -44,7 +44,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        [Route("GetDeviceModels/{id}")]
+        [Route("DeviceModels/{id}")]
         public Task<PagingResult<DeviceModel>> GetDeviceModels(long id = 0, string brandId = default,
             string name = default, int pageNumber = default, int PageSize = default)
         {
@@ -53,14 +53,14 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        [Route("GetBioAuthModeWithDeviceId")]
+        [Route("BioAuthModeWithDeviceId")]
         public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int deviceId, int authMode)
         {
             return Task.Run(() => _deviceRepository.GetBioAuthModeWithDeviceId(deviceId, authMode));
         }
 
         [HttpGet]
-        [Route("GetLastConnectedTime")]
+        [Route("LastConnectedTime")]
         public Task<ResultViewModel<DateTime>> GetLastConnectedTime(uint deviceId)
         {
             return Task.Run(() => _deviceRepository.GetLastConnectedTime(deviceId));
@@ -68,7 +68,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        [Route("GetDeviceBrands")]
+        [Route("DeviceBrands")]
         public Task<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int PageSize = default)
         {

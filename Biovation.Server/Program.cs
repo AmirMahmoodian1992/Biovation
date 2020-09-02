@@ -32,7 +32,7 @@ namespace Biovation.Server
             //        /*,restrictedToMinimumLevel: minimumConsoleLogLevel*/)
             //    .CreateLogger();
 
-            Influxtest.MainDisabled(args);
+           // Influxtest.MainDisabled(args);
             CreateHostBuilder(args).Build().Run();
         }
 
