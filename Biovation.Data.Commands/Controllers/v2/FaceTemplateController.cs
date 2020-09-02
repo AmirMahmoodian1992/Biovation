@@ -23,13 +23,10 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="faceTemplate"></param>
-        /// <returns></returns>
+       
+       
         [HttpPut]
+        [Route("ModifyFaceTemplate")]
         public Task<ResultViewModel> ModifyFaceTemplate(FaceTemplate faceTemplate)
         {
             return Task.Run(() => _faceTemplateRepository.ModifyFaceTemplate(faceTemplate));
