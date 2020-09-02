@@ -84,9 +84,9 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public int GetUsersCount()
+        public ResultViewModel<int> GetUsersCount()
         {
-            return _repository.ToResultList<int>("SelectUsersCount").Data.FirstOrDefault();
+            return _repository.ToResultList<int>("SelectUsersCount").FetchFromResultList();
         }
 
         /// <summary>

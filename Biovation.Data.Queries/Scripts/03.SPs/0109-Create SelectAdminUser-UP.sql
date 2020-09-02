@@ -1,10 +1,15 @@
 ﻿Create PROCEDURE [dbo].[SelectAdminUser]
 @adminUserId INT = null
 AS
+DECLARE @Message AS NVARCHAR (200) = N' درخواست با موفقیت انجام گرفت', @Validate AS INT = 1,  @Code AS nvarchar(5) = N'200';
+
 BEGIN
 	select distinct
 	u.Id as Id,
-	CAST( u.Id as nvarchar(20)) +'_'+  isnull(u.FirstName,'') +' '+ isnull(u.SurName,'') as FullName    
+	CAST( u.Id as nvarchar(20)) +'_'+  isnull(u.FirstName,'') +' '+ isnull(u.SurName,'') as FullName   
+     ,@Message AS e_Message,
+     @Validate AS e_Validate,
+     @Code AS e_Code
 			  FROM [dbo].[User] U
 			  LEFT OUTER JOIN
            [dbo].[UserGroupMember] AS UGM
