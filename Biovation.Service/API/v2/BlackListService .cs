@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Biovation.Domain;
 using Biovation.Repository.API.v2;
 
@@ -19,6 +20,24 @@ namespace Biovation.Service.API.v2
         {
             return _blackListRepository.GetBlacklist(id, userId, deviceId, startDate, endDate, isDeleted, pageNumber,
                 pageSize);
+        }
+        public ResultViewModel CreateBlackList(BlackList blackList = default)
+        {
+            return _blackListRepository.CreateBlackList(blackList);
+        }
+
+        public ResultViewModel DeleteBlackList(int id = default)
+        {
+            return _blackListRepository.DeleteBlackList(id);
+        }
+        public ResultViewModel DeleteBlackLists(List<uint> ids = default)
+        {
+            return _blackListRepository.DeleteBlackLists(ids);
+        }
+
+        public ResultViewModel ChangeBlackList(BlackList blackList = default)
+        {
+            return _blackListRepository.ChangeBlackList(blackList);
         }
 
 

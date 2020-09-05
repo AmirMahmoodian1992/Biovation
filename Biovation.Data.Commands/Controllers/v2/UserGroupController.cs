@@ -28,8 +28,13 @@ namespace Biovation.Data.Commands.Controllers.v2
         /*  throw null;
        }*/
 
+        [HttpPut]
+        [Route("UserGroupMember")]
+        public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member, int userGroupId)
+        {
+            return Task.Run(() => _userGroupRepository.ModifyUserGroupMember(member, userGroupId));
+        }
         [HttpPost]
-        [Route("AddUserGroup")]
         public Task<ResultViewModel> AddUserGroup([FromBody]UserGroupMember userGroupMember = default)
         {
             return Task.Run(() => _userGroupRepository.AddUserGroupMember(userGroupMember));
@@ -48,11 +53,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _userGroupRepository.DeleteUserGroup(groupId));
         }
 
-        [HttpPut]
-        [Route("UserGroupMember")]
-        public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member,int userGroupId)
-        {
-            return Task.Run(() => _userGroupRepository.ModifyUserGroupMember(member,userGroupId));
-        }
+        
     }
 }

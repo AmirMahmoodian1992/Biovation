@@ -2,7 +2,6 @@
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -27,12 +26,11 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = 0, int groupId = 0,
-            uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default,
-            int PageSize = default)
+            uint code = 0, int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default,
+            int pageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDevices(adminUserId, groupId, code, brandId, name, modelId,
-                typeId, pageNumber, PageSize));
+                typeId, pageNumber, pageSize));
         }
 
         [HttpGet]
@@ -44,11 +42,11 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        [Route("DeviceModels/{id}")]
+        [Route("DeviceModels/{id?}")]
         public Task<PagingResult<DeviceModel>> GetDeviceModels(long id = 0, string brandId = default,
-            string name = default, int pageNumber = default, int PageSize = default)
+            string name = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceRepository.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
+            return Task.Run(() => _deviceRepository.GetDeviceModels(id, brandId, name, pageNumber, pageSize));
         }
 
 
@@ -70,9 +68,9 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Route("DeviceBrands")]
         public Task<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
-            int pageNumber = default, int PageSize = default)
+            int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, PageSize));
+            return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize));
         }
     }
 }

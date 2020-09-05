@@ -8,7 +8,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
     public class AccessGroupController : Controller
     {
@@ -36,15 +36,15 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
-        [Route("ModifyAccessGroup")]
-        public Task<ResultViewModel> ModifyAccessGroup(AccessGroup accessGroup)
+        [Route("AccessGroup")]
+        public Task<ResultViewModel> ModifyAccessGroup([FromBody]AccessGroup accessGroup)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroup(accessGroup));
         }
 
 
         [HttpPut]
-        [Route("ModifyAccessGroupUserGroup")]
+        [Route("AccessGroupUserGroup")]
         public Task<ResultViewModel> ModifyAccessGroupUserGroup(string xmlUserGroup, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupUserGroup(xmlUserGroup, accessGroupId));
@@ -52,7 +52,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
-        [Route("ModifyAccessGroupAdminUsers")]
+        [Route("AccessGroupAdminUsers")]
         public Task<ResultViewModel> ModifyAccessGroupAdminUsers(string xmlAdminUsers, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupAdminUsers(xmlAdminUsers, accessGroupId));
@@ -60,7 +60,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
-        [Route("ModifyAccessGroupDeviceGroup")]
+        [Route("AccessGroupDeviceGroup")]
         public Task<ResultViewModel> ModifyAccessGroupDeviceGroup(string xmlDeviceGroup, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupDeviceGroup(xmlDeviceGroup, accessGroupId));

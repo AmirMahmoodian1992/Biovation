@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Biovation.Data.Commands.Controllers.v2
 {
 
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class PlateDetectionController : Controller
     {
@@ -20,15 +20,15 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPost]
-        [Route("AddLicensePlate")]
-        public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate = default)
+        [Route("LicensePlate")]
+        public Task<ResultViewModel> AddLicensePlate([FromBody]LicensePlate licensePlate = default)
         {
             return Task.Run(() => _plateDetectionRepository.AddLicensePlate(licensePlate));
         }
 
         [HttpPost]
-        [Route("AddPlateDetectionLog")]
-        public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log)
+        [Route("PlateDetectionLog")]
+        public Task<ResultViewModel> AddPlateDetectionLog([FromBody]PlateDetectionLog log)
         {
             return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));
         }

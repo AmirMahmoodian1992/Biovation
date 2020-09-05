@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     public class FingerTemplateController : Controller
     {
         private readonly FingerTemplateRepository _fingerTemplateRepository;
@@ -17,8 +17,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPatch]
-        [Route("ModifyFingerTemplate")]
-        public Task<ResultViewModel> ModifyFingerTemplate(FingerTemplate fingerTemplate)
+        public Task<ResultViewModel> ModifyFingerTemplate([FromBody]FingerTemplate fingerTemplate)
         {
             return Task.Run(() => _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate));
         }

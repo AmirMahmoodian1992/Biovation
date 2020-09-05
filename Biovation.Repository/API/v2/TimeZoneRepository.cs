@@ -1,40 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using System.Collections.Generic;
 using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
 using RestSharp;
 
 namespace Biovation.Repository.API.v2
 {
     public class TimeZoneRepository
     {
-        private readonly GenericRepository _repository;
-
         private readonly RestClient _restClient;
-        public TimeZoneRepository(GenericRepository repository, RestClient restClient)
+        public TimeZoneRepository(RestClient restClient)
         {
-            _repository = repository;
             _restClient = restClient;
         }
 
-        public ResultViewModel<Domain.TimeZone> TimeZones(int id = default)
+        public ResultViewModel<TimeZone> TimeZones(int id = default)
         {
             var restRequest = new RestRequest($"Queries/v2/TimeZone/{id}", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<Domain.TimeZone>>(restRequest);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<TimeZone>>(restRequest);
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<List<Domain.TimeZone>> GetTimeZones()
+        public ResultViewModel<List<TimeZone>> GetTimeZones()
         {
-            var restRequest = new RestRequest($"Queries/v2/TimeZone", Method.GET);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<Domain.TimeZone>>>(restRequest);
+            var restRequest = new RestRequest("Queries/v2/TimeZone", Method.GET);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<TimeZone>>>(restRequest);
             return requestResult.Result.Data;
         }
 
-
+        public ResultViewModel ModifyTimeZone(TimeZone timeZone)
+        {
+            var restRequest = new RestRequest("Commands/v2/TimeZone", Method.PUT);
+            restRequest.AddJsonBody(timeZone);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel DeleteTimeZone(int id)
+        {
+            var restRequest = new RestRequest($"Commands/v2/TimeZone/{id}", Method.DELETE);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
 
 
     }

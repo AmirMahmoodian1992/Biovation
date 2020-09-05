@@ -2,6 +2,7 @@
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service;
+using Biovation.Service.SQL.v1;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -14,14 +15,13 @@ namespace Biovation.Server.Controllers.v1
         //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly TimeZoneService _timeZoneService;
         private readonly DeviceService _deviceService;
-        private readonly RestClient _restServer;
+        private readonly RestClient _restClient;
 
         public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService)
         {
             _deviceService = deviceService;
             _timeZoneService = timeZoneService;
-            _restServer =
-                (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
+            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
             //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         }
 
@@ -68,7 +68,7 @@ namespace Biovation.Server.Controllers.v1
                     new RestRequest(
                         $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}TimeZone/SendTimeZoneToAllDevices",
                         Method.POST);
-                resultList.AddRange(_restServer.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                resultList.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
             }
 
             return resultList;
@@ -88,7 +88,7 @@ namespace Biovation.Server.Controllers.v1
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("timeZoneId", timeZoneId);
-            _restServer.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
     }

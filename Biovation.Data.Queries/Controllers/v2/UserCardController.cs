@@ -26,6 +26,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
+        [Route("UserByCardNumber")]
         public Task<ResultViewModel<User>> FindUserByCardNumber(string cardNumber)
         {
             return Task.Run(() => _userCardRepository.FindUserByCardNumber(cardNumber));
