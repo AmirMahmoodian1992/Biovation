@@ -59,6 +59,17 @@ namespace Biovation.Data.Queries
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
             services.AddSingleton<GenericRepository, GenericRepository>();
+
+            if (BiovationConfiguration.MigrateUp)
+            {
+                var migrateRes = Migration.MigrateUp(connectionInfo);
+                //if (!migrateRes)
+                //{
+                //    _migrateSuccess = false;
+                //}
+            }
+
+
             services.AddScoped<Repository.SQL.v2.DeviceRepository, Repository.SQL.v2.DeviceRepository>();
         }
 

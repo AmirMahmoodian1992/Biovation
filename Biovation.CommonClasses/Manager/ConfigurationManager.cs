@@ -143,13 +143,13 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static bool MigrateUp
+        public bool MigrateUp
         {
             get
             {
                 try
                 {
-                    return string.Equals(ConfigurationManager.AppSettings["MigrateUp"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["MigrateUp"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {

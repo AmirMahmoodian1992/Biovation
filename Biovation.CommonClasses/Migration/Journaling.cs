@@ -72,7 +72,7 @@ namespace Biovation.CommonClasses.Migration
 
         private static string GetExecutedScriptsSql(string schema, string table)
         {
-            return $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%SP%' AND [ScriptName] NOT LIKE '%Functions%' AND [ScriptName] NOT LIKE '%Triggers%' AND [ScriptName] NOT LIKE '%Data%' ORDER BY [ScriptName]";
+            return $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' ORDER BY [ScriptName]";
         }
 
         public string[] GetExecutedScripts()
@@ -128,7 +128,7 @@ namespace Biovation.CommonClasses.Migration
                 }
             }
 
-            if (script.Name.Contains("SP") || script.Name.Contains("Functions") || script.Name.Contains("Triggers") || script.Name.Contains("Data"))
+            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data"))
             {
                 using (var context = new DbContext(_connectionFactory))
                 {
