@@ -63,10 +63,13 @@ namespace Biovation.Data.Queries
             if (BiovationConfiguration.MigrateUp)
             {
                 var migrateRes = Migration.MigrateUp(connectionInfo);
-                //if (!migrateRes)
-                //{
-                //    _migrateSuccess = false;
-                //}
+                if (!migrateRes)
+                {
+                    if (BiovationConfiguration.MigrateUp)
+                    {
+                        BiovationConfiguration.MigrateUp = false;
+                    }
+                }
             }
 
 

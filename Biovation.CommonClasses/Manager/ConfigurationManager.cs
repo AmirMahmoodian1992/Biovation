@@ -158,15 +158,7 @@ namespace Biovation.CommonClasses.Manager
                 }
             }
 
-            set
-            {
-                var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-                //config.AppSettings.Settings["MigrateUp"].Value = bool.FalseString;
-                config.AppSettings.Settings["MigrateUp"].Value = value.ToString();
-                config.Save(ConfigurationSaveMode.Modified, true);
-                ConfigurationManager.RefreshSection(config.AppSettings.SectionInformation.SectionName);
-            }
+            set => Configuration.GetSection("AppSettings")["MigrateUp"] = value.ToString();
         }
 
         public static bool WriteLogToDatabase

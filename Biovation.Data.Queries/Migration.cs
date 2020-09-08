@@ -26,7 +26,7 @@ namespace Biovation.Data.Queries
                         .WithPreprocessor(new ScriptPreprocessor())
                         .JournalTo(new Journaling("Main", databaseConnectionInfo))
                         //.WithTransactionPerScript()
-                        //.LogToSqlContext()
+                        .LogToAutodetectedLog()
                         .LogToConsole()
                         .Build();
 
