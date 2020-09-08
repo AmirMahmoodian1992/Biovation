@@ -2,7 +2,6 @@
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -73,6 +72,11 @@ namespace Biovation.Data.Queries.Controllers.v2
             int pageNumber = default, int PageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, PageSize));
+        }
+
+        public Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int deviceId)
+        {
+            return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
         }
     }
 }
