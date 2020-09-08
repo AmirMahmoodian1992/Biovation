@@ -1,8 +1,6 @@
 ﻿using DbUp.Engine;
 using Microsoft.SqlServer.TransactSql.ScriptDom;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,9 +11,9 @@ namespace Biovation.CommonClasses.Migration
     {/// <summary>
      /// 
 
-        /// </summary>
-        /// <param name="contents"></param>
-        /// <returns></returns>
+     /// </summary>
+     /// <param name="contents"></param>
+     /// <returns></returns>
         public string Process(string contents)
         {
             contents = contents.Replace(
@@ -25,7 +23,7 @@ SET QUOTED_IDENTIFIER ON
 GO", "");
 
             var parser = new TSql150Parser(true);
-            var fragments = parser.Parse(new StringReader(contents), out IList<ParseError> errors);
+            var fragments = parser.Parse(new StringReader(contents), out _);
 
             var options = new SqlScriptGeneratorOptions
             {
@@ -111,7 +109,7 @@ GO", "");
                     {
                         partialScript = splittedScript;
                     }
-                    
+
                     resultContent += partialScript + $"{Environment.NewLine}GO{Environment.NewLine}{Environment.NewLine}";
                 }
             }
