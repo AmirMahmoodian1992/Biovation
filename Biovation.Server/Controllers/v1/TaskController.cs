@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v1
@@ -23,11 +23,11 @@ namespace Biovation.Server.Controllers.v1
         [Route("TaskExecutionStatus")]
         public Task<ResultViewModel> TaskExecutionStatus(int taskItemId, string taskStatusId)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 try
                 {
-                    var taskItem = await _taskService.GetTaskItem(taskItemId);
+                    var taskItem =  _taskService.GetTaskItem(taskItemId).Data;
                     if (taskItem is null)
                         return new ResultViewModel
                             { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };
@@ -38,7 +38,7 @@ namespace Biovation.Server.Controllers.v1
                             { Validate = 0, Code = Convert.ToInt64(taskStatusId), Message = "The provided task status id is wrong" };
 
                     taskItem.Status = taskStatus;
-                    return await _taskService.UpdateTaskStatus(taskItem);
+                    return  _taskService.UpdateTaskStatus(taskItem);
                 }
                 catch (Exception exception)
                 {

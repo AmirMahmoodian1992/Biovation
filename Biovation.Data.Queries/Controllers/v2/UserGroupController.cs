@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
 
     public class UserGroupController : Controller
     {
@@ -19,7 +19,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("GetUsersGroup")]
+        [Route("UsersGroup")]
         public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, int pageNumber = default,
             int pageSize = default)
         {

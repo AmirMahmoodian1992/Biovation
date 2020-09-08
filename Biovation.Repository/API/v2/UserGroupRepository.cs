@@ -1,33 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using System.Collections.Generic;
 using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
-using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
 namespace Biovation.Repository.API.v2
 {
     public class UserGroupRepository
     {
-        private readonly GenericRepository _repository;
-
         private readonly RestClient _restClient;
-        public UserGroupRepository(GenericRepository repository, RestClient restClient)
+        public UserGroupRepository(RestClient restClient)
         {
-            _repository = repository;
             _restClient = restClient;
-        }
-
-        public IActionResult GetUsersGroup(int groupId = default)
-        {
-            throw null;
         }
 
         public ResultViewModel<List<UserGroup>> UsersGroup(long userId, int userGroupId)
         {
-            var restRequest = new RestRequest($"Queries/v2/UserGroup/GetUsersGroup", Method.GET);
+            var restRequest = new RestRequest($"Queries/v2/UserGroup/UsersGroup", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<UserGroup>>>(restRequest);
@@ -42,6 +29,45 @@ namespace Biovation.Repository.API.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<UserGroup>>>(restRequest);
             return requestResult.Result.Data;
         }
+
+        public ResultViewModel SyncUserGroupMember(string lstUser)
+        {
+            var restRequest = new RestRequest($"Queries/v2/UserGroup/SyncUserGroupMember", Method.GET);
+            restRequest.AddQueryParameter("lstUser", lstUser);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel AddUserGroup(UserGroupMember userGroupMember)
+        {
+            var restRequest = new RestRequest($"Commands/v2/UserGroup/", Method.POST);
+            restRequest.AddJsonBody(userGroupMember);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel ModifyUserGroup( UserGroup userGroup)
+        {
+            var restRequest = new RestRequest($"Commands/v2/UserGroup/", Method.PUT);
+            restRequest.AddJsonBody(userGroup);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel DeleteUserGroups(int groupId = default)
+        {
+            var restRequest = new RestRequest($"Commands/v2/UserGroup/{groupId}", Method.DELETE);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        
+        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId)
+        {
+            var restRequest = new RestRequest($"Commands/v2/UserGroup/UserGroupMember", Method.PUT);
+            restRequest.AddQueryParameter("userGroupId",userGroupId.ToString());
+            restRequest.AddJsonBody(member);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+
 
 
     }

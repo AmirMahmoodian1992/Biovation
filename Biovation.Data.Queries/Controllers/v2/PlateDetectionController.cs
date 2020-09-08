@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Biovation.Data.Queries.Controllers.v2
 {
 
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class PlateDetectionController : Controller
     {
@@ -20,14 +20,14 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("GetLicensePlate")]
+        [Route("LicensePlate")]
         public Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
         {
             return Task.Run(() => _plateDetectionRepository.GetLicensePlate(licensePlate, entityId));
         }
 
         [HttpGet]
-        [Route("GetPlateDetectionLog")]
+        [Route("PlateDetectionLog")]
         public Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
        int pageSize = default)
         {

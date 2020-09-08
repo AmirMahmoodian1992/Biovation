@@ -8,8 +8,7 @@ using System.Xml.Serialization;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
-using Biovation.Service.SQL.v1;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -40,19 +39,19 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            return _userService.GetUsersByFilter(onlineUserId, from, size, getTemplatesData, userId, filterText, type,
-                withPicture, isAdmin);
+            return Task.Run(()=>_userService.GetUsers(onlineId:onlineUserId, from:from, size:size, getTemplatesData:getTemplatesData, userId:userId, filterText:filterText, type:type,
+                withPicture:withPicture, isAdmin:isAdmin).Data.Data);
         }
 
         [HttpGet]
         [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
-            return Task.Run(async () =>
+            return Task.Run( () =>
             {
                 try
                 {
-                    return await _userService.GetUsers(onlineUserId, from, size, getTemplatesData);
+                    return  _userService.GetUsers(onlineId:onlineUserId, from:from, size:size, getTemplatesData:getTemplatesData).Data.Data;
                 }
                 catch (Exception exception)
                 {
@@ -66,14 +65,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
-            return _userService.GetAdminUser(userId);
+            return _userService.GetAdminUserOfAccessGroup(id:userId).Data;
         }
 
         [HttpGet]
         [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
-            return _userService.GetAdminUserOfAccessGroup(userId, accessGroupId);
+            return _userService.GetAdminUserOfAccessGroup(userId, accessGroupId).Data;
         }
 
         [HttpGet]
@@ -82,7 +81,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUser(id);
+                return _userService.GetUsers(userId:id).Data.Data[0];
             }
             catch (Exception exception)
             {
@@ -114,7 +113,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    return _userService.GetUser(filterText, userId);
+                    return _userService.GetUsers(filterText:filterText, userId:userId).Data.Data;
                 }
                 catch (Exception)
                 {
@@ -124,7 +123,7 @@ namespace Biovation.Server.Controllers.v1
 
             try
             {
-                return _userService.GetUser(filterText, (int) type, userId);
+                return _userService.GetUsers(filterText:filterText, type:(int) type, userId:userId).Data.Data;
             }
             catch (Exception)
             {
@@ -140,7 +139,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var existingUser = _userService.GetUser(user.Id, false);
+                    var existingUser = _userService.GetUsers(userId:user.Id, withPicture:false).Data.Data[0];
 
                     if (existingUser != null)
                     {
@@ -159,7 +158,7 @@ namespace Biovation.Server.Controllers.v1
                         user.FullName = string.IsNullOrWhiteSpace(user.FullName)
                             ? existingUser.FullName
                             : user.FullName;
-                        user.IdentityCard = user.IdentityCard ?? existingUser.IdentityCard;
+                        user.IdentityCard ??= existingUser.IdentityCard;
                         user.Image = user.Image is null || user.Image.Length < 1 ? existingUser.Image : user.Image;
                         user.Type = user.Type == default ? existingUser.Type : user.Type;
                         user.TelNumber = string.IsNullOrWhiteSpace(user.TelNumber)
@@ -167,18 +166,18 @@ namespace Biovation.Server.Controllers.v1
                             : user.TelNumber;
                     }
 
-                    var result = await _userService.ModifyUser(user);
+                    var result =  _userService.ModifyUser(user);
 
-                    await Task.Run(async () =>
+                    await Task.Run(() =>
                     {
-                        var deviceBrands = _deviceService.GetDeviceBrands();
+                        var deviceBrands = _deviceService.GetDeviceBrands().Data;
                         foreach (var deviceBrand in deviceBrands)
                         {
                             //_communicationManager.CallRest($"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", "Post", null, $"{JsonConvert.SerializeObject(user)}");
                             var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
                             restRequest.AddJsonBody(user);
 
-                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         }
                     });
 
@@ -199,8 +198,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                var result = _userService.DeleteUser(ids);
-
+                return ids.Select(id => _userService.DeleteUser(id)).ToList();
                 //Task.Run(() =>
                 //{
                 //    foreach (var user in result)
@@ -218,7 +216,6 @@ namespace Biovation.Server.Controllers.v1
                 //    }
 
                 //});
-                return result;
             }
             catch (Exception exception)
             {
@@ -242,7 +239,7 @@ namespace Biovation.Server.Controllers.v1
                 var result = new List<ResultViewModel>();
                 foreach (var device in deviceIds)
                 {
-                    var deviceBasic = _deviceService.GetDeviceInfo(device);
+                    var deviceBasic = _deviceService.GetDevice(device).Data;
                     if (deviceBasic == null)
                     {
                         var msg = "DeviceId " + device + " does not exist.";
@@ -273,6 +270,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("SendUserToAllDevices")]
+        [Obsolete]
         public Task<List<ResultViewModel>> SendUserToAllDevices(string ids)
         {
             return Task.Run(async () =>
@@ -280,34 +278,42 @@ namespace Biovation.Server.Controllers.v1
                 try
                 {
                     var userIds = JsonConvert.DeserializeObject<int[]>(ids);
-                    var deviceBrands = _deviceService.GetDeviceBrands();
+                    var deviceBrands = _deviceService.GetDeviceBrands().Data;
                     var length = userIds.Length;
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < length; i++)
                     {
-                        var user = _userService.GetUser(userIds[i]);
+                        var user = _userService.GetUsers(userId: userIds[i]).Data.Data[0];
                         if (user == null)
                         {
                             Logger.Log($"User {userIds[i]} not exists.");
                             result.Add(new ResultViewModel
-                            { Validate = 0, Message = $"User {userIds[i]} not exists.", Id = userIds[i] });
+                                {Validate = 0, Message = $"User {userIds[i]} not exists.", Id = userIds[i]});
                         }
-
-                        foreach (var deviceBrand in deviceBrands)
+                        else
                         {
-                            //var restResult = _communicationManager.CallRest(
-                            //            $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", "Post", null, $"{JsonConvert.SerializeObject(user)}");
 
-                            var restRequest =
-                                new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
-                                    Method.POST);
-                            restRequest.AddJsonBody(user);
 
-                            var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                            result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
+                            foreach (var deviceBrand in deviceBrands)
+                            {
+                                //var restResult = _communicationManager.CallRest(
+                                //            $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", "Post", null, $"{JsonConvert.SerializeObject(user)}");
+
+                                var restRequest =
+                                    new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                        Method.POST);
+                                restRequest.AddJsonBody(user);
+
+                                var restResult = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                                result.Add(new ResultViewModel
+                                {
+                                    Validate = restResult.Data?.Validate ?? 0, Id = userIds[i],
+                                    Message = deviceBrand.Name
+                                });
+                            }
+
+                            //result.Add(new ResultViewModel { Validate = 1, Id = userIds[i] });
                         }
-
-                        //result.Add(new ResultViewModel { Validate = 1, Id = userIds[i] });
                     }
 
                     return result;
@@ -366,7 +372,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _deviceService.GetDeviceBrands().Data;
                 try
                 {
                     foreach (var deviceBrand in deviceBrands)
@@ -422,7 +428,7 @@ namespace Biovation.Server.Controllers.v1
                         var count = lstUserGroupMember.Count();
                         for (var i = 0; i < count; i++)
                         {
-                            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(lstUserGroupMember[i].UserId);
+                            var accessGroups = _accessGroupService.GetAccessGroups(userId:lstUserGroupMember[i].UserId).Data.Data;
                             foreach (var accessGroup in accessGroups)
                             {
                                 if (accessGroup.DeviceGroup == null)
@@ -563,11 +569,11 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var user = _userService.GetUser(userId, false);
+                var user = _userService.GetUsers(userId:userId, withPicture:false);
                 if (user is null)
                     return new ResultViewModel { Validate = 0, Id = userId, Message = "Wrong user id is provided." };
 
-                var device = _deviceService.GetDeviceInfo(deviceId);
+                var device = _deviceService.GetDevice(deviceId).Data;
                 if (device is null)
                     return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
 
@@ -582,13 +588,14 @@ namespace Biovation.Server.Controllers.v1
 
         private bool UpdateUserGroupMember(long[] userIds, List<UserGroupMember> lstToAdd)
         {
+            //TODO we have problem here in convert string node to List<userGroupMemeber>????
             try
             {
                 var count = userIds.Length;
                 var groupIds = new List<int>();
                 for (var i = 0; i < count; i++)
                 {
-                    var group = _userGroupService.GetUserGroupsOfUser(userIds[i]);
+                    var group = _userGroupService.UsersGroup(userId:userIds[i]).Data;
                     groupIds.AddRange(group.Select(s => s.Id));
                 }
                 if (groupIds.Any())
@@ -601,21 +608,21 @@ namespace Biovation.Server.Controllers.v1
                     //var member = _communicationUserGroup.CallRest("/api/Biovation/UserGroupMember/GetUserGroupMemberDetail", "Get", parameters);
                     var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
 
-                    var grpMember = member?.Data.GroupBy(g => g.GroupId).ToList() ?? new List<IGrouping<int, UserGroupMember>>();
+                    var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
                     foreach (var members in grpMember)
                     {
                         var strWp = JsonConvert.SerializeObject(members);
                         var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
                         var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
-                        var node = xDocument.OuterXml;
+                        var node = xDocument?.OuterXml;
 
-                        _userGroupService.ModifyUserGroupMember(node, members.Key);
+                        //_userGroupService.ModifyUserGroupMember(node, members.Key);
                     }
                 }
 
                 foreach (var userMember in lstToAdd)
                 {
-                    _userGroupService.AddUserGroupMember(userMember);
+                    _userGroupService.AddUserGroup(userMember);
                 }
                 return true;
             }
@@ -636,7 +643,7 @@ namespace Biovation.Server.Controllers.v1
                 //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
                 var userGroupIdList = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(usersGroupIds);
 
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _deviceService.GetDeviceBrands().Data;
 
                 foreach (var userId in userGroupIdList.Keys)
                 {
@@ -645,10 +652,11 @@ namespace Biovation.Server.Controllers.v1
 
                     // for rolling back on problem occuring
                     var userExistingDevices = new List<DeviceBasicInfo>();
-                    var userGroupsOfUser = _userGroupService.GetUserGroupsOfUser(userId);
+                    var userGroupsOfUser = _userGroupService.UsersGroup(userId:userId).Data;
                     foreach (var userGroup in userGroupsOfUser)
                     {
-                        var accessGroups = _accessGroupService.GetAccessGroupsOfUserGroup(userGroup.Id, 4);
+                        //TODO ignore int nestingDepthLevel in getAccessGroups, is it correct?
+                        var accessGroups = _accessGroupService.GetAccessGroups(userGroupId:userGroup.Id).Data.Data;
                         foreach (var accessGroup in accessGroups)
                         {
                             var deviceGroups = accessGroup.DeviceGroup;
@@ -673,7 +681,7 @@ namespace Biovation.Server.Controllers.v1
                             try
                             {
                                 var userGroupMember = userGroup.Users.FirstOrDefault(userGroupMem => userGroupMem.UserId == userId);
-                                _userGroupService.AddUserGroupMember(userGroupMember);
+                                _userGroupService.AddUserGroup(userGroupMember);
                             }
                             catch (Exception)
                             {
@@ -685,7 +693,7 @@ namespace Biovation.Server.Controllers.v1
 
                     foreach (var userGroupId in userGroupIdList[userId])
                     {
-                        _userGroupService.AddUserGroupMember(new UserGroupMember
+                        _userGroupService.AddUserGroup(new UserGroupMember
                         {
                             UserId = userId,
                             GroupId = userGroupId,
@@ -716,7 +724,8 @@ namespace Biovation.Server.Controllers.v1
                             Task.Run(async () =>
                             {
                                 var devicesToExistsOn = new List<DeviceBasicInfo>();
-                                var accessGroups = _accessGroupService.GetAccessGroupsOfUser(userId, 4);
+                                //TODO ignore int nestingDepthLevel in getAccessGroups, is it correct?
+                                var accessGroups = _accessGroupService.GetAccessGroups(userId:userId).Data.Data;
                                 foreach (var accessGroup in accessGroups)
                                 {
                                     if (accessGroup.DeviceGroup == null)
@@ -822,7 +831,7 @@ namespace Biovation.Server.Controllers.v1
 
                 foreach (var userGroupId in userGroupIdList)
                 {
-                    _userGroupService.AddUserGroupMember(new UserGroupMember
+                    _userGroupService.AddUserGroup(new UserGroupMember
                     {
                         UserId = userId,
                         GroupId = userGroupId,
@@ -851,7 +860,7 @@ namespace Biovation.Server.Controllers.v1
                 var tasks = new List<Task>();
                 if (deviceId == default)
                 {
-                    var deviceBrands = _deviceService.GetDeviceBrands();
+                    var deviceBrands = _deviceService.GetDeviceBrands().Data;
                     foreach (var deviceBrand in deviceBrands)
                     {
                         tasks.Add(Task.Run(async () =>
@@ -881,7 +890,7 @@ namespace Biovation.Server.Controllers.v1
                 }
                 else
                 {
-                    var device = _deviceService.GetDeviceInfo(deviceId);
+                    var device = _deviceService.GetDevice(deviceId).Data;
                     tasks.Add(Task.Run(async () =>
                     {
                         var restRequest =

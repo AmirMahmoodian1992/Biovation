@@ -11,7 +11,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
     public class DeviceController : Controller
     {
@@ -31,9 +31,9 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
       
         [HttpPost]
-        [Route("AddDeviceModel")]
+        [Route("DeviceModel")]
 
-        public Task<ResultViewModel> AddDeviceModel(DeviceModel deviceModel)
+        public Task<ResultViewModel> AddDeviceModel([FromBody]DeviceModel deviceModel)
         {
             return Task.Run(() => _deviceRepository.AddDeviceModel(deviceModel));
         }
@@ -45,7 +45,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _deviceRepository.DeleteDevice(id));
         }
 
-        [HttpDelete]
+        [HttpPost]
         [Route("DeleteDevices")]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
@@ -60,8 +60,8 @@ namespace Biovation.Data.Commands.Controllers.v2
         }     
 
         [HttpPost]
-        [Route("AddNetworkConnectionLog")]
-        public Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device)
+        [Route("NetworkConnectionLog")]
+        public Task<ResultViewModel> AddNetworkConnectionLog([FromBody]DeviceBasicInfo device)
         {
             return Task.Run(() => _deviceRepository.AddNetworkConnectionLog(device));
         }

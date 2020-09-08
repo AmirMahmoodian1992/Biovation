@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
 
     public class UserController : Controller
     {
@@ -17,10 +17,10 @@ namespace Biovation.Data.Queries.Controllers.v2
             _userRepository = userRepository;
         }
         [HttpGet]
-        [Route("GetUsers")]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsers(long onlineId = default, int from = default, int size = default, bool getTemplatesData = default, long userId = default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int PageSize = default)
+        [Route("Users")]
+        public Task<ResultViewModel<PagingResult<User>>> GetUsers(long onlineId = default, int from = default, int size = default, bool getTemplatesData = default, long userId = default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _userRepository.GetUsersByFilter(onlineId, from, size, getTemplatesData, userId, filterText, type, withPicture, isAdmin, pageNumber, PageSize));
+            return Task.Run(() => _userRepository.GetUsersByFilter(onlineId, from, size, getTemplatesData, userId, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
         }
 
         [HttpGet]
@@ -31,15 +31,15 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("GetUsersCount")]
-        public Task<ResultViewModel<int>> GetUsers()
+        [Route("UsersCount")]
+        public Task<ResultViewModel<int>> GetUsersCount()
         {
             return Task.Run(() => _userRepository.GetUsersCount());
         }
 
 
         [HttpGet]
-        [Route("GetAuthorizedDevicesOfUser")]
+        [Route("AuthorizedDevicesOfUser")]
         public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(int userId)
         {
             return Task.Run(() => _userRepository.GetAuthorizedDevicesOfUser(userId));

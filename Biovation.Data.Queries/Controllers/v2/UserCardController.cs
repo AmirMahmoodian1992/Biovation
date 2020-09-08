@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/queries/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class UserCardController : Controller
     {
@@ -26,6 +26,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
+        [Route("UserByCardNumber")]
         public Task<ResultViewModel<User>> FindUserByCardNumber(string cardNumber)
         {
             return Task.Run(() => _userCardRepository.FindUserByCardNumber(cardNumber));

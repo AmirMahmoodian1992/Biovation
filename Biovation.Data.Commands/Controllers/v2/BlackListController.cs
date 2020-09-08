@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     public class BlackListController : Controller
     {
         private readonly BlackListRepository _blackListRepository;
@@ -17,7 +17,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             _blackListRepository = blackListRepository;
         }
         [HttpPost]
-        [Route("CreateBlackList")]
         public Task<ResultViewModel> CreateBlackList([FromBody]BlackList blackList)
         {
             return Task.Run(() => _blackListRepository.CreateBlackList(blackList));
@@ -31,7 +30,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("DeleteBlackLists")]
+        [Route("    ")]
         public Task<ResultViewModel> DeleteBlackLists([FromBody] List<uint> ids = default)
         {
             return Task.Run(() => _blackListRepository.DeleteBlackLists(ids));
@@ -39,8 +38,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
-        [Route("ChangeBlackList")]
-        public Task<ResultViewModel> ChangeBlackList(BlackList blackList)
+        public Task<ResultViewModel> ChangeBlackList([FromBody]BlackList blackList)
         {
             return Task.Run(() => _blackListRepository.ChangeBlackList(blackList));
         }

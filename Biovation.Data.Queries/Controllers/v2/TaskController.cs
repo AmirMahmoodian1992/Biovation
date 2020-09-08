@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-    [Route("biovation/api/queries/v2/[controller]")]
-   
+    [Route("biovation/api/v2/[controller]")]
+
     public class TaskController : Controller
     {
 
@@ -18,6 +18,15 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
 
+
+        [HttpGet]
+        [Route("{taskItemId}")]
+
+        public Task<ResultViewModel<TaskItem>> GetTaskItem(int taskItemId = default)
+        {
+            return Task.Run(() => _taskRepository.GetTaskItem(taskItemId));
+        }
+
         //TODO::QUERY dynamic
         [HttpGet]
         public Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default,
@@ -25,12 +34,5 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes, pageNumber, pageSize));
         }
-
-        [HttpGet]
-        public Task<ResultViewModel<TaskItem>> GetTaskItem(int taskItemId = default)
-        {
-            return Task.Run(() => _taskRepository.GetTaskItem(taskItemId));
-        }
-
     }
 }

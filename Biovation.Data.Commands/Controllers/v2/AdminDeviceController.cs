@@ -8,7 +8,7 @@ using System;
 namespace Biovation.Data.Commands.Controllers.v2
 {
 
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
 
     public class AdminDeviceController : Controller
     {
@@ -21,8 +21,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
 
-        [HttpPost]
-        [Route("ModifyAdminDevice")]
+        [HttpPut]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
         {
             try

@@ -1,5 +1,6 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.API.v2;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Service.API.v2
 {
@@ -13,11 +14,15 @@ namespace Biovation.Service.API.v2
         }
 
         public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDevicesByPersonId(int personId,
-            int pageNumber = default, int PageSize = default)
+            int pageNumber = default, int pageSize = default)
         {
-            return _adminDeviceRepository.GetAdminDevicesByPersonId(personId, pageNumber, PageSize);
+            return _adminDeviceRepository.GetAdminDevicesByPersonId(personId, pageNumber, pageSize);
         }
 
+        public ResultViewModel ModifyAdminDevice(JObject adminDevice = default)
+        {
+            return _adminDeviceRepository.ModifyAdminDevice(adminDevice);
+        }
 
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     public class LookupController : Controller
     {
         private readonly LookupRepository _lookupRepository;

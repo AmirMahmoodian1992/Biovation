@@ -1,20 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
+﻿using Biovation.Domain;
 using RestSharp;
 
 namespace Biovation.Repository.API.v2
 {
     public class AccessGroupRepository
     {
-        private readonly GenericRepository _repository;
-
         private readonly RestClient _restClient;
-        public AccessGroupRepository(GenericRepository repository, RestClient restClient)
+        public AccessGroupRepository(RestClient restClient)
         {
-            _repository = repository;
             _restClient = restClient;
         }
 
@@ -44,7 +37,76 @@ namespace Biovation.Repository.API.v2
             return requestResult.Result.Data;
         }
 
+        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDeviceOfAccessGroup(int accessGroupId,
+            int pageNumber = default, int pageSize = default)
+        {
+            var restRequest = new RestRequest($"Queries/v2/AccessGroup/DeviceOfAccessGroup", Method.GET);
+            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
+            return requestResult.Result.Data;
+        }
 
+        public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>
+            GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId,
+                int pageNumber = default, int pageSize = default)
+        {
+            var restRequest = new RestRequest($"Queries/v2/AccessGroup/ServerSideIdentificationCacheOfAccessGroup", Method.GET);
+            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
+            restRequest.AddQueryParameter("brandCode", brandCode);
+            restRequest.AddQueryParameter("userId", userId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+        public ResultViewModel AddAccessGroup(AccessGroup accessGroup = default)
+        {
+            var restRequest = new RestRequest($"Commands/v2/AccessGroup/", Method.POST);
+            restRequest.AddJsonBody(accessGroup ?? new AccessGroup());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+        public ResultViewModel ModifyAccessGroup(AccessGroup accessGroup)
+        {
+            var restRequest = new RestRequest($"Commands/v2/AccessGroup/AccessGroup", Method.PUT);
+            restRequest.AddJsonBody(accessGroup);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel ModifyAccessGroupAdminUsers(string xmlAdminUsers = default, int accessGroupId = default)
+        {
+            var restRequest = new RestRequest($"Commands/v2/AccessGroup/AccessGroupAdminUsers", Method.PUT);
+            restRequest.AddQueryParameter("xmlAdminUsers", xmlAdminUsers ?? string.Empty);
+            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel ModifyAccessGroupDeviceGroup(string xmlDeviceGroup = default, int accessGroupId = default)
+        {
+            var restRequest = new RestRequest($"Commands/v2/AccessGroup/AccessGroupDeviceGroup", Method.PUT);
+            restRequest.AddQueryParameter("xmlDeviceGroup", xmlDeviceGroup ?? string.Empty);
+            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel ModifyAccessGroupUserGroup(string xmlUserGroup = default, int accessGroupId = default)
+        {
+            var restRequest = new RestRequest($"Commands/v2/AccessGroup/AccessGroupUserGroup", Method.PUT);
+            restRequest.AddQueryParameter("xmlUserGroup", xmlUserGroup ?? string.Empty);
+            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel DeleteAccessGroup(int id)
+        {
+            var restRequest = new RestRequest($"Commands/v2/AccessGroup/{id}", Method.DELETE);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
 
     }
 }

@@ -6,6 +6,7 @@ using Biovation.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Biovation.Service.SQL.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {

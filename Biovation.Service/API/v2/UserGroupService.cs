@@ -13,7 +13,7 @@ namespace Biovation.Service.API.v2
             _userGroupRepository = userGroupRepository;
         }
 
-        public ResultViewModel<List<UserGroup>> UsersGroup(long userId, int userGroupId)
+        public ResultViewModel<List<UserGroup>> UsersGroup(long userId = default, int userGroupId = default)
         {
             return _userGroupRepository.UsersGroup(userId, userGroupId);
         }
@@ -23,6 +23,31 @@ namespace Biovation.Service.API.v2
         {
             return _userGroupRepository.GetAccessControlUserGroup(id);
         }
+
+        public ResultViewModel SyncUserGroupMember(string lstUser = default)
+        {
+            return _userGroupRepository.SyncUserGroupMember(lstUser);
+        }
+
+        public ResultViewModel AddUserGroup(UserGroupMember userGroupMember = default)
+        {
+            return _userGroupRepository.AddUserGroup(userGroupMember);
+        }
+
+        public ResultViewModel ModifyUserGroup(UserGroup userGroup = default)
+        {
+            return _userGroupRepository.ModifyUserGroup(userGroup);
+        }
+
+        public ResultViewModel DeleteUserGroups(int groupId = default)
+        {
+            return _userGroupRepository.DeleteUserGroups(groupId);
+        }
+        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId)
+        {
+            return _userGroupRepository.ModifyUserGroupMember(member, userGroupId);
+        }
+
 
     }
 }

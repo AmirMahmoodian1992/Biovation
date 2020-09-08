@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
@@ -27,9 +27,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<List<AdminDevice>> GetAdminDevicesByPersonId(int id = default)
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDevicesByPersonId(int id = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(async () => { return _adminDeviceService.GetAdminDevicesByUserId(id); });
+            return Task.Run(() => _adminDeviceService.GetAdminDevicesByPersonId(id, pageNumber, pageSize));
         }
 
         [HttpPost]

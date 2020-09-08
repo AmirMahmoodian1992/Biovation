@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
 
     public class UserController : Controller
     {
@@ -41,7 +41,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         //batch delete
-        [HttpDelete]
+        [HttpPost]
         [Route("/DeleteUsers")]
         public Task<ResultViewModel> DeleteUsers([FromBody]List<int> ids = default)
         {
@@ -56,14 +56,14 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("/DeleteUserGroupsOfUser")]
+        [Route("/UserGroupsOfUser")]
         public Task<ResultViewModel> DeleteUserGroupsOfUser(int userId, int userTypeId = 1)
         {
             return Task.Run(() => _userRepository.DeleteUserGroupsOfUser(userId, userTypeId));
         }
 
         [HttpDelete]
-        [Route("/DeleteUserGroupOfUser")]
+        [Route("/UserGroupOfUser")]
         public Task<ResultViewModel> DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1)
         {
             return Task.Run(() => _userRepository.DeleteUserGroupOfUser(userId,userGroupId,userTypeId));

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.Controllers.v1
@@ -27,33 +25,16 @@ namespace Biovation.Server.Controllers.v1
         //    //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
         //}
 
-        [HttpGet]
-        [Route("GetAdminDevicesByPersonId")]
+        [HttpGet, Route("GetAdminDevicesByPersonId")]
         public List<AdminDeviceGroup> GetAdminDevicesByPersonId(int personId)
         {
-            return _adminDeviceService.GetAdminDeviceGroupsByUserId(personId);
+            return _adminDeviceService.GetAdminDevicesByPersonId(personId: personId).Data.Data;
         }
 
-        [HttpPost]
-        [Route("ModifyAdminDevice")]
+        [HttpPost, Route("ModifyAdminDevice")]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
         {
-            try
-            {
-                var ss = adminDevice.ToString();
-                ss = ss.Replace("]}\"", "]}");
-                ss = ss.Replace("\"{", "{");
-                ss = ss.Replace("\r\n", "");
-                ss = ss.Replace(@"\", "");
-
-                string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-                var result = _adminDeviceService.ModifyAdminDevice(node);
-                return result;
-            }
-            catch (Exception e)
-            {
-                return new ResultViewModel { Message = e.Message, Validate = 0 };
-            }
+            return _adminDeviceService.ModifyAdminDevice(adminDevice);
         }
     }
 }

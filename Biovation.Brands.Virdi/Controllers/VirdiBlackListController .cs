@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.Brands.Virdi.Manager;
+using Biovation.Service.SQL.v1;
 
 namespace Biovation.Brands.Virdi.Controllers
 {

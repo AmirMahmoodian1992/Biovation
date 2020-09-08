@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 using Biovation.Service.SQL.v1;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
-using DeviceService = Biovation.Service.DeviceService;
+using DeviceService = Biovation.Service.SQL.v1.DeviceService;
 
 namespace Biovation.Brands.Virdi
 {

@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+using System.Collections.Generic;
 using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
 using RestSharp;
 
 namespace Biovation.Repository.API.v2
 {
     public class BlackListRepository
     {
-        private readonly GenericRepository _repository;
 
         private readonly RestClient _restClient;
-        public BlackListRepository(GenericRepository repository, RestClient restClient)
+        public BlackListRepository(RestClient restClient)
         {
-            _repository = repository;
             _restClient = restClient;
         }
 
@@ -35,6 +31,29 @@ namespace Biovation.Repository.API.v2
             return requestResult.Result.Data;
         }
 
+        public ResultViewModel CreateBlackList( BlackList blackList)
+        {
+            var restRequest = new RestRequest($"Commands/v2/BlackList", Method.POST);
+            restRequest.AddJsonBody(blackList);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+        public ResultViewModel DeleteBlackList(int id = default)
+        {
+            var restRequest = new RestRequest($"Commands/v2/BlackList/{id}", Method.DELETE);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+        public ResultViewModel DeleteBlackLists(List<uint> ids)
+        {
+            var restRequest = new RestRequest($"Commands/v2/BlackList/DeleteBlackLists", Method.DELETE);
+            restRequest.AddJsonBody(ids);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+        public ResultViewModel ChangeBlackList(BlackList blackList)
+        {
+            var restRequest = new RestRequest($"Commands/v2/BlackList", Method.PUT);
+            restRequest.AddJsonBody(blackList);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
 
 
 

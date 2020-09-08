@@ -1,6 +1,4 @@
 ﻿using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
-using Biovation.Service;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -12,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Biovation.Constants;
+using Biovation.Service.API.v2;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -20,30 +19,34 @@ namespace Biovation.Server.Controllers.v1
     [ApiVersion("1.0")]
     public class DeviceController : Controller
     {
+        private readonly RestClient _restClient;
         private readonly DeviceService _deviceService;
         private readonly UserService _userService;
-        private readonly RestClient _restClient;
 
 
-        public DeviceController(DeviceService deviceService, UserService userService)
+        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService)
         {
+            _restClient = restClient;
             _deviceService = deviceService;
             _userService = userService;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         [HttpGet]
         [Route("Devices")]
         public Task<List<DeviceBasicInfo>> Devices(long userId)
         {
-            return Task.Run(() => _deviceService.GetAllDevicesBasicInfos(userId));
+            return Task.Run(() => _deviceService.GetDevices(adminUserId: userId).Data.Data);
         }
 
         [HttpGet]
         [Route("DevicesByFilter")]
         public Task<List<DeviceBasicInfo>> DevicesByFilter(long adminUserId = 0, int deviceGroupId = 0, uint code = 0, int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0)
         {
-            return Task.Run(() => _deviceService.GetAllDevicesBasicInfosByfilter(adminUserId, deviceGroupId, code, deviceId, brandId, deviceName, deviceModelId));
+            //return Task.Run(() => _deviceService.GetAllDevicesBasicInfosByfilter(adminUserId, deviceGroupId, code, deviceId, brandId, deviceName, deviceModelId));
+            //TODO when we have deviceid, what should we do?
+            var result = _deviceService.GetDevices(adminUserId: adminUserId, deviceGroupId: deviceGroupId, code: code,
+            brandId: brandId, deviceName: deviceName, deviceModelId: deviceModelId);
+            return Task.Run(() => result.Data.Data);
         }
 
         //ToDo: Check and fix route duplicate
@@ -58,7 +61,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("Device")]
         public Task<DeviceBasicInfo> Device(int deviceId, int userId)
         {
-            return Task.Run(() => _deviceService.GetDeviceInfo(deviceId, userId));
+            return Task.Run(() => _deviceService.GetDevice(adminUserId: userId, id: deviceId).Data);
         }
 
         [HttpGet]
@@ -67,15 +70,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var devices = new List<DeviceBasicInfo>();
-                foreach (var deviceId in deviceIds)
-                {
-                    var device = _deviceService.GetDeviceInfo(deviceId);
-                    if (device != null)
-                        devices.Add(device);
-                }
-
-                return devices;
+                return deviceIds.Select(deviceId => _deviceService.GetDevice(id: deviceId).Data).Where(device => device != null).ToList();
             });
         }
 
@@ -83,7 +78,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesListByName")]
         public Task<List<DeviceBasicInfo>> DevicesListByName(string deviceName, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevicesBasicInfosByName(deviceName, userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, adminUserId: userId).Data.Data);
         }
 
 
@@ -100,7 +95,9 @@ namespace Biovation.Server.Controllers.v1
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < deviceId.Length; i++)
                     {
-                        var device = _deviceService.GetDeviceInfo(deviceId[i]);
+                        //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
+                        //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
+                        var device = _deviceService.GetDevice(id: deviceId[i]).Data;
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -140,35 +137,41 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesListByBrandId")]
         public Task<List<DeviceBasicInfo>> DevicesListByBrandId(string brandCode, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetAllDevicesBasicInfosByBrandId(brandCode, userId));
+            return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId).Data.Data);
         }
 
         [HttpGet]
         [Route("DevicesListByModelId")]
         public Task<List<DeviceBasicInfo>> DevicesListByModelId(int modelId, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetAllDevicesBasicInfosByDeviceModelId(modelId, userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId).Data.Data);
         }
 
         [HttpGet]
         [Route("DeviceByIdAndBrandId")]
         public Task<DeviceBasicInfo> DeviceByIdAndBrandId(int deviceId, string brandCode, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDeviceBasicInfoByIdAndBrandId(deviceId, brandCode, userId));
+            var deviceList = _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId).Data.Data;
+            return Task.Run(() => (deviceList.Find(d => d.DeviceId == deviceId)));
         }
 
         [HttpGet]
         [Route("DeviceByIdAndModelId")]
         public Task<DeviceBasicInfo> DeviceByIdAndModelId(int deviceId, int modelId, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDeviceBasicInfoByIdAndDeviceModelId(deviceId, modelId, userId));
+            var deviceList = _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId).Data.Data;
+            return Task.Run(() => (deviceList.Find(d => d.DeviceId == deviceId)));
         }
 
         [HttpGet]
         [Route("DeviceBrandsDeviceBrands")]
         public async Task<List<Lookup>> DeviceBrands(bool loadedOnly = true)
         {
-            if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
+            //if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
+            if (!loadedOnly)
+            {
+                return _deviceService.GetDeviceBrands().Data;
+            }
             var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
             return requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0 ? null : requestResult.Data.Data.Modules.Select(brand => Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
@@ -180,7 +183,10 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModelsByBrandCode(brandCode);
+                var restRrquest = new RestRequest("Queries/v2/Device/DeviceModels", Method.GET);
+                restRrquest.AddQueryParameter("brandId", brandCode ?? string.Empty);
+                var deviceModels = _deviceService.GetDeviceModels(brandId: int.Parse(brandCode ?? string.Empty)).Data;
+
                 if (!loadedBrandsOnly) return deviceModels;
                 var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
@@ -197,7 +203,8 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModelsByFilter(brandCode, name);
+                var deviceModels = _deviceService.GetDeviceModels(brandId: int.Parse(brandCode ?? string.Empty), deviceName: name).Data;
+
                 if (!loadedBrandsOnly) return deviceModels;
                 var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
@@ -215,13 +222,15 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var result = _deviceService.ModifyDeviceBasicInfoByID(device);
+
+                var result = _deviceService.ModifyDevice(device);
                 if (result.Validate != 1) return result;
 
-                device = _deviceService.GetDeviceBasicInfoWithCode(device.Code, device.Brand.Code);
-
-                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
+                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
+                        Method.POST);
                 restRequest.AddJsonBody(device);
+
+
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return result;
@@ -243,7 +252,11 @@ namespace Biovation.Server.Controllers.v1
             {
                 var resultList = new Dictionary<uint, bool>();
 
-                var brands = _deviceService.GetDeviceBrands();
+                //var brands = _deviceService.GetDeviceBrands();
+                //var restRrquest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
+                //var brands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRrquest)).Result.Data.Data;
+                var brands = _deviceService.GetDeviceBrands().Data;
+
                 foreach (var deviceBrand in brands)
                 {
                     try
@@ -261,7 +274,7 @@ namespace Biovation.Server.Controllers.v1
                 foreach (var deviceId in deviceIds)
                 {
                     var result = _deviceService.DeleteDevice(deviceId);
-                    resultList.Add(deviceId, result.Validate == 1);
+                    resultList.Add(deviceId, result.Success);
                 }
 
                 return resultList;
@@ -275,7 +288,7 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(async () =>
             {
                 var resultList = new List<DeviceBasicInfo>();
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _deviceService.GetDeviceBrands().Data;
 
                 foreach (var deviceBrand in deviceBrands)
                 {
@@ -302,7 +315,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDeviceInfo(deviceId);
+                var device = _deviceService.GetDevice(deviceId).Data;
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -325,7 +338,8 @@ namespace Biovation.Server.Controllers.v1
                     return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "No users selected." } };
 
                 //var users = JsonConvert.DeserializeObject<long[]>(userId.ToString());
-                var device = _deviceService.GetDeviceInfo(deviceId);
+                //var device = _deviceService.GetDeviceInfo(deviceId);
+                var device = _deviceService.GetDevice(deviceId).Data;
 
                 //foreach (var user in users)
                 //{
@@ -350,8 +364,8 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDeviceInfo(deviceId);
-                var userAwaiter = _userService.GetUsers(getTemplatesData: false);
+                var device = _deviceService.GetDevice(deviceId).Data;
+                var userAwaiter = Task.Run(()=> _userService.GetUsers(getTemplatesData: false).Data.Data);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -386,7 +400,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var device = _deviceService.GetDeviceInfo(deviceId);
+                    var device = _deviceService.GetDevice(deviceId).Data;
                     if (device == null)
                     {
                         Logger.Log($"DeviceId {deviceId} does not exist.");
@@ -414,7 +428,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDeviceInfo(deviceId);
+                var device = _deviceService.GetDevice(deviceId).Data;
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -431,21 +445,22 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(() =>
             {
                 var results = new List<ResultViewModel>();
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                //var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _deviceService.GetDeviceBrands().Data;
 
                 var tasks = new List<Task>();
                 foreach (var deviceBrand in deviceBrands)
                 {
                     tasks.Add(Task.Run(async () =>
                     {
-                        var restRequest =
+                        var request =
                             new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/SendDevicesDataToDevice");
                         if (deviceId != default)
-                            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+                            request.AddQueryParameter("deviceId", deviceId.ToString());
                         if (deviceIds != null)
-                            restRequest.AddJsonBody(deviceIds);
+                            request.AddJsonBody(deviceIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(request);
                         lock (results)
                         {
                             results.Add(new ResultViewModel

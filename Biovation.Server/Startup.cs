@@ -102,7 +102,8 @@ namespace Biovation.Server
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
-            services.AddScoped<UserRepository, UserRepository>();
+            //services.AddScoped<UserRepository, UserRepository>();
+            services.AddScoped<Repository.API.v2.UserRepository, Repository.API.v2.UserRepository>();
 
             services.AddScoped<FoodService, FoodService>();
             services.AddScoped<MealService, MealService>();
@@ -114,6 +115,7 @@ namespace Biovation.Server
             services.AddScoped<BlackListService, BlackListService>();
             services.AddScoped<DeviceGroupService, DeviceGroupService>();
             services.AddScoped<Service.API.v2.DeviceService, Service.API.v2.DeviceService>();
+            services.AddScoped<Service.API.v2.UserService, Service.API.v2.UserService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddScoped<FaceTemplateService, FaceTemplateService>();
             services.AddScoped<FingerTemplateService, FingerTemplateService>();
@@ -126,7 +128,7 @@ namespace Biovation.Server
             services.AddScoped<TimeZoneService, TimeZoneService>();
             services.AddScoped<UserCardService, UserCardService>();
             services.AddScoped<UserGroupService, UserGroupService>();
-            services.AddScoped<UserService, UserService>();
+            //services.AddScoped<UserService, UserService>();
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
