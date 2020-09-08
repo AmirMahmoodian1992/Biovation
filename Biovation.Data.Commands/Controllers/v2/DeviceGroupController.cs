@@ -7,7 +7,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
 
     //[ApiVersion("1.0")]
-    [Route("biovation/api/commands/v2/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     public class DeviceGroupController : Controller
     {
         private readonly DeviceGroupRepository _deviceGroupRepository;
@@ -24,8 +24,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
          }*/
         [HttpPut]
-        [Route("ModifyDeviceGroup")]
-        public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
+        public Task<ResultViewModel> ModifyDeviceGroup([FromBody]DeviceGroup deviceGroup)
         {
             return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroup(deviceGroup));
         }
@@ -46,7 +45,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("DeleteDeviceGroupMember")]
+        [Route("DeleteDeviceGroupMember/{id}")]
         public Task<ResultViewModel> DeleteDeviceGroupMember(uint id)
         {
             return Task.Run(() => _deviceGroupRepository.DeleteDeviceGroupMember(id));

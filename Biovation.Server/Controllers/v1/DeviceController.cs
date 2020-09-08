@@ -251,10 +251,6 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(async () =>
             {
                 var resultList = new Dictionary<uint, bool>();
-
-                //var brands = _deviceService.GetDeviceBrands();
-                //var restRrquest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
-                //var brands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRrquest)).Result.Data.Data;
                 var brands = _deviceService.GetDeviceBrands().Data;
 
                 foreach (var deviceBrand in brands)

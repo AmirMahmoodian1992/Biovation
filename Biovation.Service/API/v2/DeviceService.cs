@@ -88,5 +88,10 @@ namespace Biovation.Service.API.v2
         {
             return _deviceRepository.AddNetworkConnectionLog(device);
         }
+
+        public List<User> GetAuthorizedUsersOfDevice(int id)
+        {
+            return _deviceRepository.GetAuthorizedUsersOfDevice(id);
+        }
     }
 }

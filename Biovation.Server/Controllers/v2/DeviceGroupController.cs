@@ -33,7 +33,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         public Task<IActionResult> AddDeviceGroup([FromBody]DeviceGroup deviceGroup = default)
         {
-            throw null;
+            _deviceGroupService.;
         }
 
 

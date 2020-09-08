@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using RestSharp;
 
@@ -134,6 +135,13 @@ namespace Biovation.Repository.API.v2
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
+        }
+
+         public List<User> GetAuthorizedUsersOfDevice(int id)
+         {
+             var restRequest = new RestRequest($"Queries/v2/Device/AuthorizedUsersOfDevice/{id}", Method.GET);
+             var requestResult = _restClient.ExecuteAsync<List<User>>(restRequest);
+             return requestResult.Result.Data;
         }
 
 

@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.API.v2;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 
@@ -67,51 +72,103 @@ namespace Biovation.Server.Controllers.v2
 
 
 
-        /* [HttpPost]
+        [HttpPost]
         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
         {
 
-            Task.Run(() => _deviceService.AddDevice(device));
-            throw null;
-        }*/
-        /* [HttpPost]
-         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
-         {
+            return Task.Run(() => _deviceService.AddDevice(device));
+            
+        }
 
-             Task.Run(() => _deviceService.AddDevice(device));
-             throw null;
-         }*/
+        [HttpDelete]
+        [Route("{id}")]
+        public Task<ResultViewModel> DeleteDevice(uint id = default)
+        {
 
-        //[HttpDelete]
-        //[Route("{id}")]
-        //public Task<JsonResult> DeleteDevice(uint id = default)
-        //{
+           return Task.Run(() => _deviceService.DeleteDevice(id));
+            
+        }
 
-        //    Task.Run(() => _deviceService.DeleteDevice(id));
-        //    throw null;
-        //}
+        [HttpGet]
+        [Route("OfflineLogs/{ids}")]
+        public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
+        {
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
 
-        //[HttpGet]
-        //[Route("OfflineLogs/{ids}")]
-        //public Task<JsonResult> OfflineLogs(string ids = default, string fromDate = default, string toDate = default)
-        //{
-        //    throw null;
-        //}
+                    var result = new List<ResultViewModel>();
+                    for (var i = 0; i < deviceId.Length; i++)
+                    {
+                        //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
+                        //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
+                        var device = _deviceService.GetDevice(id: deviceId[i]).Data;
+                        if (device == null)
+                        {
+                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
+                            result.Add(new ResultViewModel
+                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
+                            continue;
+                        }
+
+                        var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
+                        restRequest.AddQueryParameter("code", device.Code.ToString());
+                        restRequest.AddQueryParameter("fromDate", fromDate);
+                        restRequest.AddQueryParameter("toDate", toDate);
+
+                        var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        if (requestResult.StatusCode == HttpStatusCode.OK)
+                        {
+                            var resultData = requestResult.Data;
+                            resultData.Id = device.DeviceId;
+                            resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
+                            result.Add(resultData);
+                        }
+                        else
+                            result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = requestResult.ErrorMessage });
+                    }
+
+                    return result;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
+                }
+            });
+        }
 
 
-        //[HttpPost]
-        //[Route("DeleteDevice")]
-        //public Task<JsonResult> DeleteDevice([FromBody]List<uint> ids = default)
-        //{
-        //    throw null;
-        //}
+        [HttpPost]
+        [Route("DeleteDevice")]
+        public Task<ResultViewModel> DeleteDevice([FromBody]List<uint> ids = default)
+        {
+            return Task.Run(() => _deviceService.DeleteDevices(ids));
+        }
 
-        //[HttpGet]
-        //[Route("OnlineDevices")]
-        //public Task<JsonResult> OnlineDevices()
-        //{
-        //    throw null;
-        //}
+        [HttpGet]
+        [Route("OnlineDevices")]
+        public Task<List<DeviceBasicInfo>> OnlineDevices()
+        {
+            return Task.Run(async () =>
+            {
+                var resultList = new List<DeviceBasicInfo>();
+                var deviceBrands = _deviceService.GetDeviceBrands().Data;
+
+                foreach (var deviceBrand in deviceBrands)
+                {
+                    var restRequest = new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+                    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+
+                    if (result.StatusCode == HttpStatusCode.OK)
+                        resultList.AddRange(result.Data);
+                }
+
+                return resultList;
+            });
+        }
 
         ///// <summary>
         ///// 
@@ -119,41 +176,132 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="deviceId"></param>
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
-        //[HttpPut]
-        //[Route("UserFromDevice/{id}")]
-        //public async Task<IActionResult> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
-        //{
-        //    //return NotFound();
-        //    throw null;
-        //}
+        [HttpPut]
+        [Route("UserFromDevice/{id}")]
+        public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
+        {
+            return Task.Run( () =>
+            {
+                var device = _deviceService.GetDevice(id).Data;
 
-        //[HttpPut]
-        //[Route("UsersListFromDevice/{id}")]
-        //public Task<IActionResult> RetrieveUsersOfDevice(int id = default)
-        //{
-        //    throw null;
-        //}
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                //restRequest.AddQueryParameter("userId", userId.ToString());
+                restRequest.AddJsonBody(userId);
+                var restResult =  _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                var result = restResult.Result.Data.Any(e => e.Validate == 0)
+                    ? new ResultViewModel(){ Validate = 0, Id = id}
+                    : new ResultViewModel() { Validate = 1, Id = id };
+                return result;
 
-        //[HttpPost]
-        //[Route("DeleteUserFromDevice/{id}/{userId}")]
-        //public Task<JsonResult> UsersFromDevice(int id = default, [FromBody]JArray userId = default)
-        //{
-        //    throw null;
-        //}
+                //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = id, Validate = 0, Message = result.ErrorMessage } };
+            });
+        }
 
-        //[HttpPut]
-        //[Route("SendUsersToDevice/{id}")]
-        //public Task<JsonResult> SendUsersToDevice(int id = default)
-        //{
-        //    throw null;
-        //}
+        [HttpPut]
+        [Route("UsersListFromDevice/{id}")]
+        public Task<List<User>> RetrieveUsersOfDevice(int id = default)
+        {
+            return Task.Run(async () =>
+            {
+                var device = _deviceService.GetDevice(id).Data;
+                var userAwaiter = Task.Run(() => _userService.GetUsers(getTemplatesData: false).Data.Data);
 
-        //[HttpGet]
-        //[Route("DeviceInfo/{id}")]
-        //public Task<JsonResult> DeviceInfo(int id = default)
-        //{
-        //    throw null;
-        //}
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
+
+                var result = await restAwaiter;
+                var users = await userAwaiter;
+
+                var lstResult = (from r in result.Data?.Data
+                    join u in users on r.Id equals u.Id
+                        into ps
+                    from u in ps.DefaultIfEmpty()
+                    select new User
+                    {
+                        Type = u == null ? 0 : 1,
+                        IsActive = r.IsActive,
+                        Id = r.Id,
+                        FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
+                        StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
+                        EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                    }).ToList();
+
+                return lstResult;
+            });
+        }
+
+        [HttpDelete]
+        [Route("UserFromDevice/{id}/{userId}")]
+        public Task<ResultViewModel> UsersFromDevice(int id = default, int userId = default)
+        {
+            return Task.Run( () =>
+            {
+                ResultViewModel result;
+                if (userId == default)
+                    return new ResultViewModel  { Validate = 0, Message = "No users selected." };
+
+                var device = _deviceService.GetDevice(id).Data;
+
+                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddJsonBody(userId);
+
+                return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+            });
+        }
+
+        [HttpPut]
+        [Route("SendUsersToDevice/{id}")]
+        public Task<ResultViewModel> SendUsersToDevice(int id = default)
+        {
+            return Task.Run( () =>
+            {
+                try
+                {
+                    var device = _deviceService.GetDevice(id).Data;
+                    if (device == null)
+                    {
+                        Logger.Log($"DeviceId {id} does not exist.");
+                        return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist." };
+                    }
+
+                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
+                    restRequest.AddJsonBody(device);
+
+                    var result =  _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                    return new ResultViewModel { Validate = result.Result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = id };
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new ResultViewModel { Validate = 0, Message = $"SendUserToDevice Failed. DeviceId: {id}" };
+                }
+            });
+        }
+
+        [HttpGet]
+        [Route("DeviceInfo/{id}")]
+        public Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo(int id = default)
+        {
+            return Task.Run( () =>
+            {
+                var device = _deviceService.GetDevice(id).Data;
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                var result =  _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
+
+                return new ResultViewModel<Dictionary<string, string>>()
+                {
+                    Success = result.Result.StatusCode ==HttpStatusCode.OK,
+                    Data = result.Result.Data,
+                    Id = id
+                };
+            });
+        }
 
 
         ////TODO check it wtf?
