@@ -229,6 +229,17 @@ namespace Biovation.Repository.SQL.v2
                 //return DateTime.Parse(result);
             }
         }
+        public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int deviceId)
+        {
+
+            var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@DeviceId", deviceId)
+                };
+
+            return _repository.ToResultList<PagingResult<User>>("SelectAuthorizedUsersOfDevice", parameters, fetchCompositions: true).FetchFromResultList();
+
+        }
 
         public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device)
         {
@@ -242,17 +253,6 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("InsertNetworkConnectionLog", parameters).Data.FirstOrDefault();
         }
 
-        public Task<List<User>> GetAuthorizedUsersOfDevice(int deviceId)
-        {
-            return Task.Run(() =>
-            {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("@DeviceId", deviceId)
-                };
-
-                return _repository.ToResultList<User>("SelectAuthorizedUsersOfDevice", parameters, fetchCompositions: true).Data;
-            });
-        }
+       
     }
 }

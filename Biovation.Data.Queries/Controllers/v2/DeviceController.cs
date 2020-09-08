@@ -2,7 +2,6 @@
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -53,16 +52,16 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("BioAuthModeWithDeviceId")]
-        public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id, int authMode)
+        public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int deviceId, int authMode)
         {
-            return Task.Run(() => _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode));
+            return Task.Run(() => _deviceRepository.GetBioAuthModeWithDeviceId(deviceId, authMode));
         }
 
         [HttpGet]
         [Route("LastConnectedTime")]
-        public Task<ResultViewModel<DateTime>> GetLastConnectedTime(uint id)
+        public Task<ResultViewModel<DateTime>> GetLastConnectedTime(uint deviceId)
         {
-            return Task.Run(() => _deviceRepository.GetLastConnectedTime(id));
+            return Task.Run(() => _deviceRepository.GetLastConnectedTime(deviceId));
         }
 
 
@@ -74,11 +73,9 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize));
         }
 
-        [HttpGet]
-        [Route("AuthorizedUsersOfDevice/{id}")]
-        public Task<List<User>> GetAuthorizedUsersOfDevice(int id)
+        public Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int deviceId)
         {
-            return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(id));
+            return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
         }
     }
 }
