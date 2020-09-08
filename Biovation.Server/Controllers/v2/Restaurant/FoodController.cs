@@ -2,8 +2,9 @@
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain.RestaurantModels;
-using Biovation.Service;
+using Biovation.Service.API.v2;
 using Biovation.Service.RestaurantServices;
+using Biovation.Service.SQL.v1.RestaurantServices;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -19,26 +20,25 @@ namespace Biovation.Server.Controllers.v2.Restaurant
 
         private readonly RestClient _restClient;
 
-        public FoodController(FoodService foodService, TaskService taskService, DeviceService deviceService)
+        public FoodController(FoodService foodService, TaskService taskService, DeviceService deviceService, RestClient restClient)
         {
             _foodService = foodService;
             _taskService = taskService;
             _deviceService = deviceService;
-            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
+            _restClient = restClient;
         }
 
         [HttpGet]
         [Route("{id}")]
         public Task<List<Food>> GetFoods(int id = default, int taskItemId = default)
         {
-            throw null;
+            return _foodService.GetFoods(id);
         }
 
-        [HttpPost]
-        public Task<IActionResult> AddFoods([FromBody]List<Food> foods)
-        {
-            throw null;
-        }
+        //[HttpPost]
+        //public Task<IActionResult> AddFoods([FromBody]List<Food> foods)
+        //{
+        //}
 
         [HttpPut]
         [Route("{deviceId}")]

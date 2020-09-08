@@ -12,7 +12,7 @@
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
-    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.csproj" />
+    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
   </ItemGroup>
 
 </Project>

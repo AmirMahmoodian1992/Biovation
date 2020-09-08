@@ -7,6 +7,7 @@ using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
+using Biovation.Service;
 using Biovation.Service.API.v2;
 
 namespace Biovation.Server.Controllers.v1

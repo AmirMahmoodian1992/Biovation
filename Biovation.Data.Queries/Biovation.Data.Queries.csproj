@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
-    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.csproj" />
+    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
   </ItemGroup>
 
 

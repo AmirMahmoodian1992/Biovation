@@ -17,7 +17,7 @@ namespace Biovation.Repository.API.v2
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/User/GetUsers", Method.GET);
+            var restRequest = new RestRequest($"Queries/v2/User/Users", Method.GET);
             restRequest.AddQueryParameter("onlineId", onlineId.ToString());
             restRequest.AddQueryParameter("from", from.ToString());
             restRequest.AddQueryParameter("size", size.ToString());

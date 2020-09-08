@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
-    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.csproj" />
+    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>
 

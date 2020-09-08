@@ -59,7 +59,21 @@ namespace Biovation.Data.Queries
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
             services.AddSingleton<GenericRepository, GenericRepository>();
+
+            services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
+            services.AddScoped<Repository.SQL.v2.UserRepository, Repository.SQL.v2.UserRepository>();
             services.AddScoped<Repository.SQL.v2.DeviceRepository, Repository.SQL.v2.DeviceRepository>();
+            services.AddScoped<Repository.SQL.v2.PlateDetectionRepository, Repository.SQL.v2.PlateDetectionRepository>();
+            services.AddScoped<Repository.SQL.v2.AccessGroupRepository, Repository.SQL.v2.AccessGroupRepository>();
+            services.AddScoped<Repository.SQL.v2.AdminDeviceRepository, Repository.SQL.v2.AdminDeviceRepository>();
+            services.AddScoped<Repository.SQL.v2.BlackListRepository, Repository.SQL.v2.BlackListRepository>();
+            services.AddScoped<Repository.SQL.v2.DeviceGroupRepository, Repository.SQL.v2.DeviceGroupRepository>();
+            services.AddScoped<Repository.SQL.v2.FingerTemplateRepository, Repository.SQL.v2.FingerTemplateRepository>();
+            services.AddScoped<Repository.SQL.v2.LookupRepository, Repository.SQL.v2.LookupRepository>();
+            services.AddScoped<Repository.SQL.v2.TaskRepository, Repository.SQL.v2.TaskRepository>();
+            services.AddScoped<Repository.SQL.v2.TimeZoneRepository, Repository.SQL.v2.TimeZoneRepository>();
+            services.AddScoped<Repository.SQL.v2.UserCardRepository, Repository.SQL.v2.UserCardRepository>();
+            services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
