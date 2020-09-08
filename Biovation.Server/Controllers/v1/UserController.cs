@@ -586,6 +586,8 @@ namespace Biovation.Server.Controllers.v1
             });
         }
 
+        [HttpGet]
+        [Route("UpdateUserGroupsOfUsers")]
         private bool UpdateUserGroupMember(long[] userIds, List<UserGroupMember> lstToAdd)
         {
             //TODO we have problem here in convert string node to List<userGroupMemeber>????

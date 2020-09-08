@@ -137,10 +137,10 @@ namespace Biovation.Repository.API.v2
             return requestResult.Result.Data;
         }
 
-         public List<User> GetAuthorizedUsersOfDevice(int id)
+         public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int id)
          {
              var restRequest = new RestRequest($"Queries/v2/Device/AuthorizedUsersOfDevice/{id}", Method.GET);
-             var requestResult = _restClient.ExecuteAsync<List<User>>(restRequest);
+             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
              return requestResult.Result.Data;
         }
 

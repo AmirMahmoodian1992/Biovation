@@ -20,9 +20,9 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        public Task<IActionResult> AddLicensePlate(LicensePlate licensePlate = default)
+        public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate = default)
         {
-            throw null;
+            return Task.Run(() => _plateDetectionService.AddLicensePlate(licensePlate));
         }
 
     }

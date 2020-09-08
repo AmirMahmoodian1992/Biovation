@@ -33,7 +33,7 @@ namespace Biovation.Server.Controllers.v2
             int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(async () => { return _logService.Logs(id,deviceId,userId,fromDate,toDate,pageNumber,pageSize); });
+            return Task.Run(() => _logService.Logs(id,deviceId,userId,fromDate,toDate,pageNumber,pageSize));
         }
 
         [HttpDelete]
