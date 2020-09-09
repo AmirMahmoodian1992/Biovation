@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v1

@@ -1,43 +1,35 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.CommonClasses.Models.RestaurantModels;
+using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Service.RestaurantServices;
+using Newtonsoft.Json;
+using RestSharp;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Domain.RestaurantModels;
-using Biovation.Service;
-using Biovation.Service.RestaurantServices;
-using Biovation.Service.SQL.v1;
-using Biovation.Service.SQL.v1.RestaurantServices;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using RestSharp;
 using Method = RestSharp.Method;
 
-namespace Biovation.Server.Controllers.v1.Restaurant
+namespace Biovation.WebService.APIControllers.Restaurant
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
-    public class FoodController : Controller
+    public class FoodController : ApiController
     {
-        private readonly FoodService _foodService;
-        private readonly TaskService _taskService;
-        private readonly DeviceService _deviceService;
+        private readonly FoodService _foodService = new FoodService();
+        private readonly TaskService _taskService = new TaskService();
+        private readonly DeviceService _deviceService = new DeviceService();
 
         private readonly RestClient _restClient;
 
-        public FoodController(FoodService foodService, TaskService taskService, DeviceService deviceService)
+        public FoodController()
         {
-            _foodService = foodService;
-            _taskService = taskService;
-            _deviceService = deviceService;
-            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
+            _restClient = new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
         [HttpGet]
-        [Route("GetFoods")]
         public Task<List<Food>> GetFoods(int foodId = default, int taskItemId = default)
         {
             if (taskItemId == default)
@@ -68,14 +60,12 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("AddFoods")]
         public Task<List<ResultViewModel>> AddFoods(List<Food> foods)
         {
             return _foodService.ModifyFoods(foods);
         }
 
         [HttpPost]
-        [Route("SendFoodsToDevice")]
         public Task<List<ResultViewModel>> SendFoodsToDevice([FromBody]List<int> foodIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -87,28 +77,28 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                 foreach (var deviceBrand in deviceBrands)
                 {
                     tasks.Add(Task.Run(async () =>
-                    {
-                        var restRequest =
-                            new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Food/SendFoodsToDevice", Method.POST);
-                        if (deviceId != default)
-                            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-                        if (foodIds != null)
-                            restRequest.AddJsonBody(foodIds);
+                   {
+                       var restRequest =
+                           new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Food/SendFoodsToDevice", Method.POST);
+                       if (deviceId != default)
+                           restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+                       if (foodIds != null)
+                           restRequest.AddJsonBody(foodIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                       var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
 
-                        lock (results)
-                        {
-                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
-                                results.Add(new ResultViewModel
-                                {
-                                    Id = result.Data.Id,
-                                    Code = result.Data.Code,
-                                    Validate = result.IsSuccessful && result.Data.Validate == 1 ? 1 : 0,
-                                    Message = deviceBrand.Name
-                                });
-                        }
-                    }));
+                       lock (results)
+                       {
+                           if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
+                               results.Add(new ResultViewModel
+                               {
+                                   Id = result.Data.Id,
+                                   Code = result.Data.Code,
+                                   Validate = result.IsSuccessful && result.Data.Validate == 1 ? 1 : 0,
+                                   Message = deviceBrand.Name
+                               });
+                       }
+                   }));
                 }
 
                 if (tasks.Count > 0)
@@ -121,7 +111,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("DeleteFoodsFromDevice")]
         public Task<List<ResultViewModel>> DeleteFoodsFromDevice([FromBody]List<int> foodIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -141,7 +130,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (foodIds != null)
                             restRequest.AddJsonBody(foodIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
 
                         lock (results)
                         {

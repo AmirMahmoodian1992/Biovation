@@ -1,40 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.CommonClasses.Models.RestaurantModels;
+using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Service.RestaurantServices;
+using Newtonsoft.Json;
+using RestSharp;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Domain.RestaurantModels;
-using Biovation.Service;
-using Biovation.Service.RestaurantServices;
-using Biovation.Service.SQL.v1;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using RestSharp;
+using System.Web.Http;
 
-namespace Biovation.Server.Controllers.v1.Restaurant
+namespace Biovation.WebService.APIControllers.Restaurant
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
-    public class ReservationController : Controller
+    public class ReservationController : ApiController
     {
-        private readonly ReservationService _reservationService;
-        private readonly DeviceService _deviceService;
-        private readonly TaskService _taskService;
+        private readonly ReservationService _reservationService = new ReservationService();
+        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly TaskService _taskService = new TaskService();
 
         private readonly RestClient _restClient;
 
-        public ReservationController(ReservationService reservationService, DeviceService deviceService, TaskService taskService)
+        public ReservationController()
         {
-            _reservationService = reservationService;
-            _deviceService = deviceService;
-            _taskService = taskService;
-            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
+            _restClient = new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
         [HttpGet]
-        [Route("GetReservations")]
         public Task<List<Reservation>> GetReservations(int reservationId = default, int taskItemId = default)
         {
             if (taskItemId == default)
@@ -65,21 +58,18 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("AddReservations")]
         public Task<ResultViewModel> AddReservations(List<Reservation> reservations)
         {
             return _reservationService.AddReservations(reservations);
         }
 
         [HttpPost]
-        [Route("ModifyReservation")]
         public Task<ResultViewModel> ModifyReservation(Reservation reservation)
         {
             return _reservationService.ModifyReservation(reservation);
         }
 
         [HttpPost]
-        [Route("SendReservationsToDevice")]
         public Task<List<ResultViewModel>> SendReservationsToDevice([FromBody]List<int> reservationIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -99,7 +89,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (reservationIds != null)
                             restRequest.AddJsonBody(reservationIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -120,7 +110,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("DeleteReservationsFromDevice")]
         public Task<List<ResultViewModel>> DeleteReservationsFromDevice([FromBody]List<int> reservationIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -140,7 +129,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (reservationIds != null)
                             restRequest.AddJsonBody(reservationIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

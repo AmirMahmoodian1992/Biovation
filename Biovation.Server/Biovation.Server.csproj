@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\v1_old\**" />
+    <Content Remove="Controllers\v1_old\**" />
+    <EmbeddedResource Remove="Controllers\v1_old\**" />
+    <None Remove="Controllers\v1_old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="App.Metrics.AspNetCore.Mvc" Version="4.1.0" />
     <PackageReference Include="App.Metrics.AspNetCore.Tracking" Version="4.1.0" />
     <PackageReference Include="App.Metrics.Extensions.Mvc" Version="1.2.1" />

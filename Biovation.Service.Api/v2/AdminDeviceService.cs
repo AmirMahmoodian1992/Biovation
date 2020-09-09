@@ -2,7 +2,7 @@
 using Biovation.Repository.API.v2;
 using Newtonsoft.Json.Linq;
 
-namespace Biovation.Service.API.v2
+namespace Biovation.Service.Api.v2
 {
     public class AdminDeviceService
     {

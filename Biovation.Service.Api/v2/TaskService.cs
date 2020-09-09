@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.API.v2;
 
-namespace Biovation.Service.API.v2
+namespace Biovation.Service.Api.v2
 {
     public class TaskService
     {

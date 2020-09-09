@@ -4,15 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
-using Biovation.Service;
-using Biovation.Service.API.v2;
 
 namespace Biovation.Server.Controllers.v1
 {
-
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class AccessGroupController : Controller
@@ -33,29 +31,28 @@ namespace Biovation.Server.Controllers.v1
         [HttpGet, Route("AccessGroups")]
         public List<AccessGroup> AccessGroups(long userId = 0)
         {
-            return _accessGroupService.GetAccessGroups(userId: userId).Data.Data;
+            return _accessGroupService.GetAccessGroups(userId: userId);
         }
 
         [HttpGet, Route("GetAccessGroupsByFilter")]
         public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0)
         {
             return _accessGroupService.GetAccessGroups(adminUserId: adminUserId, userGroupId: userGroupId, id: id,
-                deviceId: deviceId, userId: userId).Data.Data;
+                deviceId: deviceId, userId: userId);
+        }
+
+        [HttpGet]
+        public AccessGroup AccessGroup(int id)
+        {
+            return _accessGroupService.GetAccessGroup(id: id);
         }
 
         [HttpGet, Route("AccessGroup")]
-        public AccessGroup AccessGroup(int id)
+        public List<AccessGroup> AccessGroup(int id, int deviceGroupId, int userId)
         {
-            return _accessGroupService.GetAccessGroup(id: id).Data;
+            return _accessGroupService.GetAccessGroups( id: id,
+                deviceGroupId:deviceGroupId, userId: userId);
         }
-
-        //for routing problem(same address)
-        //[HttpGet]
-        //[Route("AccessGroup")]/////////////
-        //public List<AccessGroup> AccessGroup(int id, int deviceGroupId, int userId)
-        //{
-        //    return _accessGroupService.SearchAccessGroups(id, deviceGroupId, userId);
-        //}
 
         [HttpPost]
         [Route("ModifyAccessGroup")]
@@ -70,7 +67,6 @@ namespace Biovation.Server.Controllers.v1
             var xmlAdmins = JsonConvert.DeserializeXmlNode(xmlAdmin, "Root");
 
 
-           
             var saved = _accessGroupService.ModifyAccessGroup(JsonConvert.DeserializeObject<AccessGroup>(accessGroup));
             ResultViewModel result;
 
@@ -78,51 +74,34 @@ namespace Biovation.Server.Controllers.v1
                 result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
             else
             {
-                
+
                 var deviceResult = _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id);
                 if (deviceResult.Validate != 1)
-                    result = new ResultViewModel {Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید"};
+                    result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                 else
                 {
 
-                    var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml , (int)saved.Id);
+                    var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id);
                     if (adminUsersResult.Validate != 1)
-                        result = new ResultViewModel {Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید"};
+                        result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                     else
                     {
-                        var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml,(int)saved.Id);
+                        var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id);
 
                         result = userGroupResult;
                     }
                 }
             }
 
-            /*
-              var restRequest = new RestRequest($"{deviceBrand.Name}/{device.Brand?.Name}AccessGroup/ModifyAccessGroup");
-              
-                         restRequest.AddQueryParameter("DeviceGroup",deviceGroup);
-                        restRequest.AddQueryParameter(" UserGroup", userGroup);
-                        restRequest.AddQueryParameter("AdminUsers", adminUserIds); 
-
-            */
-
             Task.Run(() =>
             {
-                var restRequest = new RestRequest($"Queries/v2/Device/DeviceBrands", Method.GET);
-                var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
-                foreach (var deviceBrand in deviceBrands)
+                var deviceBrands = _deviceService.GetDeviceBrands();
+
+                foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
+                    $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                    Method.POST)))
                 {
-                    //_communicationManager.CallRest(
-                    //    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup", "Post", null, accessGroup);
-
-                     restRequest =
-                        new RestRequest(
-                            $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                            Method.POST);
                     _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                    //_apiClient.CallApi($"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                    //    Method.Post, postBody: JsonConvert.DeserializeObject<AccessGroup>(accessGroup));
                 }
             });
 
@@ -137,7 +116,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         //[HttpPost]
-        //[Route("controller")]public List<ResultViewModel> SendAccessGroupToAllDevices(int accessGroupId)
+        //public List<ResultViewModel> SendAccessGroupToAllDevices(int accessGroupId)
         //{
         //    var resultList = new List<ResultViewModel>();
         //    var deviceBrands = _deviceService.GetDeviceBrands();
@@ -157,8 +136,8 @@ namespace Biovation.Server.Controllers.v1
         {
             var resultList = new List<ResultViewModel>();
 
-           
-            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId:accessGroupId).Data.Data;
+
+            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId: accessGroupId);
 
             foreach (var device in devices)
             {
@@ -173,35 +152,28 @@ namespace Biovation.Server.Controllers.v1
             return resultList;
         }
 
-
-        //for routing problem(same address)
-        //[HttpPost]
-        //[Route("SendAccessGroupToDevice")]//////////
-        //public ResultViewModel SendAccessGroupToDevice(int accessGroupId, int deviceId)
-        //{
-        //    var device = _deviceService.GetDeviceInfo(deviceId);
-        //    //var parameters = new List<object> { $"code={device.Code}", $"accessGroupId={accessGroupId}" };
-        //    //_communicationManager.CallRest(
-        //    //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice", "Get", parameters);
-        //    var restRequest =
-        //        new RestRequest(
-        //            $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-        //            Method.GET);
-        //    restRequest.AddParameter("code", device.Code);
-        //    restRequest.AddParameter("accessGroupId", accessGroupId);
-        //    _restServer.ExecuteAsync<ResultViewModel>(restRequest);
-        //    return new ResultViewModel { Validate = 1 };
-        //}
-
         [HttpPost]
         [Route("SendAllUsersToAllDevicesInAccessGroup")]
+        public ResultViewModel SendAccessGroupToDevice(int accessGroupId, int deviceId)
+        {
+            var device = _deviceService.GetDevice(deviceId);
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+                    Method.GET);
+            restRequest.AddParameter("code", device.Code);
+            restRequest.AddParameter("accessGroupId", accessGroupId);
+            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return new ResultViewModel { Validate = 1 };
+        }
+
+        [HttpPost]
         public ResultViewModel SendAllUsersToAllDevicesInAccessGroup(int accessGroupId)
         {
             try
             {
-                
-                var deviceBrands = _deviceService.GetDeviceBrands().Data;
-                var accessGroup = _accessGroupService.GetAccessGroup(id:accessGroupId).Data;
+                var deviceBrands = _deviceService.GetDeviceBrands();
+                var accessGroup = _accessGroupService.GetAccessGroup(id: accessGroupId);
                 if (accessGroup == null)
                 {
                     Logger.Log("No such access group found.\n");
@@ -226,9 +198,6 @@ namespace Biovation.Server.Controllers.v1
                     foreach (var device in deviceGroup.Devices)
                     {
                         var deviceBrand = deviceBrands.FirstOrDefault(devBrand => devBrand.Code == device.Brand.Code);
-                        //var parameters = new List<object> { $"accessGroupId={accessGroupId}", $"code={device.Code}" };
-                        //_communicationManager.CallRest(
-                        //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice", "Get", parameters, null);
                         var restRequest =
                             new RestRequest(
                                 $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
@@ -250,9 +219,6 @@ namespace Biovation.Server.Controllers.v1
                             //{
                             //var userids = string.Join(",", userGroup.Users.Select(s => s.Id).ToArray());
                             var userids = JsonConvert.SerializeObject(userGroup.Users.Select(s => s.UserId).ToArray());
-                            //parameters = new List<object> { $"code={device.Code}", $"userId={userids}", };
-                            //_communicationManager.CallRest(
-                            //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice", "Get", parameters, null);
                             restRequest =
                                 new RestRequest(
                                     $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",

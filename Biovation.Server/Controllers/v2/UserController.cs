@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Biovation.CommonClasses;
 using Biovation.Domain;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq.Extensions;
 using Newtonsoft.Json;
@@ -458,7 +458,6 @@ namespace Biovation.Server.Controllers.v2
                         var userGroupsOfUser = _userGroupService.UsersGroup(userId: userId).Data;
                         foreach (var userGroup in userGroupsOfUser)
                         {
-                            //TODO ignore int nestingDepthLevel in getAccessGroups, is it correct?
                             var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id).Data.Data;
                             foreach (var accessGroup in accessGroups)
                             {

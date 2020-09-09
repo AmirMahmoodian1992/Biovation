@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2

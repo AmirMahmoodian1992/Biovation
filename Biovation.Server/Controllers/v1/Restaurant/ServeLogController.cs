@@ -1,53 +1,44 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Domain.RestaurantModels;
-using Biovation.Service;
-using Biovation.Service.RestaurantServices;
-using Biovation.Service.SQL.v1;
-using Microsoft.AspNetCore.Mvc;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.CommonClasses.Models.RestaurantModels;
+using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Service.RestaurantServices;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Biovation.Server.Controllers.v1.Restaurant
+namespace Biovation.WebService.APIControllers.Restaurant
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
-    public class ServeLogController : Controller
+    public class ServeLogController : ApiController
     {
-        private readonly ServeLogService _serveLogService;
-        private readonly DeviceService _deviceService;
-        private readonly TaskService _taskService;
+        private readonly ServeLogService _serveLogService = new ServeLogService();
+        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly TaskService _taskService = new TaskService();
 
         private readonly RestClient _restClient;
 
-        public ServeLogController(ServeLogService serveLogService, DeviceService deviceService, TaskService taskService)
+        public ServeLogController()
         {
-            _serveLogService = serveLogService;
-            _deviceService = deviceService;
-            _taskService = taskService;
-            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
+            _restClient = new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
         [HttpGet]
-        [Route("GetServeLogs")]
         public Task<List<ServeLog>> GetServeLogs(int serveLogId = default)
         {
             return _serveLogService.GetServeLogs(serveLogId);
         }
 
         [HttpGet]
-        [Route("GetServeLogsByReservationId")]
         public Task<List<ServeLog>> GetServeLogsByReservationId(int userId = default, int foodId = default, int mealId = default, int deviceId = default)
         {
             return _serveLogService.GetServeLogsByReservationId(userId, foodId, mealId, deviceId);
         }
 
         [HttpPost]
-        [Route("AddServeLogs")]
         public Task<ResultViewModel> AddServeLogs([FromBody]List<ServeLog> serveLogs, int taskItemId = default)
         {
             var result = _serveLogService.AddServeLogs(serveLogs);
@@ -64,7 +55,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("SendServeLogsDataToDevice")]
         public Task<List<ResultViewModel>> SendServeLogsDataToDevice(int deviceId = default)
         {
             return Task.Run(() =>
@@ -81,7 +71,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                             new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}ServeLog/SendServeLogsDataToDevice");
                         if (deviceId != default)
                             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

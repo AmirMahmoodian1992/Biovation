@@ -2,39 +2,32 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Domain.RestaurantModels;
-using Biovation.Service;
-using Biovation.Service.RestaurantServices;
-using Biovation.Service.SQL.v1;
-using Microsoft.AspNetCore.Mvc;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.CommonClasses.Models.RestaurantModels;
+using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Service.RestaurantServices;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Biovation.Server.Controllers.v1.Restaurant
+namespace Biovation.WebService.APIControllers.Restaurant
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
-    public class MealController : Controller
+    public class MealController : ApiController
     {
-        private readonly MealService _mealService;
-        private readonly TaskService _taskService;
-        private readonly DeviceService _deviceService;
+        private readonly MealService _mealService = new MealService();
+        private readonly TaskService _taskService = new TaskService();
+        private readonly DeviceService _deviceService = new DeviceService();
 
         private readonly RestClient _restClient;
 
-        public MealController(MealService mealService, TaskService taskService, DeviceService deviceService)
+        public MealController()
         {
-            _mealService = mealService;
-            _taskService = taskService;
-            _deviceService = deviceService;
-            _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
+            _restClient = new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
         [HttpGet]
-        [Route("GetMeals")]
         public Task<List<Meal>> GetMeals(int mealId = default, int taskItemId = default)
         {
             if (taskItemId == default)
@@ -65,7 +58,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpGet]
-        [Route("GetMealTimings")]
         public Task<List<MealTiming>> GetMealTimings(int mealTimingId = default, int taskItemId = default)
         {
             if (taskItemId == default)
@@ -100,21 +92,18 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpGet]
-        [Route("GetMealTimingsByMealId")]
         public Task<List<MealTiming>> GetMealTimingsByMealId(int mealId)
         {
             return _mealService.GetMealTimingsByMealId(mealId);
         }
 
         [HttpPost]
-        [Route("AddMeals")]
         public Task<List<ResultViewModel>> AddMeals(List<Meal> meals)
         {
             return _mealService.ModifyMeals(meals);
         }
 
         [HttpPost]
-        [Route("SendMealsToDevice")]
         public Task<List<ResultViewModel>> SendMealsToDevice([FromBody]List<int> mealIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -134,7 +123,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (mealIds != null)
                             restRequest.AddJsonBody(mealIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -155,7 +144,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("DeleteMealsFromDevice")]
         public Task<List<ResultViewModel>> DeleteMealsFromDevice([FromBody]List<int> mealIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -175,7 +163,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (mealIds != null)
                             restRequest.AddJsonBody(mealIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -196,7 +184,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("SendMealTimingsToDevice")]
         public Task<List<ResultViewModel>> SendMealTimingsToDevice([FromBody]List<int> mealTimingIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -216,7 +203,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (mealTimingIds != null)
                             restRequest.AddJsonBody(mealTimingIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -237,7 +224,6 @@ namespace Biovation.Server.Controllers.v1.Restaurant
         }
 
         [HttpPost]
-        [Route("DeleteMealTimingsFromDevice")]
         public Task<List<ResultViewModel>> DeleteMealTimingsFromDevice([FromBody]List<int> mealTimingIds, int deviceId = default)
         {
             return Task.Run(() =>
@@ -257,7 +243,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                         if (mealTimingIds != null)
                             restRequest.AddJsonBody(mealTimingIds);
 
-                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

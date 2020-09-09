@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.Domain;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v1
@@ -18,9 +18,6 @@ namespace Biovation.Server.Controllers.v1
         {
             _fingerTemplateService = fingerTemplateService;
         }
-
-        [HttpPost]
-        [Route("ModifyUser")]
         public ResultViewModel ModifyUser(FingerTemplate fingerTemplate)
         {
             try
@@ -35,12 +32,11 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
-        [Route("GetTemplateCount")]
         public List<UserTemplateCount> GetTemplateCount()
         {
             try
             {
-                return _fingerTemplateService.GetTemplateCount().Data.Data;
+                return _fingerTemplateService.GetTemplateCount();
             }
             catch (Exception exception)
             {
@@ -50,12 +46,11 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
-        [Route("GetFingerTemplateByUserId")]
         public List<FingerTemplate> GetFingerTemplateByUserId(long userId)
         {
             try
             {
-                return _fingerTemplateService.FingerTemplates(userId:(int)userId).Data.Data;
+                return _fingerTemplateService.FingerTemplates(userId: (int)userId);
             }
             catch (Exception exception)
             {
@@ -65,12 +60,11 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
-        [Route("GetFingerTemplateByUserIdAndTemplateIndex")]
         public List<FingerTemplate> GetFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
         {
             try
             {
-                return _fingerTemplateService.FingerTemplates(userId:(int)userId, templateIndex:templateIndex).Data.Data;
+                return _fingerTemplateService.FingerTemplates(userId: userId, templateIndex: templateIndex);
             }
             catch (Exception exception)
             {
@@ -80,12 +74,11 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
-        [Route("DeleteFingerTemplateByUserId")]
         public ResultViewModel DeleteFingerTemplateByUserId(int userId)
         {
             try
             {
-                return _fingerTemplateService.DeleteFingerTemplate(userId:userId);
+                return _fingerTemplateService.DeleteFingerTemplate(userId: userId);
             }
             catch (Exception exception)
             {
@@ -95,7 +88,6 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
-        [Route("DeleteFingerTemplateByUserIdAndTemplateIndex")]
         public ResultViewModel DeleteFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
         {
             try
@@ -109,15 +101,14 @@ namespace Biovation.Server.Controllers.v1
             }
         }
 
-        [HttpGet]
-        [Route("GetFingerTemplateTypes")]
+
         public Task<ResultViewModel<List<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var templateTypes = _fingerTemplateService.GetFingerTemplateTypes(brandId).Data.Data;
+                    var templateTypes = _fingerTemplateService.GetFingerTemplateTypes(brandId);
                     return new ResultViewModel<List<Lookup>> { Id = Convert.ToInt64(brandId), Validate = 1, Data = templateTypes };
                 }
                 catch (Exception exception)

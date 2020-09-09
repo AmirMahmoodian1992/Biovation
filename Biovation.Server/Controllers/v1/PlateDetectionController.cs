@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v1
@@ -23,7 +23,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("AddLicensePlate")]
         public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate)
         {
-            return Task.Run( () => _plateDetectionService.AddLicensePlate(licensePlate));
+            return Task.Run(() => _plateDetectionService.AddLicensePlate(licensePlate));
         }
 
     }

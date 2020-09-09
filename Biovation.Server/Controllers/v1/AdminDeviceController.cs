@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.Controllers.v1
 {
-    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class AdminDeviceController : Controller
@@ -20,15 +21,10 @@ namespace Biovation.Server.Controllers.v1
             _adminDeviceService = adminDeviceService;
         }
 
-        //public AdminDeviceController()
-        //{
-        //    //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-        //}
-
         [HttpGet, Route("GetAdminDevicesByPersonId")]
         public List<AdminDeviceGroup> GetAdminDevicesByPersonId(int personId)
         {
-            return _adminDeviceService.GetAdminDevicesByPersonId(personId: personId).Data.Data;
+            return _adminDeviceService.GetAdminDevicesByPersonId(personId: personId);
         }
 
         [HttpPost, Route("ModifyAdminDevice")]

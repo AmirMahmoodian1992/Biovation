@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -46,7 +46,7 @@ namespace Biovation.Server.Controllers.v2
 
         //batch delete
         [HttpPost]
-        [Route("ClearLogOfDevice")]
+        [Route("ClearLogsOfDevices")]
         public Task<IActionResult> ClearLogOfDevice([FromBody]List<int> deviceIds = default, string fromDate = default, string toDate = default)
         {
             throw null;

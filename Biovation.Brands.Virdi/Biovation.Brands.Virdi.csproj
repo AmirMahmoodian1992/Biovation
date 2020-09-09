@@ -37,8 +37,7 @@
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
-    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
-    <ProjectReference Include="..\Biovation.Service\Biovation.Service.Sql.csproj" />
+    <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

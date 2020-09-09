@@ -7,8 +7,7 @@ using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
-using Biovation.Service.SQL.v1;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -45,9 +44,10 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDeviceInfo((int)deviceId);
+                    var devices = _deviceService.GetDevice(id:deviceId);
 
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false)[0];
+                    
 
                     var task = new TaskInfo
                     {
@@ -69,7 +69,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         IsScheduled = false,
                         OrderIndex = 1
                     });
-                    _taskService.InsertTask(task).Wait();
+                    _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
                     var result = new ResultViewModel { Validate = 1, Message = "Enrolling User queued" };
@@ -107,11 +107,11 @@ namespace Biovation.Brands.Virdi.Controllers
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var devices = _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.VirdiCode);
+                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
                     var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false)[0];
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -141,7 +141,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         _callbacks.AddUserToDeviceFastSearch(code, (int)id);
                     }
 
-                    _taskService.InsertTask(task).Wait();
+                    _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
                     resultList.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
@@ -158,7 +158,7 @@ namespace Biovation.Brands.Virdi.Controllers
         [HttpPost]
         public ResultViewModel SendUserToAllDevices([FromBody]User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(user.Id);
+            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
             if (!accessGroups.Any())
             {
                 return new ResultViewModel { Id = user.Id, Validate = 0 };
@@ -216,7 +216,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false)[0];
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -241,7 +241,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         OrderIndex = 1
                     });
 
-                    _taskService.InsertTask(task).Wait();
+                    _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
                     return new ResultViewModel { Id = userId, Validate = 1, Message = $"Enrolling face from device {deviceId} started successfuly." };

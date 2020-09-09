@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain.RestaurantModels;
-using Biovation.Service.API.v2;
+using Biovation.Service.Api.v2;
 using Biovation.Service.RestaurantServices;
 using Biovation.Service.SQL.v1.RestaurantServices;
 using Microsoft.AspNetCore.Mvc;
