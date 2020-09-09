@@ -168,7 +168,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageSize",pageSize)
             };
 
-            return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDeviceOfAccessGroup", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<DeviceBasicInfo>>("SelectDeviceOfAccessGroup", parameters, fetchCompositions: true, compositionDepthLevel: 4).FetchFromResultList();
         }
 
         public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId, int pageNumber = 0, int pageSize = 0)

@@ -47,13 +47,13 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("ModifyFingerTemplate", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel<PagingResult<UserTemplateCount>> GetFingerTemplatesCount()
+        public ResultViewModel<PagingResult<UserTemplateCount>> GetFingerTemplatesCount(int nestingDepthLevel = 4)
         {
-            return _repository.ToResultList<PagingResult<UserTemplateCount>>("SelectTemplatesCount").FetchFromResultList();
+            return _repository.ToResultList<PagingResult<UserTemplateCount>>("SelectTemplatesCount", fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel<PagingResult<FingerTemplate>> FingerTemplates(int userId, int templateIndex, Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default,
-        int pageSize = default)
+        int pageSize = default, int nestingDepthLevel = 4)
         {
             try
             {
@@ -68,7 +68,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
                 };
 
-                return _repository.ToResultList<PagingResult<FingerTemplate>>("SelectFingerTemplateByFilter", parameters,fetchCompositions: true).FetchFromResultList();
+                return _repository.ToResultList<PagingResult<FingerTemplate>>("SelectFingerTemplateByFilter", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
             }
             catch (Exception e)
             {
@@ -108,8 +108,8 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("DeleteFingerTemplates", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel<PagingResult<Lookup>> GetFingerTemplateTypes(string brandId,int pageNumber = default,
-        int pageSize = default)
+        public ResultViewModel<PagingResult<Lookup>> GetFingerTemplateTypes(string brandId, int pageNumber = default,
+        int pageSize = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
@@ -118,7 +118,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
 
-            return _repository.ToResultList<PagingResult<Lookup>>("SelectFingerTemplateTypes", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<Lookup>>("SelectFingerTemplateTypes", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
     }
 }

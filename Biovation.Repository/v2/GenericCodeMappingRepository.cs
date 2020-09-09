@@ -16,7 +16,7 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-        public ResultViewModel<PagingResult<GenericCodeMapping>> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default, int pageNumber = default, int pageSize = default)
+        public ResultViewModel<PagingResult<GenericCodeMapping>> GetGenericCodeMappings(int categoryId = default, string brandCode = default, int manufactureCode = default, int genericCode = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
@@ -29,7 +29,7 @@ namespace Biovation.Repository.SQL.v2
 
             };
 
-            return _repository.ToResultList<PagingResult<GenericCodeMapping>>("SelectGenericCodeMappings", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<GenericCodeMapping>>("SelectGenericCodeMappings", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
     }
 }
