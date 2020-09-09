@@ -28,17 +28,13 @@ namespace Biovation.Data.Commands.Controllers.v2
         /*  throw null;
        }*/
 
-        [HttpPut]
-        [Route("UserGroupMember")]
+        [HttpPatch]
+        [Route("UserGroupMember/userGroupId")]
         public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member, int userGroupId)
         {
             return Task.Run(() => _userGroupRepository.ModifyUserGroupMember(member, userGroupId));
         }
-        [HttpPost]
-        public Task<ResultViewModel> AddUserGroup([FromBody]UserGroupMember userGroupMember = default)
-        {
-            return Task.Run(() => _userGroupRepository.AddUserGroupMember(userGroupMember));
-        }
+  
 
         [HttpPut]
         public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup = default)

@@ -102,55 +102,7 @@ namespace Biovation.Repository.SQL.v2
             });
         }
 
-        //public ResultViewModel AddLogBulk(List<Log> logs)
-        //{
-        //    ResultViewModel result = new ResultViewModel { Validate = 0 };
-        //    var kiloLog = logs.Count / 950;
-
-        //    for (var index = 0; index <= kiloLog; index++)
-        //    {
-        //        var values = string.Empty;
-
-        //        for (var i = index * 950; i < index * 950 + 960; i++)
-        //        {
-        //            if (i == logs.Count)
-        //            {
-        //                break;
-        //            }
-
-        //            if (logs[i].UserId > 2147483646)
-        //            {
-        //                //TODO log that event!
-        //                logs[i].UserId = 0;
-        //            }
-
-        //            values += "(" + logs[i].DeviceId + ", " + logs[i].EventId + ", " +
-        //                      logs[i].UserId + ", '" +
-        //                      logs[i].LogDateTime.ToString("yyyy/MM/dd HH:mm:ss") + "', " + logs[i].DateTimeTicks + ", " +
-        //                      logs[i].SubEvent.Code + ", " + (logs[i].TnaEvent.ToString() == "65535" ? "1" : "0") +
-        //                      ",0, 1" + ") , ";
-        //        }
-
-        //        values = values.Substring(0, values.Length - 3);
-
-        //        try
-        //        {
-        //            var parameters = new List<SqlParameter>
-        //            {
-        //                new SqlParameter("@Values", SqlDbType.NVarChar) {Value = values}
-        //            };
-
-        //            result = _repository.ToResultList<ResultViewModel>("InsertLogBulk", parameters).Data.FirstOrDefault();
-        //        }
-        //        catch (Exception exception)
-        //        {
-        //            Logger.Log(exception);
-        //            result = new ResultViewModel { Validate = 0 };
-        //        }
-        //    }
-
-        //    return result;
-        //}
+      
 
         public Task<List<Log>> CheckLogInsertion(List<Log> logs)
         {
@@ -245,7 +197,7 @@ namespace Biovation.Repository.SQL.v2
             });
         }
 
-        //doit
+        //TODO
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default,
             DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default)
         {

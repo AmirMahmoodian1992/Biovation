@@ -140,7 +140,8 @@
     <None Remove="Scripts\03.SPs\0053-Create SelectDeviceDynamicPropertyTypeById-UP.sql" />
     <None Remove="Scripts\03.SPs\0054-Create SelectDeviceDynamicPropertyTypeByName-UP.sql" />
     <None Remove="Scripts\03.SPs\0055-Create SelectDeviceDynamicPropertyValues-UP.sql" />
-    <None Remove="Scripts\03.SPs\0056-Create SelectDeviceGroupById-UP.sql" />
+    <None Remove="Scripts\03.SPs\0056-Create 
+		  ById-UP.sql" />
     <None Remove="Scripts\03.SPs\0057-Create SelectDeviceGroupsByAccessGroupId-UP.sql" />
     <None Remove="Scripts\03.SPs\0058-Create SelectDeviceModelById-UP.sql" />
     <None Remove="Scripts\03.SPs\0059-Create SelectDeviceModelByName-UP.sql" />

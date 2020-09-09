@@ -67,12 +67,14 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("DeviceBrands")]
-        public Task<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize));
         }
 
+        [HttpGet]
+        [Route("GetAuthorizedUsersOfDevice")]
         public Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int deviceId)
         {
             return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
