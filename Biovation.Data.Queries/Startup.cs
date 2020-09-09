@@ -69,6 +69,9 @@ namespace Biovation.Data.Queries
             services.AddScoped<Repository.SQL.v2.BlackListRepository, Repository.SQL.v2.BlackListRepository>();
             services.AddScoped<Repository.SQL.v2.DeviceGroupRepository, Repository.SQL.v2.DeviceGroupRepository>();
             services.AddScoped<Repository.SQL.v2.FingerTemplateRepository, Repository.SQL.v2.FingerTemplateRepository>();
+            services.AddScoped<Repository.SQL.v2.FaceTemplateRepository, Repository.SQL.v2.FaceTemplateRepository>();
+            services.AddScoped<Repository.SQL.v2.GenericCodeMappingRepository, Repository.SQL.v2.GenericCodeMappingRepository>();
+            services.AddScoped<Repository.SQL.v2.LogRepository, Repository.SQL.v2.LogRepository>();
             services.AddScoped<Repository.SQL.v2.LookupRepository, Repository.SQL.v2.LookupRepository>();
             services.AddScoped<Repository.SQL.v2.TaskRepository, Repository.SQL.v2.TaskRepository>();
             services.AddScoped<Repository.SQL.v2.TimeZoneRepository, Repository.SQL.v2.TimeZoneRepository>();
