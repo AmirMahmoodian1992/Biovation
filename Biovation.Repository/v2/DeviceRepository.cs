@@ -213,7 +213,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@DeviceId", SqlDbType.Int) { Value = deviceId },
                 new SqlParameter("@AuthMode", SqlDbType.Int) { Value = authMode },
             };
-            return _repository.ToResultList<ResultViewModel<AuthModeMap>>("SelectBioAuthModeByDeviceId", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<AuthModeMap>("SelectBioAuthModeByDeviceId", parameters).FetchFromResultList();
         }
 
         public ResultViewModel<DateTime> GetLastConnectedTime(uint deviceId)
@@ -224,7 +224,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@deviceId", SqlDbType.Int) { Value = deviceId }
                 };
 
-                return _repository.ToResultList<ResultViewModel<DateTime>>("SelectLastConnectionTime", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<DateTime>("SelectLastConnectionTime", parameters).FetchFromResultList();
                 //var result = _repository.ToResultList<string>("SelectLastConnectionTime", parameters).Data.FirstOrDefault();
                 //return DateTime.Parse(result);
             }
