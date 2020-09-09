@@ -37,7 +37,6 @@ namespace Biovation.Repository.SQL.v2
                 };
                 return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: true).FetchFromResultList();
         }
-
         public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log)
         {
             return Task.Run(() =>
@@ -74,7 +73,6 @@ namespace Biovation.Repository.SQL.v2
                 return _repository.ToResultList<ResultViewModel>("InsertLicensePlate", parameters).Data.FirstOrDefault();
             });
         }
-
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
         {
             var parameters = new List<SqlParameter>

@@ -19,8 +19,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             _logRepository = logRepository;
         }
 
-
-
         public Task<ResultViewModel> AddLog(Log log)
         {
             return Task.Run(() => _logRepository.AddLog(log));
@@ -31,14 +29,10 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _logRepository.AddLog(logs));
         }
 
-
-
         public Task<ResultViewModel> UpdateLog(DataTable logs)
         {
             return Task.Run(() => _logRepository.UpdateLog(logs));
         }
-
-
 
         public Task<ResultViewModel> AddLogImage(Log log)
         {
@@ -49,8 +43,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() => _logRepository.UpdateLog(log));
         }
-
-
 
         public Task<List<Log>> CheckLogInsertion(List<Log> logs)
         {
