@@ -60,6 +60,18 @@ namespace Biovation.Data.Queries
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
             services.AddSingleton<GenericRepository, GenericRepository>();
 
+            if (BiovationConfiguration.MigrateUp)
+            {
+                var migrateRes = Migration.MigrateUp(connectionInfo);
+                if (!migrateRes)
+                {
+                    if (BiovationConfiguration.MigrateUp)
+                    {
+                        BiovationConfiguration.MigrateUp = false;
+                    }
+                }
+            }
+
             services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
             services.AddScoped<Repository.SQL.v2.UserRepository, Repository.SQL.v2.UserRepository>();
             services.AddScoped<Repository.SQL.v2.DeviceRepository, Repository.SQL.v2.DeviceRepository>();
