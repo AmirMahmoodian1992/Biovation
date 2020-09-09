@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Repository.API.v2;
+using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v1
 {
@@ -32,9 +32,9 @@ namespace Biovation.Service.Api.v1
 
         }
 
-        public ResultViewModel<int> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
+        public int GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
         {
-            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType);
+            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType).Data;
         }
 
         public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate = default)

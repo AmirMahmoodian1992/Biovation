@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Repository.API.v2;
+using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v1
 {
@@ -28,9 +28,9 @@ namespace Biovation.Service.Api.v1
             return _userRepository.GetAdminUserOfAccessGroup(id, accessGroupId).Data;
         }
 
-        public ResultViewModel<int> GetUsersCount()
+        public int GetUsersCount()
         {
-            return _userRepository.GetUsersCount();
+            return _userRepository.GetUsersCount().Data;
         }
 
         public List<DeviceBasicInfo> GetAuthorizedDevicesOfUser(long userId)

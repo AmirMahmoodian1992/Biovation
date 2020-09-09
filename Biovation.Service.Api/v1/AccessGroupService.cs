@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Repository.API.v2;
+using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v1
 {
@@ -31,12 +31,11 @@ namespace Biovation.Service.Api.v1
             return _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize).Data.Data;
         }
 
-        public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>
-            GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId = default, string brandCode = default, long userId = default,
+        public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId = default, string brandCode = default, long userId = default,
                 int pageNumber = default, int pageSize = default)
         {
             return _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode,
-                userId, pageNumber, pageSize);
+                userId, pageNumber, pageSize).Data.Data;
         }
 
 

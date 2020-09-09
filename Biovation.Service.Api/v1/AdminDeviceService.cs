@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using Biovation.Domain;
-using Biovation.Repository.API.v2;
+using Biovation.Repository.Api.v2;
 using Newtonsoft.Json.Linq;
 
 namespace Biovation.Service.Api.v1

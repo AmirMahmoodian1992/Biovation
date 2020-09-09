@@ -1,12 +1,7 @@
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
-using Biovation.Repository;
-using Biovation.Repository.RestaurantRepositories;
-using Biovation.Repository.SQL.v1;
-using Biovation.Service;
-using Biovation.Service.RestaurantServices;
-using Biovation.Service.SQL.v1;
-using Biovation.Service.SQL.v1.RestaurantServices;
+using Biovation.Repository.Api.v2;
+using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
@@ -81,11 +76,12 @@ namespace Biovation.Server
 
             services.AddSingleton<GenericRepository, GenericRepository>();
 
-            services.AddScoped<FoodRepository, FoodRepository>();
-            services.AddScoped<MealRepository, MealRepository>();
-            services.AddScoped<ReservationRepository, ReservationRepository>();
-            services.AddScoped<RestaurantRepository, RestaurantRepository>();
-            services.AddScoped<ServeLogRepository, ServeLogRepository>();
+            //services.AddScoped<FoodRepository, FoodRepository>();
+            //services.AddScoped<MealRepository, MealRepository>();
+            //services.AddScoped<ReservationRepository, ReservationRepository>();
+            //services.AddScoped<RestaurantRepository, RestaurantRepository>();
+            //services.AddScoped<ServeLogRepository, ServeLogRepository>();
+
             //services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
             //services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
             //services.AddScoped<BlackListRepository, BlackListRepository>();
@@ -102,20 +98,20 @@ namespace Biovation.Server
             //services.AddScoped<UserCardRepository, UserCardRepository>();
             //services.AddScoped<UserGroupRepository, UserGroupRepository>();
             //services.AddScoped<UserRepository, UserRepository>();
-            services.AddScoped<Repository.API.v2.UserRepository, Repository.API.v2.UserRepository>();
-            services.AddScoped<Repository.API.v2.DeviceRepository, Repository.API.v2.DeviceRepository>();
-            services.AddScoped<Repository.API.v2.PlateDetectionRepository, Repository.API.v2.PlateDetectionRepository>();
-            services.AddScoped<Repository.API.v2.AccessGroupRepository, Repository.API.v2.AccessGroupRepository>();
-            services.AddScoped<Repository.API.v2.AdminDeviceRepository, Repository.API.v2.AdminDeviceRepository>();
-            services.AddScoped<Repository.API.v2.BlackListRepository, Repository.API.v2.BlackListRepository>();
-            services.AddScoped<Repository.API.v2.DeviceGroupRepository, Repository.API.v2.DeviceGroupRepository>();
-            services.AddScoped<Repository.API.v2.FingerTemplateRepository, Repository.API.v2.FingerTemplateRepository>();
+            services.AddScoped<UserRepository, UserRepository>();
+            services.AddScoped<DeviceRepository, DeviceRepository>();
+            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
+            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
+            services.AddScoped<BlackListRepository, BlackListRepository>();
+            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             //services.AddScoped<Repository.API.v2.LogRepository, Repository.API.v2.LogRepository>();
-            services.AddScoped<Repository.API.v2.LookupRepository, Repository.API.v2.LookupRepository>();
-            services.AddScoped<Repository.API.v2.TaskRepository, Repository.API.v2.TaskRepository>();
-            services.AddScoped<Repository.API.v2.TimeZoneRepository, Repository.API.v2.TimeZoneRepository>();
-            services.AddScoped<Repository.API.v2.UserCardRepository, Repository.API.v2.UserCardRepository>();
-            services.AddScoped<Repository.API.v2.UserGroupRepository, Repository.API.v2.UserGroupRepository>();
+            services.AddScoped<LookupRepository, LookupRepository>();
+            services.AddScoped<TaskRepository, TaskRepository>();
+            services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
+            services.AddScoped<UserCardRepository, UserCardRepository>();
+            services.AddScoped<UserGroupRepository, UserGroupRepository>();
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
             
 
@@ -123,11 +119,12 @@ namespace Biovation.Server
 
 
 
-            services.AddScoped<FoodService, FoodService>();
-            services.AddScoped<MealService, MealService>();
-            services.AddScoped<ReservationService, ReservationService>();
-            services.AddScoped<RestaurantService, RestaurantService>();
-            services.AddScoped<ServeLogService, ServeLogService>();
+            //services.AddScoped<FoodService, FoodService>();
+            //services.AddScoped<MealService, MealService>();
+            //services.AddScoped<ReservationService, ReservationService>();
+            //services.AddScoped<RestaurantService, RestaurantService>();
+            //services.AddScoped<ServeLogService, ServeLogService>();
+
             //services.AddScoped<AccessGroupService, AccessGroupService>();
             //services.AddScoped<AdminDeviceService, AdminDeviceService>();
             //services.AddScoped<BlackListService, BlackListService>();

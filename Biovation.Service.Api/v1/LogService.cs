@@ -1,6 +1,6 @@
 ﻿using System;
 using Biovation.Domain;
-using Biovation.Repository.API.v2;
+using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v1
 {

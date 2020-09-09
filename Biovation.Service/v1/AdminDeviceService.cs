@@ -2,7 +2,7 @@
 using Biovation.Domain;
 using Biovation.Repository.SQL.v1;
 
-namespace Biovation.Service.SQL.v1
+namespace Biovation.Service.Sql.v1
 {
     public class AdminDeviceService
     {

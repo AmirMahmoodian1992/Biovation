@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
-using Biovation.Service.SQL.v1;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -32,7 +32,7 @@ namespace Biovation.Brands.Virdi.Command
 
         public object Execute()
         {
-            var device = _deviceService.GetDeviceInfo(DeviceId);
+            var device = _deviceService.GetDevice(DeviceId);
 
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };

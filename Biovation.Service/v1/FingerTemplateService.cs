@@ -2,7 +2,7 @@
 using Biovation.Domain;
 using Biovation.Repository;
 
-namespace Biovation.Service
+namespace Biovation.Service.Sql.v1
 {
     public class FingerTemplateService
     {

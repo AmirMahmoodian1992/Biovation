@@ -1,5 +1,6 @@
-﻿using Biovation.Domain;
-using Biovation.Repository.API.v2;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
+using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v1
 {
@@ -12,11 +13,11 @@ namespace Biovation.Service.Api.v1
             _faceTemplateRepository = faceTemplateRepository;
         }
 
-        public ResultViewModel<PagingResult<FaceTemplate>> FaceTemplates(string fingerTemplateTypeCode = default,
+        public List<FaceTemplate> FaceTemplates(string fingerTemplateTypeCode = default,
             long userId = 0, int index = 0, int pageNumber = default,
             int pageSize = default)
         {
-            return _faceTemplateRepository.FaceTemplates(fingerTemplateTypeCode, userId, index, pageNumber, pageSize);
+            return _faceTemplateRepository.FaceTemplates(fingerTemplateTypeCode, userId, index, pageNumber, pageSize).Data.Data;
         }
 
         public ResultViewModel ModifyFaceTemplate(FaceTemplate faceTemplate)

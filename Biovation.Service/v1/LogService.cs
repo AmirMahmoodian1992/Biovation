@@ -7,13 +7,13 @@ using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository;
 using Newtonsoft.Json;
 using RestSharp;
 
-namespace Biovation.Service
+namespace Biovation.Service.Sql.v1
 {
     public class LogService
     {

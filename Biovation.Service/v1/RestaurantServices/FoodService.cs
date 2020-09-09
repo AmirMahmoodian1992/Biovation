@@ -6,7 +6,7 @@ using Biovation.Domain;
 using Biovation.Domain.RestaurantModels;
 using Biovation.Repository.RestaurantRepositories;
 
-namespace Biovation.Service.SQL.v1.RestaurantServices
+namespace Biovation.Service.Sql.v1.RestaurantServices
 {
     public class FoodService
     {

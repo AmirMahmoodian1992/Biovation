@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Manager
 {
@@ -304,7 +305,7 @@ namespace Biovation.Brands.Virdi.Manager
         {
             lock (_tasks)
                 _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                    excludedTaskStatusCodes: new List<string> { TaskStatuses.Done.Code, TaskStatuses.Failed.Code }).Result;
+                    excludedTaskStatusCodes: new List<string> { TaskStatuses.Done.Code, TaskStatuses.Failed.Code });
 
             if (_processingQueueInProgress)
                 return;

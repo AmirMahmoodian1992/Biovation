@@ -19,9 +19,20 @@ namespace Biovation.Data.Commands
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             Configuration = configuration;
+
+
+            //Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration).CreateLogger();
+            BiovationConfiguration = new BiovationConfigurationManager(configuration);
+
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(environment.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
+                .AddEnvironmentVariables();
+            Configuration = builder.Build();
         }
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
 
@@ -31,6 +42,11 @@ namespace Biovation.Data.Commands
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddSingleton(BiovationConfiguration);
+            services.AddSingleton(BiovationConfiguration.Configuration);
+
+            ConfigureRepositoriesServices(services);
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
@@ -78,11 +94,11 @@ namespace Biovation.Data.Commands
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            //app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

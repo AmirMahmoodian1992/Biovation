@@ -4,7 +4,7 @@ using Biovation.Service;
 using System;
 using System.Collections.Generic;
 using Biovation.Brands.Virdi.Manager;
-using Biovation.Service.SQL.v1;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {

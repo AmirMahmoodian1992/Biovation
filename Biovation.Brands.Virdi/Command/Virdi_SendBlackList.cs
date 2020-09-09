@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using Biovation.Service.SQL.v1;
+using Biovation.Service.Api.v1;
 using Encoding = System.Text.Encoding;
 
 namespace Biovation.Brands.Virdi.Command
@@ -36,12 +36,12 @@ namespace Biovation.Brands.Virdi.Command
         {
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
-            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
             BlackListId = (int)data["BlackListId"];
-            UserObj = userService.GetUser(UserId, false);
+            UserObj = userService.GetUsers(userId:UserId,withPicture: false)[0];
 
             var blackList = blackListService.GetActiveBlackList(BlackListId, userid: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;

@@ -2,7 +2,7 @@
 using Biovation.Domain;
 using RestSharp;
 
-namespace Biovation.Repository.API.v2
+namespace Biovation.Repository.Api.v2
 {
     public class UserGroupRepository
     {

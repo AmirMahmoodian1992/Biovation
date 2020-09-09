@@ -1,5 +1,6 @@
-﻿using Biovation.Domain;
-using Biovation.Repository.API.v2;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
+using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v1
 {
@@ -12,13 +13,13 @@ namespace Biovation.Service.Api.v1
             _taskRepository = taskRepository;
         }
 
-        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
+        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             string excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default)
         {
             return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                excludedTaskStatusCodes, pageNumber, pageSize);
+                excludedTaskStatusCodes, pageNumber, pageSize).Data.Data;
         }
 
         public TaskItem GetTaskItem(int taskItemId = default)

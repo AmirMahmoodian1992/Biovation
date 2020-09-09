@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using RestSharp;
 
-namespace Biovation.Repository.API.v2
+namespace Biovation.Repository.Api.v2
 {
     public class LogRepository
     {

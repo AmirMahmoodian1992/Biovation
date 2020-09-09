@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository;
 
-namespace Biovation.Service.SQL.v1
+namespace Biovation.Service.Sql.v1
 {
     public class DeviceService
     {
