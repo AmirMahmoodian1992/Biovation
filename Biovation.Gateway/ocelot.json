@@ -37,6 +37,18 @@
       ]
     },
     {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/commands/{url}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9042
+        }
+      ]
+    },
+    {
       "DownstreamPathTemplate": "/biovation/api/FingerTemplate/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/Finger/{url}",
