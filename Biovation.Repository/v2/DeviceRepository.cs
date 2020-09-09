@@ -103,7 +103,7 @@ namespace Biovation.Repository.SQL.v2
 
         }
 
-        public PagingResult<Lookup> GetDeviceBrands(int code = default, string name = default, int pageNumber = default, int PageSize = default)
+        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default, int pageNumber = default, int PageSize = default)
         {
             var Parameter = new List<SqlParameter>
                 {
@@ -114,7 +114,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize}
                 };
             return _repository.ToResultList<PagingResult<Lookup>>("SelectDeviceBrandsByFilter", Parameter,
-                    fetchCompositions: true).Data.FirstOrDefault();
+                    fetchCompositions: true).FetchFromResultList();
         }
         public PagingResult<DeviceModel> GetDeviceModels(long id = 0, string brandId = default, string name = default, int pageNumber = default, int PageSize = default)
         {

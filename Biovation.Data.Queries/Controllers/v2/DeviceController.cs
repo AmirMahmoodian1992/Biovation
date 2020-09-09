@@ -67,7 +67,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("DeviceBrands")]
-        public Task<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize));
