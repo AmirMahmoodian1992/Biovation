@@ -17,7 +17,7 @@ namespace Biovation.Repository.SQL.v2
         }
 
         public ResultViewModel<PagingResult<Lookup>> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
@@ -30,7 +30,8 @@ namespace Biovation.Repository.SQL.v2
 
             };
 
-            return _repository.ToResultList<PagingResult<Lookup>>("SelectLookups", parameters).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<Lookup>>("SelectLookups", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
+
     }
 }

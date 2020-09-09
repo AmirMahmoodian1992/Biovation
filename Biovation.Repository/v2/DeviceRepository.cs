@@ -103,7 +103,7 @@ namespace Biovation.Repository.SQL.v2
 
         }
 
-        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default, int pageNumber = default, int PageSize = default)
+        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default, int pageNumber = default, int PageSize = default, int nestingDepthLevel = 4)
         {
             var Parameter = new List<SqlParameter>
                 {
@@ -114,7 +114,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize}
                 };
             return _repository.ToResultList<PagingResult<Lookup>>("SelectDeviceBrandsByFilter", Parameter,
-                    fetchCompositions: true).FetchFromResultList();
+                     fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
         public PagingResult<DeviceModel> GetDeviceModels(long id = 0, string brandId = default, string name = default, int pageNumber = default, int PageSize = default)
         {
@@ -229,7 +229,7 @@ namespace Biovation.Repository.SQL.v2
                 //return DateTime.Parse(result);
             }
         }
-        public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int deviceId)
+        public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int deviceId, int nestingDepthLevel = 4)
         {
 
             var parameters = new List<SqlParameter>
@@ -237,7 +237,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@DeviceId", deviceId)
                 };
 
-            return _repository.ToResultList<PagingResult<User>>("SelectAuthorizedUsersOfDevice", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<User>>("SelectAuthorizedUsersOfDevice", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
 
         }
 
