@@ -23,17 +23,16 @@ namespace Biovation.Repository.SQL.v2
         {
             var parameters = new List<SqlParameter>
             {
-
+                new SqlParameter("@adminUserId", adminUserId),
                 new SqlParameter("@Id", id),
                 new SqlParameter("@DeviceId ", deviceId),
-                new SqlParameter("@DeviceGroupId", deviceGroupId),
-                new SqlParameter("@UserId", userId ),
-                new SqlParameter("@adminUserId", adminUserId),
                 new SqlParameter("@UserGroupId", userGroupId),
+                new SqlParameter("@DeviceGroupId", deviceGroupId),
+                new SqlParameter("@UserId", userId ),                           
                 new SqlParameter("@PageNumber", pageNumber),
                 new SqlParameter("@PageSize",pageSize)
             };
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroups", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByFilter", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public AccessGroupRepository(GenericRepository repository)
