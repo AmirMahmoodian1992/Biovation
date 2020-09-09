@@ -44,6 +44,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
             return Task.Run( () =>
@@ -60,17 +61,20 @@ namespace Biovation.Server.Controllers.v1
             });
         }
         [HttpGet]
+        [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
             return _userService.GetAdminUserOfAccessGroup(id: userId);
         }
         [HttpGet]
+        [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
             return _userService.GetAdminUserOfAccessGroup(userId,accessGroupId);
         }
 
         [HttpGet]
+        [Route("GetUser")]
         public User GetUser(int id)
         {
             try
@@ -84,6 +88,7 @@ namespace Biovation.Server.Controllers.v1
             }
         }
         [HttpGet]
+        [Route("SearchUserFilter")]
         public List<User> SearchUser(string filterText, long userId)
         {
             try
@@ -97,6 +102,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("SearchUser")]
         public List<User> SearchUser(string filterText, int type, long userId)
         {
             try
@@ -110,6 +116,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("ModifyUser")]
         public Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
             return Task.Run(async () =>
@@ -170,6 +177,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("DeleteUser")]
         public List<ResultViewModel> DeleteUser(int[] ids)
         {
             try
@@ -201,6 +209,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("SendUserToDevice")]
         public List<ResultViewModel> SendUserToDevice(string deviceId, string userId)
         {
             try
@@ -242,6 +251,8 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("SendUserToAllDevices")]
+        [Obsolete]
         public Task<List<ResultViewModel>> SendUserToAllDevices(string ids)
         {
             return Task.Run(async () =>
@@ -291,6 +302,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("ModifyPassword")]
         public ResultViewModel ModifyPassword(int userId, string password)
         {
             try
@@ -311,6 +323,7 @@ namespace Biovation.Server.Controllers.v1
         /// <param name="param"></param>
         /// <returns></returns>
         [HttpPost]
+        [Route("SyncDeviceAndAccessGroup")]
         public Task<bool> SyncDeviceAndAccessGroup([FromBody] ParamViewModel param)
         {
             return Task.Run(async () =>
@@ -546,6 +559,8 @@ namespace Biovation.Server.Controllers.v1
             });
         }
 
+        [HttpPost]
+        [Route("UpdateUserGroupsOfUsers")]
         private bool UpdateUserGroupMember(long[] userIds, List<UserGroupMember> lstToAdd)
         {
             //try
@@ -594,6 +609,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("UpdateUserGroupsOfUsers")]
         public List<ResultViewModel> UpdateUserGroupsOfUsers(/*string userIds,*/ string usersGroupIds, bool sendUsersToDevice = true)
         {
             try
@@ -774,6 +790,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("UpdateUserGroupsOfUser")]
         public ResultViewModel UpdateUserGroupsOfUser(long userId, string userGroupIds)
         {
             try
@@ -807,6 +824,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("SendUsersDataToDevice")]
         public Task<List<ResultViewModel>> SendUsersDataToDevice([FromBody] List<int> userIds, int deviceId = default)
         {
             return Task.Run(() =>

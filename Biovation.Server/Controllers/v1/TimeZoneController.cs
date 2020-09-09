@@ -30,13 +30,14 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
-        [Route("DeleteTimeZone")]
+        [Route("TimeZone")]
         public TimeZone TimeZone(int id)
         {
             return _timeZoneService.TimeZones(id);
         }
 
         [HttpPost]
+        [Route("DeleteTimeZone")]
         public ResultViewModel DeleteTimeZone(int id)
         {
             return _timeZoneService.DeleteTimeZone(id);

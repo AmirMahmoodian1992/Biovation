@@ -28,18 +28,21 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetUserCard")]
         public List<UserCard> GetUserCard(int userId = 0)
         {
             return _userCard.GetCardsByFilter(userId: userId);
         }
 
         [HttpPost]
+        [Route("DeleteUserCard")]
         public ResultViewModel DeleteUserCard([FromBody]int id)
         {
             return _userCard.DeleteUserCard(id);
         }
 
         [HttpGet]
+        [Route("ReadCardNumber")]
         public int ReadCardNumber(string brandName, int deviceId)
         {
             var resultRequest =

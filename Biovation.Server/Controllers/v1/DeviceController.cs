@@ -32,30 +32,35 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("Devices")]
         public Task<List<DeviceBasicInfo>> Devices(long userId)
         {
             return Task.Run(() => _deviceService.GetDevices(adminUserId: userId));
         }
 
         [HttpGet]
+        [Route("DevicesByFilter")]
         public Task<List<DeviceBasicInfo>> DevicesByFilter(long adminUserId = 0, int deviceGroupId = 0, uint code = 0, int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(adminUserId: adminUserId, deviceGroupId: deviceGroupId, code: code,
                 brandId: brandId, deviceName: deviceName, deviceModelId: deviceModelId));
         }
         [HttpGet]
+        [Route("DevicesFilter")]
         public Task<List<DeviceBasicInfo>> Devices(string deviceName, int deviceModelId, int deviceTypeId, long userId)
         {
             return Task.Run(() => _deviceService.GetDevices(deviceName:deviceName, deviceModelId:deviceModelId, typeId:deviceTypeId, adminUserId:userId));
         }
 
         [HttpGet]
+        [Route("Device")]
         public Task<DeviceBasicInfo> Device(int deviceId, int userId)
         {
             return Task.Run(() => _deviceService.GetDevice(adminUserId: userId, id: deviceId));
         }
 
         [HttpGet]
+        [Route("DevicesList")]
         public Task<List<DeviceBasicInfo>> DevicesList(List<int> deviceIds)
         {
             return Task.Run(() =>
@@ -73,6 +78,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("DevicesListByName")]
         public Task<List<DeviceBasicInfo>> DevicesListByName(string deviceName, int userId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(deviceName:deviceName, adminUserId:userId));
@@ -80,6 +86,7 @@ namespace Biovation.Server.Controllers.v1
 
 
         [HttpPost]
+        [Route("ReadOfflineLog")]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
             return Task.Run(async () =>
@@ -128,30 +135,35 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("DevicesListByBrandId")]
         public Task<List<DeviceBasicInfo>> DevicesListByBrandId(string brandCode, int userId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId));
         }
 
         [HttpGet]
+        [Route("DevicesListByModelId")]
         public Task<List<DeviceBasicInfo>> DevicesListByModelId(int modelId, int userId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId));
         }
 
         [HttpGet]
+        [Route("DeviceByIdAndBrandId")]
         public Task<DeviceBasicInfo> DeviceByIdAndBrandId(int deviceId, string brandCode, int userId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId).Find(d => d.DeviceId == deviceId));
         }
 
         [HttpGet]
+        [Route("DeviceByIdAndModelId")]
         public Task<DeviceBasicInfo> DeviceByIdAndModelId(int deviceId, int modelId, int userId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId).Find(d => d.DeviceId == deviceId));
         }
 
         [HttpGet]
+        [Route("DeviceBrandsDeviceBrands")]
         public async Task<List<Lookup>> DeviceBrands(bool loadedOnly = true)
         {
             if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
@@ -161,6 +173,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("DeviceModels")]
         public Task<List<DeviceModel>> DeviceModels(string brandCode = default, bool loadedBrandsOnly = true)
         {
             return Task.Run(() =>
@@ -177,6 +190,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetDeviceModelsByFilter")]
         public Task<List<DeviceModel>> GetDeviceModelsByFilter(string brandCode = default, string name = default, bool loadedBrandsOnly = true)
         {
             return Task.Run(() =>
@@ -194,6 +208,7 @@ namespace Biovation.Server.Controllers.v1
 
 
         [HttpPost]
+        [Route("ModifyDeviceInfo")]
         public Task<ResultViewModel> ModifyDeviceInfo(DeviceBasicInfo device)
         {
             return Task.Run(async () =>
@@ -212,12 +227,14 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("RemoveDevice")]
         public Task<ResultViewModel> RemoveDevice(uint deviceId)
         {
             return Task.Run(() => _deviceService.DeleteDevice(deviceId));
         }
 
         [HttpPost]
+        [Route("DeleteDevices")]
         public Task<Dictionary<uint, bool>> DeleteDevices([FromBody]List<uint> deviceIds)
         {
             return Task.Run(async () =>
@@ -250,6 +267,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetOnlineDevices")]
         public Task<List<DeviceBasicInfo>> GetOnlineDevices()
         {
             return Task.Run(async () =>
@@ -277,6 +295,7 @@ namespace Biovation.Server.Controllers.v1
         /// <param name="userId">Json list of userIds</param>
         /// <returns></returns>
         [HttpPost]
+        [Route("RetrieveUserFromDevice")]
         public Task<List<ResultViewModel>> RetrieveUserFromDevice(int deviceId, [FromBody]JArray userId)
         {
             return Task.Run(async () =>
@@ -294,6 +313,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("RemoveUserFromDevice")]
         public Task<List<ResultViewModel>> RemoveUserFromDevice(int deviceId, [FromBody]JArray userId)
         {
             return Task.Run(async () =>
@@ -323,6 +343,7 @@ namespace Biovation.Server.Controllers.v1
 
 
         [HttpGet]
+        [Route("RetrieveUsersListFromDevice")]
         public Task<List<User>> RetrieveUsersListFromDevice(int deviceId)
         {
             return Task.Run(async () =>
@@ -356,6 +377,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("SendUsersOfDevice")]
         public Task<ResultViewModel> SendUsersOfDevice(int deviceId)
         {
             return Task.Run(async () =>
@@ -385,6 +407,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetAdditionalData")]
         public Task<Dictionary<string, string>> GetAdditionalData(int deviceId)
         {
             return Task.Run(async () =>
@@ -400,6 +423,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("SendDevicesDataToDevice")]
         public Task<List<ResultViewModel>> SendDevicesDataToDevice([FromBody]List<int> deviceIds, int deviceId = default)
         {
             return Task.Run(() =>

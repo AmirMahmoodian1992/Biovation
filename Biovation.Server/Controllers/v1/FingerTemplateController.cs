@@ -32,6 +32,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetTemplateCount")]
         public List<UserTemplateCount> GetTemplateCount()
         {
             try
@@ -46,6 +47,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetFingerTemplateByUserId")]
         public List<FingerTemplate> GetFingerTemplateByUserId(long userId)
         {
             try
@@ -60,6 +62,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetFingerTemplateByUserIdAndTemplateIndex")]
         public List<FingerTemplate> GetFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
         {
             try
@@ -74,6 +77,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("DeleteFingerTemplateByUserId")]
         public ResultViewModel DeleteFingerTemplateByUserId(int userId)
         {
             try
@@ -88,6 +92,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("DeleteFingerTemplateByUserIdAndTemplateIndex")]
         public ResultViewModel DeleteFingerTemplateByUserIdAndTemplateIndex(int userId, int templateIndex)
         {
             try
@@ -101,7 +106,8 @@ namespace Biovation.Server.Controllers.v1
             }
         }
 
-
+        [HttpGet]
+        [Route("GetFingerTemplateTypes")]
         public Task<ResultViewModel<List<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {
             return Task.Run(() =>

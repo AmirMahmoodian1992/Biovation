@@ -30,12 +30,14 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetDeviceGroup")]
         public List<DeviceGroup> GetDeviceGroup(int? id, long userId)
         {
             return id == null ? _deviceGroupService.GetDeviceGroups(userId: userId) : _deviceGroupService.GetDeviceGroups((int)id, userId);
         }
 
         [HttpPost]
+        [Route("ModifyDeviceGroup")]
         public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
         {
             return Task.Run(async () =>
@@ -170,6 +172,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("DeleteDeviceGroup")]
         public List<ResultViewModel> DeleteDeviceGroup([FromBody] int[] ids)
         {
             try
@@ -184,6 +187,7 @@ namespace Biovation.Server.Controllers.v1
 
 
         [HttpGet]
+        [Route("GetAccessControlDeviceGroup")]
         public List<DeviceGroup> GetAccessControlDeviceGroup(int id)
         {
             return _deviceGroupService.GetAccessControlDeviceGroup(id);

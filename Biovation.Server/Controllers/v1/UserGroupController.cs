@@ -184,7 +184,6 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ModifyUserGroup")]
-
         public Task<ResultViewModel> ModifyUserGroup(UserGroup userGroup)
         {
             return Task.Run(async () =>
@@ -410,6 +409,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("ModifyUserGroupMemeber")]
         public ResultViewModel ModifyUserGroupMemeber(List<UserGroupMember> member)
         {
             try
@@ -448,6 +448,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetUsersGroup")]
         public List<UserGroup> GetUsersGroup(long userId)
         {
             try
@@ -462,6 +463,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetUserGroup")]
         public UserGroup GetUserGroup(int userGroupId)
         {
             try
@@ -489,6 +491,7 @@ namespace Biovation.Server.Controllers.v1
         //}
 
         [HttpPost]
+        [Route("DeleteUserGroups")]
         public List<ResultViewModel> DeleteUserGroups([FromBody] List<int> groupIds)
         {
             try
@@ -509,12 +512,14 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
+        [Route("GetAccessControlUserGroup")]
         public List<UserGroup> GetAccessControlUserGroup(int id)
         {
             return _userGroupService.GetAccessControlUserGroup(id);
         }
 
         [HttpPost]
+        [Route("SendUsersOfGroup")]
         public ResultViewModel SendUsersOfGroup(int userGroupId)
         {
             try
@@ -545,6 +550,7 @@ namespace Biovation.Server.Controllers.v1
             }
         }
 
+        [Route("SyncUserGroupMember")]
         public ResultViewModel SyncUserGroupMember(string lstUsers)
         {
             try
