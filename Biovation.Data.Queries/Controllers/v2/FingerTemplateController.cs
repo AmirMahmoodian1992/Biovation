@@ -39,9 +39,10 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("FingerTemplateTypes")]
-        public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId)
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId, int pageNumber = default,
+        int pageSize = default)
         {
-            return Task.Run(() => _fingerTemplateRepository.GetFingerTemplateTypes(brandId));
+            return Task.Run(() => _fingerTemplateRepository.GetFingerTemplateTypes(brandId,pageNumber,pageSize));
         }
 
         [HttpGet]
