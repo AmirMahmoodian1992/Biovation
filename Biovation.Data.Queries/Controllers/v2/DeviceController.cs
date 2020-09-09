@@ -73,6 +73,8 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize));
         }
 
+        [HttpGet]
+        [Route("GetAuthorizedUsersOfDevice")]
         public Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int deviceId)
         {
             return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));
