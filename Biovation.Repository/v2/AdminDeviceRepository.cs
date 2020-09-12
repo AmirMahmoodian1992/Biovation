@@ -43,32 +43,32 @@ namespace Biovation.Repository.SQL.v2
         {
             {
 
-            var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
+                var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
             { new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }};
-          
-            return _repository.ToResultList<PagingResult<AdminDevice>>("SelectAdminDevicesByUserId", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+
+                return _repository.ToResultList<PagingResult<AdminDevice>>("SelectAdminDevicesByUserId", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            }
+
         }
 
+            /// <summary>
+            /// <En>Get the device info from database.</En>
+            /// <Fa>اطلاعات یک دستگاه را از دیتابیس دریافت میکند.</Fa>
+            /// </summary>
+            /// <param name="adminDevice">کد دستگاه</param>
+            /// <returns></returns>
 
+            public ResultViewModel ModifyAdminDevice(string adminDevice)
+            {
 
-        /// <summary>
-        /// <En>Get the device info from database.</En>
-        /// <Fa>اطلاعات یک دستگاه را از دیتابیس دریافت میکند.</Fa>
-        /// </summary>
-        /// <param name="adminDevice">کد دستگاه</param>
-        /// <returns></returns>
-        public ResultViewModel ModifyAdminDevice(string adminDevice)
-        {
-
-            var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
+                var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
             { new SqlParameter("@StrXml", SqlDbType.NVarChar) { Value = adminDevice }};
 
-            var result = _repository.ToResultList<ResultViewModel>("ModifyAdminDevice", parameters).Data.FirstOrDefault();
+                var result = _repository.ToResultList<ResultViewModel>("ModifyAdminDevice", parameters).Data.FirstOrDefault();
 
-            return result;
+                return result;
+
+            }
 
         }
-
-
     }
-}
