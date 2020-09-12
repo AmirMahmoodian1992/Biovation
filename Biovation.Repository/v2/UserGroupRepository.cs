@@ -66,7 +66,8 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
-            return _repository.ToResultList<PagingResult<UserGroup>>("SelectUserGroups", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<UserGroup>>("SelectUserGroups", parameters, fetchCompositions: true,
+                    compositionDepthLevel: 5).FetchFromResultList();
         }
         public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id)
         {
@@ -75,7 +76,8 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@AccessControlId", id)
             };
 
-            return _repository.ToResultList<UserGroup>("SelectAccessControlUserGroup", parameters, fetchCompositions: true).FetchResultList();
+            return _repository.ToResultList<UserGroup>("SelectAccessControlUserGroup", parameters, fetchCompositions: true,
+                    compositionDepthLevel: 5).FetchResultList();
         }
         public ResultViewModel DeleteUserGroup(int userGroupId)
         {
@@ -86,14 +88,18 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("DeleteUserGroup", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel SyncUserGroupMember(string lstUser)
-        {
+        public ResultViewModel SyncUserGroupMember(string lstUser,int id,int adminUserId, int deviceGroupId)
+        {        
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@UserId", lstUser)
+                new SqlParameter("@UserId", lstUser),
+                new SqlParameter("@Id", id),
+                new SqlParameter("@adminUserId", adminUserId),
+                new SqlParameter("@deviceGroupId", deviceGroupId)
             };
 
-            return _repository.ToResultList<ResultViewModel>("SelectSearchAccessGroup", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("SelectSearchAccessGroup", parameters, fetchCompositions: true,
+                    compositionDepthLevel: 5).Data.FirstOrDefault();
         }
 
     }
