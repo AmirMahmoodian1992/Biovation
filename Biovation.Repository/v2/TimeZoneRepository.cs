@@ -44,7 +44,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@ToTime", timeZoneDetail.ToTime)
             };
 
-                result = _repository.ToResultList<ResultViewModel>("ModifyTimeZoneDetail", parameters).Data.FirstOrDefault();
+                result = _repository.ToResultList<ResultViewModel>("InsertTimeZoneDetail", parameters).Data.FirstOrDefault();
 
                 if (result != null && result.Validate == 0)
                 {
