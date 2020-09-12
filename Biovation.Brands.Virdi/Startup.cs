@@ -21,21 +21,6 @@ using Microsoft.Extensions.Hosting;
 using Ninject;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
-using AccessGroupService = Biovation.Service.Api.v2.AccessGroupService;
-using AdminDeviceService = Biovation.Service.Api.v2.AdminDeviceService;
-using BlackListService = Biovation.Service.Api.v2.BlackListService;
-using DeviceGroupService = Biovation.Service.Api.v2.DeviceGroupService;
-using DeviceService = Biovation.Service.Api.v2.DeviceService;
-using FingerTemplateService = Biovation.Service.Api.v2.FingerTemplateService;
-using GenericCodeMappingService = Biovation.Service.Api.v2.GenericCodeMappingService;
-using LogService = Biovation.Service.Api.v2.LogService;
-using LookupService = Biovation.Service.Api.v2.LookupService;
-using SettingService = Biovation.Service.Api.v2.SettingService;
-using TaskService = Biovation.Service.Api.v2.TaskService;
-using TimeZoneService = Biovation.Service.Api.v2.TimeZoneService;
-using UserCardService = Biovation.Service.Api.v2.UserCardService;
-using UserGroupService = Biovation.Service.Api.v2.UserGroupService;
-using UserService = Biovation.Service.Api.v2.UserService;
 
 namespace Biovation.Brands.Virdi
 {
