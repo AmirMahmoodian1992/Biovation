@@ -57,7 +57,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("CheckLogInsertion")]
         public Task<List<Log>> CheckLogInsertion([FromBody]List<Log> logs)
         {
-
             return Task.Run(() => _logRepository.CheckLogInsertion(logs));
         }
     }
