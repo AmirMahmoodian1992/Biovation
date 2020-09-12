@@ -30,6 +30,19 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<PagingResult<UserCard>>("SelectUserCardByFilter", parameters).FetchFromResultList();
 
         }
+
+
+        public ResultViewModel AddUserCard(UserCard userCard)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", userCard.Id),
+                new SqlParameter("@UserId", userCard.UserId),
+                new SqlParameter("@CardNum", userCard.CardNum),
+                new SqlParameter("@DataCheck", userCard.DataCheck),
+            };
+            return _repository.ToResultList<ResultViewModel>("InsertUserCard", parameters).Data.FirstOrDefault();
+        }
         /// <summary>
         /// <En>Get the device info from database.</En>
         /// <Fa>ذخیره اطلاعات کارت کاربر.</Fa>
