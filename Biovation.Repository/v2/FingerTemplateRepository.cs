@@ -78,16 +78,16 @@ namespace Biovation.Repository.SQL.v2
         }
 
 
-        public ResultViewModel<int> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
+        public ResultViewModel<int> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType, int nestingDepthLevel = 4)
         {
             try
             {
                 var parameters = new List<SqlParameter>
                 {
-                    new SqlParameter("@FingerTemplateType", fingerTemplateType.Code)
+                    new SqlParameter("@FingerTemplateType", fingerTemplateType.Code ==null ? "0":fingerTemplateType.Code)
                 };
 
-                return _repository.ToResultList<int>("SelectFingerTemplatesCountByFingerTemplateType", parameters).FetchFromResultList();
+                return _repository.ToResultList<int>("SelectFingerTemplatesCountByFingerTemplateType", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
             }
             catch (Exception e)
             {
