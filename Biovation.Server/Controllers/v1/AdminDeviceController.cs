@@ -24,7 +24,7 @@ namespace Biovation.Server.Controllers.v1
         [HttpGet, Route("GetAdminDevicesByPersonId")]
         public List<AdminDeviceGroup> GetAdminDevicesByPersonId(int personId)
         {
-            return _adminDeviceService.GetAdminDevicesByPersonId(personId: personId);
+            return _adminDeviceService.GetAdminDeviceGroupsByUserId(personId: personId);
         }
 
         [HttpPost, Route("ModifyAdminDevice")]

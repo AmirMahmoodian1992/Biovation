@@ -30,10 +30,10 @@ namespace Biovation.Server.Controllers.v2
         // and handle searchOfflineLogs with paging or not with  [FromBody]DeviceTraffic dTraffic
         [HttpGet]
         public Task<ResultViewModel<PagingResult<Domain.Log>>> Logs(int id = default, int deviceId = default,
-            int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
+            int userId = default,bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _logService.Logs(id,deviceId,userId,fromDate,toDate,pageNumber,pageSize));
+            return Task.Run(() => _logService.Logs(id,deviceId,userId,successTransfer,fromDate,toDate,pageNumber,pageSize));
         }
 
         [HttpDelete]

@@ -28,9 +28,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDevicesByPersonId(int id = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int id = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceService.GetAdminDevicesByPersonId(id, pageNumber, pageSize));
+            return Task.Run(() => _adminDeviceService.GetAdminDeviceGroupsByUserId(id, pageNumber, pageSize));
         }
 
         [HttpPost]
