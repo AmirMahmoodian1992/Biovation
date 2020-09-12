@@ -37,7 +37,7 @@ namespace Biovation.Repository.SQL.v2
                 };
                 return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: true).FetchFromResultList();
         }
-        public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log)
+        public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log,int nestingDepthLevel= 4)
         {
             return Task.Run(() =>
             {
@@ -53,7 +53,7 @@ namespace Biovation.Repository.SQL.v2
                      new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
             });
         }
         public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate)
@@ -73,7 +73,7 @@ namespace Biovation.Repository.SQL.v2
                 return _repository.ToResultList<ResultViewModel>("InsertLicensePlate", parameters).Data.FirstOrDefault();
             });
         }
-        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
+        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId,int nestingDepthLevel=4)
         {
             var parameters = new List<SqlParameter>
                 {
@@ -81,7 +81,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value = entityId}
                 };
 
-                return _repository.ToResultList<LicensePlate>("SelectLicensePlateByFilter", parameters).FetchFromResultList();
+                return _repository.ToResultList<LicensePlate>("SelectLicensePlateByFilter", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
     }
 }
