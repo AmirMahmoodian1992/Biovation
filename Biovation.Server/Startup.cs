@@ -125,22 +125,22 @@ namespace Biovation.Server
             //services.AddScoped<RestaurantService, RestaurantService>();
             //services.AddScoped<ServeLogService, ServeLogService>();
 
-            //services.AddScoped<AccessGroupService, AccessGroupService>();
-            //services.AddScoped<AdminDeviceService, AdminDeviceService>();
-            //services.AddScoped<BlackListService, BlackListService>();
-            //services.AddScoped<DeviceGroupService, DeviceGroupService>();
-
-            //services.AddScoped<FingerTemplateService, FingerTemplateService>();
-
-
-            //services.AddSingleton<LookupService, LookupService>();
-            //services.AddScoped<PlateDetectionService, PlateDetectionService>();
-
-            //services.AddScoped<TaskService, TaskService>();
-            //services.AddScoped<TimeZoneService, TimeZoneService>();
-            //services.AddScoped<UserCardService, UserCardService>();
-            //services.AddScoped<UserGroupService, UserGroupService>();
-            //services.AddScoped<UserService, UserService>();
+            services.AddScoped<AccessGroupService, AccessGroupService>();
+            services.AddScoped<AdminDeviceService, AdminDeviceService>();
+            services.AddScoped<BlackListService, BlackListService>();
+            services.AddScoped<DeviceGroupService, DeviceGroupService>();
+            services.AddScoped<FingerTemplateService, FingerTemplateService>();
+            services.AddScoped<LookupService, LookupService>();
+            services.AddScoped<PlateDetectionService, PlateDetectionService>();
+            services.AddScoped<TaskService, TaskService>();
+            services.AddScoped<TimeZoneService, TimeZoneService>();
+            services.AddScoped<UserCardService, UserCardService>();
+            services.AddScoped<UserGroupService, UserGroupService>();
+            services.AddScoped<UserService, UserService>();
+            services.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddScoped<SettingService, SettingService>();
+            services.AddScoped<LogService, LogService>();
+            services.AddScoped<DeviceService,DeviceService>();
 
             services.AddScoped<FaceTemplateService,FaceTemplateService>();
             services.AddScoped<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
