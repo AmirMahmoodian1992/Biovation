@@ -140,8 +140,7 @@
     <None Remove="Scripts\03.SPs\0053-Create SelectDeviceDynamicPropertyTypeById-UP.sql" />
     <None Remove="Scripts\03.SPs\0054-Create SelectDeviceDynamicPropertyTypeByName-UP.sql" />
     <None Remove="Scripts\03.SPs\0055-Create SelectDeviceDynamicPropertyValues-UP.sql" />
-    <None Remove="Scripts\03.SPs\0056-Create 
-		  ById-UP.sql" />
+    <None Remove="Scripts\03.SPs\0056-Create &#xD;&#xA;		  ById-UP.sql" />
     <None Remove="Scripts\03.SPs\0057-Create SelectDeviceGroupsByAccessGroupId-UP.sql" />
     <None Remove="Scripts\03.SPs\0058-Create SelectDeviceModelById-UP.sql" />
     <None Remove="Scripts\03.SPs\0059-Create SelectDeviceModelByName-UP.sql" />
@@ -279,6 +278,7 @@
     <None Remove="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
+    <None Remove="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -571,6 +571,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />

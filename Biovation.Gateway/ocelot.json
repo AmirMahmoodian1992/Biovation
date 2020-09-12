@@ -40,7 +40,7 @@
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/commands/{url}",
-      "UpstreamHttpMethod": [ "Get" ],
+      "UpstreamHttpMethod": [ "Post" ,"Patch","Delete","Put"],
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
