@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using RestSharp;
@@ -17,13 +20,14 @@ namespace Biovation.Repository.Api.v2
         }
 
         public ResultViewModel<PagingResult<Domain.Log>> Logs(int id = default, int deviceId = default,
-            int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
+            int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
             int pageSize = default)
         {
             var restRequest = new RestRequest($"Queries/v2/Log", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
+            restRequest.AddQueryParameter("successTransfer", successTransfer.ToString());
             restRequest.AddQueryParameter("fromDate", fromDate.ToString());
             restRequest.AddQueryParameter("toDate", toDate.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
@@ -31,6 +35,76 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Domain.Log>>>(restRequest);
             return requestResult.Result.Data;
         }
+
+        public Task<ResultViewModel> AddLog(Log log)
+        {
+            return Task.Run(() =>
+            {
+
+                var restRequest = new RestRequest($"Queries/v2/Log", Method.GET);
+                restRequest.AddJsonBody(log);
+                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
+                return requestResult.Result.Data;
+            });
+        }
+        public Task<ResultViewModel> AddLog(DataTable logs)
+        {
+            return Task.Run(() =>
+            {
+
+                var restRequest = new RestRequest($"Commands/v2/Log", Method.GET);
+                restRequest.AddJsonBody(logs);
+                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
+                return requestResult.Result.Data;
+            });
+        }
+        
+        public Task<ResultViewModel> UpdateLog(DataTable logs)
+        {
+            return Task.Run(() =>
+            {
+
+                var restRequest = new RestRequest($"Commands/v2/Log", Method.GET);
+                restRequest.AddJsonBody(logs);
+                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
+                return requestResult.Result.Data;
+            });
+        }
+        public Task<ResultViewModel> AddLogImage(Log log)
+        {
+            return Task.Run(() =>
+            {
+
+                var restRequest = new RestRequest($"Commands/v2/Log", Method.GET);
+                restRequest.AddJsonBody(log);
+                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
+                return requestResult.Result.Data;
+            });
+        }
+        
+        public Task<ResultViewModel> UpdateLog(Log log)
+        {
+            return Task.Run(() =>
+            {
+
+                var restRequest = new RestRequest($"Commands/v2/Log", Method.GET);
+                restRequest.AddJsonBody(log);
+                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
+                return requestResult.Result.Data;
+            });
+        }
+        public Task<List<Log>> CheckLogInsertion(List<Log> logs)
+        {
+            return Task.Run(() =>
+            {
+
+                var restRequest = new RestRequest($"Commands/v2/Log", Method.GET);
+                restRequest.AddJsonBody(logs);
+                var requestResult = _restClient.ExecuteAsync<Task<List<Log>>>(restRequest);
+                return requestResult.Result.Data;
+            });
+        }
+
 
 
 

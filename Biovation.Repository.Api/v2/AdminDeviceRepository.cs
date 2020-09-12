@@ -12,15 +12,26 @@ namespace Biovation.Repository.Api.v2
             _restClient = restClient;
         }
 
-        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDevicesByPersonId(int personId,
+        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDeviceGroupsByUserId(int personId,
             int pageNumber = default, int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/AdminDevice/GetAdminDevicesByPersonId/{personId}", Method.GET);
+            var restRequest = new RestRequest($"Queries/v2/AdminDevice/AdminDeviceGroupsByUserId/{personId}", Method.GET);
             restRequest.AddQueryParameter("personId", personId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
            
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel<PagingResult<AdminDevice>> GetAdminDevicesByUserId(int personId,
+            int pageNumber = default, int pageSize = default)
+        {
+            var restRequest = new RestRequest($"Queries/v2/AdminDevice/AdminDevicesByUserId/{personId}", Method.GET);
+            restRequest.AddQueryParameter("personId", personId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+           
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDevice>>>(restRequest);
             return requestResult.Result.Data;
         }
 

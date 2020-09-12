@@ -98,7 +98,7 @@ namespace Biovation.Brands.Virdi.Command
                 _callbacks.ServerUserData.UniqueID = UserObj.Id.ToString();
                 _callbacks.ServerUserData.UserName = userName;
 
-                var adminDevices = _adminDeviceService.GetAdminDevicesByPersonId(personId:UserId);
+                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(personId:UserId);
                 _callbacks.ServerUserData.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId) ? 1 : 0;
 
                 _callbacks.ServerUserData.IsIdentify = UserObj.IsActive ? 1 : 0;

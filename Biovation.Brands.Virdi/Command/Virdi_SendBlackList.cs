@@ -43,7 +43,7 @@ namespace Biovation.Brands.Virdi.Command
             BlackListId = (int)data["BlackListId"];
             UserObj = userService.GetUsers(userId:UserId,withPicture: false)[0];
 
-            var blackList = blackListService.GetActiveBlackList(BlackListId, userid: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
+            var blackList = blackListService.GetBlacklist(BlackListId, userId: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
 
             OnlineDevices = virdiServer.GetOnlineDevices();

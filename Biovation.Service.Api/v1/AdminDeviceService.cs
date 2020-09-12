@@ -14,10 +14,15 @@ namespace Biovation.Service.Api.v1
             _adminDeviceRepository = adminDeviceRepository;
         }
 
-        public List<AdminDeviceGroup> GetAdminDevicesByPersonId(int personId,
+        public List<AdminDevice> GetAdminDevicesByUserId(int personId,
             int pageNumber = default, int pageSize = default)
         {
-            return _adminDeviceRepository.GetAdminDevicesByPersonId(personId, pageNumber, pageSize).Data.Data;
+            return _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize).Data.Data;
+        }
+        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDeviceGroupsByUserId(int personId,
+            int pageNumber = default, int pageSize = default)
+        {
+            return _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize);
         }
 
         public ResultViewModel ModifyAdminDevice(JObject adminDevice = default)

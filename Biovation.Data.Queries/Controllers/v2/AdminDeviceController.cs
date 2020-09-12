@@ -23,16 +23,16 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("GetAdminDeviceGroupsByUserId")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int personId, int pageNumber = default, int PageSize = default)
+        [Route("AdminDeviceGroupsByUserId/{personId}")]
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int personId, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, PageSize));
+            return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize));
         }
         [HttpGet]
-        [Route("GetAdminDevicesByUserId")]
-        public Task<ResultViewModel<PagingResult<AdminDevice>>> GetAdminDevicesByUserId(int personId, int pageNumber = default, int PageSize = default)
+        [Route("AdminDevicesByUserId/{personId}")]
+        public Task<ResultViewModel<PagingResult<AdminDevice>>> GetAdminDevicesByUserId(int personId, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, PageSize));
+            return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize));
         }
 
     }
