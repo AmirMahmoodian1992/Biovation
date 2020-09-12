@@ -19,12 +19,10 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
 
-        //ToDO: why we have get here
-        [HttpGet]
-        [Route("{id}")]
-        public Task<ResultViewModel<TimeZone>> TimeZones(int id = default)
+        [HttpPut]
+        public Task<ResultViewModel>AddTimeZone([FromBody]TimeZone timeZone)
         {
-            return Task.Run(() => _timeZoneRepository.GetTimeZone(id));
+            return Task.Run(() => _timeZoneRepository.AddTimeZone(timeZone));
         }
 
         [HttpPut]

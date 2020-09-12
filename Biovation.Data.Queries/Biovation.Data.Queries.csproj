@@ -279,6 +279,7 @@
     <None Remove="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
+    <None Remove="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -571,6 +572,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />

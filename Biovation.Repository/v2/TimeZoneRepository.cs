@@ -16,6 +16,46 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
+
+        public ResultViewModel AddTimeZone(TimeZone timeZone)
+        {
+
+
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", timeZone.Id),
+                new SqlParameter("@Name", timeZone.Name)
+            };
+
+            var result = _repository.ToResultList<ResultViewModel>("InsertTimeZone", parameters).Data.FirstOrDefault();
+
+            if (result != null && result.Validate == 0)
+            {
+                return result;
+            }
+
+            foreach (var timeZoneDetail in timeZone.Details)
+            {
+                parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", timeZoneDetail.Id),
+                new SqlParameter("@DayNumber", timeZoneDetail.DayNumber),
+                new SqlParameter("@FromTime", timeZoneDetail.FromTime),
+                new SqlParameter("@ToTime", timeZoneDetail.ToTime)
+            };
+
+                result = _repository.ToResultList<ResultViewModel>("ModifyTimeZoneDetail", parameters).Data.FirstOrDefault();
+
+                if (result != null && result.Validate == 0)
+                {
+                    return result;
+                }
+            }
+
+            return result;
+        }
+
+
         /// <summary>
         /// <En>Get the device info from database.</En>
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
