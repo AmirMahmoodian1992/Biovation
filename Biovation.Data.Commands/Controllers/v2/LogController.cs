@@ -19,34 +19,44 @@ namespace Biovation.Data.Commands.Controllers.v2
             _logRepository = logRepository;
         }
 
-        public Task<ResultViewModel> AddLog(Log log)
+        [HttpPost]
+        [Route("AddLog")]
+        public Task<ResultViewModel> AddLog([FromBody]Log log)
         {
             return Task.Run(() => _logRepository.AddLog(log));
         }
 
-        public Task<ResultViewModel> AddLog(DataTable logs)
+        [HttpPost]
+        [Route("AddLogBulk")]
+        public Task<ResultViewModel> AddLog([FromBody]DataTable logs)
         {
             return Task.Run(() => _logRepository.AddLog(logs));
         }
 
-        public Task<ResultViewModel> UpdateLog(DataTable logs)
+        [HttpPut]
+        [Route("UpdateLog")]
+        public Task<ResultViewModel> UpdateLog([FromBody]DataTable logs)
         {
             return Task.Run(() => _logRepository.UpdateLog(logs));
         }
-
-        public Task<ResultViewModel> AddLogImage(Log log)
+        [HttpPatch]
+        [Route("AddLogImage")]
+        public Task<ResultViewModel> AddLogImage([FromBody]Log log)
         {
             return Task.Run(() => _logRepository.AddLogImage(log));
         }
 
-        public Task<ResultViewModel> UpdateLog(Log log)
+        [HttpPut]
+        [Route("UpdateLog")]
+        public Task<ResultViewModel> UpdateLog([FromBody]Log log)
         {
             return Task.Run(() => _logRepository.UpdateLog(log));
         }
 
-        public Task<List<Log>> CheckLogInsertion(List<Log> logs)
+        [HttpPut]
+        [Route("CheckLogInsertion")]
+        public Task<List<Log>> CheckLogInsertion([FromBody]List<Log> logs)
         {
-
             return Task.Run(() => _logRepository.CheckLogInsertion(logs));
         }
     }
