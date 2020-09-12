@@ -75,7 +75,7 @@ namespace Biovation.Repository.SQL.v2
 
                 };
                 return _repository.ToResultList<PagingResult<User>>("SelectUsersByFilter", parameters, fetchCompositions: true,
-                    compositionDepthLevel: 2).FetchFromResultList();
+                    compositionDepthLevel: 5).FetchFromResultList();
             });
         }
 
@@ -171,7 +171,7 @@ namespace Biovation.Repository.SQL.v2
             return result;
         }
 
-        public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(long userId)
+        public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(long userId,int nestingDepthLevel = 4)
         {
             return Task.Run(() =>
             {
@@ -180,7 +180,7 @@ namespace Biovation.Repository.SQL.v2
                     new SqlParameter("@UserId", userId)
                 };
 
-                return _repository.ToResultList<DeviceBasicInfo>("SelectAuthorizedDevicesOfUser", parameters).FetchResultList();
+                return _repository.ToResultList<DeviceBasicInfo>("SelectAuthorizedDevicesOfUser", parameters, fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).FetchResultList();
             });
         }
     }
