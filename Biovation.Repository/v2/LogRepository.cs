@@ -197,24 +197,59 @@ namespace Biovation.Repository.SQL.v2
             });
         }
 
-        //TODO
-        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default,
-            DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default)
+        public Task<List<Log>> Logs(DeviceTraffic deviceTraffic)
         {
-            var parameters = new List<SqlParameter>
+            return Task.Run(() =>
             {
-                new SqlParameter("@Id", SqlDbType.BigInt) {Value = id},
-                new SqlParameter("@DeviceId", SqlDbType.BigInt) { Value = deviceId },
-                new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
-                new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate},
-                new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate},
-                new SqlParameter("@PageNumber", SqlDbType.Int) { Value = pageNumber },
-                new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize }
+                try
+                {
+                    var parameters = new List<SqlParameter>
+                    {
+                        new SqlParameter("@UserId", deviceTraffic.UserId),
+                        new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceTraffic.DeviceId},
+                        new SqlParameter("@FromDate", deviceTraffic.FromDate),
+                        new SqlParameter("@ToDate", deviceTraffic.ToDate),
+                        new SqlParameter("@PageNumber", deviceTraffic.PageNumber),
+                        new SqlParameter("@PageSize", deviceTraffic.PageSize),
+                        new SqlParameter("@Where", deviceTraffic.Where),
+                        new SqlParameter("@Order", deviceTraffic.Order),
+                        new SqlParameter("@AdminUserId", deviceTraffic.OnlineUserId),
+                        new SqlParameter("@State", deviceTraffic.State)
+                    };
 
-            };
-
-            return _repository.ToResultList<PagingResult<Log>>("GetLog", parameters, fetchCompositions: true).FetchFromResultList();
-
+                    return _repository.ToResultList<Log>("SelectSearchedOfflineLogsWithPaging", parameters,
+                        fetchCompositions: true).Data;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new List<Log>();
+                }
+            });
         }
+
+        //TODO
+        /* public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default,
+             DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default)
+         {
+             var parameters = new List<SqlParameter>
+             {
+                 new SqlParameter("@Id", SqlDbType.BigInt) {Value = id},
+                 new SqlParameter("@DeviceId", SqlDbType.BigInt) { Value = deviceId },
+                 new SqlParameter("@UserId", SqlDbType.Int) { Value = userId },
+                 new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate},
+                 new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate},
+                 new SqlParameter("@PageNumber", SqlDbType.Int) { Value = pageNumber },
+                 new SqlParameter("@PageSize", SqlDbType.Int) { Value = pageSize }
+
+             };
+
+
+
+             return _repository.ToResultList<PagingResult<Log>>("GetLog", parameters, fetchCompositions: true).FetchFromResultList();
+
+         }*/
+
+
     }
 }
