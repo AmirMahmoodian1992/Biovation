@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -26,17 +27,15 @@ namespace Biovation.Data.Queries.Controllers.v2
         }*/
 
         [HttpGet]
-        public ResultViewModel<PagingResult<Log>> Logs(DeviceTraffic deviceTraffic)
+        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default, string order = default, long onlineUserId = default, bool successTransfer = default)
         {
 
-            var logResult = _logRepository.Logs(deviceTraffic).Result;
+            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize,where,order,onlineUserId,successTransfer).Result;
             var result = new PagingResult<Log>
             {
                 Data = logResult,
                 Count = logResult.Count
-
             };
-
 
             return new ResultViewModel<PagingResult<Log>>
             {

@@ -197,7 +197,7 @@ namespace Biovation.Repository.SQL.v2
             });
         }
 
-        public Task<List<Log>> Logs(DeviceTraffic deviceTraffic)
+        public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default,string where=default ,string order = default,long onlineUserId=default ,bool successTransfer =default)
         {
             return Task.Run(() =>
             {
@@ -205,16 +205,16 @@ namespace Biovation.Repository.SQL.v2
                 {
                     var parameters = new List<SqlParameter>
                     {
-                        new SqlParameter("@UserId", deviceTraffic.UserId),
-                        new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceTraffic.DeviceId},
-                        new SqlParameter("@FromDate", deviceTraffic.FromDate),
-                        new SqlParameter("@ToDate", deviceTraffic.ToDate),
-                        new SqlParameter("@PageNumber", deviceTraffic.PageNumber),
-                        new SqlParameter("@PageSize", deviceTraffic.PageSize),
-                        new SqlParameter("@Where", deviceTraffic.Where),
-                        new SqlParameter("@Order", deviceTraffic.Order),
-                        new SqlParameter("@AdminUserId", deviceTraffic.OnlineUserId),
-                        new SqlParameter("@State", deviceTraffic.State)
+                        new SqlParameter("@UserId", userId),
+                        new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceId},
+                        new SqlParameter("@FromDate",fromDate),
+                        new SqlParameter("@ToDate",toDate),
+                        new SqlParameter("@PageNumber", pageNumber),
+                        new SqlParameter("@PageSize", pageSize),
+                        new SqlParameter("@Where", where),
+                        new SqlParameter("@Order",order),
+                        new SqlParameter("@AdminUserId",onlineUserId),
+                        new SqlParameter("@State", successTransfer)
                     };
 
                     return _repository.ToResultList<Log>("SelectSearchedOfflineLogsWithPaging", parameters,
