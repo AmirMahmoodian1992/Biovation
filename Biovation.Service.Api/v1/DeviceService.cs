@@ -56,7 +56,7 @@ namespace Biovation.Service.Api.v1
             int pageNumber = default, int pageSize = default)
 
         {
-            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize).Data;
+            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize).Data.Data;
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default)

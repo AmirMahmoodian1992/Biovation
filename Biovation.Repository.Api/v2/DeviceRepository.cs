@@ -81,7 +81,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public PagingResult<Lookup> GetDeviceBrands(int code = default, string name = default,
+        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default)
 
         {
@@ -90,7 +90,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            var requestResult = _restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
             return requestResult.Result.Data;
         }
 
