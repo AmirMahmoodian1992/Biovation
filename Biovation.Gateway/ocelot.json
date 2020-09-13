@@ -49,7 +49,7 @@
       ]
     },
     {
-      "DownstreamPathTemplate": "/biovation/api/FingerTemplate/{url}",
+      "DownstreamPathTemplate": "/biovation/api/v1/FingerTemplate/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/Finger/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
@@ -61,7 +61,19 @@
       ]
     },
     {
-      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamPathTemplate": "/biovation/api/v2/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/v2/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9020
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/v1/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
