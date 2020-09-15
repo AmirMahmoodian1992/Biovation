@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace Biovation.Dashboard
 {
@@ -14,6 +9,11 @@ namespace Biovation.Dashboard
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
+            PerformanceCounter cpuCounter;
+            PerformanceCounter ramCounter;
+
+            cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
