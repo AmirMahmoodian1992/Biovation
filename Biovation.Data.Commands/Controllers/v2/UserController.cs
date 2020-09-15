@@ -19,13 +19,12 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             
         //todo:add user
-        /*[HttpPost] 
+        [HttpPost] 
         [Route("AddUser")]
-        public Task<IActionResult> AddUser([FromBody] User user)
+        public Task<ResultViewModel> AddUser([FromBody] User user)
         {
-            /* return Task.Run(() => _userRepository.());*/
-         /*   throw null;
-        }*/
+            return Task.Run(() => _userRepository.AddUser(user));
+        }
 
         [HttpPut]
         public Task<ResultViewModel> ModifyUser([FromBody] User user)

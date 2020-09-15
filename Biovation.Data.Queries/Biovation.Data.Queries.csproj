@@ -282,6 +282,7 @@
     <None Remove="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
     <None Remove="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
     <None Remove="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
+    <None Remove="Scripts\03.SPs\0198-Create AddUser-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -574,6 +575,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0198-Create AddUser-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />

@@ -25,6 +25,32 @@ namespace Biovation.Repository.SQL.v2
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
+        /// 
+
+        public ResultViewModel AddUser(User user)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", user.Id),
+                new SqlParameter("@FName", user.FirstName),
+                new SqlParameter("@LName", user.SurName),
+                new SqlParameter("@Password", user.Password),
+                new SqlParameter("@Active", user.IsActive),
+                new SqlParameter("@Type", user.Type),
+                new SqlParameter("@AdminLevel", user.AdminLevel),
+                new SqlParameter("@AuthMode", user.AuthMode),
+                new SqlParameter("@EDate", user.EndDate),
+                new SqlParameter("@SDate", user.StartDate),
+                new SqlParameter("@Email", user.Email),
+                new SqlParameter("@TelNumber", user.TelNumber),
+                new SqlParameter("@Image", user.Image),
+                new SqlParameter("@EntityId", user.EntityId),
+                new SqlParameter("@IsAdmin", user.IsAdmin),
+            };
+
+            return _repository.ToResultList<ResultViewModel>("InsertUser", parameters).Data.FirstOrDefault();
+        }
+
         public ResultViewModel ModifyUser(User user)
         {
             var parameters = new List<SqlParameter>
