@@ -20,7 +20,7 @@ namespace Biovation.Service.Api.v2
             int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
             int pageSize = default)
         {
-            return _logRepository.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize);
+            return _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer:successTransfer);
         }
 
         public Task<ResultViewModel> AddLog(Log log)

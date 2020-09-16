@@ -75,22 +75,22 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<DateTime> GetLastConnectedTime(uint id)
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/GetBioAuthModeWithDeviceId", Method.GET);
+            var restRequest = new RestRequest($"Queries/v2/Device/LastConnectedTime", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<DateTime>>(restRequest);
             return requestResult.Result.Data;
         }
 
-        public PagingResult<Lookup> GetDeviceBrands(int code = default, string name = default,
+        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default)
 
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/GetBioAuthModeWithDeviceId", Method.GET);
+            var restRequest = new RestRequest($"Queries/v2/Device/DeviceBrands", Method.GET);
             restRequest.AddQueryParameter("code", code.ToString());
-            restRequest.AddQueryParameter("name", name);
+            restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            var requestResult = _restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
             return requestResult.Result.Data;
         }
 
@@ -123,7 +123,7 @@ namespace Biovation.Repository.Api.v2
         }
          public ResultViewModel ModifyDevice( DeviceBasicInfo device)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device/", Method.PUT);
+            var restRequest = new RestRequest($"Commands/v2/Device", Method.PUT);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;

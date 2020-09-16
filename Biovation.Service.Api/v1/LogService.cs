@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -25,12 +26,26 @@ namespace Biovation.Service.Api.v1
             _logExternalSubmissionRestClient = (RestClient)new RestClient(BiovationConfigurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
         }
 
-        public Task<List<Log>> Logs(int id = default, int deviceId = default,
-            int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
-            int pageSize = default)
+        public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
+            DateTime? toDate = null, int pageNumber = default, int pageSize = default, bool successTransfer = default)
         {
-            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize).Data.Data);
+            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer:successTransfer).Data.Data);
         }
+
+        public Task<List<Log>> Logs(DeviceTraffic dTraffic)
+        {
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize,dTraffic.Where,dTraffic.Order,dTraffic.OnlineUserId, dTraffic.State.Value).Data.Data);
+        }
+
+        public Task<List<Log>> SelectSearchedOfflineLogs(DeviceTraffic dTraffic)
+        {
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State.Value).Data.Data);
+        }
+        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic dTraffic)
+        {
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State.Value).Data.Data);
+        }
+
 
         public Task<ResultViewModel> AddLog(Log log)
         {
@@ -176,5 +191,18 @@ namespace Biovation.Service.Api.v1
         {
             return Task.Run(() => _logRepository.CheckLogInsertion(logs));
         }
+
+        public Task<byte[]> GetImage(long id)
+        {
+            return Task.Run( () =>
+            {
+                var log =  Logs(((int)id)).Result.FirstOrDefault();
+                if (log == null || string.IsNullOrEmpty(log.Image)) return new byte[0];
+                var path = log.Image;
+                var bytes = File.ReadAllBytes(path);
+                return bytes;
+            });
+        }
     }
+
 }

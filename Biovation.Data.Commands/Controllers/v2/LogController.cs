@@ -46,6 +46,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _logRepository.AddLogImage(log));
         }
 
+
         [HttpPut]
         [Route("UpdateLog")]
         public Task<ResultViewModel> UpdateLog([FromBody]Log log)

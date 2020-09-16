@@ -16,11 +16,19 @@ namespace Biovation.Data.Commands.Controllers.v2
             _fingerTemplateRepository = fingerTemplateRepository;
         }
 
+
+        [HttpPost]
+        public Task<ResultViewModel> AddFingerTemplate([FromBody]FingerTemplate fingerTemplate)
+        {
+            return Task.Run(() => _fingerTemplateRepository.AddFingerTemplate(fingerTemplate));
+        }
+
         [HttpPatch]
         public Task<ResultViewModel> ModifyFingerTemplate([FromBody]FingerTemplate fingerTemplate)
         {
             return Task.Run(() => _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate));
         }
+
         [HttpDelete]
         [Route("{userId}")]
         public Task<ResultViewModel> DeleteFingerTemplate(int userId, int fingerIndex)

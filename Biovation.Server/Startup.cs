@@ -113,7 +113,7 @@ namespace Biovation.Server
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
-            
+
 
 
 
@@ -125,22 +125,27 @@ namespace Biovation.Server
             //services.AddScoped<RestaurantService, RestaurantService>();
             //services.AddScoped<ServeLogService, ServeLogService>();
 
-            //services.AddScoped<AccessGroupService, AccessGroupService>();
-            //services.AddScoped<AdminDeviceService, AdminDeviceService>();
-            //services.AddScoped<BlackListService, BlackListService>();
-            //services.AddScoped<DeviceGroupService, DeviceGroupService>();
-            services.AddScoped<FaceTemplateService, FaceTemplateService>();
-            //services.AddScoped<FingerTemplateService, FingerTemplateService>();
-            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
-            services.AddScoped<LogService, LogService>();
-            //services.AddSingleton<LookupService, LookupService>();
-            //services.AddScoped<PlateDetectionService, PlateDetectionService>();
+            services.AddScoped<AccessGroupService, AccessGroupService>();
+            services.AddScoped<AdminDeviceService, AdminDeviceService>();
+            services.AddScoped<BlackListService, BlackListService>();
+            services.AddScoped<DeviceGroupService, DeviceGroupService>();
+            services.AddScoped<FingerTemplateService, FingerTemplateService>();
+            services.AddScoped<LookupService, LookupService>();
+            services.AddScoped<PlateDetectionService, PlateDetectionService>();
+            services.AddScoped<TaskService, TaskService>();
+            services.AddScoped<TimeZoneService, TimeZoneService>();
+            services.AddScoped<UserCardService, UserCardService>();
+            services.AddScoped<UserGroupService, UserGroupService>();
+            services.AddScoped<UserService, UserService>();
+            services.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddScoped<SettingService, SettingService>();
-            //services.AddScoped<TaskService, TaskService>();
-            //services.AddScoped<TimeZoneService, TimeZoneService>();
-            //services.AddScoped<UserCardService, UserCardService>();
-            //services.AddScoped<UserGroupService, UserGroupService>();
-            //services.AddScoped<UserService, UserService>();
+            services.AddScoped<LogService, LogService>();
+            services.AddScoped<DeviceService,DeviceService>();
+
+            services.AddScoped<FaceTemplateService,FaceTemplateService>();
+            services.AddScoped<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
+            services.AddScoped<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
+            services.AddScoped<Service.Api.v2.LogService, Service.Api.v2.LogService>();
             services.AddScoped<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
             services.AddScoped<Service.Api.v2.UserService, Service.Api.v2.UserService>();
             services.AddScoped<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();

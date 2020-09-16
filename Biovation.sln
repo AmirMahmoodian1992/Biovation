@@ -33,9 +33,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Service.Sql", "Bi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Constants", "Biovation.Constants\Biovation.Constants.csproj", "{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Repository.Api", "Biovation.Repository.Api\Biovation.Repository.Api.csproj", "{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Repository.Api", "Biovation.Repository.Api\Biovation.Repository.Api.csproj", "{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Service.Api", "Biovation.Service.Api\Biovation.Service.Api.csproj", "{46399C38-9FFA-41CE-B99D-D73635412C58}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Service.Api", "Biovation.Service.Api\Biovation.Service.Api.csproj", "{46399C38-9FFA-41CE-B99D-D73635412C58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -24,13 +24,13 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isactive, pageNumber, pageSize));
         }
 
-        //todo:add?
-        /*
+        
+        
         [HttpPost]
-         public Task<IActionResult> AddUserCard([FromBody]UserCard card = default)
+         public Task<ResultViewModel> AddUserCard([FromBody]UserCard card = default)
          {
              return Task.Run(() => _userCardRepository.AddUserCard(card));
-         }*/
+         }
 
         [HttpPut]
         public Task<ResultViewModel> ModifyUserCard([FromBody]UserCard card = default)
