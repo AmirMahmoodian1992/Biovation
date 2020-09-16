@@ -27,10 +27,8 @@ namespace Biovation.Server.Controllers.v2
         }
 
 
-        //TODO compatible with paging(az yaser bepors)
         //TODO loaded brand
         [HttpGet]
-        [Route("{id?}")]
         public Task<List<DeviceBasicInfo>> Devices(/*long id = 0,*/ long adminUserId = 0, int groupId = 0, uint code = 0,
             int brandId = 0, string name = null, int modelId = 0, int typeId = 0)
         {

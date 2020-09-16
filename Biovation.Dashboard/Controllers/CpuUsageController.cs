@@ -8,10 +8,10 @@ using System.Threading;
 namespace Biovation.Dashboard.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Microsoft.AspNetCore.Mvc.Route("[controller]")]
     public class CpuUsageController : ControllerBase
     {
-   
+
 
         private readonly ILogger<CpuUsageController> _logger;
 
@@ -22,7 +22,7 @@ namespace Biovation.Dashboard.Controllers
 
         [HttpGet]
         public IEnumerable<List<CpuUsage>> Get()
-        {      
+        {
             SaveData();
             var devicesCount = 3;
             var cpuUsage = new List<CpuUsage>();
@@ -39,9 +39,11 @@ namespace Biovation.Dashboard.Controllers
                 cpuUsage.Add(cp);
             }
 
-           
+
             yield return cpuUsage;
         }
+
+
 
 
         private double GetCpuUsageForProcess()
@@ -59,17 +61,17 @@ namespace Biovation.Dashboard.Controllers
             return cpuUsageTotal * 100;
         }
 
-   
 
 
 
-        public StackExchange.Redis.RedisValue ReadData(int i )
+
+        public StackExchange.Redis.RedisValue ReadData(int i)
         {
             var cache = RedisConnectorHelper.Connection.GetDatabase();
-            
-           
-            var value = cache.StringGet($"Device_Cpu:{i}");            
-            
+
+
+            var value = cache.StringGet($"Device_Cpu:{i}");
+
             return value;
         }
 
@@ -81,13 +83,13 @@ namespace Biovation.Dashboard.Controllers
 
             for (int i = 1; i < devicesCount; i++)
             {
-                
+
                 var currentProcessName = Process.GetCurrentProcess().ProcessName;
                 var cpuCounter = new PerformanceCounter("Process", "% Processor Time", currentProcessName);
                 cpuCounter.NextValue();
 
                 var percent = (int)cpuCounter.NextValue();
-                
+
 
                 var rng = new Random();
                 double cpuPercentage = GetCpuUsageForProcess();
