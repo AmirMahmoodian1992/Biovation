@@ -1,10 +1,11 @@
-﻿using Biovation.CommonClasses;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -17,6 +18,25 @@ namespace Biovation.Server.Controllers.v1
         public TaskController(TaskService taskService)
         {
             _taskService = taskService;
+        }
+
+        [HttpGet]
+        [Route("Tasks")]
+        public Task<List<TaskInfo>> Tasks(int taskId = default, string brandCode = default,
+            int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
+            string excludedTaskStatusCodes = default, int pageNumber = default,
+            int pageSize = default)
+        {
+            return _taskService.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                excludedTaskStatusCodes, pageNumber, pageSize);
+        }
+
+
+        [HttpGet]
+        [Route("TaskItems")]
+        public Task<TaskItem> TaskItems(int taskItemId = default)
+        {
+            return Task.Run(() => _taskService.GetTaskItem(taskItemId));
         }
 
         [HttpPatch]

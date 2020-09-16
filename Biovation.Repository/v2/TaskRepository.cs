@@ -22,8 +22,7 @@ namespace Biovation.Repository.SQL.v2
 
 
 
-        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default,int pageNumber = default,
-        int pageSize = default)
+        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -32,13 +31,12 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@deviceId", deviceId),
                 new SqlParameter("@taskTypeCode", taskTypeCode),
                 new SqlParameter("@taskStatusCodes", taskStatusCodes),
-                new SqlParameter("@excludedTaskStatusCodes", excludedTaskStatusCodes),
-                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
+                new SqlParameter("@excludedTaskStatusCodes", excludedTaskStatusCodes)
             };
 
-            return _repository.ToResultList<PagingResult<TaskInfo>>("SelectTasks", parameters, fetchCompositions: true, compositionDepthLevel: 3).FetchFromResultList();
+            return _repository.ToResultList<TaskInfo>("SelectTasks", parameters, fetchCompositions: true, compositionDepthLevel: 3).Data;
         }
+
 
         public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default)
         {
