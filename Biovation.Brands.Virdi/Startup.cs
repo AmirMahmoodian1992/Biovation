@@ -19,8 +19,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Ninject;
+using RestSharp;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
+
 
 namespace Biovation.Brands.Virdi
 {
@@ -76,6 +78,9 @@ namespace Biovation.Brands.Virdi
 
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
+
+            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            services.AddSingleton(restClient);
 
             services.AddScoped<GenericRepository, GenericRepository>();
             services.AddScoped<AccessGroupService, AccessGroupService>();
@@ -157,12 +162,12 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton(UCBioApiExport);
             services.AddSingleton(OnlineDevices);
             services.AddSingleton<Virdi, Virdi>();
-            services.AddSingleton<Callbacks, Callbacks>();
-            services.AddSingleton<VirdiServer, VirdiServer>();
-            services.AddSingleton<TaskManager, TaskManager>();
-            services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
+            services.AddScoped<Callbacks, Callbacks>();
+            services.AddScoped<VirdiServer, VirdiServer>();
+            services.AddScoped<TaskManager, TaskManager>();
+            services.AddScoped<VirdiCodeMappings, VirdiCodeMappings>();
             
-            services.AddSingleton<CommandFactory, CommandFactory>();
+            services.AddScoped<CommandFactory, CommandFactory>();
 
             UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
 
