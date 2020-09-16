@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -12,6 +6,12 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -43,19 +43,19 @@ namespace Biovation.Server.Controllers.v1
         [Route("Logs")]
         public Task<List<Log>> LogsWithDate(DateTime fromDate, DateTime toDate)
         {
-            return _commonLogService.Logs(fromDate:fromDate, toDate:toDate);
+            return _commonLogService.Logs(fromDate: fromDate, toDate: toDate);
         }
 
         [HttpPost]
         [Route("SelectSearchedOfflineLogs")]
-        public Task<List<Log>> SelectSearchedOfflineLogs([FromBody]DeviceTraffic dTraffic)
+        public Task<List<Log>> SelectSearchedOfflineLogs([FromBody] DeviceTraffic dTraffic)
         {
             return _commonLogService.SelectSearchedOfflineLogs(dTraffic);
         }
 
         [HttpPost]
         [Route("SelectSearchedOfflineLogsWithPaging")]
-        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging([FromBody]DeviceTraffic dTraffic)
+        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging([FromBody] DeviceTraffic dTraffic)
         {
             //return _commonLogService.SelectSearchedOfflineLogs(dTraffic);
             return _commonLogService.SelectSearchedOfflineLogsWithPaging(dTraffic);
@@ -67,7 +67,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var creatorUser = _userService.GetUsers(userId:123456789, withPicture:false).FirstOrDefault();
+                var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false).FirstOrDefault();
 
                 var task = new TaskInfo
                 {
@@ -85,7 +85,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
 
-                var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //_communicationManager.CallRest(
                 //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
                 //    $"{device.Code}");
@@ -106,7 +106,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddQueryParameter("fromDate", fromDate.ToString(CultureInfo.InvariantCulture));
                 restRequest.AddQueryParameter("toDate", toDate.ToString(CultureInfo.InvariantCulture));
 
-                var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
                 //        _communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Post", null,
                 //JsonConvert.SerializeObject(parameters));
@@ -128,7 +128,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("OfflineLogsOfDevice")]
         public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime fromDate, DateTime toDate)
         {
-            return _commonLogService.Logs(deviceId:(int)deviceId, fromDate:fromDate, toDate:toDate);
+            return _commonLogService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate);
         }
 
         [HttpGet]
@@ -153,14 +153,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("LogsOfUser")]
         public Task<List<Log>> LogsOfUser(int userId)
         {
-            return _commonLogService.Logs(userId:userId);
+            return _commonLogService.Logs(userId: userId);
         }
 
         [HttpGet]
         [Route("LogsOfUser")]
         public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime fromDate, DateTime toDate)
         {
-            return _commonLogService.Logs(userId:userId, fromDate:fromDate, toDate:toDate);
+            return _commonLogService.Logs(userId: userId, fromDate: fromDate, toDate: toDate);
         }
 
         [HttpPost]
@@ -238,7 +238,7 @@ namespace Biovation.Server.Controllers.v1
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
 
-                        var restResult = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         //var address = _localBioAddress +
                         //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";

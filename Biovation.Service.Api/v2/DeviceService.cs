@@ -25,10 +25,10 @@ namespace Biovation.Service.Api.v2
         //}
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = default,
             int deviceGroupId = default, uint code = default, int brandId = default, string deviceName = null,
-            int deviceModelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
+            int deviceModelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default)
         {
             return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
-                typeId, pageNumber, pageSize);
+                deviceIoTypeId, pageNumber, pageSize);
         }
 
         public ResultViewModel<DeviceBasicInfo> GetDevice(long id = default, long adminUserId = default)

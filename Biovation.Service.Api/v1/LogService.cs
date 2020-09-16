@@ -107,7 +107,7 @@ namespace Biovation.Service.Api.v1
                             var restRequest = new RestRequest("UpdateAttendance/UpdateAttendanceBulk", Method.POST, DataFormat.Json);
                             restRequest.AddJsonBody(shortenedLogList);
 
-                            var result = await _logExternalSubmissionRestClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
                             //var data = JsonConvert.SerializeObject(shortenedLogList);
                             //var result = _communicationManagerAtt.CallRest(
                             //    "/api/Biovation/UpdateAttendance/UpdateAttendanceBulk", "Post", null, data);

@@ -14,8 +14,8 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<TimeZone> TimeZones(int id = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/TimeZone/{id}", Method.GET);
-            restRequest.AddQueryParameter("id", id.ToString());
+            var restRequest = new RestRequest("Queries/v2/TimeZone/{id}", Method.GET);
+            restRequest.AddUrlSegment("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<TimeZone>>(restRequest);
             return requestResult.Result.Data;
         }
@@ -36,11 +36,10 @@ namespace Biovation.Repository.Api.v2
         }
         public ResultViewModel DeleteTimeZone(int id)
         {
-            var restRequest = new RestRequest($"Commands/v2/TimeZone/{id}", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/TimeZone/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-
-
     }
 }

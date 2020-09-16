@@ -17,7 +17,7 @@ namespace Biovation.Repository.Api.v2
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/User/Users", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
             restRequest.AddQueryParameter("onlineId", onlineId.ToString());
             restRequest.AddQueryParameter("from", from.ToString());
             restRequest.AddQueryParameter("size", size.ToString());
@@ -36,7 +36,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
         {
 
-            var restRequest = new RestRequest($"Queries/v2/User/Users", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
@@ -45,40 +45,41 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<int> GetUsersCount()
         {
-            var restRequest = new RestRequest($"Queries/v2/User/UsersCount", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/User/UsersCount", Method.GET);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<int>>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel<List<DeviceBasicInfo>> GetAuthorizedDevicesOfUser(int userId)
         {
-            var restRequest = new RestRequest($"Queries/v2/User/AuthorizedDevicesOfUser", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/User/AuthorizedDevicesOfUser", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<DeviceBasicInfo>>>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel ModifyUser(User user)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/User", Method.PUT);
             restRequest.AddJsonBody(user);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel DeleteUser(int id = default)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/{id}", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/User/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel DeleteUsers(List<int> ids)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/DeleteUsers", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/User/DeleteUsers", Method.POST);
             restRequest.AddJsonBody(ids);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel DeleteUserGroupsOfUser(int userId, int userTypeId = 1)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/UserGroupsOfUser", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/User/UserGroupsOfUser", Method.DELETE);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("userTypeId", userTypeId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -86,7 +87,7 @@ namespace Biovation.Repository.Api.v2
         }
         public ResultViewModel DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/UserGroupOfUser", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/User/UserGroupOfUser", Method.DELETE);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             restRequest.AddQueryParameter("userTypeId", userTypeId.ToString());
@@ -95,7 +96,8 @@ namespace Biovation.Repository.Api.v2
         }
         public ResultViewModel ModifyPassword(int id = default, string password = default)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/Password/{id}", Method.PATCH);
+            var restRequest = new RestRequest("Commands/v2/User/Password/{id}", Method.PATCH);
+            restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("password", password ?? string.Empty);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;

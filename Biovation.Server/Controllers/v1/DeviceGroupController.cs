@@ -38,7 +38,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ModifyDeviceGroup")]
-        public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
+        public Task<ResultViewModel> ModifyDeviceGroup([FromBody] DeviceGroup deviceGroup)
         {
             return Task.Run(async () =>
             {
@@ -130,7 +130,7 @@ namespace Biovation.Server.Controllers.v1
                                 deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                                 deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Id));
                                 /*var deletionResult =*/
-                                await _restClient.ExecuteTaskAsync<ResultViewModel>(deleteUserRestRequest);
+                                await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
                             });
                         }
 
@@ -157,7 +157,7 @@ namespace Biovation.Server.Controllers.v1
                                 sendUserRestRequest.AddQueryParameter("userId",
                                     JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
                                 /*var additionResult =*/
-                                await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(sendUserRestRequest);
+                                await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
                             });
                         }
                     }

@@ -19,7 +19,7 @@ namespace Biovation.Repository.Api.v2
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default,
             string order = default, long onlineUserId = default, bool? successTransfer = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/Log", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/Log", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
@@ -40,7 +40,7 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest($"Queries/v2/Log/AddLog", Method.POST);
+                var restRequest = new RestRequest("Queries/v2/Log/AddLog", Method.POST);
                 restRequest.AddJsonBody(log);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
@@ -51,7 +51,7 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest($"Commands/v2/Log/AddLogBulk", Method.POST);
+                var restRequest = new RestRequest("Commands/v2/Log/AddLogBulk", Method.POST);
                 restRequest.AddJsonBody(logs);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
@@ -63,7 +63,7 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest($"Commands/v2/Log/UpdateLog", Method.PUT);
+                var restRequest = new RestRequest("Commands/v2/Log/UpdateLog", Method.PUT);
                 restRequest.AddJsonBody(logs);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
@@ -74,7 +74,7 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest($"Commands/v2/Log/AddLogImage", Method.PATCH);
+                var restRequest = new RestRequest("Commands/v2/Log/AddLogImage", Method.PATCH);
                 restRequest.AddJsonBody(log);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
@@ -86,7 +86,7 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest($"Commands/v2/Log/UpdateLog", Method.PUT);
+                var restRequest = new RestRequest("Commands/v2/Log/UpdateLog", Method.PUT);
                 restRequest.AddJsonBody(log);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
@@ -97,7 +97,7 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest($"Commands/v2/Log/CheckLogInsertion", Method.PUT);
+                var restRequest = new RestRequest("Commands/v2/Log/CheckLogInsertion", Method.PUT);
                 restRequest.AddJsonBody(logs);
                 var requestResult = _restClient.ExecuteAsync<Task<List<Log>>>(restRequest);
                 return requestResult.Result.Data;

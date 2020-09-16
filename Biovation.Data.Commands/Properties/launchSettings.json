@@ -19,12 +19,12 @@
   //  },
     "Biovation.Data.Commands": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "",
+      //"launchBrowser": true,
+      //"launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:9042;http://localhost:9043"
+      "applicationUrl": "http://localhost:9042;https://localhost:9043"
     },
     "Docker": {
       "commandName": "Docker",

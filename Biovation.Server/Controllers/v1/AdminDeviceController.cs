@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -16,7 +14,7 @@ namespace Biovation.Server.Controllers.v1
 
         private readonly AdminDeviceService _adminDeviceService;
 
-        public AdminDeviceController(AdminDeviceService adminDeviceService)
+        public AdminDeviceController([FromBody] AdminDeviceService adminDeviceService)
         {
             _adminDeviceService = adminDeviceService;
         }

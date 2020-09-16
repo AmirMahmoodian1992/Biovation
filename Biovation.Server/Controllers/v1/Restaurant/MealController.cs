@@ -123,7 +123,7 @@
 //                        if (mealIds != null)
 //                            restRequest.AddJsonBody(mealIds);
 
-//                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 //                        lock (results)
 //                        {
 //                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -163,7 +163,7 @@
 //                        if (mealIds != null)
 //                            restRequest.AddJsonBody(mealIds);
 
-//                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 //                        lock (results)
 //                        {
 //                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -203,7 +203,7 @@
 //                        if (mealTimingIds != null)
 //                            restRequest.AddJsonBody(mealTimingIds);
 
-//                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 //                        lock (results)
 //                        {
 //                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -243,7 +243,7 @@
 //                        if (mealTimingIds != null)
 //                            restRequest.AddJsonBody(mealTimingIds);
 
-//                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 //                        lock (results)
 //                        {
 //                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
@@ -10,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -35,9 +35,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<List<UserGroup>>> GetUsersGroup(long userId, int userGroupId)
+        public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup(long userId, int userGroupId)
         {
-            return Task.Run( () =>  _userGroupService.UsersGroup(userId, userGroupId));
+            return Task.Run(() => _userGroupService.UsersGroup(userId, userGroupId));
         }
 
         [HttpPost]
@@ -47,7 +47,7 @@ namespace Biovation.Server.Controllers.v2
         //}//TODO...
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyUserGroup([FromBody]UserGroup userGroup = default)
+        public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup = default)
         {
             return Task.Run(async () =>
             {
@@ -273,14 +273,14 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{groupId}")]
-        public Task<ResultViewModel> DeleteUserGroups( int groupId = default)
+        public Task<ResultViewModel> DeleteUserGroups(int groupId = default)
         {
-            return Task.Run(()=>_userGroupService.DeleteUserGroups(groupId));
+            return Task.Run(() => _userGroupService.DeleteUserGroups(groupId));
         }
 
         [HttpPut]
         [Route("UserGroupMember")]
-        public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member)
+        public Task<ResultViewModel> ModifyUserGroupMember([FromBody] List<UserGroupMember> member)
         {
             return Task.Run(() =>
             {
@@ -288,7 +288,7 @@ namespace Biovation.Server.Controllers.v2
                 try
                 {
                     if (member.Count == 0)
-                        return new ResultViewModel {Validate = 1, Message = "Empty input"};
+                        return new ResultViewModel { Validate = 1, Message = "Empty input" };
 
                     var strWp = JsonConvert.SerializeObject(member);
                     var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
@@ -318,7 +318,7 @@ namespace Biovation.Server.Controllers.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                 }
             });
         }
@@ -327,7 +327,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("AccessControlUserGroup/{id}")]
         public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default)
         {
-            return Task.Run( () => _userGroupService.GetAccessControlUserGroup(id));
+            return Task.Run(() => _userGroupService.GetAccessControlUserGroup(id));
         }
 
         [HttpPut]
@@ -339,34 +339,35 @@ namespace Biovation.Server.Controllers.v2
                 try
                 {
                     var deviceBrands = _deviceService.GetDeviceBrands().Data;
-                    var userGroup = _userGroupService.UsersGroup(userGroupId:groupId).Data[0];
-                    foreach (var unused in userGroup.Users)
-                    {
-                        //var user = _userService.GetUser(userGroupMember.UserId);
-
-                        foreach (var deviceBrand in deviceBrands)
+                    var userGroup = _userGroupService.UsersGroup(userGroupId: groupId)?.Data?.Data.FirstOrDefault();
+                    if (userGroup != null)
+                        foreach (var unused in userGroup.Users)
                         {
-                            var restRequest =
-                                new RestRequest(
-                                    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
-                                    Method.POST);
-                            _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-                        }
-                    }
+                            //var user = _userService.GetUser(userGroupMember.UserId);
 
-                    return new ResultViewModel {Validate = 1, Id = groupId};
+                            foreach (var deviceBrand in deviceBrands)
+                            {
+                                var restRequest =
+                                    new RestRequest(
+                                        $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                        Method.POST);
+                                _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                            }
+                        }
+
+                    return new ResultViewModel { Validate = 1, Id = groupId };
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0, Message = "SendUsersToDevice Failed."};
+                    return new ResultViewModel { Validate = 0, Message = "SendUsersToDevice Failed." };
                 }
             });
         }
 
         [HttpPost]
         [Route("UserGroupMember")]
-        public Task<ResultViewModel> SyncUserGroupMember([FromBody]string listUsers = default)
+        public Task<ResultViewModel> SyncUserGroupMember([FromBody] string listUsers = default)
         {
             return Task.Run(() =>
             {

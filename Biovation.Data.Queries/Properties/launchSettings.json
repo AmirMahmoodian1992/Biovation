@@ -1,26 +1,10 @@
 {
-  //"iisSettings": {
-  //  "windowsAuthentication": false,
-  //  "anonymousAuthentication": true,
-  //  "iisExpress": {
-  //    "applicationUrl": "http://localhost:3285",
-  //    "sslPort": 44384
-  //  }
-  //},
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    //"IIS Express": {
-    //  "commandName": "IISExpress",
-    //  "launchBrowser": true,
-    //  "launchUrl": "weatherforecast",
-    //  "environmentVariables": {
-    //    "ASPNETCORE_ENVIRONMENT": "Development"
-    //  }
-    //},
     "Biovation.Data.Queries": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "http://localhost:9040/biovation/api/queries/v2/device",
+      //"launchBrowser": true,
+      //"launchUrl": "http://localhost:9040/biovation/api/queries/v2/device",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

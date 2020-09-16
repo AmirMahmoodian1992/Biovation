@@ -15,7 +15,7 @@ namespace Biovation.Repository.Api.v2
             long userId = 0, int index = 0, int pageNumber = default,
             int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/FaceTemplate", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/FaceTemplate", Method.GET);
             restRequest.AddQueryParameter("fingerTemplateTypeCode", fingerTemplateTypeCode);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("index", index.ToString());
@@ -27,14 +27,14 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel ModifyFaceTemplate(FaceTemplate faceTemplate)
         {
-            var restRequest = new RestRequest($"Commands/v2/FaceTemplate/ModifyFaceTemplate", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/FaceTemplate/ModifyFaceTemplate", Method.PUT);
             restRequest.AddJsonBody(faceTemplate);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel DeleteFaceTemplate(long userId = 0, int index = 0)
         {
-            var restRequest = new RestRequest($"Commands/v2/FaceTemplate/DeleteFaceTemplate", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/FaceTemplate/DeleteFaceTemplate", Method.DELETE);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("index", index.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);

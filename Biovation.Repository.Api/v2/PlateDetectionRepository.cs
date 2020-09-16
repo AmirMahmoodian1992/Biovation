@@ -15,7 +15,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
         {
-            var restRequest = new RestRequest($"Queries/v2/PlateDetection/LicensePlate", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/PlateDetection/LicensePlate", Method.GET);
             restRequest.AddQueryParameter("licensePlate", licensePlate);
             restRequest.AddQueryParameter("entityId", entityId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<LicensePlate>>(restRequest);
@@ -25,7 +25,7 @@ namespace Biovation.Repository.Api.v2
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
             int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/PlateDetection/PlateDetectionLog", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/PlateDetection/PlateDetectionLog", Method.GET);
             restRequest.AddQueryParameter("logId", logId.ToString());
             restRequest.AddQueryParameter("licensePlate", licensePlate ?? string.Empty);
             restRequest.AddQueryParameter("detectorId", detectorId.ToString());
@@ -43,7 +43,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddLicensePlate(LicensePlate licensePlate)
         {
-            var restRequest = new RestRequest($"Commands/v2/PlateDetection/LicensePlate", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/PlateDetection/LicensePlate", Method.POST);
             restRequest.AddJsonBody(licensePlate);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -51,12 +51,10 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log)
         {
-            var restRequest = new RestRequest($"Commands/v2/PlateDetection/PlateDetectionLog", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/PlateDetection/PlateDetectionLog", Method.POST);
             restRequest.AddJsonBody(log);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-
-
     }
 }

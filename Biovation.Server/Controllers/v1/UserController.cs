@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -13,6 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -39,38 +39,37 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            return Task.Run(() => _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type: type,
-                withPicture: withPicture, isAdmin: isAdmin));
+            return Task.Run(() => _userService.GetUsers(userId, withPicture, onlineUserId, from, size, getTemplatesData, filterText, type, isAdmin));
         }
 
         [HttpGet]
         [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
-            return Task.Run( () =>
-            {
-                try
-                {
-                    return _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new List<User>();
-                }
-            });
+            return Task.Run(() =>
+           {
+               try
+               {
+                   return _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData);
+               }
+               catch (Exception exception)
+               {
+                   Logger.Log(exception);
+                   return new List<User>();
+               }
+           });
         }
         [HttpGet]
         [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
-            return _userService.GetAdminUserOfAccessGroup(id: userId);
+            return _userService.GetAdminUserOfAccessGroup(userId);
         }
         [HttpGet]
         [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
-            return _userService.GetAdminUserOfAccessGroup(userId,accessGroupId);
+            return _userService.GetAdminUserOfAccessGroup(userId, accessGroupId);
         }
 
         [HttpGet]
@@ -107,7 +106,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUsers(filterText: filterText, onlineUserId: userId, type:type);
+                return _userService.GetUsers(filterText: filterText, onlineUserId: userId, type: type);
             }
             catch (Exception)
             {
@@ -123,7 +122,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var existingUser = _userService.GetUsers(user.Id, withPicture: false)[0];
+                    var existingUser = _userService.GetUsers(user.Id)[0];
 
                     if (existingUser != null)
                     {
@@ -150,7 +149,7 @@ namespace Biovation.Server.Controllers.v1
                             : user.TelNumber;
                     }
 
-                    var result =  _userService.ModifyUser(user);
+                    var result = _userService.ModifyUser(user);
 
                     await Task.Run(async () =>
                     {
@@ -161,7 +160,7 @@ namespace Biovation.Server.Controllers.v1
                             var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
                             restRequest.AddJsonBody(user);
 
-                            await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         }
                     });
 
@@ -178,7 +177,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUser")]
-        public List<ResultViewModel> DeleteUser([FromBody]int[] ids)
+        public List<ResultViewModel> DeleteUser([FromBody] int[] ids)
         {
             try
             {
@@ -283,7 +282,7 @@ namespace Biovation.Server.Controllers.v1
                                     Method.POST);
                             restRequest.AddJsonBody(user);
 
-                            var restResult = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
                         }
 
@@ -356,7 +355,7 @@ namespace Biovation.Server.Controllers.v1
                             new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
                         restRequest.AddJsonBody(usersToSync);
 
-                        _restClient.ExecuteTaskAsync(restRequest);
+                        _restClient.ExecuteAsync(restRequest);
                     }
                 }
                 catch (Exception exception)
@@ -402,7 +401,7 @@ namespace Biovation.Server.Controllers.v1
                         var count = lstUserGroupMember.Count();
                         for (var i = 0; i < count; i++)
                         {
-                            var accessGroups = _accessGroupService.GetAccessGroups(userId: lstUserGroupMember[i].UserId);
+                            var accessGroups = _accessGroupService.GetAccessGroups(lstUserGroupMember[i].UserId);
                             foreach (var accessGroup in accessGroups)
                             {
                                 if (accessGroup.DeviceGroup == null)
@@ -429,7 +428,7 @@ namespace Biovation.Server.Controllers.v1
                                         restRequest.AddQueryParameter("code", device.Code.ToString());
                                         restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
 
-                                        _restClient.ExecuteTaskAsync(restRequest);
+                                        _restClient.ExecuteAsync(restRequest);
                                     }
                                 }
                             }
@@ -554,14 +553,14 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
 
-                var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
             });
         }
 
         [HttpPost]
         [Route("UpdateUserGroupsOfUsers")]
-        private bool UpdateUserGroupMember(long[] userIds, List<UserGroupMember> lstToAdd)
+        private bool UpdateUserGroupMember(long[] userIds, [FromBody] List<UserGroupMember> lstToAdd)
         {
             //try
             //{
@@ -627,7 +626,7 @@ namespace Biovation.Server.Controllers.v1
 
                     // for rolling back on problem occuring
                     var userExistingDevices = new List<DeviceBasicInfo>();
-                    var userGroupsOfUser = _userGroupService.UsersGroup(userId: userId);
+                    var userGroupsOfUser = _userGroupService.UsersGroup(userId);
                     foreach (var userGroup in userGroupsOfUser)
                     {
                         var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id);
@@ -688,7 +687,7 @@ namespace Biovation.Server.Controllers.v1
                     //        var modifyUserGroupRestRequest =
                     //            new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember", Method.POST);
                     //        modifyUserGroupRestRequest.AddJsonBody(new List<UserGroupMember>());
-                    //       await _restClient.ExecuteTaskAsync<ResultViewModel>(modifyUserGroupRestRequest);
+                    //       await _restClient.ExecuteAsync<ResultViewModel>(modifyUserGroupRestRequest);
                     //    });
                     //}
 
@@ -699,7 +698,7 @@ namespace Biovation.Server.Controllers.v1
                             Task.Run(async () =>
                             {
                                 var devicesToExistsOn = new List<DeviceBasicInfo>();
-                                var accessGroups = _accessGroupService.GetAccessGroups(userId: userId);
+                                var accessGroups = _accessGroupService.GetAccessGroups(userId);
                                 foreach (var accessGroup in accessGroups)
                                 {
                                     if (accessGroup.DeviceGroup == null)
@@ -733,7 +732,7 @@ namespace Biovation.Server.Controllers.v1
                                     restRequest.AddQueryParameter("userId", $"[{userId}]");
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
 
-                                    var restResult = await _restClient.ExecuteTaskAsync(restRequest);
+                                    var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -754,7 +753,7 @@ namespace Biovation.Server.Controllers.v1
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
                                     restRequest.AddJsonBody(listOfUserId);
 
-                                    var restResult = await _restClient.ExecuteTaskAsync(restRequest);
+                                    var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -847,7 +846,7 @@ namespace Biovation.Server.Controllers.v1
                             if (userIds != null)
                                 restRequest.AddJsonBody(userIds);
 
-                            var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                            var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             lock (results)
                             {
                                 if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
@@ -875,7 +874,7 @@ namespace Biovation.Server.Controllers.v1
                         if (userIds != null)
                             restRequest.AddJsonBody(userIds);
 
-                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {
                             if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

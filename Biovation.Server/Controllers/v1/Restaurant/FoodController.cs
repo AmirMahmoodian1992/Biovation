@@ -85,7 +85,7 @@
 //                       if (foodIds != null)
 //                           restRequest.AddJsonBody(foodIds);
 
-//                       var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                       var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
 //                       lock (results)
 //                       {
@@ -130,7 +130,7 @@
 //                        if (foodIds != null)
 //                            restRequest.AddJsonBody(foodIds);
 
-//                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
 //                        lock (results)
 //                        {

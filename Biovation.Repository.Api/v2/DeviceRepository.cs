@@ -25,7 +25,7 @@ namespace Biovation.Repository.Api.v2
 
         //}
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int typeId = 0, int pageNumber = default, int pageSize = default)
+            int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default)
         {
             var restRequest = new RestRequest("Queries/v2/Device", Method.GET);
             restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
@@ -34,7 +34,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("brandId", brandId.ToString());
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("modelId", modelId.ToString());
-            restRequest.AddQueryParameter("typeId", typeId.ToString());
+            restRequest.AddQueryParameter("deviceIoTypeId", deviceIoTypeId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
@@ -84,7 +84,7 @@ namespace Biovation.Repository.Api.v2
             int pageNumber = default, int pageSize = default)
 
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/DeviceBrands", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
             restRequest.AddQueryParameter("code", code.ToString());
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
@@ -95,7 +95,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddDevice(DeviceBasicInfo device)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/Device", Method.POST);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -103,7 +103,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device/DeviceModel", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/Device/DeviceModel", Method.POST);
             restRequest.AddJsonBody(deviceModel);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -119,7 +119,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel DeleteDevices(List<uint> ids)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device/DeleteDevices", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/Device/DeleteDevices", Method.POST);
             restRequest.AddJsonBody(ids);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -127,7 +127,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel ModifyDevice(DeviceBasicInfo device)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/Device", Method.PUT);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -135,7 +135,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device/NetworkConnectionLog", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/Device/NetworkConnectionLog", Method.POST);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;

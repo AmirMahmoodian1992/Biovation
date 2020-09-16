@@ -16,7 +16,7 @@ namespace Biovation.Repository.Api.v2
             string excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/task", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/task", Method.GET);
             restRequest.AddQueryParameter("taskId", taskId.ToString());
             restRequest.AddQueryParameter("brandCode", brandCode ?? string.Empty);
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
@@ -31,14 +31,15 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/task/{taskItemId}", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/task/{taskItemId}", Method.GET);
+            restRequest.AddUrlSegment("taskItemId", taskItemId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<TaskItem>>(restRequest);
             return requestResult.Result.Data;
         }
 
         public ResultViewModel InsertTask( TaskInfo task)
         {
-            var restRequest = new RestRequest($"Commands/v2/task", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/task", Method.POST);
             restRequest.AddJsonBody(task);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -46,7 +47,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {
-            var restRequest = new RestRequest($"Commands/v2/task", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/task", Method.PUT);
             restRequest.AddJsonBody(taskItem);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
