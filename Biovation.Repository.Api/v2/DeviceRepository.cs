@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using RestSharp;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -42,31 +42,30 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-
         public ResultViewModel<DeviceBasicInfo> GetDevice(long id = 0, int adminUserId = 0)
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/{id}", Method.GET);
-            restRequest.AddQueryParameter("id", id.ToString());
+            var restRequest = new RestRequest("Queries/v2/Device/{id}", Method.GET);
+            if (id != 0) restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest);
             return requestResult.Result.Data;
         }
-        public PagingResult<DeviceModel> GetDeviceModels(long id = 0, string brandId = default,
+        public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = 0, string brandId = default,
             string name = default, int pageNumber = default, int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/GetDeviceModels/{id}", Method.GET);
-            restRequest.AddQueryParameter("id", id.ToString());
+            var restRequest = new RestRequest("Queries/v2/Device/DeviceModels/{id}", Method.GET);
+            if (id != 0) restRequest.AddUrlSegment("id", id.ToString());
             if (brandId != null) restRequest.AddQueryParameter("brandId", brandId);
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
-            var requestResult = _restClient.ExecuteAsync<PagingResult<DeviceModel>>(restRequest);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceModel>>>(restRequest);
             return requestResult.Result.Data;
         }
 
         public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode)
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/GetBioAuthModeWithDeviceId", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/Device/GetBioAuthModeWithDeviceId", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("authMode", authMode.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<AuthModeMap>>(restRequest);
@@ -75,7 +74,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<DateTime> GetLastConnectedTime(uint id)
         {
-            var restRequest = new RestRequest($"Queries/v2/Device/LastConnectedTime", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/Device/LastConnectedTime", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<DateTime>>(restRequest);
             return requestResult.Result.Data;
@@ -96,39 +95,45 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddDevice(DeviceBasicInfo device)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device/", Method.POST);
+            var restRequest = new RestRequest($"Commands/v2/Device", Method.POST);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-         public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
+
+        public ResultViewModel AddDeviceModel(DeviceModel deviceModel)
         {
             var restRequest = new RestRequest($"Commands/v2/Device/DeviceModel", Method.POST);
             restRequest.AddJsonBody(deviceModel);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-         public ResultViewModel DeleteDevice(uint id)
+
+        public ResultViewModel DeleteDevice(uint id)
         {
-            var restRequest = new RestRequest($"Commands/v2/Device/{id}", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/Device/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-         public ResultViewModel DeleteDevices(List<uint> ids)
+
+        public ResultViewModel DeleteDevices(List<uint> ids)
         {
             var restRequest = new RestRequest($"Commands/v2/Device/DeleteDevices", Method.POST);
             restRequest.AddJsonBody(ids);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-         public ResultViewModel ModifyDevice( DeviceBasicInfo device)
+
+        public ResultViewModel ModifyDevice(DeviceBasicInfo device)
         {
             var restRequest = new RestRequest($"Commands/v2/Device", Method.PUT);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-         public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device)
+
+        public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device)
         {
             var restRequest = new RestRequest($"Commands/v2/Device/NetworkConnectionLog", Method.POST);
             restRequest.AddJsonBody(device);
@@ -136,14 +141,12 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-         public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int id)
-         {
-             var restRequest = new RestRequest($"Queries/v2/Device/AuthorizedUsersOfDevice/{id}", Method.GET);
-             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
-             return requestResult.Result.Data;
+        public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int id)
+        {
+            var restRequest = new RestRequest($"Queries/v2/Device/AuthorizedUsersOfDevice/{id}", Method.GET);
+            restRequest.AddUrlSegment("id", id.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
+            return requestResult.Result.Data;
         }
-
-
-
     }
 }

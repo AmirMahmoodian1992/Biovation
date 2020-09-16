@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -11,6 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -49,7 +49,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesFilter")]
         public Task<List<DeviceBasicInfo>> Devices(string deviceName, int deviceModelId, int deviceTypeId, long userId)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceName:deviceName, deviceModelId:deviceModelId, typeId:deviceTypeId, adminUserId:userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, deviceModelId: deviceModelId, typeId: deviceTypeId, adminUserId: userId));
         }
 
         [HttpGet]
@@ -68,7 +68,7 @@ namespace Biovation.Server.Controllers.v1
                 var devices = new List<DeviceBasicInfo>();
                 foreach (var deviceId in deviceIds)
                 {
-                    var device = _deviceService.GetDevice(id:deviceId);
+                    var device = _deviceService.GetDevice(id: deviceId);
                     if (device != null)
                         devices.Add(device);
                 }
@@ -81,7 +81,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesListByName")]
         public Task<List<DeviceBasicInfo>> DevicesListByName(string deviceName, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceName:deviceName, adminUserId:userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, adminUserId: userId));
         }
 
 
@@ -163,12 +163,12 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet]
-        [Route("DeviceBrandsDeviceBrands")]
+        [Route("DeviceBrands")]
         public async Task<List<Lookup>> DeviceBrands(bool loadedOnly = true)
         {
             if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
             var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
-            var requestResult = await _restClient.ExecuteTaskAsync<ResultViewModel<SystemInfo>>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
             return requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0 ? null : requestResult.Data.Data.Modules.Select(brand => Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
         }
 
@@ -178,7 +178,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId:int.Parse(brandCode ?? string.Empty));
+                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode is null ? 0 : Convert.ToInt32(brandCode));
                 if (!loadedBrandsOnly) return deviceModels;
                 var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
@@ -195,7 +195,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: int.Parse(brandCode ?? string.Empty), deviceName:name);
+                var deviceModels = _deviceService.GetDeviceModels(brandId: int.Parse(brandCode ?? string.Empty), deviceName: name);
                 if (!loadedBrandsOnly) return deviceModels;
                 var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
@@ -216,7 +216,7 @@ namespace Biovation.Server.Controllers.v1
                 var result = _deviceService.ModifyDevice(device);
                 if (result.Validate != 1) return result;
 
-                device = _deviceService.GetDevice(id : device.DeviceId);
+                device = _deviceService.GetDevice(id: device.DeviceId);
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
@@ -356,21 +356,21 @@ namespace Biovation.Server.Controllers.v1
                 var restAwaiter = _restClient.ExecuteTaskAsync<ResultViewModel<List<User>>>(restRequest);
 
                 var result = await restAwaiter;
-                var users =  userAwaiter;
+                var users = userAwaiter;
 
                 var lstResult = (from r in result.Data?.Data
-                    join u in users on r.Id equals u.Id
-                        into ps
-                    from u in ps.DefaultIfEmpty()
-                    select new User
-                    {
-                        Type = u == null ? 0 : 1,
-                        IsActive = r.IsActive,
-                        Id = r.Id,
-                        FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
-                        StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
-                        EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
-                    }).ToList();
+                                 join u in users on r.Id equals u.Id
+                                     into ps
+                                 from u in ps.DefaultIfEmpty()
+                                 select new User
+                                 {
+                                     Type = u == null ? 0 : 1,
+                                     IsActive = r.IsActive,
+                                     Id = r.Id,
+                                     FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
+                                     StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
+                                     EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                                 }).ToList();
 
                 return lstResult;
             });

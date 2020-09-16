@@ -39,7 +39,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            return Task.Run(() => _userService.GetUsers(onlineId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type: type,
+            return Task.Run(() => _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type: type,
                 withPicture: withPicture, isAdmin: isAdmin));
         }
 
@@ -51,7 +51,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    return _userService.GetUsers(onlineId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData);
+                    return _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData);
                 }
                 catch (Exception exception)
                 {
@@ -79,7 +79,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUsers(userId: id)[0];
+                return _userService.GetUsers(userId: id)?.FirstOrDefault();
             }
             catch (Exception exception)
             {
@@ -93,7 +93,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUsers(filterText: filterText, userId: userId);
+                return _userService.GetUsers(filterText: filterText, onlineUserId: userId);
             }
             catch (Exception)
             {
@@ -107,7 +107,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUsers(filterText: filterText, userId: userId, type:type);
+                return _userService.GetUsers(filterText: filterText, onlineUserId: userId, type:type);
             }
             catch (Exception)
             {

@@ -27,10 +27,10 @@ namespace Biovation.Data.Queries.Controllers.v2
         }*/
 
         [HttpGet]
-        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default, string order = default, long onlineUserId = default, bool successTransfer = default)
+        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = "", string order = "", long onlineUserId = default, bool? successTransfer = default)
         {
 
-            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize,where,order,onlineUserId,successTransfer).Result;
+            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, onlineUserId, successTransfer).Result;
             var result = new PagingResult<Log>
             {
                 Data = logResult,

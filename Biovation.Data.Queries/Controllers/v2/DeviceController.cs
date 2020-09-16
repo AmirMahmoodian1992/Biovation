@@ -34,7 +34,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id?}")]
+        [Route("{id}")]
         public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = 0, int adminUserId = 0)
         {
             return Task.Run(() => _deviceRepository.GetDevice(id, adminUserId));
@@ -43,7 +43,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("DeviceModels/{id?}")]
-        public Task<PagingResult<DeviceModel>> GetDeviceModels(long id = 0, string brandId = default,
+        public Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels(long id = 0, string brandId = default,
             string name = default, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDeviceModels(id, brandId, name, pageNumber, pageSize));

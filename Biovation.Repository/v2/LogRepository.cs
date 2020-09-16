@@ -1,13 +1,12 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.Domain;
+using DataAccessLayerCore.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.CommonClasses;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.SQL.v2
 {
@@ -46,7 +45,7 @@ namespace Biovation.Repository.SQL.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0};
+                    return new ResultViewModel { Validate = 0 };
                 }
             });
         }
@@ -68,12 +67,12 @@ namespace Biovation.Repository.SQL.v2
                             .FirstOrDefault();
                     }
 
-                    return new ResultViewModel {Validate = 1, Message = "0"};
+                    return new ResultViewModel { Validate = 1, Message = "0" };
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0, Message = "0"};
+                    return new ResultViewModel { Validate = 0, Message = "0" };
                 }
             });
         }
@@ -92,17 +91,17 @@ namespace Biovation.Repository.SQL.v2
                     return logs.Rows.Count > 0
                         ? _repository.ToResultList<ResultViewModel>("SetLogIsTransferedBatch", parameters).Data
                             .FirstOrDefault()
-                        : new ResultViewModel {Validate = 1, Message = "0"};
+                        : new ResultViewModel { Validate = 1, Message = "0" };
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0, Message = "0"};
+                    return new ResultViewModel { Validate = 0, Message = "0" };
                 }
             });
         }
 
-      
+
 
         public Task<List<Log>> CheckLogInsertion(List<Log> logs)
         {
@@ -166,7 +165,7 @@ namespace Biovation.Repository.SQL.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0};
+                    return new ResultViewModel { Validate = 0 };
                 }
             });
         }
@@ -192,12 +191,12 @@ namespace Biovation.Repository.SQL.v2
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    return new ResultViewModel {Validate = 0};
+                    return new ResultViewModel { Validate = 0 };
                 }
             });
         }
 
-        public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default,string where=default ,string order = default,long onlineUserId=default ,bool successTransfer =default)
+        public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default, string order = default, long onlineUserId = default, bool? successTransfer = default)
         {
             return Task.Run(() =>
             {

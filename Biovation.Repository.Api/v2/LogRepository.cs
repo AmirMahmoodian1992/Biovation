@@ -17,13 +17,13 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, 
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default,
-            string order = default, long onlineUserId = default, bool successTransfer = default)
+            string order = default, long onlineUserId = default, bool? successTransfer = default)
         {
             var restRequest = new RestRequest($"Queries/v2/Log", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
-            restRequest.AddQueryParameter("successTransfer", successTransfer.ToString());
+            restRequest.AddQueryParameter("successTransfer", successTransfer?.ToString());
             restRequest.AddQueryParameter("fromDate", fromDate.ToString());
             restRequest.AddQueryParameter("toDate", toDate.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());

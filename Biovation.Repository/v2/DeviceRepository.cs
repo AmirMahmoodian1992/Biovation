@@ -116,7 +116,7 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<PagingResult<Lookup>>("SelectDeviceBrandsByFilter", Parameter,
                      fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
-        public PagingResult<DeviceModel> GetDeviceModels(long id = 0, string brandId = default, string name = default, int pageNumber = default, int PageSize = default)
+        public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = 0, string brandId = default, string name = default, int pageNumber = default, int PageSize = default)
         {
 
             var parameters = new List<SqlParameter>
@@ -129,7 +129,7 @@ namespace Biovation.Repository.SQL.v2
             };
 
             return _repository.ToResultList<PagingResult<DeviceModel>>("SelectDeviceModelsByFilter", parameters,
-                fetchCompositions: true).Data.FirstOrDefault();
+                fetchCompositions: true, compositionDepthLevel: 4).FetchFromResultList();
         }
 
         public ResultViewModel DeleteDevice(uint deviceId)
