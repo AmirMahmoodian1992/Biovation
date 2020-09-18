@@ -4,15 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using Biovation.CommonClasses.Manager;
-using System.Text.Json;
 using System.Threading.Tasks;
 using App.Metrics;
-using App.Metrics.Counter;
 using App.Metrics.Formatters.Json;
 using App.Metrics.Gauge;
+using Biovation.Dashboard.Repository;
 using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
@@ -23,27 +20,26 @@ namespace Biovation.Dashboard.Controllers
     [Route("[controller]")]
     public class PingController : Controller
     {
-        private string host;
+        private readonly PingRepository _pingRepository;
         private readonly RestClient _restClient;
-        public PingController()
+        public PingController(PingRepository pingRepository, RestClient restClient)
         {
-           host =  "localhost";
-           _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = restClient;
+            _pingRepository = pingRepository;
         }
 
 
         [HttpGet]
         [Obsolete]
-        public async Task<IActionResult> GetPing(int cnt = 1000)
+        public Task<ResultViewModel> GetPing(int cnt = 1000)
         {
-           
-            const string key = "192.168.2.133";
-            string myIp = Dns.GetHostByName(Dns.GetHostName()).AddressList.FirstOrDefault()?.ToString();
 
+            return Task.Run(() =>
+            {
+                var myIp = Dns.GetHostByName(Dns.GetHostName()).AddressList.FirstOrDefault()?.ToString();
+                PingReply reply = null;
+                var myPing = new Ping();
 
-            PingReply reply = null;
-            
-                Ping myPing = new Ping();
                 //reply = myPing.Send("192.168.2.196", 1000);
                 //var replyPing = new PingModel()
                 //{
@@ -62,34 +58,45 @@ namespace Biovation.Dashboard.Controllers
                 //var success = Save(host, key , response);
 
                 //Console.WriteLine("success: " + success);
+                //Console.WriteLine("success: " + success);
 
 
 
-                
+                var result = new ResultViewModel()
+                {
+                    Validate = 1,
+                    Message = " با موفقیت اضافه شدند"
+                };
+                var pingResult = new ResultViewModel();
+
                 var restRequest = new RestRequest($"/Devices",
                     Method.GET);
-                var restResult = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
-                foreach (var device in restResult.Data)
+                var restResult = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+                foreach (var device in restResult.Result.Data)
                 {
-                _ = Task.Run(() =>
-                  {
-                       reply =  myPing.Send(device.IpAddress, 1000);
-                      var replyPing = new PingModel()
+                    _ = Task.Run(() =>
                       {
-                          //address = reply.Address.ToString(),
-                          hostAddress = myIp,
-                          DestinationAddress = device.IpAddress,
-                          ttl = reply.Options.Ttl,
-                          roundTripTime = reply.RoundtripTime,
-                          status = reply?.Status.ToString()
-                      };
+                          reply = myPing.Send(device.IpAddress, 1000);
+                          var replyPing = new PingModel()
+                          {
+                              //address = reply.Address.ToString(),
+                              hostAddress = myIp,
+                              DestinationAddress = device.IpAddress,
+                              ttl = reply.Options.Ttl,
+                              roundTripTime = reply.RoundtripTime,
+                              status = reply?.Status.ToString()
+                          };
 
-                      var response = JsonConvert.SerializeObject(replyPing);
-
-                  });
+                          pingResult = _pingRepository.AddPingTimeStamp(replyPing);
+                          if (result.Validate == 1 && pingResult.Validate != 1)
+                          {
+                              result = pingResult;
+                          }
+                      });
                 }
 
-            return Ok();
+                return result;
+            });
 
         }
 
@@ -101,7 +108,8 @@ namespace Biovation.Dashboard.Controllers
         {
 
             var metrics = new MetricsBuilder().Report.ToConsole(
-                    options => {
+                    options =>
+                    {
                         options.MetricsOutputFormatter = new MetricsJsonOutputFormatter();
                     })
                 .Build();
@@ -121,7 +129,7 @@ namespace Biovation.Dashboard.Controllers
 
         [HttpGet]
         [Route("readcpu")]
-        public IActionResult ReadCpu(string str)    
+        public IActionResult ReadCpu(string str)
         {
             var result = JsonConvert.DeserializeObject<GaugeMetric>(str);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Dashboard.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -26,6 +27,7 @@ namespace Biovation.Dashboard
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            ConfigureRepositoriesServices(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +48,11 @@ namespace Biovation.Dashboard
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private void ConfigureRepositoriesServices(IServiceCollection services)
+        {
+            services.AddScoped<PingRepository, PingRepository>();
         }
     }
 }
