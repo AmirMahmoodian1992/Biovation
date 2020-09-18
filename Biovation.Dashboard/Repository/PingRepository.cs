@@ -1,27 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using Biovation.Dashboard;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository
+namespace Biovation.Dashboard.Repository
 {
-    public class AdminDeviceRepository
+    public class PingRepository
     {
         private readonly GenericRepository _repository;
 
-        public AdminDeviceRepository(GenericRepository repository)
+        public PingRepository(GenericRepository repository)
         {
             _repository = repository;
         }
 
 
-        public List<AdminDeviceGroup> AddPingTimeStamp(PingModel pingModel, string address)
+        public ResultViewModel AddPingTimeStamp(PingModel pingModel)
         {
 
-            var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
+            var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@hostAddress", SqlDbType.NVarChar) { Value = pingModel.hostAddress },
                 new SqlParameter("@DestinationAddress", SqlDbType.NVarChar) { Value = pingModel.DestinationAddress },
@@ -31,18 +31,13 @@ namespace Biovation.Repository
 
             };
 
-            return _repository.ToResultList<AdminDeviceGroup>("SelectAdminDeviceGroupsByUserId", parameters).Data;
+            return _repository.ToResultList<ResultViewModel>("InsertPing", parameters).Data.FirstOrDefault();
 
         }
 
         public List<AdminDevice> GetAddPingTimeStamp(int userId)
         {
-
-            var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
-            { new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }};
-
-            return _repository.ToResultList<AdminDevice>("SelectAdminDevicesByUserId", parameters).Data;
-
+            throw new NotImplementedException();
         }
 
 

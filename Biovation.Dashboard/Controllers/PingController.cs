@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using Biovation.CommonClasses.Manager;
 using System.Text.Json;
 using System.Threading.Tasks;
+using App.Metrics;
+using App.Metrics.Counter;
+using App.Metrics.Formatters.Json;
+using App.Metrics.Gauge;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -78,8 +83,8 @@ namespace Biovation.Dashboard.Controllers
                           roundTripTime = reply.RoundtripTime,
                           status = reply?.Status.ToString()
                       };
+
                       var response = JsonConvert.SerializeObject(replyPing);
-                      Save(host, device.IpAddress, response);
 
                   });
                 }
@@ -87,6 +92,43 @@ namespace Biovation.Dashboard.Controllers
             return Ok();
 
         }
+
+
+        [HttpGet]
+        [Route("cpu")]
+
+        public IActionResult GetCpu()
+        {
+
+            var metrics = new MetricsBuilder().Report.ToConsole(
+                    options => {
+                        options.MetricsOutputFormatter = new MetricsJsonOutputFormatter();
+                    })
+                .Build();
+            var processPhysicalMemoryGauge = new GaugeOptions
+            {
+                Name = "Process Physical Memory",
+                MeasurementUnit = Unit.Bytes
+            };
+
+            var process = Process.GetCurrentProcess();
+
+            metrics.Measure.Gauge.SetValue(processPhysicalMemoryGauge, process.WorkingSet64);
+            metrics.ReportRunner.RunAllAsync();
+
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("readcpu")]
+        public IActionResult ReadCpu(string str)    
+        {
+            var result = JsonConvert.DeserializeObject<GaugeMetric>(str);
+
+            return Ok(result);
+        }
+
+
 
 
         private static bool Save(string host, string key, string value)

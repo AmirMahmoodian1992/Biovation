@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="App.Metrics" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.Formatters.Json" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.Reporting.Console" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.Reporting.Http" Version="4.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="RestSharp" Version="106.11.4" />
     <PackageReference Include="ServiceStack.Redis" Version="5.9.2" />
