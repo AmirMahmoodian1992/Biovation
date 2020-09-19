@@ -15,7 +15,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<List<UserGroup>> UsersGroup(long userId, int userGroupId)
         {
             var restRequest = new RestRequest($"Queries/v2/UserGroup/UsersGroup", Method.GET);
-            restRequest.AddQueryParameter("userId", userId.ToString());
+            restRequest.AddQueryParameter("OnlineUserId", userId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<UserGroup>>>(restRequest);
             return requestResult.Result.Data;

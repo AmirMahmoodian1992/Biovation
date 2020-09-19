@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -65,7 +65,8 @@ namespace Biovation.Repository.Api.v2
         }
         public ResultViewModel DeleteUser(int id = default)
         {
-            var restRequest = new RestRequest($"Commands/v2/User/{id}", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/User/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }

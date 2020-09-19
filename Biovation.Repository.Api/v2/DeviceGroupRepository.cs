@@ -57,7 +57,8 @@ namespace Biovation.Repository.Api.v2
         }
         public ResultViewModel DeleteDeviceGroup(int id)
         {
-            var restRequest = new RestRequest($"Commands/v2/DeviceGroup/{id}", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/DeviceGroup/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id",id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
             return requestResult.Result.Data;

@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
 
 namespace Biovation.Repository.SQL.v2
 {
@@ -19,7 +18,7 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public ResultViewModel<PagingResult<AccessGroup>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default,int nestingDepthLevel = 4)
+        public ResultViewModel<PagingResult<AccessGroup>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
         {
             var parameters = new List<SqlParameter>
             {
@@ -28,7 +27,7 @@ namespace Biovation.Repository.SQL.v2
                 new SqlParameter("@DeviceId ", deviceId),
                 new SqlParameter("@UserGroupId", userGroupId),
                 new SqlParameter("@DeviceGroupId", deviceGroupId),
-                new SqlParameter("@UserId", userId ),                           
+                new SqlParameter("@UserId", userId ),
                 new SqlParameter("@PageNumber", pageNumber),
                 new SqlParameter("@PageSize",pageSize)
             };
@@ -130,7 +129,7 @@ namespace Biovation.Repository.SQL.v2
         /// <param name="accessGroupId"></param>
         /// <param name="nestingDepthLevel"></param>
         /// <returns></returns>
-        public ResultViewModel<AccessGroup> AccessGroup(int accessGroupId, int nestingDepthLevel=4)
+        public ResultViewModel<AccessGroup> AccessGroup(int accessGroupId, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {

@@ -20,10 +20,10 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("UsersGroup")]
-        public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, int pageNumber = default,
+        public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long onlineUserId,long userId, int accessGroupId, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _userGroupRepository.GetUserGroups(id,userId,accessGroupId,pageNumber,pageSize));
+            return Task.Run(() => _userGroupRepository.GetUserGroups(id,onlineUserId,userId,accessGroupId,pageNumber,pageSize));
         }
 
         [HttpGet]

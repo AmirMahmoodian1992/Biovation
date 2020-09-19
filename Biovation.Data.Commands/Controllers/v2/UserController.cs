@@ -17,9 +17,9 @@ namespace Biovation.Data.Commands.Controllers.v2
             _userRepository = userRepository;
         }
 
-            
+
         //todo:add user
-        [HttpPost] 
+        [HttpPost]
         [Route("AddUser")]
         public Task<ResultViewModel> AddUser([FromBody] User user)
         {
@@ -39,6 +39,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _userRepository.DeleteUser(id));
         }
 
+
         //batch delete
         [HttpPost]
         [Route("/DeleteUsers")]
@@ -51,7 +52,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("Password/{id}")]
         public Task<ResultViewModel> ModifyPassword(int id = default, string password = default)
         {
-            return Task.Run(() => _userRepository.ModifyPassword(id,password));
+            return Task.Run(() => _userRepository.ModifyPassword(id, password));
         }
 
         [HttpDelete]
@@ -65,7 +66,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("/UserGroupOfUser")]
         public Task<ResultViewModel> DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1)
         {
-            return Task.Run(() => _userRepository.DeleteUserGroupOfUser(userId,userGroupId,userTypeId));
+            return Task.Run(() => _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId));
         }
 
     }

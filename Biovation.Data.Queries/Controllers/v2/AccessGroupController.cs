@@ -24,7 +24,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0,int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _accessGroupRepository.AccessGroups(adminUserId, userGroupId, id, deviceId, userId,
+            return Task.Run(() => _accessGroupRepository.AccessGroups(userId,adminUserId, userGroupId, id, deviceId, deviceGroupId,
                  pageNumber, pageSize));
         }
 
