@@ -20,7 +20,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
-        [Route("{taskItemId}")]
+        [Route("taskItemId")]
 
         public Task<ResultViewModel<TaskItem>> GetTaskItem(int taskItemId = default)
         {
@@ -29,7 +29,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         //TODO::QUERY dynamic
         [HttpGet]
-        [Route("GetTasks")]
+        /*[Route("GetTasks")]*/
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default)
         {
 
