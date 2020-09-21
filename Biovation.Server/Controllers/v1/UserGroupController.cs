@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -10,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -184,7 +184,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ModifyUserGroup")]
-        public Task<ResultViewModel> ModifyUserGroup(UserGroup userGroup)
+        public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
         {
             return Task.Run(async () =>
             {
@@ -371,7 +371,7 @@ namespace Biovation.Server.Controllers.v1
                             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Id));
                             /*var deletionResult =*/
-                            await _restClient.ExecuteTaskAsync<ResultViewModel>(deleteUserRestRequest);
+                            await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
                         });
@@ -393,7 +393,7 @@ namespace Biovation.Server.Controllers.v1
                             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Id)));
                             /*var additionResult =*/
-                            await _restClient.ExecuteTaskAsync<List<ResultViewModel>>(sendUserRestRequest);
+                            await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
                         });
@@ -410,7 +410,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ModifyUserGroupMemeber")]
-        public ResultViewModel ModifyUserGroupMemeber(List<UserGroupMember> member)
+        public ResultViewModel ModifyUserGroupMemeber([FromBody] List<UserGroupMember> member)
         {
             try
             {
@@ -528,7 +528,7 @@ namespace Biovation.Server.Controllers.v1
                 var userGroup = _userGroupService.UsersGroup(userGroupId: userGroupId)[0];
                 foreach (var userGroupMember in userGroup.Users)
                 {
-                    var user = _userService.GetUsers(userId:userGroupMember.UserId)[0];
+                    var user = _userService.GetUsers(userId: userGroupMember.UserId)[0];
 
                     foreach (var deviceBrand in deviceBrands)
                     {

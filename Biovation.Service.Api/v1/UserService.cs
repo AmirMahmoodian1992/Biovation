@@ -13,9 +13,9 @@ namespace Biovation.Service.Api.v1
             _userRepository = userRepository;
         }
 
-        public List<User> GetUsers(long onlineUserId = default, int from = default,
-            int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
-            int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
+        public List<User> GetUsers(long userId = default, bool withPicture = default, long onlineUserId = default, int from = default,
+            int size = default, bool getTemplatesData = default,  string filterText = default,
+            int type = default,  bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
             return _userRepository.GetUsers(onlineUserId, from, size, getTemplatesData, userId, filterText, type,

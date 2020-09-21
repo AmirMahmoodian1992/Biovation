@@ -22,7 +22,7 @@ namespace Biovation.Repository.Api.v2
         {
             return Task.Run(() =>
             {
-                var restRequest = new RestRequest($"Queries/v2/Setting/GetSettings", Method.GET);
+                var restRequest = new RestRequest("Queries/v2/Setting/GetSettings", Method.GET);
                 restRequest.AddQueryParameter("key", key);
                 var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<Setting>>>(restRequest);
                 return requestResult.Result.Data;
@@ -33,7 +33,7 @@ namespace Biovation.Repository.Api.v2
         {
             return Task.Run(() =>
             {
-                var restRequest = new RestRequest($"Queries/v2/Setting/GetSetting", Method.GET);
+                var restRequest = new RestRequest("Queries/v2/Setting/GetSetting", Method.GET);
                 restRequest.AddQueryParameter("key", key);
                 var requestResult = _restClient.ExecuteAsync<ResultViewModel<string>>(restRequest);
                 return requestResult.Result.Data;

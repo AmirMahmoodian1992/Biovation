@@ -13,7 +13,7 @@ namespace Biovation.Service.Api.v2
             _userGroupRepository = userGroupRepository;
         }
 
-        public ResultViewModel<List<UserGroup>> UsersGroup(long userId = default, int userGroupId = default)
+        public ResultViewModel<PagingResult<UserGroup>> UsersGroup(long userId = default, int userGroupId = default)
         {
             return _userGroupRepository.UsersGroup(userId, userGroupId);
         }

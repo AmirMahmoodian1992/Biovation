@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -50,8 +50,8 @@ namespace Biovation.Server.Controllers.v1
         [HttpGet, Route("AccessGroup")]
         public List<AccessGroup> AccessGroup(int id, int deviceGroupId, int userId)
         {
-            return _accessGroupService.GetAccessGroups( id: id,
-                deviceGroupId:deviceGroupId, userId: userId);
+            return _accessGroupService.GetAccessGroups(id: id,
+                deviceGroupId: deviceGroupId, userId: userId);
         }
 
         [HttpPost]

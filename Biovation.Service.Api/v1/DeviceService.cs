@@ -28,18 +28,18 @@ namespace Biovation.Service.Api.v1
             int deviceModelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
             return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
-                typeId, pageNumber, pageSize).Data.Data;
+                typeId, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceBasicInfo>();
         }
 
         public DeviceBasicInfo GetDevice(long id = default, long adminUserId = default)
         {
-            return _deviceRepository.GetDevice(id, (int) adminUserId).Data;
+            return _deviceRepository.GetDevice(id, (int) adminUserId)?.Data ?? new DeviceBasicInfo();
         }
 
         public List<DeviceModel> GetDeviceModels(long id = default, int brandId = default,
             string deviceName = null, int pageNumber = default, int pageSize = default)
         {
-            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), deviceName, pageNumber, pageSize).Data?.Data;
+            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), deviceName, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceModel>();
         }
 
         public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode)
@@ -56,7 +56,7 @@ namespace Biovation.Service.Api.v1
             int pageNumber = default, int pageSize = default)
 
         {
-            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize).Data.Data;
+            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize)?.Data?.Data ?? new List<Lookup>();
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default)
@@ -91,7 +91,7 @@ namespace Biovation.Service.Api.v1
 
         public List<User> GetAuthorizedUsersOfDevice(int id)
         {
-            return _deviceRepository.GetAuthorizedUsersOfDevice(id).Data.Data;
+            return _deviceRepository.GetAuthorizedUsersOfDevice(id)?.Data?.Data ?? new List<User>();
         }
     }
 }

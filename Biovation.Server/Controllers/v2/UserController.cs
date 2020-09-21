@@ -455,7 +455,7 @@ namespace Biovation.Server.Controllers.v2
 
                         // for rolling back on problem occuring
                         var userExistingDevices = new List<DeviceBasicInfo>();
-                        var userGroupsOfUser = _userGroupService.UsersGroup(userId: userId).Data;
+                        var userGroupsOfUser = _userGroupService.UsersGroup(userId: userId)?.Data?.Data;
                         foreach (var userGroup in userGroupsOfUser)
                         {
                             var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id).Data.Data;
@@ -646,7 +646,7 @@ namespace Biovation.Server.Controllers.v2
                     var groupIds = new List<int>();
                     for (var i = 0; i < count; i++)
                     {
-                        var group = _userGroupService.UsersGroup(userId: userIds[i]).Data;
+                        var group = _userGroupService.UsersGroup(userId: userIds[i])?.Data?.Data;
                         groupIds.AddRange(group.Select(s => s.Id));
                     }
 

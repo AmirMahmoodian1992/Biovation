@@ -19,8 +19,8 @@
     //},
     "Biovation.Gateway": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "http://localhost:9038/Biovation/api/device/devices?userId=0",
+      //"launchBrowser": true,
+      //"launchUrl": "http://localhost:9038/Biovation/api/device/devices?userId=0",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

@@ -71,7 +71,7 @@
 //                            new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}ServeLog/SendServeLogsDataToDevice");
 //                        if (deviceId != default)
 //                            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-//                        var result = await _restClient.ExecuteTaskAsync<ResultViewModel>(restRequest);
+//                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 //                        lock (results)
 //                        {
 //                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)

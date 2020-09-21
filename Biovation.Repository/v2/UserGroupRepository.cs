@@ -55,12 +55,12 @@ namespace Biovation.Repository.SQL.v2
 
             return _repository.ToResultList<ResultViewModel>("ModifyUserGroupMember", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel<PagingResult<UserGroup>> GetUserGroups(int id,long onlineUserid, long userId, int accessGroupId, int pageNumber = default,
+        public ResultViewModel<PagingResult<UserGroup>> GetUserGroups(int id, long adminUserId, int accessGroupId, long userId, int pageNumber = default,
             int pageSize = default)
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@Id",id),
-                new SqlParameter("@adminUserId",onlineUserid),              
+                new SqlParameter("@adminUserId",adminUserId),              
                 new SqlParameter("@accessGroupId",accessGroupId ),
                 new SqlParameter("@UserId",userId),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},

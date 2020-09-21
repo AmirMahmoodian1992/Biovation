@@ -15,7 +15,7 @@ namespace Biovation.Repository.Api.v2
             int lookupCategoryId = default, string codePrefix = default, int pageNumber = default,
             int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/Lookup", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/Lookup", Method.GET);
             if (code != null) restRequest.AddQueryParameter("code", code);
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("lookupCategoryId", lookupCategoryId.ToString());
@@ -25,7 +25,5 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
             return requestResult.Result.Data;
         }
-
-
     }
 }

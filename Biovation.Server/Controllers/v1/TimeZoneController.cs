@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -45,7 +44,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ModifyTimeZone")]
-        public ResultViewModel ModifyTimeZone(TimeZone timeZone)
+        public ResultViewModel ModifyTimeZone([FromBody] TimeZone timeZone)
         {
             return _timeZoneService.ModifyTimeZone(timeZone);
         }

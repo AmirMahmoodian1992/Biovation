@@ -18,8 +18,8 @@ namespace Biovation.Repository.Api.v2
             int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default,
             int pageNumber = default, int pageSize = default)
         {
-            var restRequest = new RestRequest($"Queries/v2/BlackList/{id}", Method.GET);
-            restRequest.AddQueryParameter("id", id.ToString());
+            var restRequest = new RestRequest("Queries/v2/BlackList/{id}", Method.GET);
+            restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddQueryParameter("startDate", startDate.ToString());
@@ -33,24 +33,26 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel CreateBlackList( BlackList blackList)
         {
-            var restRequest = new RestRequest($"Commands/v2/BlackList", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/BlackList", Method.POST);
             restRequest.AddJsonBody(blackList);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
         public ResultViewModel DeleteBlackList(int id = default)
         {
-            var restRequest = new RestRequest($"Commands/v2/BlackList/{id}", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/BlackList/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id.ToString());
+
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
         public ResultViewModel DeleteBlackLists(List<uint> ids)
         {
-            var restRequest = new RestRequest($"Commands/v2/BlackList/DeleteBlackLists", Method.DELETE);
+            var restRequest = new RestRequest("Commands/v2/BlackList/DeleteBlackLists", Method.DELETE);
             restRequest.AddJsonBody(ids);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
         public ResultViewModel ChangeBlackList(BlackList blackList)
         {
-            var restRequest = new RestRequest($"Commands/v2/BlackList", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/BlackList", Method.PUT);
             restRequest.AddJsonBody(blackList);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }

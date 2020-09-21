@@ -36,7 +36,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUserCard")]
-        public ResultViewModel DeleteUserCard([FromBody]int id)
+        public ResultViewModel DeleteUserCard(int id)
         {
             return _userCard.DeleteUserCard(id);
         }

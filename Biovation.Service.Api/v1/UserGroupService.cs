@@ -15,7 +15,7 @@ namespace Biovation.Service.Api.v1
 
         public List<UserGroup> UsersGroup(long userId = default, int userGroupId = default)
         {
-            return _userGroupRepository.UsersGroup(userId, userGroupId).Data;
+            return _userGroupRepository.UsersGroup(userId, userGroupId)?.Data?.Data ?? new List<UserGroup>();
         }
 
 

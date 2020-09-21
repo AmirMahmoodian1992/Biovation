@@ -34,7 +34,7 @@
 //                    foreach (var brand in brandList)
 //                    {
 //                        var restRequest = new RestRequest($"{brand.Name}/{brand.Name}SystemInfo/GetInfo");
-//                        var requestResult = await _restClient.ExecuteTaskAsync<ResultViewModel<ModuleInfo>>(restRequest);
+//                        var requestResult = await _restClient.ExecuteAsync<ResultViewModel<ModuleInfo>>(restRequest);
 
 //                        if (requestResult.StatusCode != HttpStatusCode.OK) continue;
 
