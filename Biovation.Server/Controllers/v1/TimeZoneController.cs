@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Service;
+﻿using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -11,46 +10,43 @@ namespace Biovation.Server.Controllers.v1
     [ApiVersion("1.0")]
     public class TimeZoneController : Controller
     {
-        //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly TimeZoneService _timeZoneService;
         private readonly DeviceService _deviceService;
-        private readonly RestClient _restServer;
+        private readonly RestClient _restClient;
 
-        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService)
+        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient)
         {
             _deviceService = deviceService;
             _timeZoneService = timeZoneService;
-            _restServer =
-                (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}");
-            //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
+            _restClient = restClient;
         }
 
         [HttpGet]
         [Route("TimeZones")]
         public List<TimeZone> TimeZones()
         {
-            return _timeZoneService.GetAllTimeZones();
+            return _timeZoneService.GetTimeZones();
         }
 
         [HttpGet]
         [Route("TimeZone")]
         public TimeZone TimeZone(int id)
         {
-            return _timeZoneService.GetTimeZoneById(id);
+            return _timeZoneService.TimeZones(id);
         }
 
         [HttpPost]
         [Route("DeleteTimeZone")]
         public ResultViewModel DeleteTimeZone(int id)
         {
-            return _timeZoneService.DeleteTimeZoneById(id);
+            return _timeZoneService.DeleteTimeZone(id);
         }
 
         [HttpPost]
         [Route("ModifyTimeZone")]
-        public ResultViewModel ModifyTimeZone(TimeZone timeZone)
+        public ResultViewModel ModifyTimeZone([FromBody] TimeZone timeZone)
         {
-            return _timeZoneService.ModifyTimeZoneById(timeZone);
+            return _timeZoneService.ModifyTimeZone(timeZone);
         }
 
         [HttpPost]
@@ -62,13 +58,11 @@ namespace Biovation.Server.Controllers.v1
 
             foreach (var deviceBrand in deviceBrands)
             {
-                //resultList.AddRange(_communicationManager.CallRest($"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}TimeZone/SendTimeZoneToAllDevices", "Post", null,
-                //                                                    $"{JsonConvert.SerializeObject(timeZone)}"));
                 var restRequest =
                     new RestRequest(
                         $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}TimeZone/SendTimeZoneToAllDevices",
                         Method.POST);
-                resultList.AddRange(_restServer.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                resultList.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
             }
 
             return resultList;
@@ -78,17 +72,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("SendTimeZoneToDevice")]
         public ResultViewModel SendTimeZoneToDevice(int timeZoneId, int deviceId)
         {
-            var device = _deviceService.GetDeviceInfo(deviceId);
-            //var parameters = new List<object> { $"code={device.Code}", $"timeZoneId={timeZoneId}" };
-            //_communicationManager.CallRest(
-            //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice", "Get", parameters);
+            var device = _deviceService.GetDevice(deviceId);
             var restRequest =
                 new RestRequest(
                     $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("timeZoneId", timeZoneId);
-            _restServer.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
     }

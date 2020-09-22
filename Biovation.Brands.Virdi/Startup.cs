@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.Brands.Virdi.Service;
@@ -5,9 +7,8 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Repository;
-using Biovation.Service;
+using Biovation.Repository.Api.v2;
+using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
@@ -18,12 +19,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Ninject;
+using RestSharp;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using Biovation.Domain;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
+
 
 namespace Biovation.Brands.Virdi
 {
@@ -61,7 +63,13 @@ namespace Biovation.Brands.Virdi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
+                    options.JsonSerializerOptions.IgnoreNullValues = true;
+                });
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
@@ -86,8 +94,10 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
-            services.AddSingleton<GenericRepository, GenericRepository>();
+            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            services.AddSingleton(restClient);
 
+            services.AddSingleton<GenericRepository, GenericRepository>();
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
             services.AddSingleton<BlackListService, BlackListService>();
@@ -142,6 +152,9 @@ namespace Biovation.Brands.Virdi
                 Password = BiovationConfiguration.ConnectionStringPassword()
             };
 
+            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+
+            serviceCollection.AddSingleton(restClient);
             serviceCollection.AddSingleton(connectionInfo);
             serviceCollection.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
@@ -196,10 +209,10 @@ namespace Biovation.Brands.Virdi
 
             var genericCodeMappings = new GenericCodeMappings
             {
-                LogEventMappings = logEventMappingsQuery.Result,
-                LogSubEventMappings = logSubEventMappingsQuery.Result,
-                FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result,
-                MatchingTypeMappings = matchingTypeMappingsQuery.Result
+                LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
+                LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
+                FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
+                MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 
 

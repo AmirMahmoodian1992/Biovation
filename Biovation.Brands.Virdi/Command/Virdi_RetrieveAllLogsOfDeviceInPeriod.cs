@@ -7,6 +7,7 @@ using System.Linq;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Service;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -33,10 +34,10 @@ namespace Biovation.Brands.Virdi.Command
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
 
 
-            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
             FromDate = Convert.ToDateTime(data["fromDate"]);

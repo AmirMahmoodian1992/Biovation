@@ -16,9 +16,10 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Service.Api;
+using Biovation.Service.Api.v1;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
-using DeviceService = Biovation.Service.DeviceService;
 
 namespace Biovation.Brands.Virdi
 {
@@ -148,7 +149,7 @@ namespace Biovation.Brands.Virdi
             {
                 try
                 {
-                    var user = _commonUserService.GetUser(userId, false);
+                    var user = _commonUserService.GetUsers(userId:userId,withPicture: false)[0];
                     var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
                     if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
                     {
@@ -392,8 +393,8 @@ namespace Biovation.Brands.Virdi
             lock (_loadFingerTemplateLock)
             {
                 Logger.Log("Fast search initialization started.");
-                var devices = _commonDeviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.VirdiCode);
-                var accessGroups = _accessGroupService.GetAllAccessGroups(getNestingLevel: 4);
+                var devices = _commonDeviceService.GetDevices(brandId:int.Parse(DeviceBrands.VirdiCode));
+                var accessGroups = _accessGroupService.GetAccessGroups();
                 var devicesWithAccessGroup = accessGroups.SelectMany(accessGroup =>
                     accessGroup.DeviceGroup.SelectMany(deviceGroup => deviceGroup.Devices)).ToList();
                 var deviceWithoutAccessGroup =
@@ -509,7 +510,7 @@ namespace Biovation.Brands.Virdi
                             //    _fingerTemplateService.GetAllFingerTemplatesCountByFingerTemplateType(FingerTemplateTypes
                             //        .V400);
 
-                            var userCount = _commonUserService.GetUserCount();
+                            var userCount = _commonUserService.GetUsersCount();
 
                             const int groupSize = 250;
                             var loopUpperBound = userCount / groupSize;
@@ -521,8 +522,8 @@ namespace Biovation.Brands.Virdi
                             Parallel.For(0, loopUpperBound, index =>
                             {
                                 var tempTemplates =
-                                    _fingerTemplateService.GetAllFingerTemplatesByFingerTemplateType(
-                                        _fingerTemplateTypes.V400, index * groupSize, groupSize);
+                                    _fingerTemplateService.FingerTemplates(
+                                        fingerTemplateType:_fingerTemplateTypes.V400, from:index * groupSize, size:groupSize);
 
                                 lock (fingerTemplates)
                                     fingerTemplates.AddRange(tempTemplates);
@@ -766,7 +767,7 @@ namespace Biovation.Brands.Virdi
 
         private void TerminalConnectedCallback(int terminalId, string terminalIp)
         {
-            var existDevice = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+            var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
 
             Task.Run(async () =>
                 {
@@ -817,7 +818,7 @@ namespace Biovation.Brands.Virdi
                 };
 
                 if (existDevice.Code != (uint)terminalId || !string.Equals(existDevice.IpAddress, terminalIp, StringComparison.InvariantCultureIgnoreCase) || existDevice.Port != BiovationConfiguration.VirdiDevicesConnectionPort)
-                    _commonDeviceService.ModifyDeviceBasicInfoByID(device);
+                    _commonDeviceService.ModifyDevice(device);
             }
             else
             {
@@ -835,7 +836,7 @@ namespace Biovation.Brands.Virdi
                 };
 
                 device.Name = terminalId + "[" + device.IpAddress + "]";
-                var result = _commonDeviceService.ModifyDeviceBasicInfoByID(device);
+                var result = _commonDeviceService.ModifyDevice(device);
                 if (result.Validate == 1)
                     device.DeviceId = (int)result.Id;
             }
@@ -869,7 +870,7 @@ namespace Biovation.Brands.Virdi
                         return;
 
                     var fingerTemplatesCount =
-                        _fingerTemplateService.GetAllFingerTemplatesCountByFingerTemplateType(_fingerTemplateTypes.V400);
+                        _fingerTemplateService.GetFingerTemplatesCountByFingerTemplateType(_fingerTemplateTypes.V400);
 
                     const int groupSize = 800;
                     var loopUpperBound = fingerTemplatesCount / groupSize;
@@ -881,8 +882,8 @@ namespace Biovation.Brands.Virdi
                     Parallel.For(0, loopUpperBound, index =>
                     {
                         var tempTemplates =
-                            _fingerTemplateService.GetAllFingerTemplatesByFingerTemplateType(
-                                _fingerTemplateTypes.V400, index * groupSize, groupSize);
+                            _fingerTemplateService.FingerTemplates(
+                                fingerTemplateType: _fingerTemplateTypes.V400, from:index * groupSize, size:groupSize);
 
                         lock (fingerTemplates)
                             fingerTemplates.AddRange(tempTemplates);
@@ -1120,7 +1121,7 @@ namespace Biovation.Brands.Virdi
 
                 var isVisitor = user != null && user.IsAdmin ? 0 : 1;
                 var hasAccess = user != null && (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? 1 : 0;
-                var blacklist = _blackListService.GetActiveBlackList(userid: (int)(user?.Id ?? -1), deviceId: terminalId, today: DateTime.Now).Result;
+                var blacklist = _blackListService.GetBlacklist(userId: (int)(user?.Id ?? -1), deviceId: terminalId, startDate: DateTime.Today,endDate:DateTime.Now).Result;
                 if (blacklist != null) hasAccess = 0;
                 isAuthorized = hasAccess;
                 var authErrorCode = hasAccess == 0 ? user != null ? (int)VirdiError.Permission : (int)VirdiError.InvalidUser : (int)VirdiError.None;
@@ -1409,10 +1410,10 @@ namespace Biovation.Brands.Virdi
                     dynamic matchedFpInfo = fastSearch.MatchedFpInfo;
                     int userId = matchedFpInfo.UserId;
 
-                    var user = _commonUserService.GetUser(userId, false);
+                    var user = _commonUserService.GetUsers(userId:userId,withPicture: false)[0];
 
                     var isVisitor = user.IsAdmin ? 0 : 1;
-                    var blacklist = _blackListService.GetActiveBlackList(userid: (int)user.Id, deviceId: terminalId, today: DateTime.Now).Result;
+                    var blacklist = _blackListService.GetBlacklist(userId: (int)(user?.Id ?? -1), deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result;
                     var hasAccess = (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? blacklist != null ? 1 : 0 : 0;
 
                     isAuthorized = hasAccess;
@@ -1485,7 +1486,7 @@ namespace Biovation.Brands.Virdi
                 var szCapturedFir = FpData.TextFIR;
                 var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                var user = _commonUserService.GetUser(userId);
+                var user = _commonUserService.GetUsers(userId)[0];
                 if (user is null)
                 {
                     isAuthorized = 0;
@@ -1522,7 +1523,7 @@ namespace Biovation.Brands.Virdi
     +FingerData:{fingerData}", logType: LogType.Information);
 
                     var isVisitor = user.IsAdmin ? 0 : 1;
-                    var blacklist = _blackListService.GetActiveBlackList(userid: userId, deviceId: terminalId, today: DateTime.Now).Result;
+                    var blacklist = _blackListService.GetBlacklist(userId: (int)(user?.Id ?? -1), deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result; ;
 
                     var hasAccess =
                         (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now ||
@@ -1577,7 +1578,7 @@ namespace Biovation.Brands.Virdi
             {
                 Logger.Log(exception);
             }
-            //var deviceBasicInfo = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+            //var deviceBasicInfo = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
 
             var log = new Log
             {
@@ -1639,7 +1640,7 @@ namespace Biovation.Brands.Virdi
 
             Task.Run(async () =>
             {
-                var device = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+                var device = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
                 var connectionStatus = new ConnectionStatus
                 {
                     DeviceId = device.DeviceId,
@@ -1685,7 +1686,7 @@ namespace Biovation.Brands.Virdi
                 _onlineDevices[(uint)terminalId].FirmwareVersion = version;
             }
 
-            var deviceModels = _commonDeviceService.GetDeviceModelsByBrandCode(DeviceBrands.VirdiCode);
+            var deviceModels = _commonDeviceService.GetDeviceModels(brandId:int.Parse(DeviceBrands.VirdiCode));
             var acModelNumCharacterIndex = version.IndexOf("AC", StringComparison.Ordinal);
 
             if (acModelNumCharacterIndex > 0)
@@ -1693,10 +1694,10 @@ namespace Biovation.Brands.Virdi
                 var deviceModel = deviceModels.FirstOrDefault(model => string.Equals(model.Name, version.Substring(acModelNumCharacterIndex, 6)));
                 if (deviceModel != null)
                 {
-                    var device = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+                    var device = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
                     device.ModelId = deviceModel.Id;
                     device.Model = deviceModel;
-                    _commonDeviceService.ModifyDeviceBasicInfoByID(device);
+                    _commonDeviceService.ModifyDevice(device);
                 }
             }
 
@@ -1705,10 +1706,10 @@ namespace Biovation.Brands.Virdi
                 var deviceModel = deviceModels.FirstOrDefault(model => model.Name.Contains("U-Bio"));
                 if (deviceModel != null)
                 {
-                    var device = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+                    var device = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
                     device.ModelId = deviceModel.Id;
                     device.Model = deviceModel;
-                    _commonDeviceService.ModifyDeviceBasicInfoByID(device);
+                    _commonDeviceService.ModifyDevice(device);
                 }
             }
 
@@ -1815,8 +1816,7 @@ namespace Biovation.Brands.Virdi
 
                 if (ModifyUserData)
                 {
-                    var existUser = _commonUserService.GetUser(TerminalUserData.UserID);
-
+                    var existUser = _commonUserService.GetUsers(userId:TerminalUserData.UserID)[0];
                     if (existUser != null)
                     {
                         user = new User
@@ -1902,7 +1902,7 @@ namespace Biovation.Brands.Virdi
                                 FpData.Import(1, TerminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
 
                                 var deviceTemplate = FpData.TextFIR;
-                                var fingerTemplates = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
+                                var fingerTemplates = _fingerTemplateService.FingerTemplates(userId:(int)(existUser.Id)).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
 
                                 if (fingerTemplates.Exists(ft => ft.CheckSum == firstSampleCheckSum) || fingerTemplates.Exists(ft => ft.CheckSum == secondSampleCheckSum))
                                     continue;
@@ -1927,7 +1927,7 @@ namespace Biovation.Brands.Virdi
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                                    Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+                                    Index = _fingerTemplateService.FingerTemplates(userId:(int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
                                     TemplateIndex = 0,
                                     Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
                                     Template = firstTemplateSample,
@@ -1942,7 +1942,7 @@ namespace Biovation.Brands.Virdi
                                     user.FingerTemplates.Add(new FingerTemplate
                                     {
                                         FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                                        Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+                                        Index = _fingerTemplateService.FingerTemplates(userId:(int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
                                         TemplateIndex = 1,
                                         Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
                                         Template = secondTemplateSample,
@@ -2022,7 +2022,7 @@ namespace Biovation.Brands.Virdi
                             if (user.FaceTemplates is null)
                                 user.FaceTemplates = new List<FaceTemplate>();
 
-                            var userFaces = _faceTemplateService.GetFaceTemplateByUserId(TerminalUserData.UserID);
+                            var userFaces = _faceTemplateService.FaceTemplates(userId:TerminalUserData.UserID);
                             //existUser.FaceTemplates = new List<FaceTemplate>();
 
                             if (existUser != null)
@@ -2068,11 +2068,11 @@ namespace Biovation.Brands.Virdi
                         {
                             lock (_loadFingerTemplateLock)
                             {
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(userId:user.Id);
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
                                     var devices =
-                                        _commonDeviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.VirdiCode);
+                                        _commonDeviceService.GetDevices(brandId:int.Parse(DeviceBrands.VirdiCode));
 
                                     foreach (var device in devices)
                                     {
@@ -2135,7 +2135,7 @@ namespace Biovation.Brands.Virdi
         //    var info = new TerminalInfo();
         //    Thread.Sleep(500);
         //    WinApi.GetTerminalInfo((uint)terminalId, ref info);
-        //    var existDevice = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+        //    var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
         //    DeviceBasicInfo device;
         //    if (existDevice != null)
         //    {
@@ -2172,7 +2172,7 @@ namespace Biovation.Brands.Virdi
         //            device.MacAddress = Regex.Replace(device.MacAddress, ".{2}", "$0:");
         //            device.MacAddress = device.MacAddress.Substring(0, device.MacAddress.Length - 1);
         //        }
-        //        _commonDeviceService.ModifyDeviceBasicInfoByID(device);
+        //        _commonDeviceService.ModifyDevice(device);
         //        try
         //        {
         //            Task.Run(async () =>
@@ -2238,7 +2238,7 @@ namespace Biovation.Brands.Virdi
         //        };
         //        device.Name = terminalId + "[" + device.IpAddress + "]";
         //        //device.FirmwareVersion = Version;
-        //        _commonDeviceService.ModifyDeviceBasicInfoByID(device);
+        //        _commonDeviceService.ModifyDevice(device);
         //    }
         //    TerminalOption.Clear();
         //    if (!_onlineDevices.ContainsKey((uint)terminalId))
@@ -2279,7 +2279,7 @@ namespace Biovation.Brands.Virdi
             Thread.Sleep(500);
             WinApi.GetTerminalInfo((uint)terminalId, ref info);
 
-            //var existDevice = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+            //var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
             //DeviceBasicInfo device;
 
 
@@ -2328,10 +2328,10 @@ namespace Biovation.Brands.Virdi
 
                     //if (currentIndex == totalNumber)
                     //{
-                    var taskItem = await taskItemAwaiter;
+                    var taskItem = taskItemAwaiter;
                     var userId = Convert.ToInt64(JsonConvert.DeserializeObject<JObject>(taskItem.Data)["UserId"]);
-                    var user = _commonUserService.GetUser(userId, false);
-                    var userFaceTemplates = _faceTemplateService.GetFaceTemplateByUserId(userId);
+                    var user = _commonUserService.GetUsers(userId:userId,withPicture: false)[0];
+                    var userFaceTemplates = _faceTemplateService.FaceTemplates(userId:userId);
 
                     var faceData = (byte[])eventData;
                     var faceTemplate = new FaceTemplate
@@ -2406,7 +2406,7 @@ namespace Biovation.Brands.Virdi
                 Logger.Log(exception);
             }
 
-            //var deviceBasicInfo = _commonDeviceService.GetDeviceBasicInfoWithCode((uint)terminalId, DeviceBrands.VirdiCode);
+            //var deviceBasicInfo = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
 
             var log = new Log
             {
@@ -2436,7 +2436,7 @@ namespace Biovation.Brands.Virdi
                    +Antipassback Level:{antipassbackLevel}
                    +Password:{password}");
 
-                var user = _commonUserService.GetUser(userId, false);
+                var user = _commonUserService.GetUsers(userId:userId, withPicture:false)[0];
 
 
                 var isAuthorized = string.Equals(user?.Password, password, StringComparison.InvariantCultureIgnoreCase) ? 1 : 0;
@@ -2747,7 +2747,7 @@ namespace Biovation.Brands.Virdi
             var isCardID = 0;
             var isFinger = 1;
 
-            var user = _commonUserService.GetUser(userId);
+            var user = _commonUserService.GetUsers(userId:userId)[0];
             //var isVisitor = user!= null && user.IsAdmin ? 0 : 1;
             var hasAccess = user != null && (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? 1 : 0;
 

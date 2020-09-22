@@ -27,11 +27,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Data.Queries", "B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Data.Commands", "Biovation.Data.Commands\Biovation.Data.Commands.csproj", "{20ABBD89-2245-4C19-B1A0-240C135A4890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Repository", "Biovation.Repository\Biovation.Repository.csproj", "{65B28757-C69A-415A-A028-3EE77B5FD662}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Repository.Sql", "Biovation.Repository\Biovation.Repository.Sql.csproj", "{65B28757-C69A-415A-A028-3EE77B5FD662}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Service", "Biovation.Service\Biovation.Service.csproj", "{781E700F-B640-4C95-A7D7-72B1D8F16AA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Service.Sql", "Biovation.Service\Biovation.Service.Sql.csproj", "{781E700F-B640-4C95-A7D7-72B1D8F16AA8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Constants", "Biovation.Constants\Biovation.Constants.csproj", "{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Constants", "Biovation.Constants\Biovation.Constants.csproj", "{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Repository.Api", "Biovation.Repository.Api\Biovation.Repository.Api.csproj", "{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Service.Api", "Biovation.Service.Api\Biovation.Service.Api.csproj", "{46399C38-9FFA-41CE-B99D-D73635412C58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,6 +91,14 @@ Global
 		{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCD64104-76DB-40DA-B6D4-3D068ED97FC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46399C38-9FFA-41CE-B99D-D73635412C58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46399C38-9FFA-41CE-B99D-D73635412C58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46399C38-9FFA-41CE-B99D-D73635412C58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46399C38-9FFA-41CE-B99D-D73635412C58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,6 +114,8 @@ Global
 		{65B28757-C69A-415A-A028-3EE77B5FD662} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
 		{781E700F-B640-4C95-A7D7-72B1D8F16AA8} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
 		{B1139B5E-4ED7-48CE-A1B7-85FAC25F0FE1} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
+		{FCD64104-76DB-40DA-B6D4-3D068ED97FC2} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
+		{46399C38-9FFA-41CE-B99D-D73635412C58} = {6921E9DE-766A-451E-A601-1EE2D38F996B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE0E369-D4C8-4572-B475-92CE7BA0E5FE}

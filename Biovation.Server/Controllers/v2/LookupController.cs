@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
@@ -17,9 +18,10 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public Task<IActionResult> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default)
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetLookups(string code = default, string name = default, int lookupCategoryId = default, string codePrefix = default, int pageNumber = default,
+            int pageSize = default)
         {
-            throw null;
+            return Task.Run( () => _lookupService.GetLookups(code,name,lookupCategoryId,codePrefix,pageNumber,pageSize));
         }
     }
 }

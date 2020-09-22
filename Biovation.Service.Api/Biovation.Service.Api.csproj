@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
+    <ProjectReference Include="..\Biovation.Repository.Api\Biovation.Repository.Api.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
-using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v1
@@ -21,32 +22,51 @@ namespace Biovation.Server.Controllers.v1
             _taskStatuses = taskStatuses;
         }
 
+        [HttpGet]
+        [Route("Tasks")]
+        public Task<List<TaskInfo>> Tasks(int taskId = default, string brandCode = default,
+            int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
+            string excludedTaskStatusCodes = default, int pageNumber = default,
+            int pageSize = default)
+        {
+            return _taskService.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                excludedTaskStatusCodes, pageNumber, pageSize);
+        }
+
+
+        [HttpGet]
+        [Route("TaskItems")]
+        public Task<TaskItem> TaskItems(int taskItemId = default)
+        {
+            return Task.Run(() => _taskService.GetTaskItem(taskItemId));
+        }
+
         [HttpPatch]
         [Route("TaskExecutionStatus")]
         public Task<ResultViewModel> TaskExecutionStatus(int taskItemId, string taskStatusId)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 try
                 {
-                    var taskItem = await _taskService.GetTaskItem(taskItemId);
+                    var taskItem = _taskService.GetTaskItem(taskItemId);
                     if (taskItem is null)
                         return new ResultViewModel
-                            { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };
+                        { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };
 
                     var taskStatus = _taskStatuses.GetTaskStatusByCode(taskStatusId);
                     if (taskStatus is null)
                         return new ResultViewModel
-                            { Validate = 0, Code = Convert.ToInt64(taskStatusId), Message = "The provided task status id is wrong" };
+                        { Validate = 0, Code = Convert.ToInt64(taskStatusId), Message = "The provided task status id is wrong" };
 
                     taskItem.Status = taskStatus;
-                    return await _taskService.UpdateTaskStatus(taskItem);
+                    return _taskService.UpdateTaskStatus(taskItem);
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
                     return new ResultViewModel
-                        { Validate = 0, Code = taskItemId, Message = exception.ToString() };
+                    { Validate = 0, Code = taskItemId, Message = exception.ToString() };
                 }
             });
         }

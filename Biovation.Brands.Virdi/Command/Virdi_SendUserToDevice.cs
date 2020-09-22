@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using Biovation.Service.Api.v1;
 using UNIONCOMM.SDK.UCBioBSP;
 using Encoding = System.Text.Encoding;
 
@@ -56,13 +57,13 @@ namespace Biovation.Brands.Virdi.Command
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
-            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
-            UserObj = userService.GetUser(UserId, false);
+            UserObj = userService.GetUsers(userId:UserId, withPicture:false)[0];
 
-            var blackList = blackListService.GetActiveBlackList(default, userid: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
+            var blackList = blackListService.GetBlacklist(id:default, userId: UserId, deviceId: DeviceId,startDate:DateTime.Now,endDate:DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
 
             OnlineDevices = virdiServer.GetOnlineDevices();
@@ -104,14 +105,14 @@ namespace Biovation.Brands.Virdi.Command
                 _callbacks.ServerUserData.UniqueID = UserObj.Id.ToString();
                 _callbacks.ServerUserData.UserName = userName;
 
-                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(UserId);
+                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(personId:UserId);
                 _callbacks.ServerUserData.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId) ? 1 : 0;
 
                 _callbacks.ServerUserData.IsIdentify = UserObj.IsActive ? 1 : 0;
                 // Set Access Flag
                 _callbacks.ServerUserData.IsFace1toN = 0;
 
-                var userCards = _userCardService.GetActiveUserCard(UserId);
+                var userCards = _userCardService.GetCardsByFilter(UserId);
                 var activeCard = userCards?.Find(card => card.IsActive);
 
                 if (activeCard != null)
@@ -149,7 +150,7 @@ namespace Biovation.Brands.Virdi.Command
 
                 // Face data
 
-                var virdiFace = _faceTemplateService.GetFaceTemplateByUserId(UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VFACECode);
+                var virdiFace = _faceTemplateService.FaceTemplates(userId:UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VFACECode);
                 if (virdiFace != null)
                 {
                     _callbacks.ServerUserData.FaceNumber = virdiFace.Index;
@@ -210,7 +211,7 @@ namespace Biovation.Brands.Virdi.Command
                 
                 _callbacks.ServerUserData.SetAuthTypeEx(Convert.ToInt32(isFace), 0, 0, 0, 0, 0, 0, 0);
 
-                var userAccessGroups = _accessGroupService.GetAccessGroupsOfUser(UserObj.Id);
+                var userAccessGroups = _accessGroupService.GetAccessGroups(userId:UserObj.Id);
 
                 var validAccessGroup =
                     userAccessGroups.FirstOrDefault(

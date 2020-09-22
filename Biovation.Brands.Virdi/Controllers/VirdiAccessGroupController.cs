@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.Brands.Virdi.Manager;
+using Biovation.Service.Api.v1;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -51,8 +52,8 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.VirdiCode);
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var devices = _deviceService.GetDevices(brandId:int.Parse(DeviceBrands.VirdiCode));
+                    var creatorUser = _userService.GetUsers(userId:123456789, withPicture:false)[0];
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -79,7 +80,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         });
                     }
 
-                    _taskService.InsertTask(task).Wait();
+                    _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
 

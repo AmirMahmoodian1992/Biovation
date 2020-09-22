@@ -3,12 +3,12 @@ using Biovation.Brands.Virdi.Model;
 using Biovation.Brands.Virdi.Service;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v1;
 using UNIONCOMM.SDK.UCBioBSP;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -101,7 +101,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         Type = 1
                     };
 
-                    await _userService.ModifyUser(biovationUser);
+                     _userService.ModifyUser(biovationUser);
                 }
 
                 var ucBioApi = new UCBioAPI();

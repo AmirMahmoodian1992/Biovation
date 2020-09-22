@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -25,10 +27,10 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpGet]
-        [Route("{id?}")]
-        public Task<IActionResult> GetAdminDevicesByPersonId(int id = default)
+        [Route("{id}")]
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int id = default, int pageNumber = default, int pageSize = default)
         {
-            throw null;
+            return Task.Run(() => _adminDeviceService.GetAdminDeviceGroupsByUserId(id, pageNumber, pageSize));
         }
 
         [HttpPost]
@@ -38,9 +40,9 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPut]
-        public Task<IActionResult> ModifyAdminDevice([FromBody]AdminDevice adminDevice = default)
+        public Task<ResultViewModel> ModifyAdminDevice([FromBody] JObject adminDevice = default)
         {
-            throw null;
+            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDevice));
         }
     }
 }

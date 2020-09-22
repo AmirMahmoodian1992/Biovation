@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -30,8 +31,8 @@ namespace Biovation.Brands.Virdi.Command
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            DeviceCode = (int)(deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0);
-            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
+            DeviceCode = (int)(deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code);
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data.HasValues)
                 FirmwareFilePath = data["LocalFileName"]?.ToString();

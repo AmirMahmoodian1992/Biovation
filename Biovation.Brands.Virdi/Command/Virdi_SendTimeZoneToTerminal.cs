@@ -6,6 +6,7 @@ using Biovation.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Biovation.Service.Api.v1;
 using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Brands.Virdi.Command
@@ -28,7 +29,7 @@ namespace Biovation.Brands.Virdi.Command
 
             TimeZoneId = timeZoneId;
             _callbacks = callbacks;
-            TimeZoneObj = timeZoneService.GetTimeZoneById(timeZoneId);
+            TimeZoneObj = timeZoneService.TimeZones(timeZoneId);
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
 

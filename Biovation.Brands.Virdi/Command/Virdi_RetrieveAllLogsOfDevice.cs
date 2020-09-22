@@ -7,6 +7,7 @@ using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
 using Biovation.Constants;
 using Biovation.Service;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -46,7 +47,7 @@ namespace Biovation.Brands.Virdi.Command
                 TaskItemId = Convert.ToInt32(items[1]);
             }
 
-            Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
 

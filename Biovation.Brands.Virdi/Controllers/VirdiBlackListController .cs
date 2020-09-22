@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
@@ -46,7 +47,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var creatorUser = _userService.GetUsers(userId:123456789, withPicture:false)[0];
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -61,7 +62,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     foreach (var blacklist in blackLists)
                     {
 
-                        var devices = _deviceService.GetDeviceBasicInfoWithCode(blacklist.Device.Code, DeviceBrands.VirdiCode);
+                        var devices = _deviceService.GetDevices(code:blacklist.Device.Code, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
                         var deviceId = devices.DeviceId;
                         task.TaskItems.Add(new TaskItem
                         {
@@ -76,7 +77,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             OrderIndex = 1
                         });
 
-                        _taskService.InsertTask(task).Wait();
+                        _taskService.InsertTask(task);
                         _taskManager.ProcessQueue();
 
                         resultList.Add(new ResultViewModel { Message = "Sending BlackList queued", Validate = 1 });
