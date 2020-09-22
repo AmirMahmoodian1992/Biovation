@@ -122,7 +122,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var existingUser = _userService.GetUsers(user.Id)[0];
+                    var existingUser = _userService.GetUsers(user.Id).FirstOrDefault();
 
                     if (existingUser != null)
                     {
@@ -264,7 +264,7 @@ namespace Biovation.Server.Controllers.v1
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < length; i++)
                     {
-                        var user = _userService.GetUsers(userId: userIds[i])[0];
+                        var user = _userService.GetUsers(userId: userIds[i]).FirstOrDefault();
                         if (user == null)
                         {
                             Logger.Log($"User {userIds[i]} not exists.");
@@ -541,7 +541,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var user = _userService.GetUsers(userId: userId, withPicture: false);
+                var user = _userService.GetUsers(userId).FirstOrDefault();
                 if (user is null)
                     return new ResultViewModel { Validate = 0, Id = userId, Message = "Wrong user id is provided." };
 

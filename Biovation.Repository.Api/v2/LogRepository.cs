@@ -40,25 +40,37 @@ namespace Biovation.Repository.Api.v2
             return Task.Run(() =>
             {
 
-                var restRequest = new RestRequest("Queries/v2/Log/AddLog", Method.POST);
+                var restRequest = new RestRequest("Commands/v2/Log/AddLog", Method.POST);
                 restRequest.AddJsonBody(log);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
             });
         }
-        public Task<ResultViewModel> AddLog(DataTable logs)
+
+        //public Task<ResultViewModel> AddLog(DataTable logs)
+        //{
+        //    return Task.Run(() =>
+        //    {
+
+        //        var restRequest = new RestRequest("Commands/v2/Log/AddLogBulk", Method.POST);
+        //        restRequest.AddJsonBody(logs);
+        //        var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
+        //        return requestResult.Result.Data;
+        //    });
+        //}
+
+        public Task<ResultViewModel> AddLog(List<Log> logs)
         {
             return Task.Run(() =>
             {
-
                 var restRequest = new RestRequest("Commands/v2/Log/AddLogBulk", Method.POST);
                 restRequest.AddJsonBody(logs);
                 var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
                 return requestResult.Result.Data;
             });
         }
-        
-        public Task<ResultViewModel> UpdateLog(DataTable logs)
+
+        public Task<ResultViewModel> UpdateLog(List<Log> logs)
         {
             return Task.Run(() =>
             {
@@ -92,6 +104,7 @@ namespace Biovation.Repository.Api.v2
                 return requestResult.Result.Data;
             });
         }
+
         public Task<List<Log>> CheckLogInsertion(List<Log> logs)
         {
             return Task.Run(() =>
@@ -103,10 +116,5 @@ namespace Biovation.Repository.Api.v2
                 return requestResult.Result.Data;
             });
         }
-
-
-
-
-
     }
 }

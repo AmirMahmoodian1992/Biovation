@@ -1,12 +1,11 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.Service.Api.v1;
 using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Brands.Virdi.Command

@@ -1,12 +1,10 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
-using Biovation.Constants;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {

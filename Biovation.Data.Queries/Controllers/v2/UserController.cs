@@ -44,6 +44,5 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _userRepository.GetAuthorizedDevicesOfUser(userId));
         }
-
     }
 }

@@ -53,7 +53,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
-                    var existingUserGroup = userGroup != null && userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id).Data[0];
+                    var existingUserGroup = userGroup != null && userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id).Data.FirstOrDefault();
                     if (existingUserGroup is null && userGroup.Id != 0)
                     {
                         return new ResultViewModel

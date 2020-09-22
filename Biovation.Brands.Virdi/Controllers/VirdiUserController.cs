@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.Virdi.Command;
+﻿using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
@@ -25,7 +25,7 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
-        
+
         private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
@@ -49,16 +49,16 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public Task<ResultViewModel> EnrollFromTerminal([FromBody]uint deviceId)
+        public Task<ResultViewModel> EnrollFromTerminal([FromBody] uint deviceId)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var devices = _deviceService.GetDevice(id:deviceId);
+                    var devices = _deviceService.GetDevice(id: deviceId);
 
-                    var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false)[0];
-                    
+                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+
 
                     var task = new TaskInfo
                     {
@@ -96,7 +96,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public ResultViewModel ModifyUser([FromBody]User user)
+        public ResultViewModel ModifyUser([FromBody] User user)
         {
             try
             {
@@ -118,11 +118,11 @@ namespace Biovation.Brands.Virdi.Controllers
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
+                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
                     var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 
-                    var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false)[0];
+                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -167,7 +167,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public ResultViewModel SendUserToAllDevices([FromBody]User user)
+        public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
             var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
             if (!accessGroups.Any())
@@ -227,7 +227,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(userId: 123456789, withPicture: false)[0];
+                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -255,7 +255,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
-                    return new ResultViewModel { Id = userId, Validate = 1, Message = $"Enrolling face from device {deviceId} started successfuly." };
+                    return new ResultViewModel { Id = userId, Validate = 1, Message = $"Enrolling face from device {deviceId} started successfully." };
                 }
                 catch (Exception exception)
                 {

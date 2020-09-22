@@ -18,10 +18,6 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-
-
-
-
         public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default)
         {
             var parameters = new List<SqlParameter>

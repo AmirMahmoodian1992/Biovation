@@ -1,12 +1,11 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Service;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -28,7 +27,7 @@ namespace Biovation.Brands.Virdi.Command
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
 
             OnlineDevices = virdiServer.GetOnlineDevices();
         }

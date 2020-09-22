@@ -57,7 +57,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
-                    var existingUser = _userService.GetUsers(userId: user.Id, withPicture: false).Data.Data[0];
+                    var existingUser = _userService.GetUsers(user.Id).Data.Data.FirstOrDefault();
 
                     if (existingUser != null)
                     {

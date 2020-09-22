@@ -32,7 +32,7 @@ namespace Biovation.Brands.Virdi.Command
             _callbacks = callbacks;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
 
 
             var taskItem = taskService.GetTaskItem(TaskItemId);

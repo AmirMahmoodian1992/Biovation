@@ -1,6 +1,5 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -29,8 +28,24 @@ namespace Biovation.Service.Api.v1
             List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                JsonConvert.SerializeObject(excludedTaskStatusCodes), pageNumber, pageSize)?.Data?.Data ?? new List<TaskInfo>());
+            return Task.Run(() =>
+            {
+                var excludedTaskStatusCodesString = string.Empty;
+                if (excludedTaskStatusCodes != null)
+                {
+                    excludedTaskStatusCodesString += '(';
+                    foreach (var excludedTaskStatusCode in excludedTaskStatusCodes)
+                    {
+                        excludedTaskStatusCodesString += $"{excludedTaskStatusCode},";
+                    }
+
+                    excludedTaskStatusCodesString = excludedTaskStatusCodesString.Trim(',');
+                    excludedTaskStatusCodesString += ')';
+                }
+
+                return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                           excludedTaskStatusCodesString, pageNumber, pageSize)?.Data?.Data ?? new List<TaskInfo>();
+            });
         }
 
         public TaskItem GetTaskItem(int taskItemId = default)

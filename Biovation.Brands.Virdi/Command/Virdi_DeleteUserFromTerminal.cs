@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -24,12 +23,9 @@ namespace Biovation.Brands.Virdi.Command
         private int UserId { get; }
 
         private int TaskItemId { get; }
-        private readonly TaskService _taskService;
-
 
         private readonly Callbacks _callbacks;
         private readonly LogService _logService;
-        private readonly DeviceService _deviceService;
 
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
@@ -40,17 +36,15 @@ namespace Biovation.Brands.Virdi.Command
             DeviceId = Convert.ToInt32(items[0]);
 
             TaskItemId = Convert.ToInt32(items[1]);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
-            UserId = (int) data["userId"];
-            Code = _deviceService.GetDevices(brandId:int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId==DeviceId).Code;
+            UserId = (int)data["userId"];
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             OnlineDevices = virdiServer.GetOnlineDevices();
-            
+
             _callbacks = callbacks;
             _logService = logService;
-            _taskService = taskService;
-            _deviceService = deviceService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
@@ -61,7 +55,6 @@ namespace Biovation.Brands.Virdi.Command
             {
                 Logger.Log($"DeleteUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };
-
             }
 
             try
@@ -93,7 +86,7 @@ namespace Biovation.Brands.Virdi.Command
 
                 Logger.Log($"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n");
 
-                return new ResultViewModel { Code =Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n", Validate = 0 };
             }
             catch (Exception exception)
             {

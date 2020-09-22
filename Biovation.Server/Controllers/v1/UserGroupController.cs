@@ -190,7 +190,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id)[0];
+                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id).FirstOrDefault();
                     if (existingUserGroup is null && userGroup.Id != 0)
                     {
                         return new ResultViewModel
@@ -468,7 +468,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userGroupService.UsersGroup(userGroupId: userGroupId)[0];
+                return _userGroupService.UsersGroup(userGroupId: userGroupId).FirstOrDefault() ?? new UserGroup();
             }
             catch (Exception exception)
             {
@@ -525,21 +525,25 @@ namespace Biovation.Server.Controllers.v1
             try
             {
                 var deviceBrands = _deviceService.GetDeviceBrands();
-                var userGroup = _userGroupService.UsersGroup(userGroupId: userGroupId)[0];
-                foreach (var userGroupMember in userGroup.Users)
-                {
-                    var user = _userService.GetUsers(userId: userGroupMember.UserId)[0];
-
-                    foreach (var deviceBrand in deviceBrands)
+                var userGroup = _userGroupService.UsersGroup(userGroupId: userGroupId).FirstOrDefault();
+                if (userGroup != null)
+                    foreach (var userGroupMember in userGroup.Users)
                     {
-                        var restRequest =
-                            new RestRequest(
-                                $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
-                                Method.POST);
-                        restRequest.AddJsonBody(JsonConvert.SerializeObject(user));
-                        _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                        var user = _userService.GetUsers(userGroupMember.UserId).FirstOrDefault();
+
+                        foreach (var deviceBrand in deviceBrands)
+                        {
+                            var restRequest =
+                                new RestRequest(
+                                    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                    Method.POST);
+                            restRequest.AddJsonBody(JsonConvert.SerializeObject(user));
+                            _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                        }
                     }
-                }
+                else
+                    return new ResultViewModel { Validate = 0, Id = userGroupId, Message = "Wrong user group id" };
+
 
                 return new ResultViewModel { Validate = 1, Id = userGroupId };
             }

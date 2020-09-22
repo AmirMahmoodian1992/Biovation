@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.Service.Api.v1;
@@ -53,7 +54,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 try
                 {
                     var devices = _deviceService.GetDevices(brandId:int.Parse(DeviceBrands.VirdiCode));
-                    var creatorUser = _userService.GetUsers(userId:123456789, withPicture:false)[0];
+                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,

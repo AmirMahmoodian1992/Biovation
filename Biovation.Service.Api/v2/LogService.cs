@@ -27,12 +27,12 @@ namespace Biovation.Service.Api.v2
         {
             return Task.Run(() => _logRepository.AddLog(log));
         }
-        public Task<ResultViewModel> AddLog(DataTable logs)
+        public Task<ResultViewModel> AddLog(List<Log> logs)
         {
             return Task.Run(() => _logRepository.AddLog(logs));
         }
 
-        public Task<ResultViewModel> UpdateLog(DataTable logs)
+        public Task<ResultViewModel> UpdateLog(List<Log> logs)
         {
             return Task.Run(() => _logRepository.UpdateLog(logs));
         }

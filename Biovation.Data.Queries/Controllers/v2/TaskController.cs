@@ -17,12 +17,10 @@ namespace Biovation.Data.Queries.Controllers.v2
             _taskRepository = taskRepository;
         }
 
-
-
         [HttpGet]
-        [Route("taskItemId")]
+        [Route("{taskItemId}")]
 
-        public Task<ResultViewModel<TaskItem>> GetTaskItem(int taskItemId = default)
+        public Task<ResultViewModel<TaskItem>> GetTaskItem([FromRoute] int taskItemId = default)
         {
             return Task.Run(() => _taskRepository.GetTaskItem(taskItemId));
         }

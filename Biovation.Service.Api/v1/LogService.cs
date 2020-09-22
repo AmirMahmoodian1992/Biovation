@@ -1,13 +1,10 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
-using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -41,6 +38,7 @@ namespace Biovation.Service.Api.v1
         {
             return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State)?.Data?.Data ?? new List<Log>());
         }
+
         public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic dTraffic)
         {
             return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State)?.Data?.Data ?? new List<Log>());
@@ -51,31 +49,14 @@ namespace Biovation.Service.Api.v1
         {
             return Task.Run(() => _logRepository.AddLog(log));
         }
+
         public Task<ResultViewModel> AddLog(List<Log> logs)
         {
             return Task.Run(async () =>
             {
                 try
                 {
-                    var json = JsonConvert.SerializeObject(logs.Select(s => new
-                    {
-                        s.Id,
-                        s.DeviceId,
-                        s.DeviceCode,
-                        EventId = s.EventLog.Code,
-                        s.UserId,
-                        datetime = s.LogDateTime,
-                        Ticks = s.DateTimeTicks,
-                        SubEvent = s.SubEvent?.Code ?? LogSubEvents.NormalCode,
-                        TNAEvent = s.TnaEvent,
-                        s.InOutMode,
-                        MatchingType = s.MatchingType?.Code,
-                        //s.MatchingType,
-                        s.SuccessTransfer
-                    }));
-
-                    var logsDataTable = JsonConvert.DeserializeObject<DataTable>(json);
-                    return await _logRepository.AddLog(logsDataTable);
+                    return await _logRepository.AddLog(logs);
                 }
                 catch (Exception)
                 {
@@ -145,7 +126,7 @@ namespace Biovation.Service.Api.v1
             });
         }
 
-        public Task<ResultViewModel> UpdateLog(DataTable logs)
+        public Task<ResultViewModel> UpdateLog(List<Log> logs)
         {
             return Task.Run(() => _logRepository.UpdateLog(logs));
         }
@@ -153,38 +134,6 @@ namespace Biovation.Service.Api.v1
         public Task<ResultViewModel> AddLogImage(Log log)
         {
             return Task.Run(() => _logRepository.AddLogImage(log));
-        }
-
-        public Task<ResultViewModel> UpdateLog(IEnumerable<Log> logs)
-        {
-            return Task.Run(async () =>
-            {
-                try
-                {
-                    var serializedData = JsonConvert.SerializeObject(logs.Select(s => new
-                    {
-                        s.Id,
-                        s.DeviceId,
-                        s.DeviceCode,
-                        EventId = s.EventLog.Code,
-                        s.UserId,
-                        datetime = s.LogDateTime,
-                        Ticks = s.DateTimeTicks,
-                        SubEvent = s.SubEvent?.Code ?? LogSubEvents.NormalCode,
-                        TNAEvent = s.TnaEvent,
-                        s.InOutMode,
-                        s.MatchingType.Code,
-                        s.SuccessTransfer
-                    }));
-                    var logsDataTable = JsonConvert.DeserializeObject<DataTable>(serializedData);
-                    return await _logRepository.UpdateLog(logsDataTable);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                }
-            });
         }
 
         public Task<List<Log>> CheckLogInsertion(List<Log> logs)

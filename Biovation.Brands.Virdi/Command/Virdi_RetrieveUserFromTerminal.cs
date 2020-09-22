@@ -31,7 +31,7 @@ namespace Biovation.Brands.Virdi.Command
             _callbacks = callbacks;
             DeviceId = Convert.ToInt32(items[0]);
 
-            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId).Code;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
 
 
             TaskItemId = Convert.ToInt32(items[1]);
@@ -40,13 +40,13 @@ namespace Biovation.Brands.Virdi.Command
             UserId = (int)data["userId"];
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
+
         public object Execute()
         {
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetriveUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };
-
             }
 
             try
