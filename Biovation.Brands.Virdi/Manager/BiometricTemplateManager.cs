@@ -5,42 +5,48 @@ namespace Biovation.Brands.Virdi.Manager
 {
     public class BiometricTemplateManager
     {
-        public static Lookup GetFingerIndex(int fingerIndex)
+        private readonly FingerIndexNames _fingerIndexNames;
+        public BiometricTemplateManager(FingerIndexNames fingerIndexNames)
+        {
+            _fingerIndexNames = fingerIndexNames;
+        }
+
+        public Lookup GetFingerIndex(int fingerIndex)
         {
             switch (fingerIndex)
             {
                 case 1:
-                    return FingerIndexNames.RightThumb;
+                    return _fingerIndexNames.RightThumb;
 
                 case 2:
-                    return FingerIndexNames.RightIndex;
+                    return _fingerIndexNames.RightIndex;
 
                 case 3:
-                    return FingerIndexNames.RightMiddle;
+                    return _fingerIndexNames.RightMiddle;
 
                 case 4:
-                    return FingerIndexNames.RightRing;
+                    return _fingerIndexNames.RightRing;
 
                 case 5:
-                    return FingerIndexNames.RightLittle;
+                    return _fingerIndexNames.RightLittle;
 
                 case 6:
-                    return FingerIndexNames.LeftThumb;
+                    return _fingerIndexNames.LeftThumb;
 
                 case 7:
-                    return FingerIndexNames.LeftIndex;
+                    return _fingerIndexNames.LeftIndex;
 
                 case 8:
-                    return FingerIndexNames.LeftMiddle;
+                    return _fingerIndexNames.LeftMiddle;
 
                 case 9:
-                    return FingerIndexNames.LeftRing;
+                    return _fingerIndexNames.LeftRing;
 
                 case 10:
-                    return FingerIndexNames.LeftLittle;
+                    return _fingerIndexNames.LeftLittle;
 
                 default:
-                    return FingerIndexNames.Unknown;
+                    return _fingerIndexNames.Unknown;
             }
         }
     }

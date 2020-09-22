@@ -14,15 +14,17 @@ namespace Biovation.Brands.Virdi.Manager
     public class TaskManager
     {
         private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
         private readonly CommandFactory _commandFactory;
 
         private List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
-        public TaskManager(TaskService taskService, CommandFactory commandFactory)
+        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
         {
             _taskService = taskService;
             _commandFactory = commandFactory;
+            _taskStatuses = taskStatuses;
         }
 
         public void ExecuteTask(TaskInfo taskInfo)
@@ -293,7 +295,7 @@ namespace Biovation.Brands.Virdi.Manager
                 {
                     if (result is null) return;
                     taskItem.Result = JsonConvert.SerializeObject(result);
-                    taskItem.Status = TaskStatuses.GetTaskStatusByCode(result.Code.ToString());
+                    taskItem.Status = _taskStatuses.GetTaskStatusByCode(result.Code.ToString());
 
                     _taskService.UpdateTaskStatus(taskItem);
                 });
@@ -304,7 +306,7 @@ namespace Biovation.Brands.Virdi.Manager
         {
             lock (_tasks)
                 _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                    excludedTaskStatusCodes: new List<string> { TaskStatuses.Done.Code, TaskStatuses.Failed.Code }).Result;
+                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code }).Result;
 
             if (_processingQueueInProgress)
                 return;

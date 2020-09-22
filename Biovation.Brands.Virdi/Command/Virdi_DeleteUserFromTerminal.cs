@@ -30,12 +30,14 @@ namespace Biovation.Brands.Virdi.Command
         private readonly LogService _logService;
         private readonly DeviceService _deviceService;
 
-        public VirdiDeleteUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, LogService logService, DeviceService deviceService)
+        private readonly LogEvents _logEvents;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
+
+        public VirdiDeleteUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, LogService logService, DeviceService deviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             DeviceId = Convert.ToInt32(items[0]);
 
-           
-          
             TaskItemId = Convert.ToInt32(items[1]);
             var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
@@ -48,19 +50,18 @@ namespace Biovation.Brands.Virdi.Command
             _logService = logService;
             _taskService = taskService;
             _deviceService = deviceService;
+            _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
         }
         public object Execute()
         {
-
-
             if (OnlineDevices.All(device => device.Key != Code))
             {
-               
                 Logger.Log($"DeleteUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };
 
             }
-
 
             try
             {
@@ -68,29 +69,25 @@ namespace Biovation.Brands.Virdi.Command
 
                 Logger.Log("-->Delete user from terminal");
 
-                Log log;
-
                 if (_callbacks.TerminalUserData.ErrorCode == 0)
                 {
-                    Logger.Log($"  +User {UserId} successfuly deleted from device: {Code}.\n");
+                    Logger.Log($"  +User {UserId} successfully deleted from device: {Code}.\n");
 
-                    log = new Log
+                    var log = new Log
                     {
                         DeviceId = DeviceId,
                         LogDateTime = DateTime.Now,
-                        //EventLog = Event.USERREMOVEDFROMDEVICE,
-                        EventLog = LogEvents.RemoveUserFromDevie,
+                        EventLog = _logEvents.RemoveUserFromDevice,
                         UserId = UserId,
-                        MatchingType = MatchingTypes.Unknown,
-                        SubEvent = LogSubEvents.Normal,
+                        MatchingType = _matchingTypes.Unknown,
+                        SubEvent = _logSubEvents.Normal,
                         TnaEvent = 0,
                         SuccessTransfer = true
                     };
 
                     _logService.AddLog(log);
 
-                    return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfuly deleted from device: {Code}.\n", Validate = 1 };
-
+                    return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfully deleted from device: {Code}.\n", Validate = 1 };
                 }
 
                 Logger.Log($"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n");
@@ -101,7 +98,6 @@ namespace Biovation.Brands.Virdi.Command
             {
                 Logger.Log(exception);
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n", Validate = 0 };
-
             }
         }
 

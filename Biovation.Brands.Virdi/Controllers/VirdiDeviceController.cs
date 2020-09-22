@@ -30,7 +30,12 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
 
-        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses)
         {
             _callbacks = callbacks;
             _virdiServer = virdiServer;
@@ -40,6 +45,10 @@ namespace Biovation.Brands.Virdi.Controllers
             _commandFactory = commandFactory;
             _taskManager = taskManager;
             _deviceBrands = deviceBrands;
+            _taskTypes = taskTypes;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
         }
 
@@ -82,7 +91,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
 
                 var devices = _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.VirdiCode);
-                int deviceId = devices.DeviceId;
+                var deviceId = devices.DeviceId;
                 //int deviceId = devices.FirstOrDefault(dev => dev.Code == code).DeviceId;
                 try
                 {
@@ -92,8 +101,8 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.GetServeLogs,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.GetServeLogs,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
                         DeviceBrand = _deviceBrands.Virdi,
                     };
@@ -101,9 +110,9 @@ namespace Biovation.Brands.Virdi.Controllers
                     if (deviceId != default)
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.GetServeLogs,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.GetServeLogs,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = deviceId,
                             Data = JsonConvert.SerializeObject(deviceId),
@@ -120,9 +129,9 @@ namespace Biovation.Brands.Virdi.Controllers
                         {
                             task.TaskItems.Add(new TaskItem
                             {
-                                Status = TaskStatuses.Queued,
-                                TaskItemType = TaskItemTypes.GetServeLogs,
-                                Priority = TaskPriorities.Medium,
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetServeLogs,
+                                Priority = _taskPriorities.Medium,
                                 DueDate = DateTime.Today,
                                 DeviceId = device.DeviceId,
                                 Data = JsonConvert.SerializeObject(deviceId),
@@ -164,8 +173,8 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
-                                TaskType = TaskTypes.GetServeLogs,
-                                Priority = TaskPriorities.Medium,
+                                TaskType = _taskTypes.GetServeLogs,
+                                Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.Virdi,
 
@@ -174,9 +183,9 @@ namespace Biovation.Brands.Virdi.Controllers
                             if (deviceId != default)
                                 task.TaskItems.Add(new TaskItem
                                 {
-                                    Status = TaskStatuses.Queued,
-                                    TaskItemType = TaskItemTypes.GetServeLogsInPeriod,
-                                    Priority = TaskPriorities.Medium,
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.GetServeLogsInPeriod,
+                                    Priority = _taskPriorities.Medium,
                                     DueDate = DateTimeOffset.Now,
                                     DeviceId = deviceId,
                                     Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
@@ -194,9 +203,9 @@ namespace Biovation.Brands.Virdi.Controllers
                                 {
                                     task.TaskItems.Add(new TaskItem
                                     {
-                                        Status = TaskStatuses.Queued,
-                                        TaskItemType = TaskItemTypes.GetServeLogsInPeriod,
-                                        Priority = TaskPriorities.Medium,
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.GetServeLogsInPeriod,
+                                        Priority = _taskPriorities.Medium,
                                         DueDate = DateTime.Today,
                                         DeviceId = device.DeviceId,
                                         Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
@@ -216,8 +225,8 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
-                                TaskType = TaskTypes.GetServeLogs,
-                                Priority = TaskPriorities.Medium,
+                                TaskType = _taskTypes.GetServeLogs,
+                                Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.Virdi,
                             };
@@ -225,9 +234,9 @@ namespace Biovation.Brands.Virdi.Controllers
                             if (deviceId != default)
                                 task.TaskItems.Add(new TaskItem
                                 {
-                                    Status = TaskStatuses.Queued,
-                                    TaskItemType = TaskItemTypes.GetServeLogs,
-                                    Priority = TaskPriorities.Medium,
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.GetServeLogs,
+                                    Priority = _taskPriorities.Medium,
                                     DueDate = DateTime.Today,
                                     DeviceId = deviceId,
                                     Data = JsonConvert.SerializeObject(deviceId),
@@ -245,9 +254,9 @@ namespace Biovation.Brands.Virdi.Controllers
                                 {
                                     task.TaskItems.Add(new TaskItem
                                     {
-                                        Status = TaskStatuses.Queued,
-                                        TaskItemType = TaskItemTypes.GetServeLogs,
-                                        Priority = TaskPriorities.Medium,
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.GetServeLogs,
+                                        Priority = _taskPriorities.Medium,
                                         DueDate = DateTime.Today,
                                         DeviceId = device.DeviceId,
                                         Data = JsonConvert.SerializeObject(deviceId),
@@ -324,16 +333,16 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.LockDevice,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
                     {
-                        Status = TaskStatuses.Queued,
-                        TaskItemType = TaskItemTypes.LockDevice,
-                        Priority = TaskPriorities.Medium,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
                         DueDate = DateTime.Today,
                         DeviceId = devices.DeviceId,
 
@@ -371,15 +380,15 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.UnlockDevice,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.UnlockDevice,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
                     {
-                        Status = TaskStatuses.Queued,
-                        TaskItemType = TaskItemTypes.UnlockDevice,
-                        Priority = TaskPriorities.Medium,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.UnlockDevice,
+                        Priority = _taskPriorities.Medium,
                         DueDate = DateTime.Today,
                         DeviceId = devices.DeviceId,
                         Data = JsonConvert.SerializeObject(devices.DeviceId),
@@ -418,15 +427,15 @@ namespace Biovation.Brands.Virdi.Controllers
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             DeviceBrand = _deviceBrands.Virdi,
-                            TaskType = TaskTypes.UnlockDevice,
-                            Priority = TaskPriorities.Medium,
+                            TaskType = _taskTypes.UnlockDevice,
+                            Priority = _taskPriorities.Medium,
                             TaskItems = new List<TaskItem>()
                         };
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.UnlockDevice,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.UnlockDevice,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = devices.DeviceId,
                             Data = JsonConvert.SerializeObject(devices.DeviceId),
@@ -454,16 +463,16 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.LockDevice,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
                         DeviceBrand = _deviceBrands.Virdi,
                     };
                     task.TaskItems.Add(new TaskItem
                     {
-                        Status = TaskStatuses.Queued,
-                        TaskItemType = TaskItemTypes.LockDevice,
-                        Priority = TaskPriorities.Medium,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
                         DueDate = DateTime.Today,
                         DeviceId = devices.DeviceId,
                         Data = JsonConvert.SerializeObject(devices.DeviceId),
@@ -525,8 +534,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         DeviceBrand = _deviceBrands.Virdi,
-                        TaskType = TaskTypes.SendUsers,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
                     var accessGroups = _accessGroupService.GetAccessGroupsOfDevice((uint)device.DeviceId);
@@ -539,9 +548,9 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 task.TaskItems.Add(new TaskItem
                                 {
-                                    Status = TaskStatuses.Queued,
-                                    TaskItemType = TaskItemTypes.SendUser,
-                                    Priority = TaskPriorities.Medium,
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendUser,
+                                    Priority = _taskPriorities.Medium,
                                     DueDate = DateTime.Today,
                                     DeviceId = device.DeviceId,
                                     Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserId }),
@@ -581,8 +590,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         DeviceBrand = _deviceBrands.Virdi,
-                        TaskType = TaskTypes.RetrieveUserFromTerminal,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.RetrieveUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
                     //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
@@ -595,9 +604,9 @@ namespace Biovation.Brands.Virdi.Controllers
 
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.RetrieveUserFromTerminal,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = deviceId,
                             Data = JsonConvert.SerializeObject(new { userId = id }),
@@ -657,8 +666,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
-                    TaskType = TaskTypes.RetrieveAllUsersFromTerminal,
-                    Priority = TaskPriorities.Medium,
+                    TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
+                    Priority = _taskPriorities.Medium,
                     DeviceBrand = _deviceBrands.Virdi,
                     TaskItems = new List<TaskItem>()
                 };
@@ -666,9 +675,9 @@ namespace Biovation.Brands.Virdi.Controllers
                 var deviceId = devices.DeviceId;
                 task.TaskItems.Add(new TaskItem
                 {
-                    Status = TaskStatuses.Queued,
-                    TaskItemType = TaskItemTypes.RetrieveAllUsersFromTerminal,
-                    Priority = TaskPriorities.Medium,
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
+                    Priority = _taskPriorities.Medium,
                     DueDate = DateTime.Today,
                     DeviceId = deviceId,
                     Data = JsonConvert.SerializeObject(deviceId),
@@ -712,16 +721,16 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.OpenDoor,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.OpenDoor,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
                         DeviceBrand = _deviceBrands.Virdi,
                     };
                     task.TaskItems.Add(new TaskItem
                     {
-                        Status = TaskStatuses.Queued,
-                        TaskItemType = TaskItemTypes.OpenDoor,
-                        Priority = TaskPriorities.Medium,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.OpenDoor,
+                        Priority = _taskPriorities.Medium,
                         DueDate = DateTime.Today,
                         DeviceId = devices.DeviceId,
                         Data = JsonConvert.SerializeObject(devices.DeviceId),
@@ -802,17 +811,17 @@ namespace Biovation.Brands.Virdi.Controllers
         //                        CreatedAt = DateTimeOffset.Now,
         //                        CreatedBy = creatorUser,
 
-        //                        TaskType = TaskTypes.UpgradeDeviceFirmware,
-        //                        Priority = TaskPriorities.Medium,
+        //                        TaskType = _taskTypes.UpgradeDeviceFirmware,
+        //                        Priority = _taskPriorities.Medium,
         //                        DeviceBrand = DeviceBrands.Virdi,
         //                        TaskItems = new List<TaskItem>()
         //                    };
         //                    task.TaskItems.Add(new TaskItem
         //                    {
-        //                        Status = TaskStatuses.Queued,
+        //                        Status = _taskStatuses.Queued,
 
-        //                        TaskItemType = TaskItemTypes.UpgradeDeviceFirmware,
-        //                        Priority = TaskPriorities.Medium,
+        //                        TaskItemType = _taskItemTypes.UpgradeDeviceFirmware,
+        //                        Priority = _taskPriorities.Medium,
         //                        DueDate = DateTime.Today,
         //                        DeviceId = devices.DeviceId,
         //                        Data = JsonConvert.SerializeObject(new { multipartFileData.LocalFileName }),
@@ -911,8 +920,8 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.DeleteUserFromTerminal,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.DeleteUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };*/
                     var task = new TaskInfo
@@ -920,8 +929,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
 
-                        TaskType = TaskTypes.DeleteUsers,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.DeleteUsers,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
@@ -933,9 +942,9 @@ namespace Biovation.Brands.Virdi.Controllers
 
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.DeleteUserFromTerminal,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { userId = id }),

@@ -13,10 +13,12 @@ namespace Biovation.Server.Controllers.v1
     public class TaskController : Controller
     {
         private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
 
-        public TaskController(TaskService taskService)
+        public TaskController(TaskService taskService, TaskStatuses taskStatuses)
         {
             _taskService = taskService;
+            _taskStatuses = taskStatuses;
         }
 
         [HttpPatch]
@@ -32,7 +34,7 @@ namespace Biovation.Server.Controllers.v1
                         return new ResultViewModel
                             { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };
 
-                    var taskStatus = TaskStatuses.GetTaskStatusByCode(taskStatusId);
+                    var taskStatus = _taskStatuses.GetTaskStatusByCode(taskStatusId);
                     if (taskStatus is null)
                         return new ResultViewModel
                             { Validate = 0, Code = Convert.ToInt64(taskStatusId), Message = "The provided task status id is wrong" };

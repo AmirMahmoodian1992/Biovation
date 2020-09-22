@@ -24,11 +24,13 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly RestClient _restClient;
 
+        private readonly Lookups _lookups;
 
-        public DeviceController(DeviceService deviceService, UserService userService)
+        public DeviceController(DeviceService deviceService, UserService userService, Lookups lookups)
         {
             _deviceService = deviceService;
             _userService = userService;
+            _lookups = lookups;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
@@ -171,7 +173,7 @@ namespace Biovation.Server.Controllers.v1
             if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
             var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-            return requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0 ? null : requestResult.Data.Data.Modules.Select(brand => Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
+            return requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0 ? null : requestResult.Data.Data.Modules.Select(brand => _lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
         }
 
         [HttpGet]

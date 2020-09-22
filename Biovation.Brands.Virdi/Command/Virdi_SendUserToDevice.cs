@@ -32,13 +32,17 @@ namespace Biovation.Brands.Virdi.Command
 
 
         private readonly Callbacks _callbacks;
+        private readonly LogEvents _logEvents;
         private readonly LogService _logService;
         private readonly UserCardService _userCardService;
         private readonly AdminDeviceService _adminDeviceService;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
 
-        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService)
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
+
+        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _callbacks = callbacks;
             _logService = logService;
@@ -46,6 +50,9 @@ namespace Biovation.Brands.Virdi.Command
             _adminDeviceService = adminDeviceService;
             _accessGroupService = accessGroupService;
             _faceTemplateService = faceTemplateService;
+            _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -220,22 +227,21 @@ namespace Biovation.Brands.Virdi.Command
 
                 if (_callbacks.ServerUserData.ErrorCode == 0)
                 {
-                    Logger.Log($"  +User {UserId} successfuly transferred to device: {Code}.");
+                    Logger.Log($"  +User {UserId} successfully transferred to device: {Code}.");
 
                     var log = new Log
                     {
                         DeviceId = DeviceId,
                         LogDateTime = DateTime.Now,
-                        //EventLog = Event.USERADDEDTODEVICE,
-                        EventLog = LogEvents.AddUserToDevice,
+                        EventLog = _logEvents.AddUserToDevice,
                         UserId = UserId,
-                        MatchingType = MatchingTypes.Unknown,
-                        SubEvent = LogSubEvents.Normal,
+                        MatchingType = _matchingTypes.Unknown,
+                        SubEvent = _logSubEvents.Normal,
                         TnaEvent = 0
                     };
 
                     _logService.AddLog(log);
-                    return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfuly transferd to device: {Code}.", Validate = 1 };
+                    return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfully transferred to device: {Code}.", Validate = 1 };
                 }
 
                 Logger.Log($"  +Cannot transfer user {UserId} to device: {Code}. Error code = {_callbacks.ServerUserData.ErrorCode}\n");
@@ -275,17 +281,15 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     encryptor.Key = pdb.GetBytes(32);
                     encryptor.IV = pdb.GetBytes(16);
-                    using (var ms = new MemoryStream())
+                    using var ms = new MemoryStream();
+                    using (var cs = new CryptoStream(ms, encryptor.CreateDecryptor(),
+                        CryptoStreamMode.Write))
                     {
-                        using (var cs = new CryptoStream(ms, encryptor.CreateDecryptor(),
-                            CryptoStreamMode.Write))
-                        {
-                            cs.Write(cipherBytes, 0, cipherBytes.Length);
-                            cs.Close();
-                        }
-
-                        cipherText = Encoding.Unicode.GetString(ms.ToArray());
+                        cs.Write(cipherBytes, 0, cipherBytes.Length);
+                        cs.Close();
                     }
+
+                    cipherText = Encoding.Unicode.GetString(ms.ToArray());
                 }
             }
             return cipherText;

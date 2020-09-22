@@ -3,7 +3,7 @@ using Biovation.Domain;
 
 namespace Biovation.Constants
 {
-    public static class TaskStatuses
+    public class TaskStatuses
     {
         public const string QueuedCode = "10001";
         public const string DoneCode = "10002";
@@ -12,16 +12,25 @@ namespace Biovation.Constants
         public const string ScheduledCode = "10005";
         public const string DeviceDisconnectedCode = "10006";
 
+        public TaskStatuses(Lookups lookups)
+        {
+            Queued = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, QueuedCode));
+            Done = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, DoneCode));
+            Failed = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, FailedCode));
+            InProgress = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, InProgressCode));
+            Scheduled = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, ScheduledCode));
+            DeviceDisconnected = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceDisconnectedCode));
+        }
 
-        public static Lookup Queued = Lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, QueuedCode));
-        public static Lookup Done = Lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, DoneCode));
-        public static Lookup Failed = Lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, FailedCode));
-        public static Lookup InProgress = Lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, InProgressCode));
-        public static Lookup Scheduled = Lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, ScheduledCode));
-        public static Lookup DeviceDisconnected = Lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceDisconnectedCode));
+        public Lookup Queued;
+        public Lookup Done;
+        public Lookup Failed;
+        public Lookup InProgress;
+        public Lookup Scheduled;
+        public Lookup DeviceDisconnected;
 
 
-        public static Lookup GetTaskStatusByCode(string statusCode)
+        public Lookup GetTaskStatusByCode(string statusCode)
         {
             switch (statusCode)
             {

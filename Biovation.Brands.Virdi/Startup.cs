@@ -150,6 +150,9 @@ namespace Biovation.Brands.Virdi
             serviceCollection.AddScoped<LookupService, LookupService>();
             serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
+            
+            //serviceCollection.AddScoped<Lookups, Lookups>();
+            //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
 
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -168,33 +171,20 @@ namespace Biovation.Brands.Virdi
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
 
-
-            Lookups.TaskStatuses = taskStatusesQuery.Result;
-            Lookups.TaskTypes = taskTypesQuery.Result;
-            Lookups.TaskItemTypes = taskItemTypesQuery.Result;
-            Lookups.TaskPriorities = taskPrioritiesQuery.Result;
-            Lookups.FingerIndexNames = fingerIndexNamesQuery.Result;
-            Lookups.DeviceBrands = deviceBrandsQuery.Result;
-            Lookups.LogSubEvents = logSubEventsQuery.Result;
-            Lookups.FingerTemplateType = fingerTemplateTypeQuery.Result;
-            Lookups.FaceTemplateType = faceTemplateTypeQuery.Result;
-            Lookups.LogEvents = logEventsQuery.Result;
-            Lookups.MatchingTypes = matchingTypeQuery.Result;
-
-            //var lookups = new Lookups
-            //{
-            //    TaskStatuses = taskStatusesQuery.Result,
-            //    TaskTypes = taskTypesQuery.Result,
-            //    TaskItemTypes = taskItemTypesQuery.Result,
-            //    TaskPriorities = taskPrioritiesQuery.Result,
-            //    FingerIndexNames = fingerIndexNamesQuery.Result,
-            //    DeviceBrands = deviceBrandsQuery.Result,
-            //    LogSubEvents = logSubEventsQuery.Result,
-            //    FingerTemplateType = fingerTemplateTypeQuery.Result,
-            //    FaceTemplateType = faceTemplateTypeQuery.Result,
-            //    LogEvents = logEventsQuery.Result,
-            //    MatchingTypes = matchingTypeQuery.Result
-            //};
+            var lookups = new Lookups
+            {
+                TaskStatuses = taskStatusesQuery.Result,
+                TaskTypes = taskTypesQuery.Result,
+                TaskItemTypes = taskItemTypesQuery.Result,
+                TaskPriorities = taskPrioritiesQuery.Result,
+                FingerIndexNames = fingerIndexNamesQuery.Result,
+                DeviceBrands = deviceBrandsQuery.Result,
+                LogSubEvents = logSubEventsQuery.Result,
+                FingerTemplateType = fingerTemplateTypeQuery.Result,
+                FaceTemplateType = faceTemplateTypeQuery.Result,
+                LogEvents = logEventsQuery.Result,
+                MatchingTypes = matchingTypeQuery.Result
+            };
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
 
@@ -213,27 +203,21 @@ namespace Biovation.Brands.Virdi
             };
 
 
-            LogEvents.Connect = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.ConnectCode));
-            LogEvents.Disconnect = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.DisconnectCode));
-            LogEvents.Authorized = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.AuthorizedCode));
-            LogEvents.UnAuthorized = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.UnAuthorizedCode));
-            LogEvents.AddUserToDevice = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.AddUserToDeviceCode));
-            LogEvents.RemoveUserFromDevie = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.RemoveUserFromDeviceCode));
-            LogEvents.DeviceEnabled = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.DeviceEnabledCode));
-            LogEvents.DeviceDisabled = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.DeviceDisabledCode));
-            LogEvents.EnrollSuccess = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.EnrollSuccessCode));
-            LogEvents.IdentifySuccessFace = Lookups.LogEvents.FirstOrDefault(lookup => string.Equals(lookup.Code, LogEvents.IdentifyFaceSuccessCode));
-
-            services.AddSingleton<Lookups, Lookups>();
+            services.AddSingleton(lookups);
             services.AddSingleton(genericCodeMappings);
             //Constant values
             services.AddSingleton<LogEvents, LogEvents>();
+            services.AddSingleton<TaskTypes, TaskTypes>();
             services.AddSingleton<LogSubEvents, LogSubEvents>();
             services.AddSingleton<DeviceBrands, DeviceBrands>();
+            services.AddSingleton<TaskStatuses, TaskStatuses>();
+            services.AddSingleton<MatchingTypes, MatchingTypes>();
+            services.AddSingleton<TaskItemTypes, TaskItemTypes>();
+            services.AddSingleton<TaskPriorities, TaskPriorities>();
+            services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
-
 
         private void ConfigureVirdiServices(IServiceCollection services)
         {
@@ -265,6 +249,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<VirdiServer, VirdiServer>();
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
+            services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
 

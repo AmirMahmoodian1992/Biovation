@@ -36,16 +36,16 @@ namespace Biovation.Constants
         //}
 
 
-        public static List<Lookup> TaskStatuses { get; set; }
-        public static List<Lookup> TaskTypes { get; set; }
-        public static List<Lookup> TaskItemTypes { get; set; }
-        public static List<Lookup> TaskPriorities { get; set; }
-        public static List<Lookup> FingerIndexNames { get; set; }
-        public static List<Lookup> DeviceBrands { get; set; }
-        public static List<Lookup> LogSubEvents { get; set; }
-        public static List<Lookup> FingerTemplateType { get; set; } 
-        public static List<Lookup> FaceTemplateType { get; set; }
-        public static List<Lookup> LogEvents { get; set; }
-        public static List<Lookup> MatchingTypes { get; set; }
+        public List<Lookup> TaskStatuses { get; set; }
+        public List<Lookup> TaskTypes { get; set; }
+        public List<Lookup> TaskItemTypes { get; set; }
+        public List<Lookup> TaskPriorities { get; set; }
+        public List<Lookup> FingerIndexNames { get; set; }
+        public List<Lookup> DeviceBrands { get; set; }
+        public List<Lookup> LogSubEvents { get; set; }
+        public List<Lookup> FingerTemplateType { get; set; } 
+        public List<Lookup> FaceTemplateType { get; set; }
+        public List<Lookup> LogEvents { get; set; }
+        public List<Lookup> MatchingTypes { get; set; }
     }
 }

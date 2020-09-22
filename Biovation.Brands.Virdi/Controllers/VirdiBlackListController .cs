@@ -19,13 +19,22 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
 
-        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _userService = userService;
             _deviceService = deviceService;
             _deviceBrands = deviceBrands;
             _taskManager = taskManager;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
         }
 
         [HttpPost]
@@ -42,8 +51,8 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.SendBlackList,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.SendBlackList,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
@@ -56,9 +65,9 @@ namespace Biovation.Brands.Virdi.Controllers
                         var deviceId = devices.DeviceId;
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.SendBlackList,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendBlackList,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = deviceId,
                             Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Id }),

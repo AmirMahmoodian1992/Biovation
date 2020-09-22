@@ -19,15 +19,17 @@ namespace Biovation.Server.Controllers.v1.Restaurant
     {
         private readonly ServeLogService _serveLogService;
         private readonly DeviceService _deviceService;
+        private readonly TaskStatuses _taskStatuses;
         private readonly TaskService _taskService;
 
         private readonly RestClient _restClient;
 
-        public ServeLogController(ServeLogService serveLogService, DeviceService deviceService, TaskService taskService)
+        public ServeLogController(ServeLogService serveLogService, DeviceService deviceService, TaskService taskService, TaskStatuses taskStatuses)
         {
             _serveLogService = serveLogService;
             _deviceService = deviceService;
             _taskService = taskService;
+            _taskStatuses = taskStatuses;
             _restClient = new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/");
         }
 
@@ -55,7 +57,7 @@ namespace Biovation.Server.Controllers.v1.Restaurant
                 {
                     var taskItem = await _taskService.GetTaskItem(taskItemId);
                     taskItem.Result = JsonConvert.SerializeObject(result);
-                    taskItem.Status = TaskStatuses.Done;
+                    taskItem.Status = _taskStatuses.Done;
                     await _taskService.UpdateTaskStatus(taskItem);
                 });
 
