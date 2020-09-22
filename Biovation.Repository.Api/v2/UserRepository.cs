@@ -33,6 +33,19 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
+        /// <summary>
+        /// گرفتن لیست ادمین ها
+        /// </summary>
+        /// <returns></returns>
+        public ResultViewModel<PagingResult<User>> GetAdminUser(long userId = 0)
+        {
+            var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
+            restRequest.AddQueryParameter("onlineId", userId.ToString());
+            restRequest.AddQueryParameter("isAdmin", bool.TrueString);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+
         public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
         {
 

@@ -120,7 +120,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute]int id, int nestingDepthLevel = default)
+        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute]int id, int nestingDepthLevel = 5)
         {
             return Task.Run( () => _accessGroupService.GetAccessGroup(id,nestingDepthLevel));
         }

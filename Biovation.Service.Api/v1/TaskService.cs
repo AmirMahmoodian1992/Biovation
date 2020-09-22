@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v1
 {
@@ -20,12 +20,12 @@ namespace Biovation.Service.Api.v1
             int pageSize = default)
         {
             return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                excludedTaskStatusCodes, pageNumber, pageSize).Data.Data);
+                excludedTaskStatusCodes, pageNumber, pageSize)?.Data?.Data ?? new List<TaskInfo>());
         }
 
-    public TaskItem GetTaskItem(int taskItemId = default)
+        public TaskItem GetTaskItem(int taskItemId = default)
         {
-            return _taskRepository.GetTaskItem(taskItemId).Data;
+            return _taskRepository.GetTaskItem(taskItemId)?.Data ?? new TaskItem();
         }
 
         public ResultViewModel InsertTask(TaskInfo task)
@@ -37,7 +37,5 @@ namespace Biovation.Service.Api.v1
         {
             return _taskRepository.UpdateTaskStatus(taskItem);
         }
-
-
     }
 }

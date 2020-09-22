@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v1
 {
@@ -17,25 +17,25 @@ namespace Biovation.Service.Api.v1
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
             return _accessGroupRepository.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize).Data.Data;
+                pageNumber, pageSize)?.Data?.Data ?? new List<AccessGroup>();
         }
 
-        public AccessGroup GetAccessGroup(int id = default, int nestingDepthLevel = default)
+        public AccessGroup GetAccessGroup(int id = default, int nestingDepthLevel = 5)
         {
-            return _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel).Data;
+            return _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel)?.Data ?? new AccessGroup();
         }
 
         public List<DeviceBasicInfo> GetDeviceOfAccessGroup(int accessGroupId = default,
             int pageNumber = default, int pageSize = default)
         {
-            return _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize).Data.Data;
+            return _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceBasicInfo>();
         }
 
         public List<ServerSideIdentificationCacheModel> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId = default, string brandCode = default, long userId = default,
                 int pageNumber = default, int pageSize = default)
         {
             return _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode,
-                userId, pageNumber, pageSize).Data.Data;
+                userId, pageNumber, pageSize)?.Data?.Data ?? new List<ServerSideIdentificationCacheModel>();
         }
 
 

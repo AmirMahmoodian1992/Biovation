@@ -18,22 +18,19 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             _accessGroupRepository = accessGroupRepository;
         }
-
-
-
+        
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0,int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _accessGroupRepository.AccessGroups(userId,adminUserId, userGroupId, id, deviceId, deviceGroupId,
+            return Task.Run(() => _accessGroupRepository.AccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
                  pageNumber, pageSize));
         }
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute]int id, int nestingDepthLevel=default)
+        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 4)
         {
             return Task.Run(() => _accessGroupRepository.AccessGroup(id, nestingDepthLevel));
-
         }
 
 
@@ -42,7 +39,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDeviceOfAccessGroup(int accessGroupId, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize));
-
         }
 
         [HttpGet]
@@ -50,8 +46,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         public Task<ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>> GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId, string brandCode, long userId, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode, userId, pageNumber, pageSize));
-
         }
     }
 }
-

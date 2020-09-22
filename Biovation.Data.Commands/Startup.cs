@@ -1,19 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Biovation.Data.Commands
 {
@@ -41,7 +34,12 @@ namespace Biovation.Data.Commands
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
+                options.JsonSerializerOptions.IgnoreNullValues = true;
+            });
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -65,7 +63,7 @@ namespace Biovation.Data.Commands
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
             services.AddSingleton<GenericRepository, GenericRepository>();
-         
+
 
             services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
             services.AddScoped<Repository.SQL.v2.UserRepository, Repository.SQL.v2.UserRepository>();

@@ -1,6 +1,6 @@
-﻿using System;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System;
 
 namespace Biovation.Service.Api.v1
 {
@@ -38,7 +38,5 @@ namespace Biovation.Service.Api.v1
         {
             return _plateDetectionRepository.AddPlateDetectionLog(log);
         }
-
-
     }
 }

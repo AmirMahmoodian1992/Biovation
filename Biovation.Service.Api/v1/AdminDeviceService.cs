@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v1
 {
@@ -17,18 +17,17 @@ namespace Biovation.Service.Api.v1
         public List<AdminDevice> GetAdminDevicesByUserId(int personId,
             int pageNumber = default, int pageSize = default)
         {
-            return _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize).Data.Data;
+            return _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize)?.Data?.Data ?? new List<AdminDevice>();
         }
         public List<AdminDeviceGroup> GetAdminDeviceGroupsByUserId(int personId,
             int pageNumber = default, int pageSize = default)
         {
-            return _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize).Data.Data;
+            return _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize)?.Data?.Data ?? new List<AdminDeviceGroup>();
         }
 
         public ResultViewModel ModifyAdminDevice(JObject adminDevice = default)
         {
             return _adminDeviceRepository.ModifyAdminDevice(adminDevice);
         }
-
     }
 }

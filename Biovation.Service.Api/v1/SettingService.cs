@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v1
 {
@@ -16,7 +16,7 @@ namespace Biovation.Service.Api.v1
 
         public Task<ResultViewModel<List<Setting>>> GetSettings(string key = default)
         {
-            return Task.Run(() =>  _settingRepository.GetSettings(key));
+            return Task.Run(() => _settingRepository.GetSettings(key));
         }
 
         public Task<ResultViewModel<string>> GetSetting(string key)

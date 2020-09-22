@@ -22,7 +22,7 @@ namespace Biovation.Service.Api.v1
         {
             
             return Task.Run(() => _blackListRepository.GetBlacklist(id, userId, deviceId, startDate, endDate, isDeleted, pageNumber,
-                pageSize).Data.Data);
+                pageSize)?.Data?.Data ?? new List<BlackList>());
         }
         public List<ResultViewModel> CreateBlackList(List<BlackList> blackLists = default)
         {
@@ -42,9 +42,5 @@ namespace Biovation.Service.Api.v1
         {
             return _blackListRepository.ChangeBlackList(blackList);
         }
-
-
-
-
     }
 }

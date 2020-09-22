@@ -1,6 +1,6 @@
-﻿using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v1
 {
@@ -17,7 +17,7 @@ namespace Biovation.Service.Api.v1
             string brandCode = default, int manufactureCode = default, int genericCode = default,
             int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _genericCodeMappingRepository.GetGenericCodeMappings(categoryId, brandCode, manufactureCode, genericCode,pageNumber,pageSize));
+            return Task.Run(() => _genericCodeMappingRepository.GetGenericCodeMappings(categoryId, brandCode, manufactureCode, genericCode, pageNumber, pageSize));
         }
     }
 }

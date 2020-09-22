@@ -25,14 +25,18 @@ namespace Biovation.Repository.SQL.v2
         /// <Fa>اطلاعات یک گروه را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <param name="deviceGroupId">کد گروه</param>
+        /// <param name="userId"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="nestingDepthLevel"></param>
         /// <returns></returns>
-        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroups(int? deviceGroupId, long userId, int pageNumber = 0, int PageSize = 0, int nestingDepthLevel = 4)
+        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroups(int? deviceGroupId, long userId, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@Id", SqlDbType.Int) { Value = deviceGroupId },
                 new SqlParameter("@AdminUserId", SqlDbType.BigInt) { Value = userId },
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
             return _repository.ToResultList< PagingResult<DeviceGroup>>("SelectDeviceGroupById", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
             
@@ -78,26 +82,26 @@ namespace Biovation.Repository.SQL.v2
             return _repository.ToResultList<ResultViewModel>("DeleteGroupDeviceMemeber", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id, int pageNumber = 0, int PageSize = 0, int nestingDepthLevel = 4)
+        public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@AccessControlId", id),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize}
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
             };
 
-            return _repository.ToResultList< PagingResult<DeviceGroup>>("SelectAccessControlDeviceGroup", parameters).FetchFromResultList();
+            return _repository.ToResultList< PagingResult<DeviceGroup>>("SelectAccessControlDeviceGroup", parameters, fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroupsByAccessGroup(int accessGroupId, int pageNumber = 0, int PageSize = 0, int nestingDepthLevel = 4)
+        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroupsByAccessGroup(int accessGroupId, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@AccessGroupId", accessGroupId),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-            new SqlParameter("@PageSize", SqlDbType.Int) {Value = PageSize}
+            new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
             };
-            return _repository.ToResultList<PagingResult<DeviceGroup>>("SelectDeviceGroupsByAccessGroupId", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<DeviceGroup>>("SelectDeviceGroupsByAccessGroupId", parameters, fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
     }
 }

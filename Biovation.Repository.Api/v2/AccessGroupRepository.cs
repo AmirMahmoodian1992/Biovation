@@ -28,7 +28,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = default)
+        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = 4)
         {
             var restRequest = new RestRequest("Queries/v2/AccessGroup/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());

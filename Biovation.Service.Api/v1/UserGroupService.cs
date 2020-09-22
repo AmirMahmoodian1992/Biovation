@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v1
 {
@@ -21,7 +21,7 @@ namespace Biovation.Service.Api.v1
 
         public List<UserGroup> GetAccessControlUserGroup(int id = default)
         {
-            return _userGroupRepository.GetAccessControlUserGroup(id).Data;
+            return _userGroupRepository.GetAccessControlUserGroup(id)?.Data ?? new List<UserGroup>();
         }
 
         public ResultViewModel SyncUserGroupMember(string lstUser = default)
@@ -47,7 +47,5 @@ namespace Biovation.Service.Api.v1
         {
             return _userGroupRepository.ModifyUserGroupMember(member, userGroupId);
         }
-
-
     }
 }

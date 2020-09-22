@@ -63,7 +63,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
-            return _userService.GetAdminUserOfAccessGroup(userId);
+            return _userService.GetAdminUser(userId);
         }
         [HttpGet]
         [Route("GetAdminUserOfAccessGroup")]

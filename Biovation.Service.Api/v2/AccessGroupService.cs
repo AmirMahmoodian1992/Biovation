@@ -19,7 +19,7 @@ namespace Biovation.Service.Api.v2
                 pageNumber, pageSize);
         }
 
-        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = default)
+        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = 4)
         {
             return _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel);
         }

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v1
 {
@@ -33,7 +33,7 @@ namespace Biovation.Service.Api.v1
 
         public DeviceBasicInfo GetDevice(long id = default, long adminUserId = default)
         {
-            return _deviceRepository.GetDevice(id, (int) adminUserId)?.Data ?? new DeviceBasicInfo();
+            return _deviceRepository.GetDevice(id, (int)adminUserId)?.Data ?? new DeviceBasicInfo();
         }
 
         public List<DeviceModel> GetDeviceModels(long id = default, int brandId = default,
@@ -49,7 +49,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel<DateTime> GetLastConnectedTime(int id)
         {
-            return _deviceRepository.GetLastConnectedTime((uint) id);
+            return _deviceRepository.GetLastConnectedTime((uint)id);
         }
 
         public List<Lookup> GetDeviceBrands(int code = default, string name = default,

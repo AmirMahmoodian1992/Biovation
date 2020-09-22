@@ -31,27 +31,28 @@ namespace Biovation.Server.Controllers.v1
         [HttpGet, Route("AccessGroups")]
         public List<AccessGroup> AccessGroups(long userId = 0)
         {
-            return _accessGroupService.GetAccessGroups(userId: userId);
+            return _accessGroupService.GetAccessGroups(adminUserId: (int)userId);
+        }
+
+        //[HttpGet, Route("GetAccessGroupsByFilter")]
+        //public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0)
+        //{
+        //    return _accessGroupService.GetAccessGroups(adminUserId: adminUserId, userGroupId: userGroupId, id: id,
+        //        deviceId: deviceId, userId: userId);
+        //}
+
+        [HttpGet]
+        [Route("AccessGroup")]
+        public AccessGroup AccessGroup(int id)
+        {
+            return _accessGroupService.GetAccessGroup(id);
         }
 
         [HttpGet, Route("GetAccessGroupsByFilter")]
-        public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0)
-        {
-            return _accessGroupService.GetAccessGroups(adminUserId: adminUserId, userGroupId: userGroupId, id: id,
-                deviceId: deviceId, userId: userId);
-        }
-
-        [HttpGet]
-        public AccessGroup AccessGroup(int id)
-        {
-            return _accessGroupService.GetAccessGroup(id: id);
-        }
-
-        [HttpGet, Route("AccessGroup")]
-        public List<AccessGroup> AccessGroup(int id, int deviceGroupId, int userId)
+        public List<AccessGroup> AccessGroupsByFilter(int id, int deviceGroupId, int userId)
         {
             return _accessGroupService.GetAccessGroups(id: id,
-                deviceGroupId: deviceGroupId, userId: userId);
+                deviceGroupId: deviceGroupId, adminUserId: userId);
         }
 
         [HttpPost]
@@ -132,12 +133,12 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("SendAccessGroupToDevice")]
-        public List<ResultViewModel> SendAccessGroupToDevice(int accessGroupId)
+        public List<ResultViewModel> SendAccessGroupToDevices(int accessGroupId)
         {
             var resultList = new List<ResultViewModel>();
 
 
-            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId: accessGroupId);
+            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId);
 
             foreach (var device in devices)
             {
@@ -153,7 +154,7 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
-        [Route("SendAllUsersToAllDevicesInAccessGroup")]
+        [Route("SendAccessGroupToDevice")]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, int deviceId)
         {
             var device = _deviceService.GetDevice(deviceId);
@@ -168,12 +169,13 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost]
+        [Route("SendAllUsersToAllDevicesInAccessGroup")]
         public ResultViewModel SendAllUsersToAllDevicesInAccessGroup(int accessGroupId)
         {
             try
             {
                 var deviceBrands = _deviceService.GetDeviceBrands();
-                var accessGroup = _accessGroupService.GetAccessGroup(id: accessGroupId);
+                var accessGroup = _accessGroupService.GetAccessGroup(accessGroupId);
                 if (accessGroup == null)
                 {
                     Logger.Log("No such access group found.\n");

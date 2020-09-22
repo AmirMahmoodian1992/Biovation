@@ -1,13 +1,13 @@
-﻿using System;
+﻿using DataAccessLayerCore.Attributes;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Extentions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Reflection;
-using DataAccessLayerCore.Attributes;
-using DataAccessLayerCore.Domain;
-using DataAccessLayerCore.Extentions;
 
 // ReSharper disable once CheckNamespace
 namespace DataAccessLayerCore.Repositories
@@ -269,12 +269,9 @@ namespace DataAccessLayerCore.Repositories
                         else
                         {
                             if (!record.HasColumn(propertyName)) continue;
+                            //var innerPropertyType = record[propertyName].GetType();
                             property.SetValue(objT,
-                                record.IsDBNull(record.GetOrdinal(propertyName)) ? null : record[propertyName]);
-                            var tt = record[propertyName].GetType();
-
-
-
+                                record.IsDBNull(record.GetOrdinal(propertyName)) ? null : Convert.ChangeType(record[propertyName], propertyType));
 
                         }
                     }

@@ -39,7 +39,13 @@ namespace Biovation.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                        {
+                            options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
+                            options.JsonSerializerOptions.IgnoreNullValues = true;
+                        });
+
             services.AddApiVersioning(config =>
             {
                 config.DefaultApiVersion = new ApiVersion(1, 0);
@@ -140,9 +146,9 @@ namespace Biovation.Server
             services.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddScoped<SettingService, SettingService>();
             services.AddScoped<LogService, LogService>();
-            services.AddScoped<DeviceService,DeviceService>();
+            services.AddScoped<DeviceService, DeviceService>();
 
-            services.AddScoped<FaceTemplateService,FaceTemplateService>();
+            services.AddScoped<FaceTemplateService, FaceTemplateService>();
             services.AddScoped<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
             services.AddScoped<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
             services.AddScoped<Service.Api.v2.LogService, Service.Api.v2.LogService>();

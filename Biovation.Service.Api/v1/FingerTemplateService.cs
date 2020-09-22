@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v1
 {
@@ -15,7 +15,7 @@ namespace Biovation.Service.Api.v1
 
         public List<UserTemplateCount> GetTemplateCount()
         {
-            return _fingerTemplateRepository.GetTemplateCount().Data.Data;
+            return _fingerTemplateRepository.GetTemplateCount()?.Data?.Data ?? new List<UserTemplateCount>();
         }
 
         public List<FingerTemplate> FingerTemplates(int userId = default, int templateIndex = default,
@@ -23,18 +23,18 @@ namespace Biovation.Service.Api.v1
             int pageSize = default)
         {
             return _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size,
-                pageNumber, pageSize).Data.Data;
+                pageNumber, pageSize)?.Data?.Data ?? new List<FingerTemplate>();
         }
 
         public List<Lookup> GetFingerTemplateTypes(string brandId = default)
         {
-            return _fingerTemplateRepository.GetFingerTemplateTypes(brandId).Data.Data;
+            return _fingerTemplateRepository.GetFingerTemplateTypes(brandId)?.Data?.Data ?? new List<Lookup>();
 
         }
 
         public int GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
         {
-            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType).Data;
+            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType)?.Data ?? default;
         }
 
         public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate = default)

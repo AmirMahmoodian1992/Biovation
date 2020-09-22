@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v1
 {
@@ -16,12 +16,12 @@ namespace Biovation.Service.Api.v1
         public List<UserCard> GetCardsByFilter(long userId = default, bool isActive = default,
             int pageNumber = default, int pageSize = default)
         {
-            return _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize).Data.Data;
+            return _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize)?.Data?.Data ?? new List<UserCard>();
         }
 
         public User FindUserByCardNumber(string cardNumber = default)
         {
-            return _userCardRepository.FindUserByCardNumber(cardNumber).Data;
+            return _userCardRepository.FindUserByCardNumber(cardNumber)?.Data ?? new User();
         }
 
         public ResultViewModel ModifyUserCard(UserCard card = default)
@@ -38,7 +38,5 @@ namespace Biovation.Service.Api.v1
         {
             return _userCardRepository.ReadCardNumber(brandName, deviceId);
         }
-
-
     }
 }
