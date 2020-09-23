@@ -5,7 +5,7 @@
   //  "iisExpress": {
   //    "applicationUrl": "http://localhost:56474",
   //    "sslPort": 44359
-  //  }
+  //  } 
   //},
   "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
@@ -24,7 +24,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://0.0.0.0:9038;https://0.0.0.0:9039"
+      "applicationUrl": "http://0.0.0.0:9002;https://0.0.0.0:9003"
     },
     "Docker": {
       "commandName": "Docker",

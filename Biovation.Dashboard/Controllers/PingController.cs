@@ -1,19 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
-using App.Metrics;
+﻿using App.Metrics;
 using App.Metrics.Formatters.Json;
 using App.Metrics.Gauge;
+using Biovation.CommonClasses.Manager;
 using Biovation.Dashboard.Repository;
-using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
 using ServiceStack.Redis;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
+using System.Timers;
+using Biovation.Domain;
 
 namespace Biovation.Dashboard.Controllers
 {
@@ -22,23 +23,22 @@ namespace Biovation.Dashboard.Controllers
     {
         private readonly PingRepository _pingRepository;
         private readonly RestClient _restClient;
-        public PingController(PingRepository pingRepository, RestClient restClient)
+        public PingController(PingRepository pingRepository)
         {
-            _restClient = restClient;
+            //_restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = (RestClient)new RestClient($"http://localhost:9002/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
             _pingRepository = pingRepository;
         }
 
 
         [HttpGet]
         [Obsolete]
-        public Task<ResultViewModel> GetPing(int cnt = 1000)
+        public void GetPing(int cnt = 1000)
         {
 
-            return Task.Run(() =>
+            Task.Run(() =>
             {
-                var myIp = Dns.GetHostByName(Dns.GetHostName()).AddressList.FirstOrDefault()?.ToString();
-                PingReply reply = null;
-                var myPing = new Ping();
+                //var myPing = new Ping();
 
                 //reply = myPing.Send("192.168.2.196", 1000);
                 //var replyPing = new PingModel()
@@ -60,43 +60,44 @@ namespace Biovation.Dashboard.Controllers
                 //Console.WriteLine("success: " + success);
                 //Console.WriteLine("success: " + success);
 
+                const double interval60Minutes = 5 * 1000; // milliseconds to one hour
 
-
-                var result = new ResultViewModel()
-                {
-                    Validate = 1,
-                    Message = " با موفقیت اضافه شدند"
-                };
-                var pingResult = new ResultViewModel();
-
-                var restRequest = new RestRequest($"/Devices",
-                    Method.GET);
-                var restResult = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
-                foreach (var device in restResult.Result.Data)
-                {
-                    _ = Task.Run(() =>
-                      {
-                          reply = myPing.Send(device.IpAddress, 1000);
-                          var replyPing = new PingModel()
-                          {
-                              //address = reply.Address.ToString(),
-                              hostAddress = myIp,
-                              DestinationAddress = device.IpAddress,
-                              ttl = reply.Options.Ttl,
-                              roundTripTime = reply.RoundtripTime,
-                              status = reply?.Status.ToString()
-                          };
-
-                          pingResult = _pingRepository.AddPingTimeStamp(replyPing);
-                          if (result.Validate == 1 && pingResult.Validate != 1)
-                          {
-                              result = pingResult;
-                          }
-                      });
-                }
-
-                return result;
+                var checkForTime = new Timer(interval60Minutes);
+                checkForTime.Elapsed += TimeElapsed;
+                checkForTime.Enabled = true;
             });
+
+        }
+
+        [Obsolete]
+        private void TimeElapsed(object sender, ElapsedEventArgs e)
+        {
+            var myIp = Dns.GetHostByName(Dns.GetHostName()).AddressList[2].ToString();
+            PingReply reply = null;
+
+            var restRequest = new RestRequest($"/device/devices",
+                Method.GET);
+            var restResult = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest).Result.Data;
+
+            foreach (var device in restResult)
+            {
+                _ = Task.Run(() =>
+                {
+                    var myPing = new Ping();
+                    reply = myPing.Send(device.IpAddress, 1000);
+                    var replyPing = new PingModel()
+                    {
+                        //address = reply.Address.ToString(),
+                        hostAddress = myIp,
+                        DestinationAddress = device.IpAddress,
+                        ttl = reply.Options?.Ttl ?? 0,
+                        roundTripTime = reply.RoundtripTime,
+                        status = reply?.Status.ToString()
+                    };
+
+                    _pingRepository.AddPingTimeStamp(replyPing);
+                });
+            }
 
         }
 
