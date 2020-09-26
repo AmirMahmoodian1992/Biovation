@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using App.Metrics.AspNetCore;
 
 namespace Biovation.Brands.Virdi
 {
@@ -23,11 +24,12 @@ namespace Biovation.Brands.Virdi
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder(args).UseSerilog()
-                    .ConfigureWebHostDefaults(webBuilder =>
-                    {
-                        webBuilder.UseStartup<Startup>();
-                    });
+            return Host.CreateDefaultBuilder(args)
+                .UseSerilog().UseMetrics()
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
         }
     }
 }

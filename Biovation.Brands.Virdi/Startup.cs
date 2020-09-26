@@ -24,6 +24,7 @@ using Serilog;
 using System.Reflection;
 using System.Text;
 using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -69,7 +70,9 @@ namespace Biovation.Brands.Virdi
                 {
                     options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
                     options.JsonSerializerOptions.IgnoreNullValues = true;
-                });
+                }).AddMetrics();
+
+            //services.AddMvcCore().AddMetricsCore();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
