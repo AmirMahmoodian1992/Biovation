@@ -1,5 +1,3 @@
-using System;
-
 namespace Biovation.Dashboard
 {
     public class CpuUsage
