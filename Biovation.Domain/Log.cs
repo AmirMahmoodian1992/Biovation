@@ -121,6 +121,9 @@ namespace Biovation.Domain
             get => nDateTime;
             set
             {
+                if (nDateTime != default)
+                    return;
+                
                 if ((long)value / 10000000 > 0)
                     value /= 10000000;
 

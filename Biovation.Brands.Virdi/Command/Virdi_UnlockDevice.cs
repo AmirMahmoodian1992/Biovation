@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
-using Biovation.Constants;
-using Biovation.Service;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -28,8 +28,8 @@ namespace Biovation.Brands.Virdi.Command
             OnlineDevices = virdiServer.GetOnlineDevices();
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            var deviceObject = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode);
-            Code = deviceObject.Code;
+            var deviceObject = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId);
+            Code = deviceObject?.Code ?? 0;
         }
 
         public object Execute()
@@ -41,17 +41,17 @@ namespace Biovation.Brands.Virdi.Command
                 Logger.Log("   +ErrorCode :" + _virdiServer.UcsApi.ErrorCode.ToString("X4") + "\n");
                 if (_virdiServer.UcsApi.ErrorCode == 0)
                 {
-                    return new ResultViewModel { Id = DeviceId, Message = "Error free", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode)};
+                    return new ResultViewModel { Id = DeviceId, Message = "Error free", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
                 }
                 else
                 {
-                    return new ResultViewModel { Id = DeviceId, Message = $"Error { _virdiServer.UcsApi.ErrorCode} ", Validate = 0, Code =Convert.ToInt64(TaskStatuses.FailedCode) };
+                    return new ResultViewModel { Id = DeviceId, Message = $"Error { _virdiServer.UcsApi.ErrorCode} ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
                 }
                 //return virdiServer.UcsApi.ErrorCode;
             }
 
-            return new ResultViewModel { Id = DeviceId, Message = "Error ", Validate = 0,Code=Convert.ToInt64(TaskStatuses.FailedCode) };
+            return new ResultViewModel { Id = DeviceId, Message = "Error ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
         }
 

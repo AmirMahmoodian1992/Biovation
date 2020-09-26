@@ -1,11 +1,11 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Service
 {
@@ -24,7 +24,7 @@ namespace Biovation.Brands.Virdi.Service
         {
             return Task.Run(async () =>
             {
-                var device = _commonDeviceService.GetDeviceBasicInfoWithCode(log.DeviceCode, DeviceBrands.VirdiCode);
+                var device = _commonDeviceService.GetDevices(code: log.DeviceCode, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
                 log.DeviceId = device?.DeviceId ?? log.DeviceId;
 
                 //var authMode = _commonDeviceService.GetBioAuthModeWithDeviceId(log.DeviceId, log.MatchingType);
@@ -67,7 +67,7 @@ namespace Biovation.Brands.Virdi.Service
                     var deviceCodes = logs.GroupBy(g => g.DeviceCode).Select(s => s.Key).Where(s => s != 0).ToList();
                     foreach (var deviceCode in deviceCodes)
                     {
-                        var device = _commonDeviceService.GetDeviceBasicInfoWithCode(deviceCode, DeviceBrands.VirdiCode);
+                        var device = _commonDeviceService.GetDevices(code: deviceCode, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
                         logs.Where(x => x.DeviceCode == deviceCode).ToList().ForEach(x =>
                         {
                             x.InOutMode = device?.DeviceTypeId ?? 0;
@@ -80,8 +80,8 @@ namespace Biovation.Brands.Virdi.Service
 
                     foreach (var deviceCode in deviceCodes)
                     {
-                        var device = _commonDeviceService.GetDeviceBasicInfoWithCode(deviceCode, DeviceBrands.VirdiCode);
-                        var logsToTransfer = await _commonLogService.SelectSearchedOfflineLogs(deviceId: device.DeviceId, state: false);
+                        var device = _commonDeviceService.GetDevices(code: deviceCode, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                        var logsToTransfer = await _commonLogService.Logs(deviceId: device.DeviceId);
                         await Task.Run(() => { _commonLogService.TransferLogBulk(logsToTransfer); });
 
                         await Task.Run(async () =>

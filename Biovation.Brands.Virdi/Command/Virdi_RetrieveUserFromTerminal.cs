@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -30,22 +31,22 @@ namespace Biovation.Brands.Virdi.Command
             _callbacks = callbacks;
             DeviceId = Convert.ToInt32(items[0]);
 
-            Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
 
 
             TaskItemId = Convert.ToInt32(items[1]);
-            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["userId"];
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
+
         public object Execute()
         {
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetriveUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };
-
             }
 
             try

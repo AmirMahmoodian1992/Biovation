@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Domain;
-using Biovation.Service;
+﻿using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace Biovation.Server.Controllers.v1
 {
-    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     public class AdminDeviceController : Controller
@@ -17,43 +14,21 @@ namespace Biovation.Server.Controllers.v1
 
         private readonly AdminDeviceService _adminDeviceService;
 
-        public AdminDeviceController(AdminDeviceService adminDeviceService)
+        public AdminDeviceController([FromBody] AdminDeviceService adminDeviceService)
         {
             _adminDeviceService = adminDeviceService;
         }
 
-        //public AdminDeviceController()
-        //{
-        //    //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-        //}
-
-        [HttpGet]
-        [Route("GetAdminDevicesByPersonId")]
+        [HttpGet, Route("GetAdminDevicesByPersonId")]
         public List<AdminDeviceGroup> GetAdminDevicesByPersonId(int personId)
         {
-            return _adminDeviceService.GetAdminDeviceGroupsByUserId(personId);
+            return _adminDeviceService.GetAdminDeviceGroupsByUserId(personId: personId);
         }
 
-        [HttpPost]
-        [Route("ModifyAdminDevice")]
+        [HttpPost, Route("ModifyAdminDevice")]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
         {
-            try
-            {
-                var ss = adminDevice.ToString();
-                ss = ss.Replace("]}\"", "]}");
-                ss = ss.Replace("\"{", "{");
-                ss = ss.Replace("\r\n", "");
-                ss = ss.Replace(@"\", "");
-
-                string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
-                var result = _adminDeviceService.ModifyAdminDevice(node);
-                return result;
-            }
-            catch (Exception e)
-            {
-                return new ResultViewModel { Message = e.Message, Validate = 0 };
-            }
+            return _adminDeviceService.ModifyAdminDevice(adminDevice);
         }
     }
 }

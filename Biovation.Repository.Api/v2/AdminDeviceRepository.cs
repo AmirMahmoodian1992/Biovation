@@ -1,0 +1,47 @@
+﻿using Biovation.Domain;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+
+namespace Biovation.Repository.Api.v2
+{
+    public class AdminDeviceRepository
+    {
+        private readonly RestClient _restClient;
+        public AdminDeviceRepository(RestClient restClient)
+        {
+            _restClient = restClient;
+        }
+
+        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDeviceGroupsByUserId(int personId,
+            int pageNumber = default, int pageSize = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/AdminDevice/AdminDeviceGroupsByUserId/{personId}", Method.GET);
+            restRequest.AddUrlSegment("personId", personId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+           
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+        public ResultViewModel<PagingResult<AdminDevice>> GetAdminDevicesByUserId(int personId,
+            int pageNumber = default, int pageSize = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/AdminDevice/AdminDevicesByUserId/{personId}", Method.GET);
+            restRequest.AddUrlSegment("personId", personId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+           
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDevice>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+        public ResultViewModel ModifyAdminDevice(JObject adminDevice)
+        {
+            var restRequest = new RestRequest("Commands/v2/AdminDevice", Method.PUT);
+            restRequest.AddJsonBody(adminDevice);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+
+
+    }
+}

@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.CommonClasses;
-using Biovation.Domain;
-using Biovation.Service;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -18,9 +18,6 @@ namespace Biovation.Server.Controllers.v1
         {
             _fingerTemplateService = fingerTemplateService;
         }
-
-        [HttpPost]
-        [Route("ModifyUser")]
         public ResultViewModel ModifyUser(FingerTemplate fingerTemplate)
         {
             try
@@ -40,7 +37,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _fingerTemplateService.GetFingerTemplatesCount();
+                return _fingerTemplateService.GetTemplateCount();
             }
             catch (Exception exception)
             {
@@ -55,7 +52,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _fingerTemplateService.GetFingerTemplateByUserId(userId);
+                return _fingerTemplateService.FingerTemplates(userId: (int)userId);
             }
             catch (Exception exception)
             {
@@ -70,7 +67,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _fingerTemplateService.GetFingerTemplateByUserIdAndTemplateIndex(userId, templateIndex);
+                return _fingerTemplateService.FingerTemplates(userId: userId, templateIndex: templateIndex);
             }
             catch (Exception exception)
             {
@@ -85,7 +82,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _fingerTemplateService.DeleteFingerTemplateByUserId(userId);
+                return _fingerTemplateService.DeleteFingerTemplate(userId: userId);
             }
             catch (Exception exception)
             {
@@ -100,7 +97,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _fingerTemplateService.DeleteFingerTemplateByUserIdAndTemplateIndex(userId, templateIndex);
+                return _fingerTemplateService.DeleteFingerTemplate(userId, templateIndex);
             }
             catch (Exception exception)
             {

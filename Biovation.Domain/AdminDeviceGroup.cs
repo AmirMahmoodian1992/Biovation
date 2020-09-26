@@ -1,8 +1,11 @@
 ﻿
+using DataAccessLayerCore.Attributes;
+
 namespace Biovation.Domain
 {
     public class AdminDeviceGroup
     {
+        [Id]
         public int Id { get; set; }
         public long UserId { get; set; }
         public long GroupDeviceId { get; set; }

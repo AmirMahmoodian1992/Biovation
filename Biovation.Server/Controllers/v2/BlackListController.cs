@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -24,34 +25,162 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        public Task<IActionResult> CreateBlackList([FromBody]List<BlackList> blackLists = default)
+        public Task<List<ResultViewModel>> CreateBlackList([FromBody]List<BlackList> blackLists)
         {
 
-            throw null;
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var resultsBlackLists = blackLists.Select(blackList => _blackListService.CreateBlackList(blackList)).ToList();
+
+                    Task.Run(async () =>
+                    {
+                        var successResult = new List<BlackList>();
+                        foreach (var blackList in resultsBlackLists)
+                        {
+                            if (blackList.Validate == 1)
+                            {
+                                successResult.Add((_blackListService.GetBlacklist(id: (int)blackList.Id)).Data.Data.Find(l => l.Id == blackList.Id));
+
+                            }
+                        }
+
+                        try
+                        {
+
+                            var groupByList = successResult.GroupBy(x => new { x.Device.Brand.Name }).ToList();
+
+                            foreach (var list in groupByList)
+                            {
+                                var brandName = list.FirstOrDefault()?.Device.Brand.Name;
+                                if (brandName == null) continue;
+                                var restRequest =
+                                    new RestRequest($"/{brandName}/{brandName}BlackList/SendBlackLisDevice",
+                                        Method.POST);
+                                restRequest.AddJsonBody(list);
+
+                                await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                                //result.Add(restResult.Data);
+                            }
+
+                        }
+                        catch (Exception)
+                        {
+                            // ignored
+                        }
+                    });
+
+
+                    return resultsBlackLists;
+
+                }
+                catch (Exception)
+                {
+                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
+                }
+            });
 
         }
 
 
 
         [HttpGet]
-        [Route("{id?}")]
-        public Task<IActionResult> GetBlackList(int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
+        [Route("{id}")]
+        public Task<ResultViewModel<PagingResult<BlackList>>> GetBlackList(int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
         {
-            throw null;
+            return Task.Run( () => _blackListService.GetBlacklist(id,userid,deviceId,startDate,endDate,isDeleted));
         }
 
         [HttpPut]
-        public Task<IActionResult> ChangeBlackList([FromBody]BlackList blackList = default)
+        public Task<ResultViewModel> ChangeBlackList([FromBody] BlackList blackList)
         {
-            throw null;
+            return Task.Run(() =>
+            {
+
+                //var restRequest = new RestRequest($"Queries/v2/blackList", Method.PUT);
+                //restRequest.AddJsonBody("blackList", blackList.ToString() ?? string.Empty);
+                //var result = (_restClient.ExecuteAsync<ResultViewModel>(restRequest)).Result.Data;
+                var result = _blackListService.ChangeBlackList(blackList);
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var successBlackList = new List<BlackList>();
+                        if (result.Validate == 1)
+                        {
+                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id).Data.Data;
+                        }
+
+                        var brand = successBlackList?.FirstOrDefault()?.Device.Brand;
+
+                        if (brand?.Name != null)
+                        {
+                            var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
+                                Method.POST);
+                            restRequest.AddJsonBody(successBlackList);
+
+                            await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+                });
+
+                return result;
+
+            });
         }
         [HttpDelete]
-        [Route("{id?}")]
-        public Task<IActionResult> DeleteBlackList(int id = default)
+        [Route("{id}")]
+        public Task<ResultViewModel> DeleteBlackList(int id)
         {
-            throw null;
+            return Task.Run(() =>
+            {
+
+                //var restRequest = new RestRequest($"Queries/v2/blackList", Method.DELETE);
+                //restRequest.AddQueryParameter("id", id.ToString());
+                //var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                //var result = (requestResult.Result.Data);
+                var result = _blackListService.DeleteBlackList(id);
+
+
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var successBlackList = new List<BlackList>();
+                        if (result.Validate == 1)
+                        {
+                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id, isDeleted: true).Data.Data;
+                        }
+
+                        var brand = successBlackList?.FirstOrDefault()?.Device.Brand;
+
+                        if (brand != null)
+                        {
+                            var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
+                                Method.POST);
+                            restRequest.AddJsonBody(successBlackList);
+
+                            await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+                });
+
+                return result;
+
+            });
         }
-
-
-    }
+        }
 }

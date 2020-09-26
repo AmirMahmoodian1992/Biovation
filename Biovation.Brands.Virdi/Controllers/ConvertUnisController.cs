@@ -3,12 +3,12 @@ using Biovation.Brands.Virdi.Model;
 using Biovation.Brands.Virdi.Service;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v1;
 using UNIONCOMM.SDK.UCBioBSP;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -18,17 +18,21 @@ namespace Biovation.Brands.Virdi.Controllers
     {
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
 
-        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes)
+        public ConvertUnisController(UserService userService, UserCardService userCardService, FaceTemplateService faceTemplateService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager)
         {
             _userService = userService;
             _userCardService = userCardService;
             _faceTemplateService = faceTemplateService;
             _fingerTemplateService = fingerTemplateService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _faceTemplateTypes = faceTemplateTypes;
+            _biometricTemplateManager = biometricTemplateManager;
         }
 
         [HttpPost]
@@ -97,7 +101,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         Type = 1
                     };
 
-                    await _userService.ModifyUser(biovationUser);
+                     _userService.ModifyUser(biovationUser);
                 }
 
                 var ucBioApi = new UCBioAPI();
@@ -125,7 +129,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 UserId = fingerTemplate.UserId,
                                 Index = export.FingerInfo[j].FingerID,
-                                FingerIndex = BiometricTemplateManager.GetFingerIndex(export.FingerInfo[j].FingerID),
+                                FingerIndex = _biometricTemplateManager.GetFingerIndex(export.FingerInfo[j].FingerID),
                                 Template = templateSample.Data,
                                 CheckSum = templateSample.Data.Sum(x => x),
                                 Size = templateSample.Data.Length,
@@ -156,7 +160,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var biovationFaceTemplates = faceTemplates.Select(template => new FaceTemplate
                     {
-                        FaceTemplateType = FaceTemplateTypes.VFACE,
+                        FaceTemplateType = _faceTemplateTypes.VFACE,
                         Index = 1,
                         Template = template.Template,
                         UserId = template.UserId,
