@@ -85,6 +85,8 @@
     <None Remove="Scripts\01.Tables\0074-Create PlateDetectionPictureLog-UP.sql" />
     <None Remove="Scripts\01.Tables\0075-Alter Device-UP.sql" />
     <None Remove="Scripts\01.Tables\0076-Alter LicensePlate-UP.sql" />
+    <None Remove="Scripts\01.Tables\0077-Alter Task.sql" />
+    <None Remove="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -377,6 +379,8 @@
     <EmbeddedResource Include="Scripts\01.Tables\0068-Alter Log-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0069-Alter LogData TableType-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0078-Alter TaskItem.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0077-Alter Task.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0071-Alter DeviceModel.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0072-Create LicensePlate-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0073-Create PlateDetectionLog-UP.sql" />
