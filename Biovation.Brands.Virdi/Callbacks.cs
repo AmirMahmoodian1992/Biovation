@@ -142,13 +142,11 @@ namespace Biovation.Brands.Virdi
 
 
 
-        private ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
-        private ConnectorNode<DataChangeMessage<TaskInfo>> _biovationTaskConnectorNode;
-        private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
+        private readonly ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
+        private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
 
-        private ISource<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateInternalSource;
-        private ConnectorNode<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateConnectorNode;
-        private const string __deviceConnectionStateTopicName = "BiovationDeviceConnectionStateEvent";
+        private readonly ISource<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateInternalSource;
+        private const string DeviceConnectionStateTopicName = "BiovationDeviceConnectionStateEvent";
 
         public void DeleteUserFromDeviceFastSearch(uint deviceCode, int userId)
         {
@@ -340,21 +338,21 @@ namespace Biovation.Brands.Virdi
             _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
                .Build<DataChangeMessage<TaskInfo>>();
 
-            var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(_biovationTopicName)
+            var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(BiovationTopicName)
                 .BuildTarget<DataChangeMessage<TaskInfo>>();
 
-            _biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(_biovationInternalSource, biovationKafkaTarget);
-            _biovationTaskConnectorNode.StartProcess();
+            var biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(_biovationInternalSource, biovationKafkaTarget);
+            biovationTaskConnectorNode.StartProcess();
 
             //DeviceStatus integration 
             _deviceConnectionStateInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
                         .Build<DataChangeMessage<ConnectionStatus>>();
 
-            var deviceConnectionStateKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(__deviceConnectionStateTopicName)
+            var deviceConnectionStateKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(DeviceConnectionStateTopicName)
                 .BuildTarget<DataChangeMessage<ConnectionStatus>>();
 
-            _deviceConnectionStateConnectorNode = new ConnectorNode<DataChangeMessage<ConnectionStatus>>(_deviceConnectionStateInternalSource, deviceConnectionStateKafkaTarget);
-            _deviceConnectionStateConnectorNode.StartProcess();
+            var deviceConnectionStateConnectorNode = new ConnectorNode<DataChangeMessage<ConnectionStatus>>(_deviceConnectionStateInternalSource, deviceConnectionStateKafkaTarget);
+            deviceConnectionStateConnectorNode.StartProcess();
 
         }
 
@@ -844,6 +842,17 @@ namespace Biovation.Brands.Virdi
 
                         await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
                         //integration
+                        var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
+                        var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
+                        {
+                            new DataChangeMessage<ConnectionStatus>
+                            {
+                                Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                                TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = connectionStatusList
+                            }
+                        };
+
+                        _deviceConnectionStateInternalSource.PushData(biovationBrokerMessageData);
 
                         await _logService.AddLog(new Log
                         {
