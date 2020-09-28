@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Dashboard.Controllers
 {
@@ -20,10 +18,10 @@ namespace Biovation.Dashboard.Controllers
         }
 
         [HttpPost]
-        public Task SubmitMetric([FromBody] string metricsData)
+        public Task SubmitMetric([FromBody] object metricsData)
         {
-            Console.WriteLine(metricsData);
-
+            _logger.LogDebug(metricsData.ToString());
+            var deserialized = JsonConvert.DeserializeObject<JObject>(metricsData.ToString());
             return Task.CompletedTask;
         }
     }

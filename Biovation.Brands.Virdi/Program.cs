@@ -36,7 +36,7 @@ namespace Biovation.Brands.Virdi
                             //options.HttpSettings.UserName = "admin";
                             //options.HttpSettings.Password = "password";
                             options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
-                            options.HttpPolicy.FailuresBeforeBackoff = 5;
+                            options.HttpPolicy.FailuresBeforeBackoff = 2;
                             options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
                             options.MetricsOutputFormatter = new MetricsJsonOutputFormatter();
                             //options.Filter = filter;
