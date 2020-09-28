@@ -21,7 +21,16 @@ namespace Biovation.Domain
         public DateTimeOffset DueDate { get; set; }
         public bool IsScheduled { get; set; }
 
-       // [OneToOne]
-       // public DeviceBrand DeviceBrand { get; set; }
+
+        public int CurrentIndex { get; set; }
+        public int TotalCount { get; set; }
+
+
+        public DateTimeOffset FinishedAt { get; set; }
+
+        public DateTimeOffset ExecutionAt { get; set; }
+
+        // [OneToOne]
+        // public DeviceBrand DeviceBrand { get; set; }
     }
 }
