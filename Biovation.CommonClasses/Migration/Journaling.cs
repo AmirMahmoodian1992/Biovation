@@ -62,7 +62,7 @@ namespace Biovation.CommonClasses.Migration
 
         private static string GetExecutedScriptsSql(string schema, string table)
         {
-            return $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' ORDER BY [ScriptName]";
+            return $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' ORDER BY [ScriptName]";
         }
 
         public string[] GetExecutedScripts()
@@ -71,7 +71,7 @@ namespace Biovation.CommonClasses.Migration
             string[] result;
             if (!VerifyTableExistsCommand(TableName, Schema))
             {
-                Logger.Log($"[{ModuleName}] : The {0} table could not be found. The database is assumed to be at version 0.", CreateTableName(Schema, TableName));
+                Logger.Log($"[{ModuleName}] : The {CreateTableName(Schema, TableName)} table could not be found. The database is assumed to be at version 0.");
                 result = new string[0];
             }
             else
@@ -97,20 +97,7 @@ namespace Biovation.CommonClasses.Migration
 
         public void StoreExecutedScript(SqlScript script, Func<IDbCommand> dbCommandFactory)
         {
-            if (!VerifyTableExistsCommand(TableName, Schema))
-            {
-                Logger.Log($"[{ModuleName}] : Creating the {0} table", CreateTableName(Schema, TableName));
-
-                using var context = new DbContext(_connectionFactory);
-                using var command = context.CreateCommand();
-                command.CommandText = CreateTableSql(Schema, TableName);
-                command.CommandType = CommandType.Text;
-                command.ExecuteNonQuery();
-
-                Logger.Log($"[{ModuleName}] : The {0} table has been created", CreateTableName(Schema, TableName));
-            }
-
-            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data"))
+            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data") || script.Name.Contains("06.Data"))
             {
                 using var context = new DbContext(_connectionFactory);
                 using var command = context.CreateCommand();
@@ -140,6 +127,18 @@ namespace Biovation.CommonClasses.Migration
             }
         }
 
-        public void EnsureTableExistsAndIsLatestVersion(Func<IDbCommand> dbCommandFactory) { }
+        public void EnsureTableExistsAndIsLatestVersion(Func<IDbCommand> dbCommandFactory)
+        {
+            if (VerifyTableExistsCommand(TableName, Schema)) return;
+            Logger.Log($"[{ModuleName}] : Creating the {CreateTableName(Schema, TableName)} table");
+
+            using var context = new DbContext(_connectionFactory);
+            using var command = context.CreateCommand();
+            command.CommandText = CreateTableSql(Schema, TableName);
+            command.CommandType = CommandType.Text;
+            command.ExecuteNonQuery();
+
+            Logger.Log($"[{ModuleName}] : The {CreateTableName(Schema, TableName)} table has been created");
+        }
     }
 }

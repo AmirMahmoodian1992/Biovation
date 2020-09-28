@@ -26,7 +26,7 @@ GO", "");
 
             var options = new SqlScriptGeneratorOptions
             {
-                SqlVersion = SqlVersion.Sql110,
+                SqlVersion = SqlVersion.Sql130,
                 KeywordCasing = KeywordCasing.Uppercase,
                 IndentViewBody = true,
                 AlignClauseBodies = true,
@@ -90,18 +90,6 @@ GO", "");
                                 ? $"') IS NULL {Environment.NewLine}BEGIN"
                                 : $"') IS NOT NULL {Environment.NewLine}BEGIN")}{Environment.NewLine}{Environment.NewLine}";
 
-                        //var goPhraseMatches = Regex.Matches(partialScripts, @"\WGO\W", RegexOptions.IgnoreCase);
-                        //if (goPhraseMatches.Count != 0)
-                        //{
-                        //    for (var i = 0; i < goPhraseMatches.Count; i++)
-                        //    {
-                        //        var goPhraseIndex = goPhraseMatches[i].Index;
-                        //        partialScripts = partialScripts.Insert(goPhraseIndex - 1, "END" + Environment.NewLine);
-                        //        partialScripts = partialScripts.Insert(goPhraseIndex + 8, Environment.NewLine + existenceCheckPhrase);
-                        //        goPhraseMatches = Regex.Matches(script, @"\WGO\W", RegexOptions.IgnoreCase);
-                        //    }
-                        //}
-
                         partialScript = existenceCheckPhrase + splittedScript + Environment.NewLine + "END";
                     }
                     else
@@ -113,7 +101,6 @@ GO", "");
                 }
             }
 
-            //contents = contents.Replace(";", "");
             return resultContent;
         }
     }
