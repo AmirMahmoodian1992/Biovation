@@ -80,6 +80,7 @@ namespace Biovation.Brands.Virdi
                 }).AddMetrics();
 
             //services.AddMvcCore().AddMetricsCore();
+            services.AddHealthChecks();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -330,11 +331,14 @@ namespace Biovation.Brands.Virdi
 
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
+            
+            app.UseHealthChecks("/health");
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }
