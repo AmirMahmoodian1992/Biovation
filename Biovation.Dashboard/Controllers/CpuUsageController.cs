@@ -11,8 +11,6 @@ namespace Biovation.Dashboard.Controllers
     [Route("[controller]")]
     public class CpuUsageController : ControllerBase
     {
-   
-
         private readonly ILogger<CpuUsageController> _logger;
 
         public CpuUsageController(ILogger<CpuUsageController> logger)
@@ -43,7 +41,6 @@ namespace Biovation.Dashboard.Controllers
             yield return cpuUsage;
         }
 
-
         private double GetCpuUsageForProcess()
         {
 
@@ -59,10 +56,6 @@ namespace Biovation.Dashboard.Controllers
             return cpuUsageTotal * 100;
         }
 
-   
-
-
-
         public StackExchange.Redis.RedisValue ReadData(int i )
         {
             var cache = RedisConnectorHelper.Connection.GetDatabase();
@@ -72,7 +65,6 @@ namespace Biovation.Dashboard.Controllers
             
             return value;
         }
-
         public void SaveData()
         {
             var devicesCount = 3;

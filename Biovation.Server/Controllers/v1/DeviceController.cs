@@ -177,12 +177,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("DeviceBrands")]
         public async Task<List<Lookup>> DeviceBrands(bool loadedOnly = true)
         {
-            //TODO Fix get online brands
-            //return await Task.Run(() => _deviceService.GetDeviceBrands());
             if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
-            //var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
-            //var requestResult = await _restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-            //return requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0 ? null : requestResult.Data.Data.Modules.Select(brand => Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
             return _systemInformation.Services.Select(brand => _lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
         }
 
@@ -192,15 +187,8 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                //TODO Fix get online brands
                 var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode is null ? 0 : Convert.ToInt32(brandCode));
-                //return deviceModels;
                 if (!loadedBrandsOnly) return deviceModels;
-                //var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
-                //var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
-                //if (requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0) return null;
-                //return deviceModels.Where(dm => requestResult.Data.Data.Modules.Any(db =>
-                //    string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
 
                 return deviceModels.Where(dm => _systemInformation.Services.Any(db =>
                     string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();

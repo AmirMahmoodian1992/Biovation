@@ -5,6 +5,5 @@ namespace Biovation.Dashboard
         public long Date { get; set; }
         public string Name { get; set; }
         public string CpuUsagePercentage { get; set; }
-
     }
 }
