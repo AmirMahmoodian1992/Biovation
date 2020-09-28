@@ -2,8 +2,11 @@
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using Kasra.MessageBus.Domain.Enumerators;
 using Kasra.MessageBus.Domain.Interfaces;
 using Kasra.MessageBus.Infrastructure;
+using Kasra.MessageBus.Managers.Sinks.EventBus;
+using Kasra.MessageBus.Managers.Sinks.Internal;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -12,20 +15,31 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
+
 namespace Biovation.Service.Api.v1
 {
     public class LogService
     {
         private readonly LogRepository _logRepository;
         private readonly RestClient _logExternalSubmissionRestClient;
-        private ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
-        private ConnectorNode<DataChangeMessage<TaskInfo>> _biovationTaskConnectorNode;
+        private ISource<DataChangeMessage<Log>> _biovationInternalSource;
+        private ConnectorNode<DataChangeMessage<Log>> _biovationTaskConnectorNode;
         private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
 
         public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
         {
             _logRepository = logRepository;
             _logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+            var kafkaServerAddress = configurationManager.KafkaServerAddress;
+            _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
+               .Build<DataChangeMessage<Log>>();
+
+            var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(_biovationTopicName)
+                .BuildTarget<DataChangeMessage<Log>>();
+
+            _biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<Log>>(_biovationInternalSource, biovationKafkaTarget);
+            _biovationTaskConnectorNode.StartProcess();
+
         }
 
         public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
@@ -90,15 +104,39 @@ namespace Biovation.Service.Api.v1
                         {
                             var shortenedLogList = deviceLogs.Skip(i * 1000).Take(1000).ToList();
 
-                            var restRequest = new RestRequest("UpdateAttendance/UpdateAttendanceBulk", Method.POST, DataFormat.Json);
-                            restRequest.AddJsonBody(shortenedLogList);
+                            //var restRequest = new RestRequest("UpdateAttendance/UpdateAttendanceBulk", Method.POST, DataFormat.Json);
+                            //restRequest.AddJsonBody(shortenedLogList);
 
-                            var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            //var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            
+                            
                             //var data = JsonConvert.SerializeObject(shortenedLogList);
                             //var result = _communicationManagerAtt.CallRest(
                             //    "/api/Biovation/UpdateAttendance/UpdateAttendanceBulk", "Post", null, data);
 
-                            if (!result.IsSuccessful || result.StatusCode != HttpStatusCode.OK || result.Data.Validate != 1) continue;
+                            //integration
+                           // var result = Task.Run(() =>
+                              //{
+
+
+                                  var biovationBrokerMessageData = new List<DataChangeMessage<Log>>
+
+                                  {
+                                 new DataChangeMessage<Log>
+                                  {
+                                      Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                                      TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = shortenedLogList
+
+                                      }
+                                  };
+
+                                  _biovationInternalSource.PushData(biovationBrokerMessageData);
+                             // });
+
+                           
+                            //if (!result.IsSuccessful || result.StatusCode != HttpStatusCode.OK || result.Data.Validate != 1) continue;
+
+                           
 
                             //shortenedLogList = shortenedLogList.Select(log => new Log
                             //{
