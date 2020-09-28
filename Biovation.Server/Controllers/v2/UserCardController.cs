@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -11,48 +11,47 @@ namespace Biovation.Server.Controllers.v2
     [ApiVersion("2.0")]
     public class UserCardController : Controller
     {
-        //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();
         private readonly UserCardService _userCard;
-        private readonly RestClient _restServer;
+        private readonly RestClient _restClient;
 
-        public UserCardController(UserCardService userCard)
+        public UserCardController(UserCardService userCard, RestClient restClient)
         {
             _userCard = userCard;
-            _restServer = new RestClient(($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}"));
-            //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
+            _restClient = restClient;
         }
 
-        [HttpPost]
-        public Task<IActionResult> MAddUserCard([FromBody]UserCard card = default)
-        {
-            throw null;
-        }
+        //[HttpPost]
+        //public Task<ResultViewModel> AddUserCard([FromBody]UserCard card = default)
+        //{
+        //    throw null;
+        //}
 
         [HttpPut]
-        public Task<IActionResult> ModifyUserCard([FromBody]UserCard card = default)
+        public Task<ResultViewModel> ModifyUserCard([FromBody]UserCard card = default)
         {
-            throw null;
+            return Task.Run(()=> _userCard.ModifyUserCard(card));
         }
 
         [HttpGet]
-        [Route("{id?}")]
-        public Task<IActionResult> GetUserCard(int id = default)
+        [Route("{id}")]
+        public Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard(long userId, bool isActive,
+        int pageNumber = default, int pageSize = default)
         {
-            throw null;
+            return Task.Run (() =>  _userCard.GetCardsByFilter(userId, isActive, pageNumber, pageSize));
         }
 
         [HttpDelete]
-        [Route("{id?}")]
-        public Task<IActionResult> DeleteUserCard(int id = default)
+        [Route("{id}")]
+        public Task<ResultViewModel> DeleteUserCard(int id = default)
         {
-            throw null;
+            return Task.Run(() => _userCard.DeleteUserCard(id));
         }
 
         [HttpGet]
-        [Route("cardNumber/{deviceId?}")]
-        public Task<IActionResult> ReadCardNumber(string brandName = default, int deviceId = default)
+        [Route("cardNumber/{deviceId}")]
+        public Task<int> ReadCardNumber(string brandName = default, int deviceId = default)
         {
-            throw null;
+            return Task.Run( () =>  _userCard.ReadCardNumber(brandName,deviceId));
         }
     }
 }

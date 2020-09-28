@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
@@ -18,44 +18,45 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("{userId?}")]
-        public Task<IActionResult> GetFingerTemplateByUserId(long userId = default, int templateIndex = default)
+        [Route("{userId}")]
+        public Task<ResultViewModel<PagingResult<FingerTemplate>>> GetFingerTemplateByUserId(Lookup fingerTemplateType,int userId = default, int templateIndex = default, int from = 0, int size = 0, int pageNumber = default,
+        int pageSize = default)
         {
-            throw null;
+            return Task.Run( () => _fingerTemplateService.FingerTemplates(userId,templateIndex,fingerTemplateType,from,size,pageNumber,pageSize));
         }
 
-        [HttpPost]
-        [Route("{userId?}")]
-        public Task<IActionResult> AddUserFingerTemplate([FromBody]FingerTemplate fingerTemplate = default)
-        {
-            throw null;
-        }
+        //[HttpPost]
+        //[Route("{userId}")]
+        //public Task<IActionResult> AddUserFingerTemplate([FromBody]FingerTemplate fingerTemplate = default)
+        //{
+        //    //TODO: Add fingerTempalte
+        //}
 
         [HttpPatch]
-        public Task<IActionResult> ModifyUserFingerTemplate([FromBody]FingerTemplate fingerTemplate =default)
+        public Task<ResultViewModel> ModifyUserFingerTemplate([FromBody]FingerTemplate fingerTemplate =default)
         {
-            throw null;
+            return Task.Run(() => _fingerTemplateService.ModifyFingerTemplate(fingerTemplate));
         }
 
         [HttpDelete]
-        [Route("{userId?}")]
-        public Task<IActionResult> DeleteFingerTemplateByUserId(int userId = default, int templateIndex = default)
+        [Route("{userId}")]
+        public Task<ResultViewModel> DeleteFingerTemplateByUserId(int userId = default, int templateIndex = default)
         {
-            throw null;
+            return Task.Run(() => _fingerTemplateService.DeleteFingerTemplate(userId,templateIndex));
         }
 
         [HttpGet]
         [Route("TemplateCount")]
-        public Task<IActionResult> GetTemplateCount()
+        public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
-            throw null;
+            return Task.Run( () =>  _fingerTemplateService.GetTemplateCount());
         }
 
         [HttpGet]
         [Route("FingerTemplateTypes")]
-        public Task<IActionResult> GetFingerTemplateTypes(string brandId = default)
+        public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {
-            throw null;
+            return Task.Run(() => _fingerTemplateService.GetFingerTemplateTypes(brandId));
         }
     }
 }

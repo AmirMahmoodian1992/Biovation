@@ -25,10 +25,34 @@
       ]
     },
     {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/queries/{url}",
+      "UpstreamHttpMethod": [ "Get" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9040
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/commands/{url}",
+      "UpstreamHttpMethod": [ "Post" ,"Patch","Delete","Put"],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9042
+        }
+      ]
+    },
+    {
       "DownstreamPathTemplate": "/biovation/api/v1/FingerTemplate/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/Finger/{url}",
-      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Patch", "Delete" ],
+      "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
@@ -40,19 +64,7 @@
       "DownstreamPathTemplate": "/biovation/api/v2/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/v2/{url}",
-      "UpstreamHttpMethod": [ "Get", "Post" ],
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 9020
-        }
-      ]
-    },
-    {
-      "DownstreamPathTemplate": "/biovation/api/v1/{url}",
-      "DownstreamScheme": "http",
-      "UpstreamPathTemplate": "/biovation/api/v1/{url}",
-      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "UpstreamHttpMethod": [ "Get", "Post", "Put", "Patch", "Delete" ],
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",

@@ -1,8 +1,8 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -35,14 +35,14 @@ namespace Biovation.Brands.Virdi.Command
         {
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.VirdiCode)?.Code ?? 0;
-            var taskItem = taskService.GetTaskItem(TaskItemId).Result;
+            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
             BlackListId = (int)data["BlackListId"];
-            UserObj = userService.GetUser(UserId, false);
+            UserObj = userService.GetUsers(UserId).FirstOrDefault();
 
-            var blackList = blackListService.GetActiveBlackList(BlackListId, userid: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
+            var blackList = blackListService.GetBlacklist(BlackListId, userId: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
 
             OnlineDevices = virdiServer.GetOnlineDevices();

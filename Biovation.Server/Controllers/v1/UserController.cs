@@ -1,18 +1,18 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
+using MoreLinq;
+using Newtonsoft.Json;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Service;
-using Microsoft.AspNetCore.Mvc;
-using MoreLinq;
-using Newtonsoft.Json;
-using RestSharp;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -39,35 +39,32 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            return _userService.GetUsersByFilter(onlineUserId, from, size, getTemplatesData, userId, filterText, type,
-                withPicture, isAdmin);
+            return Task.Run(() => _userService.GetUsers(userId, withPicture, onlineUserId, from, size, getTemplatesData, filterText, type, isAdmin));
         }
 
         [HttpGet]
         [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
-            return Task.Run(async () =>
-            {
-                try
-                {
-                    return await _userService.GetUsers(onlineUserId, from, size, getTemplatesData);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new List<User>();
-                }
-            });
+            return Task.Run(() =>
+           {
+               try
+               {
+                   return _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData);
+               }
+               catch (Exception exception)
+               {
+                   Logger.Log(exception);
+                   return new List<User>();
+               }
+           });
         }
-
         [HttpGet]
         [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
             return _userService.GetAdminUser(userId);
         }
-
         [HttpGet]
         [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
@@ -81,7 +78,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUser(id);
+                return _userService.GetUsers(userId: id)?.FirstOrDefault();
             }
             catch (Exception exception)
             {
@@ -89,41 +86,27 @@ namespace Biovation.Server.Controllers.v1
                 throw;
             }
         }
-
-        //for routing problem(same address)
-        //[HttpGet]
-        //[Route("SearchUser")]
-        //public List<User> SearchUser(string filterText, long userId)
-        //{
-        //    try
-        //    {
-        //        return _userService.GetUser(filterText, userId);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return new List<User>();
-        //    }
-        //}
+        [HttpGet]
+        [Route("SearchUserFilter")]
+        public List<User> SearchUser(string filterText, long userId)
+        {
+            try
+            {
+                return _userService.GetUsers(filterText: filterText, onlineUserId: userId);
+            }
+            catch (Exception)
+            {
+                return new List<User>();
+            }
+        }
 
         [HttpGet]
         [Route("SearchUser")]
-        public List<User> SearchUser(string filterText, long userId, int? type = null)
+        public List<User> SearchUser(string filterText, int type, long userId)
         {
-            if (type is null)
-            {
-                try
-                {
-                    return _userService.GetUser(filterText, userId);
-                }
-                catch (Exception)
-                {
-                    return new List<User>();
-                }
-            }
-
             try
             {
-                return _userService.GetUser(filterText, (int) type, userId);
+                return _userService.GetUsers(filterText: filterText, onlineUserId: userId, type: type);
             }
             catch (Exception)
             {
@@ -139,7 +122,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var existingUser = _userService.GetUser(user.Id, false);
+                    var existingUser = _userService.GetUsers(user.Id).FirstOrDefault();
 
                     if (existingUser != null)
                     {
@@ -166,7 +149,7 @@ namespace Biovation.Server.Controllers.v1
                             : user.TelNumber;
                     }
 
-                    var result = await _userService.ModifyUser(user);
+                    var result = _userService.ModifyUser(user);
 
                     await Task.Run(async () =>
                     {
@@ -194,11 +177,11 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUser")]
-        public List<ResultViewModel> DeleteUser(int[] ids)
+        public List<ResultViewModel> DeleteUser([FromBody] int[] ids)
         {
             try
             {
-                var result = _userService.DeleteUser(ids);
+                return ids.Select(id => _userService.DeleteUser(id)).ToList();
 
                 //Task.Run(() =>
                 //{
@@ -217,7 +200,6 @@ namespace Biovation.Server.Controllers.v1
                 //    }
 
                 //});
-                return result;
             }
             catch (Exception exception)
             {
@@ -241,7 +223,7 @@ namespace Biovation.Server.Controllers.v1
                 var result = new List<ResultViewModel>();
                 foreach (var device in deviceIds)
                 {
-                    var deviceBasic = _deviceService.GetDeviceInfo(device);
+                    var deviceBasic = _deviceService.GetDevice(device);
                     if (deviceBasic == null)
                     {
                         var msg = "DeviceId " + device + " does not exist.";
@@ -249,9 +231,6 @@ namespace Biovation.Server.Controllers.v1
                         return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = msg } };
                     }
 
-                    //var parameters = new List<object> { $"code={deviceBasic.Code}", $"userId={userId}" };
-                    //result.AddRange(_communicationManagerLst.CallRest(
-                    //    $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice", "Get", parameters, null));
                     var restRequest =
                         new RestRequest(
                             $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
@@ -272,6 +251,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("SendUserToAllDevices")]
+        [Obsolete]
         public Task<List<ResultViewModel>> SendUserToAllDevices(string ids)
         {
             return Task.Run(async () =>
@@ -284,7 +264,7 @@ namespace Biovation.Server.Controllers.v1
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < length; i++)
                     {
-                        var user = _userService.GetUser(userIds[i]);
+                        var user = _userService.GetUsers(userId: userIds[i]).FirstOrDefault();
                         if (user == null)
                         {
                             Logger.Log($"User {userIds[i]} not exists.");
@@ -421,7 +401,7 @@ namespace Biovation.Server.Controllers.v1
                         var count = lstUserGroupMember.Count();
                         for (var i = 0; i < count; i++)
                         {
-                            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(lstUserGroupMember[i].UserId);
+                            var accessGroups = _accessGroupService.GetAccessGroups(lstUserGroupMember[i].UserId);
                             foreach (var accessGroup in accessGroups)
                             {
                                 if (accessGroup.DeviceGroup == null)
@@ -557,16 +537,15 @@ namespace Biovation.Server.Controllers.v1
         //}
 
         [HttpPost]
-        [Route("EnrollFaceTemplate")]
         public Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
         {
             return Task.Run(async () =>
             {
-                var user = _userService.GetUser(userId, false);
+                var user = _userService.GetUsers(userId).FirstOrDefault();
                 if (user is null)
                     return new ResultViewModel { Validate = 0, Id = userId, Message = "Wrong user id is provided." };
 
-                var device = _deviceService.GetDeviceInfo(deviceId);
+                var device = _deviceService.GetDevice(deviceId);
                 if (device is null)
                     return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
 
@@ -579,50 +558,53 @@ namespace Biovation.Server.Controllers.v1
             });
         }
 
-        private bool UpdateUserGroupMember(long[] userIds, List<UserGroupMember> lstToAdd)
+        [HttpPost]
+        [Route("UpdateUserGroupsOfUsers")]
+        private bool UpdateUserGroupMember(long[] userIds, [FromBody] List<UserGroupMember> lstToAdd)
         {
-            try
-            {
-                var count = userIds.Length;
-                var groupIds = new List<int>();
-                for (var i = 0; i < count; i++)
-                {
-                    var group = _userGroupService.GetUserGroupsOfUser(userIds[i]);
-                    groupIds.AddRange(group.Select(s => s.Id));
-                }
-                if (groupIds.Any())
-                {
-                    var grpIds = string.Join(",", groupIds.Distinct());
+            //try
+            //{
+            //    var count = userIds.Length;
+            //    var groupIds = new List<int>();
+            //    for (var i = 0; i < count; i++)
+            //    {
+            //        var group = _userGroupService.UsersGroup(userId: userIds[i]);
+            //        groupIds.AddRange(group.Select(s => s.Id));
+            //    }
+            //    if (groupIds.Any())
+            //    {
+            //        var grpIds = string.Join(",", groupIds.Distinct());
 
-                    var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
-                    restRequest.AddQueryParameter("userGroupId", grpIds);
-                    //var parameters = new List<object> { $"userGroupid={grpIds}", };
-                    //var member = _communicationUserGroup.CallRest("/api/Biovation/UserGroupMember/GetUserGroupMemberDetail", "Get", parameters);
-                    var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
+            //        var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
+            //        restRequest.AddQueryParameter("userGroupId", grpIds);
+            //        //var parameters = new List<object> { $"userGroupid={grpIds}", };
+            //        //var member = _communicationUserGroup.CallRest("/api/Biovation/UserGroupMember/GetUserGroupMemberDetail", "Get", parameters);
+            //        var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
 
-                    var grpMember = member?.Data.GroupBy(g => g.GroupId).ToList() ?? new List<IGrouping<int, UserGroupMember>>();
-                    foreach (var members in grpMember)
-                    {
-                        var strWp = JsonConvert.SerializeObject(members);
-                        var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
-                        var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
-                        var node = xDocument.OuterXml;
+            //        var grpMember = member?.Data.GroupBy(g => g.GroupId).ToList() ?? new List<IGrouping<int, UserGroupMember>>();
+            //        foreach (var members in grpMember)
+            //        {
+            //            //var strWp = JsonConvert.SerializeObject(members);
+            //            //var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
+            //            //var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
+            //            //var node = xDocument.OuterXml;
 
-                        _userGroupService.ModifyUserGroupMember(node, members.Key);
-                    }
-                }
+            //            _userGroupService.ModifyUserGroupMember(member.Data, members.Key);
+            //        }
+            //    }
 
-                foreach (var userMember in lstToAdd)
-                {
-                    _userGroupService.AddUserGroupMember(userMember);
-                }
-                return true;
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception, "Error on Get User Group Member");
-                return false;
-            }
+            //    foreach (var userMember in lstToAdd)
+            //    {
+            //        _userGroupService.AddUserGroup(userMember);
+            //    }
+            //    return true;
+            //}
+            //catch (Exception exception)
+            //{
+            //    Logger.Log(exception, "Error on Get User Group Member");
+            //    return false;
+            //}
+            throw new NotImplementedException();
         }
 
         [HttpGet]
@@ -644,10 +626,10 @@ namespace Biovation.Server.Controllers.v1
 
                     // for rolling back on problem occuring
                     var userExistingDevices = new List<DeviceBasicInfo>();
-                    var userGroupsOfUser = _userGroupService.GetUserGroupsOfUser(userId);
+                    var userGroupsOfUser = _userGroupService.UsersGroup(userId);
                     foreach (var userGroup in userGroupsOfUser)
                     {
-                        var accessGroups = _accessGroupService.GetAccessGroupsOfUserGroup(userGroup.Id, 4);
+                        var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id);
                         foreach (var accessGroup in accessGroups)
                         {
                             var deviceGroups = accessGroup.DeviceGroup;
@@ -672,7 +654,7 @@ namespace Biovation.Server.Controllers.v1
                             try
                             {
                                 var userGroupMember = userGroup.Users.FirstOrDefault(userGroupMem => userGroupMem.UserId == userId);
-                                _userGroupService.AddUserGroupMember(userGroupMember);
+                                _userGroupService.AddUserGroup(userGroupMember);
                             }
                             catch (Exception)
                             {
@@ -684,7 +666,7 @@ namespace Biovation.Server.Controllers.v1
 
                     foreach (var userGroupId in userGroupIdList[userId])
                     {
-                        _userGroupService.AddUserGroupMember(new UserGroupMember
+                        _userGroupService.AddUserGroup(new UserGroupMember
                         {
                             UserId = userId,
                             GroupId = userGroupId,
@@ -692,6 +674,7 @@ namespace Biovation.Server.Controllers.v1
                             UserTypeTitle = string.Empty
                         });
                     }
+                    //_userGroupService.ModifyUserGroupMember(userGroupMembersList,)
 
                     Logger.Log($"User groups of user {userId} updated successfully");
                     resultList.Add(new ResultViewModel { Id = userId, Validate = 1, Message = $"User groups of user {userId} updated successfully" });
@@ -715,7 +698,7 @@ namespace Biovation.Server.Controllers.v1
                             Task.Run(async () =>
                             {
                                 var devicesToExistsOn = new List<DeviceBasicInfo>();
-                                var accessGroups = _accessGroupService.GetAccessGroupsOfUser(userId, 4);
+                                var accessGroups = _accessGroupService.GetAccessGroups(userId);
                                 foreach (var accessGroup in accessGroups)
                                 {
                                     if (accessGroup.DeviceGroup == null)
@@ -821,7 +804,7 @@ namespace Biovation.Server.Controllers.v1
 
                 foreach (var userGroupId in userGroupIdList)
                 {
-                    _userGroupService.AddUserGroupMember(new UserGroupMember
+                    _userGroupService.AddUserGroup(new UserGroupMember
                     {
                         UserId = userId,
                         GroupId = userGroupId,
@@ -880,7 +863,7 @@ namespace Biovation.Server.Controllers.v1
                 }
                 else
                 {
-                    var device = _deviceService.GetDeviceInfo(deviceId);
+                    var device = _deviceService.GetDevice(deviceId);
                     tasks.Add(Task.Run(async () =>
                     {
                         var restRequest =

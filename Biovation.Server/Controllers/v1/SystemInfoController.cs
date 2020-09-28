@@ -1,20 +1,17 @@
-﻿//using System;
+﻿//using Biovation.CommonClasses;
+//using Biovation.CommonClasses.Manager;
+//using Biovation.CommonClasses.Models;
+//using RestSharp;
+//using System;
 //using System.Collections.Generic;
 //using System.Linq;
 //using System.Net;
 //using System.Threading.Tasks;
-//using Biovation.CommonClasses;
-//using Biovation.CommonClasses.Manager;
-//using Biovation.Domain;
-//using Microsoft.AspNetCore.Mvc;
-//using RestSharp;
+//using System.Web.Http;
 
-//namespace Biovation.Gateway.Controllers.v1
+//namespace Biovation.WebService.APIControllers
 //{
-//    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-//    [ApiVersion("1.0")]
-//    [ApiController]
-//    public class SystemInfoController : Controller
+//    public class SystemInfoController : ApiController
 //    {
 //        private readonly RestClient _restClient;
 
@@ -24,7 +21,6 @@
 //        }
 
 //        [HttpGet]
-//        [Route("LoadedBrand")]
 //        public Task<ResultViewModel<SystemInfo>> LoadedBrand()
 //        {
 //            return Task.Run(async () =>
@@ -59,7 +55,6 @@
 
 
 //        [HttpPost]
-//        [Route("RestartModules")]
 //        public Task<List<ResultViewModel<ModuleInfo>>> RestartModules(List<ModuleInfo> modules)
 //        {
 //            return Task.Run(() =>

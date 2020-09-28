@@ -19,8 +19,8 @@
     //},
     "Biovation.Brands.Virdi": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "Biovation/Api/VirdiDevice/GetOnlineDevices",
+      //"launchBrowser": true,
+      //"launchUrl": "Biovation/Api/VirdiDevice/GetOnlineDevices",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

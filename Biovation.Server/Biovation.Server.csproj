@@ -8,6 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\v1_old\**" />
+    <Content Remove="Controllers\v1_old\**" />
+    <EmbeddedResource Remove="Controllers\v1_old\**" />
+    <None Remove="Controllers\v1_old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="App.Metrics.AspNetCore.Mvc" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.AspNetCore.Tracking" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.Extensions.Mvc" Version="1.2.1" />
+    <PackageReference Include="App.Metrics.Formatters.Json" Version="4.1.0" />
+    <PackageReference Include="InfluxDB.Client" Version="1.11.0" />
+    <PackageReference Include="InfluxDB.Client.Flux" Version="1.11.0" />
+    <PackageReference Include="InfluxDB.Collector" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
@@ -20,8 +34,7 @@
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
-    <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.csproj" />
-    <ProjectReference Include="..\Biovation.Service\Biovation.Service.csproj" />
+    <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>
 

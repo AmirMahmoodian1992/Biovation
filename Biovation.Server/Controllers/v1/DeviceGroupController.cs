@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -33,18 +33,18 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetDeviceGroup")]
         public List<DeviceGroup> GetDeviceGroup(int? id, long userId)
         {
-            return id == null ? _deviceGroupService.GetAllDeviceGroup(userId) : _deviceGroupService.GetDeviceGroup((int)id, userId);
+            return id == null ? _deviceGroupService.GetDeviceGroups(userId: userId) : _deviceGroupService.GetDeviceGroups((int)id, userId);
         }
 
         [HttpPost]
         [Route("ModifyDeviceGroup")]
-        public Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup)
+        public Task<ResultViewModel> ModifyDeviceGroup([FromBody] DeviceGroup deviceGroup)
         {
             return Task.Run(async () =>
             {
                 try
                 {
-                    var existingDeviceGroup = deviceGroup.Id == 0 ? null : _deviceGroupService.GetDeviceGroup(deviceGroup.Id, 0).FirstOrDefault();
+                    var existingDeviceGroup = deviceGroup.Id == 0 ? null : _deviceGroupService.GetDeviceGroups(deviceGroup.Id).FirstOrDefault();
                     if (existingDeviceGroup is null && deviceGroup.Id != 0)
                         return new ResultViewModel
                         {
@@ -64,29 +64,29 @@ namespace Biovation.Server.Controllers.v1
 
                     var computeExistingAuthorizedUsersToDelete =
                         Task.Run(() => Parallel.ForEach(deletedDevices, device =>
-                        {
-                            var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId).Result;
+                       {
+                           var authorizedUsersOfDevice =
+                               _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId);
 
-                            if (!existingAuthorizedUsersOfDeletedDevice.ContainsKey(device.DeviceId))
-                                existingAuthorizedUsersOfDeletedDevice.Add(device.DeviceId, new List<User>());
+                           if (!existingAuthorizedUsersOfDeletedDevice.ContainsKey(device.DeviceId))
+                               existingAuthorizedUsersOfDeletedDevice.Add(device.DeviceId, new List<User>());
 
-                            existingAuthorizedUsersOfDeletedDevice[device.DeviceId].AddRange(authorizedUsersOfDevice);
-                        })).ContinueWith(_ =>
-                             Parallel.For(0, existingAuthorizedUsersOfAddedDevice.Count, index =>
-                             {
-                                 var element = existingAuthorizedUsersOfDeletedDevice.ElementAt(index);
-                                 var authorizedUsers = element.Value.DistinctBy(user => user.Id).ToList();
-                                 lock (existingAuthorizedUsersOfDeletedDevice)
-                                     existingAuthorizedUsersOfDeletedDevice[element.Key] = authorizedUsers;
-                             })
+                           existingAuthorizedUsersOfDeletedDevice[device.DeviceId].AddRange(authorizedUsersOfDevice);
+                       })).ContinueWith(_ =>
+                            Parallel.For(0, existingAuthorizedUsersOfAddedDevice.Count, index =>
+                           {
+                               var element = existingAuthorizedUsersOfDeletedDevice.ElementAt(index);
+                               var authorizedUsers = element.Value.DistinctBy(user => user.Id).ToList();
+                               lock (existingAuthorizedUsersOfDeletedDevice)
+                                   existingAuthorizedUsersOfDeletedDevice[element.Key] = authorizedUsers;
+                           })
                        );
 
                     var computeExistingAuthorizedUsersToAdd =
                         Task.Run(() => Parallel.ForEach(addedDevices, device =>
                         {
                             var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId).Result;
+                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId);
 
                             if (!existingAuthorizedUsersOfAddedDevice.ContainsKey(device.DeviceId))
                                 existingAuthorizedUsersOfAddedDevice.Add(device.DeviceId, new List<User>());
@@ -104,7 +104,7 @@ namespace Biovation.Server.Controllers.v1
 
                     Task.WaitAll(computeExistingAuthorizedUsersToDelete, computeExistingAuthorizedUsersToAdd);
 
-                    var result = await _deviceGroupService.ModifyDeviceGroup(deviceGroup);
+                    var result =  _deviceGroupService.ModifyDeviceGroup(deviceGroup);
 
                     if (result.Validate == 1)
                     {
@@ -112,10 +112,10 @@ namespace Biovation.Server.Controllers.v1
                         {
                             await Task.Run(async () =>
                             {
-                                var device = _deviceService.GetDeviceInfo(deviceId);
+                                var device = _deviceService.GetDevice(deviceId);
 
                                 var newAuthorizedUsersOfDevice =
-                                    _deviceService.GetAuthorizedUsersOfDevice(deviceId).Result;
+                                    _deviceService.GetAuthorizedUsersOfDevice(deviceId);
 
                                 var usersToDelete = newAuthorizedUsersOfDevice?.Count > 0
                                     ? existingAuthorizedUsersOfDeletedDevice[deviceId].ExceptBy(
@@ -139,10 +139,10 @@ namespace Biovation.Server.Controllers.v1
                         {
                             await Task.Run(async () =>
                             {
-                                var device = _deviceService.GetDeviceInfo(deviceId);
+                                var device = _deviceService.GetDevice(deviceId);
 
                                 var newAuthorizedUsersOfDevice =
-                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId).Result;
+                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId);
 
                                 var usersToAdd = existingAuthorizedUsersOfDeletedDevice.ContainsKey(deviceId) &&
                                                      existingAuthorizedUsersOfDeletedDevice[deviceId]?.Count > 0
@@ -177,8 +177,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                //var id = !string.IsNullOrEmpty(ids) ? JsonConvert.DeserializeObject<int[]>(ids) : new int[0];
-                return _deviceGroupService.DeleteDeviceGroup(ids);
+                return ids.Select(id => _deviceGroupService.DeleteDeviceGroup(id)).ToList();
             }
             catch (Exception e)
             {

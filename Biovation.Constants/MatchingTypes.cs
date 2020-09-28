@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
+using System.Linq;
 
 namespace Biovation.Constants
 {
@@ -12,12 +12,21 @@ namespace Biovation.Constants
         public const string UnknownCode = "19000";
         public const string UnIdentifyCode = "0";
 
-        public static Lookup Face = Lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, FaceCode));
-        public static Lookup Finger = Lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, FingerCode));
-        public static Lookup Car = Lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, CarCode));
-        public static Lookup Card = Lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, CardCode));
-        public static Lookup Unknown = Lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnknownCode));
-        public static Lookup UnIdentify = Lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnIdentifyCode));
+        public MatchingTypes(Lookups lookups)
+        {
+            Face = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, FaceCode));
+            Finger = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, FingerCode));
+            Car = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, CarCode));
+            Card = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, CardCode));
+            Unknown = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnknownCode));
+            UnIdentify = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnIdentifyCode));
+        }
 
+        public Lookup Face;
+        public Lookup Finger;
+        public Lookup Car;
+        public Lookup Card;
+        public Lookup Unknown;
+        public Lookup UnIdentify;
     }
 }

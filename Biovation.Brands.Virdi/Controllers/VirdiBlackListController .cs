@@ -1,11 +1,12 @@
 ﻿using Biovation.Brands.Virdi.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -19,13 +20,22 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
 
-        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _userService = userService;
             _deviceService = deviceService;
             _deviceBrands = deviceBrands;
             _taskManager = taskManager;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
         }
 
         [HttpPost]
@@ -37,13 +47,13 @@ namespace Biovation.Brands.Virdi.Controllers
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.SendBlackList,
-                        Priority = TaskPriorities.Medium,
+                        TaskType = _taskTypes.SendBlackList,
+                        Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
@@ -51,14 +61,16 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     foreach (var blacklist in blackLists)
                     {
+                        var devices = _deviceService.GetDevices(code: blacklist.Device.Code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                        if (devices is null)
+                            continue;
 
-                        var devices = _deviceService.GetDeviceBasicInfoWithCode(blacklist.Device.Code, DeviceBrands.VirdiCode);
                         var deviceId = devices.DeviceId;
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.SendBlackList,
-                            Priority = TaskPriorities.Medium,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendBlackList,
+                            Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = deviceId,
                             Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Id }),
@@ -67,7 +79,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             OrderIndex = 1
                         });
 
-                        _taskService.InsertTask(task).Wait();
+                        _taskService.InsertTask(task);
                         _taskManager.ProcessQueue();
 
                         resultList.Add(new ResultViewModel { Message = "Sending BlackList queued", Validate = 1 });
