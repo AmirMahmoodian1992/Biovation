@@ -29,7 +29,8 @@ namespace Biovation.Service.Api.v1
         public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
         {
             _logRepository = logRepository;
-            _logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+            //_logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+           
             var kafkaServerAddress = configurationManager.KafkaServerAddress;
             _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
                .Build<DataChangeMessage<Log>>();
@@ -124,7 +125,7 @@ namespace Biovation.Service.Api.v1
                                   {
                                  new DataChangeMessage<Log>
                                   {
-                                      Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                                      Id = Guid.NewGuid().ToString(), EventId = 2, SourceName = "BiovationCore",
                                       TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = shortenedLogList
 
                                       }
