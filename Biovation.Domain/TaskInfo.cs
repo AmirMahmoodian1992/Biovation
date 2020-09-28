@@ -1,6 +1,6 @@
-﻿using System;
+﻿using DataAccessLayerCore.Attributes;
+using System;
 using System.Collections.Generic;
-using DataAccessLayerCore.Attributes;
 
 namespace Biovation.Domain
 {
@@ -19,7 +19,11 @@ namespace Biovation.Domain
         public DateTimeOffset CreatedAt { get; set; }
         [OneToMany]
         public List<TaskItem> TaskItems { get; set; }
-         [OneToOne]
-            public Lookup DeviceBrand { get; set; }
-        }
+        [OneToOne]
+        public Lookup DeviceBrand { get; set; }
+
+
+        public int CurrentIndex { get; set; }
+        public int TotalCount { get; set; }
+    }
 }

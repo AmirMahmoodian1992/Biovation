@@ -14,7 +14,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             string excludedTaskStatusCodes = default, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, int taskItemId = default)
         {
             var restRequest = new RestRequest("Queries/v2/task", Method.GET);
             restRequest.AddQueryParameter("taskId", taskId.ToString());
@@ -25,6 +25,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("excludedTaskStatusCodes", excludedTaskStatusCodes ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            restRequest.AddQueryParameter("taskItemId", taskItemId.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<TaskInfo>>>(restRequest);
             return requestResult.Result.Data;
         }

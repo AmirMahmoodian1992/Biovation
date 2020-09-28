@@ -18,11 +18,12 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default)
+        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int taskItemId = default)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@taskId", taskId),
+                 new SqlParameter("@taskItemId", taskItemId),
                 new SqlParameter("@brandId", brandCode),
                 new SqlParameter("@deviceId", deviceId),
                 new SqlParameter("@taskTypeCode", taskTypeCode),

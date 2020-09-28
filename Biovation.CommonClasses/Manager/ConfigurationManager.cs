@@ -59,7 +59,8 @@ namespace Biovation.CommonClasses.Manager
         {
             return Configuration["DataQueriesPort"] ?? Configuration.GetSection("AppSettings")["DataQueriesPort"];
         }
-            
+
+
 
 
         public Uri LogMonitoringApiUrl
@@ -389,7 +390,7 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static string KafkaServerAddress
+        public  string KafkaServerAddress
         {
             get
             {
@@ -397,7 +398,7 @@ namespace Biovation.CommonClasses.Manager
                 {
                     try
                     {
-                        return ConfigurationManager.AppSettings["KafkaServerAddress"]?.ToLowerInvariant()
+                        return Configuration["KafkaServerAddress"] ?? Configuration.GetSection("AppSettings")["KafkaServerAddress"]?.ToLowerInvariant()
                             .Replace(@"http://", "").Replace(@"https://", "");
 
                     }

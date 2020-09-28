@@ -2,6 +2,8 @@
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using Kasra.MessageBus.Domain.Interfaces;
+using Kasra.MessageBus.Infrastructure;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,9 @@ namespace Biovation.Service.Api.v1
     {
         private readonly LogRepository _logRepository;
         private readonly RestClient _logExternalSubmissionRestClient;
+        private ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
+        private ConnectorNode<DataChangeMessage<TaskInfo>> _biovationTaskConnectorNode;
+        private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
 
         public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
         {

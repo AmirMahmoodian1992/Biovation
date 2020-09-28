@@ -271,7 +271,7 @@ namespace Biovation.Brands.Virdi
                 , serviceProvider.GetService<AccessGroupService>(), serviceProvider.GetService<FingerTemplateService>(), serviceProvider.GetService<LogService>(), serviceProvider.GetService<BlackListService>()
                 , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
                 , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
-                , serviceProvider.GetService<BiometricTemplateManager>());
+                , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
 
 
             services.AddSingleton(UcsApi);

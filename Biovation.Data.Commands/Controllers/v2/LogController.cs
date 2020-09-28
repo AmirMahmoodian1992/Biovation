@@ -1,21 +1,19 @@
-﻿using Biovation.Domain;
+﻿using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Constants;
-using Newtonsoft.Json;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
     public class LogController : Controller
     {
-
         private readonly LogRepository _logRepository;
-
 
         public LogController(LogRepository logRepository)
         {
@@ -26,14 +24,14 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("AddLog")]
         public Task<ResultViewModel> AddLog([FromBody]Log log)
         {
-            return Task.Run(() => _logRepository.AddLog(log));
+            return Task.Run(async () => await _logRepository.AddLog(log));
         }
 
         [HttpPost]
         [Route("AddLogBulk")]
         public Task<ResultViewModel> AddLog([FromBody]List<Log> logs)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var json = JsonConvert.SerializeObject(logs.Select(s => new
                 {
@@ -53,7 +51,7 @@ namespace Biovation.Data.Commands.Controllers.v2
                 }));
 
                 var logsDataTable = JsonConvert.DeserializeObject<DataTable>(json);
-                return _logRepository.AddLog(logsDataTable);
+                return await _logRepository.AddLog(logsDataTable);
             });
         }
 
@@ -61,7 +59,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("UpdateLog")]
         public Task<ResultViewModel> UpdateLog([FromBody]List<Log> logs)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var serializedData = JsonConvert.SerializeObject(logs.Select(s => new
                 {
@@ -79,14 +77,14 @@ namespace Biovation.Data.Commands.Controllers.v2
                     s.SuccessTransfer
                 }));
                 var logsDataTable = JsonConvert.DeserializeObject<DataTable>(serializedData);
-                return _logRepository.UpdateLog(logsDataTable);
+                return await _logRepository.UpdateLog(logsDataTable);
             });
         }
         [HttpPatch]
         [Route("AddLogImage")]
         public Task<ResultViewModel> AddLogImage([FromBody]Log log)
         {
-            return Task.Run(() => _logRepository.AddLogImage(log));
+            return Task.Run(async () => await _logRepository.AddLogImage(log));
         }
 
 
@@ -94,14 +92,14 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("UpdateLog")]
         public Task<ResultViewModel> UpdateLog([FromBody]Log log)
         {
-            return Task.Run(() => _logRepository.UpdateLog(log));
+            return Task.Run(async () => await _logRepository.UpdateLog(log));
         }
 
         [HttpPut]
         [Route("CheckLogInsertion")]
         public Task<List<Log>> CheckLogInsertion([FromBody]List<Log> logs)
         {
-            return Task.Run(() => _logRepository.CheckLogInsertion(logs));
+            return Task.Run(async () => await _logRepository.CheckLogInsertion(logs));
         }
     }
 }

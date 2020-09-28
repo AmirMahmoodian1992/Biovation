@@ -41,7 +41,7 @@ namespace Biovation.Brands.Virdi.Manager
                 switch (taskItem.TaskItemType.Code)
                 {
 
-                    case TaskItemTypes.GetServeLogsCode:
+                    case TaskItemTypes.GetLogsCode:
                         {
                             try
                             {
@@ -62,7 +62,7 @@ namespace Biovation.Brands.Virdi.Manager
                             break;
                         }
 
-                    case TaskItemTypes.GetServeLogsInPeriodCode:
+                    case TaskItemTypes.GetLogsInPeriodCode:
                         {
                             try
                             {

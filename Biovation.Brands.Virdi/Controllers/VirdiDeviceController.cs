@@ -101,7 +101,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = _taskTypes.GetServeLogs,
+                        TaskType = _taskTypes.GetLogs,
                         Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
                         DeviceBrand = _deviceBrands.Virdi,
@@ -111,7 +111,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         task.TaskItems.Add(new TaskItem
                         {
                             Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetServeLogs,
+                            TaskItemType = _taskItemTypes.GetLogs,
                             Priority = _taskPriorities.Medium,
                             DueDate = DateTime.Today,
                             DeviceId = deviceId,
@@ -130,7 +130,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             task.TaskItems.Add(new TaskItem
                             {
                                 Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetServeLogs,
+                                TaskItemType = _taskItemTypes.GetLogs,
                                 Priority = _taskPriorities.Medium,
                                 DueDate = DateTime.Today,
                                 DeviceId = device.DeviceId,
@@ -173,7 +173,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
-                                TaskType = _taskTypes.GetServeLogs,
+                                TaskType = _taskTypes.GetLogsInPeriod,
                                 Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.Virdi,
@@ -184,7 +184,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                 task.TaskItems.Add(new TaskItem
                                 {
                                     Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetServeLogsInPeriod,
+                                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
                                     Priority = _taskPriorities.Medium,
                                     DueDate = DateTimeOffset.Now,
                                     DeviceId = deviceId,
@@ -204,7 +204,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                     task.TaskItems.Add(new TaskItem
                                     {
                                         Status = _taskStatuses.Queued,
-                                        TaskItemType = _taskItemTypes.GetServeLogsInPeriod,
+                                        TaskItemType = _taskItemTypes.GetLogsInPeriod,
                                         Priority = _taskPriorities.Medium,
                                         DueDate = DateTime.Today,
                                         DeviceId = device.DeviceId,
@@ -225,7 +225,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             {
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
-                                TaskType = _taskTypes.GetServeLogs,
+                                TaskType = _taskTypes.GetLogs,
                                 Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.Virdi,
@@ -235,7 +235,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                 task.TaskItems.Add(new TaskItem
                                 {
                                     Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetServeLogs,
+                                    TaskItemType = _taskItemTypes.GetLogs,
                                     Priority = _taskPriorities.Medium,
                                     DueDate = DateTime.Today,
                                     DeviceId = deviceId,
@@ -255,7 +255,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                     task.TaskItems.Add(new TaskItem
                                     {
                                         Status = _taskStatuses.Queued,
-                                        TaskItemType = _taskItemTypes.GetServeLogs,
+                                        TaskItemType = _taskItemTypes.GetLogs,
                                         Priority = _taskPriorities.Medium,
                                         DueDate = DateTime.Today,
                                         DeviceId = device.DeviceId,
