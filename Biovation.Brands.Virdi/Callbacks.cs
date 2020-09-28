@@ -829,6 +829,7 @@ namespace Biovation.Brands.Virdi
                         restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
 
                         await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        //integration
 
                         await _logService.AddLog(new Log
                         {
@@ -1728,6 +1729,7 @@ namespace Biovation.Brands.Virdi
                     restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
 
                     await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //integration
 
                     await _logService.AddLog(new Log
                     {

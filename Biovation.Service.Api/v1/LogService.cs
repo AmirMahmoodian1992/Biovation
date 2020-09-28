@@ -21,10 +21,10 @@ namespace Biovation.Service.Api.v1
     public class LogService
     {
         private readonly LogRepository _logRepository;
-        private readonly RestClient _logExternalSubmissionRestClient;
+        //private readonly RestClient _logExternalSubmissionRestClient;
         private ISource<DataChangeMessage<Log>> _biovationInternalSource;
         private ConnectorNode<DataChangeMessage<Log>> _biovationTaskConnectorNode;
-        private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
+        private const string _biovationTopicName = "BiovationLogUpdateEvent";
 
         public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
         {
