@@ -1,5 +1,6 @@
 ﻿using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Repository.MessageBus;
 using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -14,17 +15,24 @@ namespace Biovation.Data.Commands.Controllers.v2
     public class LogController : Controller
     {
         private readonly LogRepository _logRepository;
-
-        public LogController(LogRepository logRepository)
+        private readonly LogMessageBusRepository _logMessageBusRepository;
+        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository)
         {
             _logRepository = logRepository;
+            _logMessageBusRepository = logMessageBusRepository;
         }
 
         [HttpPost]
         [Route("AddLog")]
         public Task<ResultViewModel> AddLog([FromBody]Log log)
         {
-            return Task.Run(async () => await _logRepository.AddLog(log));
+            var logInsertionResult = _logRepository.AddLog(log);
+            if (!logInsertionResult.Result.Success) return logInsertionResult;
+            //integration
+            var logList = new List<Log> { log };
+            _logMessageBusRepository.SendLog(logList);
+
+            return logInsertionResult;
         }
 
         [HttpPost]

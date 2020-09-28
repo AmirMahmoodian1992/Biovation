@@ -89,6 +89,13 @@ namespace Biovation.Data.Commands
             services.AddScoped<Repository.SQL.v2.TimeZoneRepository, Repository.SQL.v2.TimeZoneRepository>();
             services.AddScoped<Repository.SQL.v2.UserCardRepository, Repository.SQL.v2.UserCardRepository>();
             services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
+
+
+
+            //integration
+            services.AddScoped<Biovation.Repository.MessageBus.LogMessageBusRepository, Biovation.Repository.MessageBus.LogMessageBusRepository>();
+            services.AddScoped<Biovation.Repository.MessageBus.TaskMessageBusRepository, Biovation.Repository.MessageBus.TaskMessageBusRepository>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

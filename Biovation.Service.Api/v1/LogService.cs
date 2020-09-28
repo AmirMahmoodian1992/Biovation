@@ -21,25 +21,24 @@ namespace Biovation.Service.Api.v1
     public class LogService
     {
         private readonly LogRepository _logRepository;
-        //private readonly RestClient _logExternalSubmissionRestClient;
-        private ISource<DataChangeMessage<Log>> _biovationInternalSource;
-        private ConnectorNode<DataChangeMessage<Log>> _biovationTaskConnectorNode;
-        private const string _biovationTopicName = "BiovationLogUpdateEvent";
+        private readonly RestClient _logExternalSubmissionRestClient;
+        private readonly ISource<DataChangeMessage<Log>> _biovationInternalSource;
+        private const string BiovationTopicName = "BiovationLogUpdateEvent";
 
         public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
         {
             _logRepository = logRepository;
-            //_logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
-           
+            _logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+
             var kafkaServerAddress = configurationManager.KafkaServerAddress;
             _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
                .Build<DataChangeMessage<Log>>();
 
-            var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(_biovationTopicName)
+            var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(BiovationTopicName)
                 .BuildTarget<DataChangeMessage<Log>>();
 
-            _biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<Log>>(_biovationInternalSource, biovationKafkaTarget);
-            _biovationTaskConnectorNode.StartProcess();
+            var biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<Log>>(_biovationInternalSource, biovationKafkaTarget);
+            biovationTaskConnectorNode.StartProcess();
 
         }
 
@@ -105,22 +104,17 @@ namespace Biovation.Service.Api.v1
                         {
                             var shortenedLogList = deviceLogs.Skip(i * 1000).Take(1000).ToList();
 
-                            //var restRequest = new RestRequest("UpdateAttendance/UpdateAttendanceBulk", Method.POST, DataFormat.Json);
-                            //restRequest.AddJsonBody(shortenedLogList);
+                            var restRequest = new RestRequest("UpdateAttendance/UpdateAttendanceBulk", Method.POST, DataFormat.Json);
+                            restRequest.AddJsonBody(shortenedLogList);
 
-                            //var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
-                            
-                            
-                            //var data = JsonConvert.SerializeObject(shortenedLogList);
-                            //var result = _communicationManagerAtt.CallRest(
-                            //    "/api/Biovation/UpdateAttendance/UpdateAttendanceBulk", "Post", null, data);
+                            var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+
 
                             //integration
-                           // var result = Task.Run(() =>
-                              //{
 
 
-                                  var biovationBrokerMessageData = new List<DataChangeMessage<Log>>
+                            var biovationBrokerMessageData = new List<DataChangeMessage<Log>>
 
                                   {
                                  new DataChangeMessage<Log>
@@ -131,13 +125,13 @@ namespace Biovation.Service.Api.v1
                                       }
                                   };
 
-                                  _biovationInternalSource.PushData(biovationBrokerMessageData);
-                             // });
+                            _biovationInternalSource.PushData(biovationBrokerMessageData);
 
-                           
-                            //if (!result.IsSuccessful || result.StatusCode != HttpStatusCode.OK || result.Data.Validate != 1) continue;
 
-                           
+
+                            if (!result.IsSuccessful || result.StatusCode != HttpStatusCode.OK || result.Data.Validate != 1) continue;
+
+
 
                             //shortenedLogList = shortenedLogList.Select(log => new Log
                             //{

@@ -16,6 +16,7 @@ namespace Biovation.Service.Api.v1
     public class TaskService
     {
         private readonly TaskRepository _taskRepository;
+
         private ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
         private ConnectorNode<DataChangeMessage<TaskInfo>> _biovationTaskConnectorNode;
         private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
@@ -74,7 +75,7 @@ namespace Biovation.Service.Api.v1
             return _taskRepository.GetTaskItem(taskItemId)?.Data ?? new TaskItem();
         }
 
-        public ResultViewModel InsertTask(TaskInfo task)
+        /*public ResultViewModel InsertTask(TaskInfo task)
         {
             var taskInsertionResult = _taskRepository.InsertTask(task);
             if (taskInsertionResult.Success)
@@ -95,37 +96,20 @@ namespace Biovation.Service.Api.v1
                     };
 
                     _biovationInternalSource.PushData(biovationBrokerMessageData);
+
                 });
             }
 
             return taskInsertionResult;
+        }*/
+        public ResultViewModel InsertTask(TaskInfo task)
+        {
+            return _taskRepository.InsertTask(task);
         }
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {
-            var taskUpdateResult = _taskRepository.UpdateTaskStatus(taskItem);
-            if (taskUpdateResult.Success)
-            {
-                //integration
-                Task.Run(async() =>
-                {
-                    var task = (await GetTasks(taskItemId: taskItem.Id, excludedTaskStatusCodes: string.Empty)).FirstOrDefault();
-                    var taskList = new List<TaskInfo> { task };
-
-                    var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
-                    {
-                        new DataChangeMessage<TaskInfo>
-                        {
-                            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
-                            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = taskList
-                        }
-                    };
-
-                    _biovationInternalSource.PushData(biovationBrokerMessageData);
-                });
-            }
-
-            return taskUpdateResult;
+            return _taskRepository.UpdateTaskStatus(taskItem);
         }
     }
 }

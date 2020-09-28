@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
+    <ProjectReference Include="..\Biovation.Repository.MessageBus\Biovation.Repository.MessageBus.csproj" />
     <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>
