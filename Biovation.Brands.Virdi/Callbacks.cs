@@ -146,6 +146,10 @@ namespace Biovation.Brands.Virdi
         private ConnectorNode<DataChangeMessage<TaskInfo>> _biovationTaskConnectorNode;
         private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
 
+        private ISource<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateInternalSource;
+        private ConnectorNode<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateConnectorNode;
+        private const string __deviceConnectionStateTopicName = "BiovationDeviceConnectionStateEvent";
+
         public void DeleteUserFromDeviceFastSearch(uint deviceCode, int userId)
         {
             lock (_fastSearchOfDevices)
@@ -341,6 +345,16 @@ namespace Biovation.Brands.Virdi
 
             _biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(_biovationInternalSource, biovationKafkaTarget);
             _biovationTaskConnectorNode.StartProcess();
+
+            //DeviceStatus integration 
+            _deviceConnectionStateInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
+                        .Build<DataChangeMessage<ConnectionStatus>>();
+
+            var deviceConnectionStateKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(__deviceConnectionStateTopicName)
+                .BuildTarget<DataChangeMessage<ConnectionStatus>>();
+
+            _deviceConnectionStateConnectorNode = new ConnectorNode<DataChangeMessage<ConnectionStatus>>(_deviceConnectionStateInternalSource, deviceConnectionStateKafkaTarget);
+            _deviceConnectionStateConnectorNode.StartProcess();
 
         }
 
@@ -1725,11 +1739,23 @@ namespace Biovation.Brands.Virdi
                     //_communicationManager.CallRest("/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
                     //                 new List<object> { data });
 
-                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+                   // var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                   // restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
 
-                    await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                   // await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
                     //integration
+                   
+                    var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
+                    var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
+                    {
+                        new DataChangeMessage<ConnectionStatus>
+                        {
+                            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = connectionStatusList
+                        }
+                    };
+
+                    _deviceConnectionStateInternalSource.PushData(biovationBrokerMessageData);
 
                     await _logService.AddLog(new Log
                     {
@@ -1737,6 +1763,7 @@ namespace Biovation.Brands.Virdi
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.Disconnect
                     });
+
                 }
                 catch (Exception)
                 {

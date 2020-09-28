@@ -125,7 +125,7 @@ namespace Biovation.Service.Api.v1
                                   {
                                  new DataChangeMessage<Log>
                                   {
-                                      Id = Guid.NewGuid().ToString(), EventId = 2, SourceName = "BiovationCore",
+                                      Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
                                       TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = shortenedLogList
 
                                       }
