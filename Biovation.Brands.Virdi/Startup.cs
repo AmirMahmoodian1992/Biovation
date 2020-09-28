@@ -332,7 +332,7 @@ namespace Biovation.Brands.Virdi
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
             
-            app.UseHealthChecks("/health");
+            app.UseHealthChecks("/biovation/api/health");
 
             app.UseEndpoints(endpoints =>
             {

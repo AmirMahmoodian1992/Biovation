@@ -770,7 +770,7 @@ namespace Biovation.Brands.Virdi
 
         private void TerminalConnectedCallback(int terminalId, string terminalIp)
         {
-            var existDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
+            var existDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
 
             Task.Run(async () =>
                 {

@@ -24,19 +24,15 @@ namespace Biovation.Brands.Virdi.HostedServices
         {
             _logger.LogInformation("Broadcast Metrics Timed Hosted Service running.");
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero,
+            _timer = new Timer(ReportMetrics, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
 
             return Task.CompletedTask;
         }
 
-        private void DoWork(object state)
+        private void ReportMetrics(object state)
         {
-            //var count = Interlocked.Increment(ref _executionCount);
             Task.WaitAll(_metrics.ReportRunner.RunAllAsync().ToArray());
-
-            //_logger.LogInformation(
-            //    "Timed Hosted Service is working. Count: {Count}", count);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -18,6 +19,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using Biovation.Domain;
+using Biovation.Server.HostedServices;
+using Log = Serilog.Log;
 
 namespace Biovation.Server
 {
@@ -82,8 +86,14 @@ namespace Biovation.Server
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
+            var serviceStatuses = new SystemInfo();
+            services.AddSingleton(serviceStatuses);
+
+
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
+
+            services.AddHostedService<ServicesHealthCheckHostedService>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
