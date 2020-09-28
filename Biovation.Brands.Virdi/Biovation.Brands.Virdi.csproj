@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.1.0" />
     <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
+    <PackageReference Include="App.Metrics.Reporting.Http" Version="4.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="morelinq" Version="3.3.2" />

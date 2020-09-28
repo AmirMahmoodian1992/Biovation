@@ -23,6 +23,8 @@ using RestSharp;
 using Serilog;
 using System.Reflection;
 using System.Text;
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using UCSAPICOMLib;
@@ -59,7 +61,11 @@ namespace Biovation.Brands.Virdi
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
 
+            var metrics = new MetricsBuilder()
+                .Configuration.ReadFrom(configuration); 
+
             Configuration = builder.Build();
+            metrics.Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.

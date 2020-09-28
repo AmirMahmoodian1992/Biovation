@@ -1,7 +1,10 @@
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using App.Metrics;
 using App.Metrics.AspNetCore;
+using App.Metrics.Formatters.Json;
 
 namespace Biovation.Brands.Virdi
 {
@@ -25,6 +28,21 @@ namespace Biovation.Brands.Virdi
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
             return Host.CreateDefaultBuilder(args)
+                .ConfigureMetricsWithDefaults(
+                    builder =>
+                    {
+                        builder.Report.OverHttp(options => {
+                            options.HttpSettings.RequestUri = new Uri("http://localhost:9060/api/metrics");
+                            //options.HttpSettings.UserName = "admin";
+                            //options.HttpSettings.Password = "password";
+                            options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
+                            options.HttpPolicy.FailuresBeforeBackoff = 5;
+                            options.HttpPolicy.Timeout = TimeSpan.FromSeconds(10);
+                            options.MetricsOutputFormatter = new MetricsJsonOutputFormatter();
+                            //options.Filter = filter;
+                            options.FlushInterval = TimeSpan.FromSeconds(20);
+                        });
+                    })
                 .UseSerilog().UseMetrics()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

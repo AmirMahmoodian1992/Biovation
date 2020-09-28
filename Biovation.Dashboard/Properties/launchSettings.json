@@ -3,8 +3,8 @@
   "profiles": {
     "Biovation.Dashboard": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "CpuUsage",
+      //"launchBrowser": true,
+      //"launchUrl": "CpuUsage",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
