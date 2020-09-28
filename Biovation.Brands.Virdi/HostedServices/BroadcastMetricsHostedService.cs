@@ -11,7 +11,6 @@ namespace Biovation.Brands.Virdi.HostedServices
     public class BroadcastMetricsHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
-        private int _executionCount;
         private readonly IMetricsRoot _metrics;
         private readonly ILogger<BroadcastMetricsHostedService> _logger;
 
@@ -23,7 +22,7 @@ namespace Biovation.Brands.Virdi.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Timed Hosted Service running.");
+            _logger.LogInformation("Broadcast Metrics Timed Hosted Service running.");
 
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
@@ -33,11 +32,11 @@ namespace Biovation.Brands.Virdi.HostedServices
 
         private void DoWork(object state)
         {
-            var count = Interlocked.Increment(ref _executionCount);
+            //var count = Interlocked.Increment(ref _executionCount);
             Task.WaitAll(_metrics.ReportRunner.RunAllAsync().ToArray());
 
-            _logger.LogInformation(
-                "Timed Hosted Service is working. Count: {Count}", count);
+            //_logger.LogInformation(
+            //    "Timed Hosted Service is working. Count: {Count}", count);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
