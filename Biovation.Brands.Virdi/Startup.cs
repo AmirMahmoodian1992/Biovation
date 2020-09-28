@@ -25,6 +25,7 @@ using System.Reflection;
 using System.Text;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
+using Biovation.Brands.Virdi.HostedServices;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using UCSAPICOMLib;
@@ -88,6 +89,8 @@ namespace Biovation.Brands.Virdi
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
             ConfigureVirdiServices(services);
+
+            services.AddHostedService<BroadcastMetricsHostedService>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)

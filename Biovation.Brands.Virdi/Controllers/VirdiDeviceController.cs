@@ -30,14 +30,13 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
-        private readonly IMetricsRoot _metrics;
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, IMetricsRoot metrics)
+        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses)
         {
             _callbacks = callbacks;
             _virdiServer = virdiServer;
@@ -51,7 +50,6 @@ namespace Biovation.Brands.Virdi.Controllers
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
-            _metrics = metrics;
             _accessGroupService = accessGroupService;
         }
 
@@ -71,7 +69,6 @@ namespace Biovation.Brands.Virdi.Controllers
                 onlineDevices.Add(onlineDevice.Value);
             }
 
-            Task.WaitAll(_metrics.ReportRunner.RunAllAsync().ToArray());
             return onlineDevices;
         }
         /*
