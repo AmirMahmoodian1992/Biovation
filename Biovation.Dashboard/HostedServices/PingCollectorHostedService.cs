@@ -26,7 +26,7 @@ namespace Biovation.Dashboard.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Log Collector Hosted Service running.");
+            _logger.LogInformation("Ping Collector Hosted Service running.");
 
             _localIpAddress = NetworkManager.GetLocalIpAddresses().FirstOrDefault()?.ToString();
             _timer = new Timer(CollectPing, null, TimeSpan.Zero,
@@ -47,7 +47,7 @@ namespace Biovation.Dashboard.HostedServices
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Timed Hosted Service is stopping.");
+            _logger.LogInformation("Ping Collector Hosted Service is stopping.");
 
             _timer?.Change(Timeout.Infinite, 0);
 
