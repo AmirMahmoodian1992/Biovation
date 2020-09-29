@@ -1,6 +1,11 @@
-using System.Reflection;
-using Biovation.CommonClasses;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
+using Biovation.Dashboard.Repository;
+using DataAccessLayerCore.Domain;
+using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +42,7 @@ namespace Biovation.Dashboard
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            ConfigureRepositoriesServices(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +63,24 @@ namespace Biovation.Dashboard
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private void ConfigureRepositoriesServices(IServiceCollection services)
+        {
+
+            var connectionInfo = new DatabaseConnectionInfo
+            {
+                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
+                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
+                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
+                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
+                Parameters = BiovationConfiguration.ConnectionStringParameters(),
+                UserId = BiovationConfiguration.ConnectionStringUsername(),
+                Password = BiovationConfiguration.ConnectionStringPassword()
+            };
+            services.AddSingleton(connectionInfo);
+            services.AddSingleton<GenericRepository, GenericRepository>();
+            services.AddScoped<PingRepository, PingRepository>();
         }
     }
 }

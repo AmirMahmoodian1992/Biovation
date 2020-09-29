@@ -37,7 +37,7 @@ namespace Biovation.Dashboard.Controllers
                 cpuUsage.Add(cp);
             }
 
-           
+
             yield return cpuUsage;
         }
 
