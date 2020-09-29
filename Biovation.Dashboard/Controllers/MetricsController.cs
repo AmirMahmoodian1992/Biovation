@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Dashboard.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("biovation/api/[controller]")]
     [ApiController]
     public class MetricsController : Controller
     {
