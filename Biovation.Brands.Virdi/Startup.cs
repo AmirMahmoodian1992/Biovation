@@ -91,6 +91,7 @@ namespace Biovation.Brands.Virdi
             ConfigureConstantValues(services);
             ConfigureVirdiServices(services);
 
+            services.AddHostedService<PingCollectorHostedService>();
             services.AddHostedService<BroadcastMetricsHostedService>();
         }
 
