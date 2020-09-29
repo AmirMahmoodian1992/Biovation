@@ -78,7 +78,9 @@ namespace Biovation.Brands.Virdi.Controllers
                         Data = JsonConvert.SerializeObject(new { deviceId }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
-                        OrderIndex = 1
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
                     });
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
@@ -145,7 +147,9 @@ namespace Biovation.Brands.Virdi.Controllers
                             Data = JsonConvert.SerializeObject(new { UserId = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
-                            OrderIndex = 1
+                            OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = 1
                         });
 
                         if (!updateServerSideIdentification) continue;
@@ -249,7 +253,10 @@ namespace Biovation.Brands.Virdi.Controllers
                         Data = JsonConvert.SerializeObject(new { UserId = userId }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
-                        OrderIndex = 1
+                        OrderIndex = 1,
+                        TotalCount = 1,
+                        CurrentIndex = 0
+
                     });
 
                     _taskService.InsertTask(task);

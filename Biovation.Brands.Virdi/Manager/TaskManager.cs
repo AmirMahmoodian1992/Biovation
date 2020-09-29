@@ -52,7 +52,7 @@ namespace Biovation.Brands.Virdi.Manager
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
-
+                                taskItem.ExecutionAt = DateTime.Now;
                             }
                             catch (Exception exception)
                             {
