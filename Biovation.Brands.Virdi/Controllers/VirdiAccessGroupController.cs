@@ -76,8 +76,9 @@ namespace Biovation.Brands.Virdi.Controllers
                             Data = JsonConvert.SerializeObject(new { accessGroupId }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
-
-                            OrderIndex = 1
+                            OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = 1
                         });
                     }
 
