@@ -78,11 +78,16 @@ namespace Biovation.Repository.SQL.v2
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {
+   
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", taskItem.Id),
                 new SqlParameter("@statusCode", taskItem.Status.Code),
-                new SqlParameter("@result", taskItem.Result)
+                new SqlParameter("@result", taskItem.Result),
+                new SqlParameter("@CurrentIndex", taskItem.CurrentIndex),
+                new SqlParameter("@TotalCount", taskItem.TotalCount),
+                new SqlParameter("@FinishedAt", taskItem.FinishedAt),
+                new SqlParameter("@ExecutionAt", taskItem.ExecutionAt)
             };
 
             return _repository.ToResultList<ResultViewModel>("UpdateTaskItemStatus", parameters).Data.FirstOrDefault();
