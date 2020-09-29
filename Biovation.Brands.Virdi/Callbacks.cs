@@ -1871,13 +1871,13 @@ namespace Biovation.Brands.Virdi
             };
 
             RetrieveUsers.Add(user);
-            int totalCount = TerminalUserData.TotalNumber;
-            int currentIndex = TerminalUserData.CurrentIndex;
+            //int totalCount = TerminalUserData.TotalNumber;
+            //int currentIndex = TerminalUserData.CurrentIndex;
             if (TerminalUserData.CurrentIndex == TerminalUserData.TotalNumber)
             {
                 GetUserTaskFinished = true;
             }
-            Task.Run(async () =>
+            /*Task.Run(async () =>
             {
 
                 var taskItem = _taskService.GetTaskItem(clientId);
@@ -1889,7 +1889,7 @@ namespace Biovation.Brands.Virdi
                 }
 
                 _taskService.UpdateTaskStatus(taskItem);
-            });
+            });*/
             //for (var i = 0; i < 20; i++)
             //{
             //    Thread.Sleep(100);
