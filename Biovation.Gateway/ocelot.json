@@ -27,6 +27,18 @@
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/dashboard/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9060
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/queries/{url}",
       "UpstreamHttpMethod": [ "Get" ],
       "DownstreamHostAndPorts": [
