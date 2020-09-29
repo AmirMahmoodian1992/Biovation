@@ -47,8 +47,7 @@ namespace Biovation.Repository.SQL.v2
 
         public ResultViewModel InsertTask(TaskInfo task)
         {
-            var taskItemsDataTable =
-                JsonConvert.DeserializeObject<DataTable>(JsonConvert.SerializeObject(task.TaskItems?.Select(item => new
+            /*var taskItemsDataTable =JsonConvert.SerializeObject(task.TaskItems?.Select(item => new
                 {
                     item.Id,
                     TaskId = task.Id,
@@ -62,15 +61,21 @@ namespace Biovation.Repository.SQL.v2
                     item.IsScheduled,
                     item.DueDate,
                     item.IsParallelRestricted
-                })));
+                }));*/
+            var taskItemsData = JsonConvert.SerializeObject(task.TaskItems);
+              
+
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@taskTypeCode", task.TaskType?.Code),
                 new SqlParameter("@priorityLevelCode", task.Priority?.Code),
                 new SqlParameter("@createdBy", task.CreatedBy?.Id),
                 new SqlParameter("@createdAt", task.CreatedAt),
+                new SqlParameter("@updatedBy", task.UpdatedBy),
+                new SqlParameter("@updatedAt", task.UpdatedAt),
+                new SqlParameter("@schedulingPattern", task.SchedulingPattern),
                 new SqlParameter("@deviceBrandId", task.DeviceBrand.Code),
-                new SqlParameter("@taskItems", taskItemsDataTable)
+                new SqlParameter("@json", taskItemsData)
             };
 
             return _repository.ToResultList<ResultViewModel>("InsertTask", parameters).Data.FirstOrDefault();
