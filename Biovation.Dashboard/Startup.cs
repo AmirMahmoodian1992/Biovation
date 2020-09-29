@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Dashboard.Repository;
 using DataAccessLayerCore.Domain;
@@ -12,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System.Reflection;
 
 namespace Biovation.Dashboard
 {

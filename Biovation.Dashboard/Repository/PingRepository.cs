@@ -21,16 +21,16 @@ namespace Biovation.Dashboard.Repository
         }
 
 
-        public ResultViewModel AddPingTimeStamp(PingModel pingModel)
+        public ResultViewModel AddPingTimeStamp(PingStatus pingModel)
         {
 
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@hostAddress", SqlDbType.NVarChar) { Value = pingModel.hostAddress },
+                new SqlParameter("@hostAddress", SqlDbType.NVarChar) { Value = pingModel.HostAddress },
                 new SqlParameter("@DestinationAddress", SqlDbType.NVarChar) { Value = pingModel.DestinationAddress },
-                new SqlParameter("@ttl", SqlDbType.Int) { Value = pingModel.ttl },
-                new SqlParameter("@roundTripTime", SqlDbType.BigInt) { Value = pingModel.roundTripTime },
-                new SqlParameter("@status", SqlDbType.NVarChar) { Value = pingModel.status },
+                new SqlParameter("@ttl", SqlDbType.Int) { Value = pingModel.TimeToLive },
+                new SqlParameter("@roundTripTime", SqlDbType.BigInt) { Value = pingModel.RoundTripTime },
+                new SqlParameter("@status", SqlDbType.NVarChar) { Value = pingModel.Status },
 
             };
 
