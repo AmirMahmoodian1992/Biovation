@@ -304,6 +304,7 @@
     <None Remove="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <None Remove="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <None Remove="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <None Remove="Scripts\06.Views\0001-Select TaskOrdered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -604,6 +605,7 @@
     <EmbeddedResource Include="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <EmbeddedResource Include="Scripts\06.Views\0001-Select TaskOrdered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -617,6 +619,7 @@
   <ItemGroup>
     <Folder Include="Scripts\02.Functions\" />
     <Folder Include="Scripts\04.Triggers\" />
+    <Folder Include="Scripts\07.Jobs\" />
   </ItemGroup>
 
   <ItemGroup>
