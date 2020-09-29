@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
+using Biovation.Dashboard.HostedServices;
+using RestSharp;
 
 namespace Biovation.Dashboard
 {
@@ -40,7 +42,13 @@ namespace Biovation.Dashboard
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            services.AddSingleton(restClient);
+
             ConfigureRepositoriesServices(services);
+
+            services.AddHostedService<PingCollectorHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
