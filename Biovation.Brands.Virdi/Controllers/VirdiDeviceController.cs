@@ -396,7 +396,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
-
+                        TotalCount = 1,
+                        CurrentIndex = 0
                     });
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
@@ -442,7 +443,9 @@ namespace Biovation.Brands.Virdi.Controllers
                             Data = JsonConvert.SerializeObject(devices.DeviceId),
                             IsParallelRestricted = true,
                             IsScheduled = false,
-                            OrderIndex = 1
+                            OrderIndex = 1,
+                            TotalCount = 1,
+                            CurrentIndex = 0
                         });
                         _taskService.InsertTask(task);
                         _taskManager.ProcessQueue();
@@ -558,7 +561,9 @@ namespace Biovation.Brands.Virdi.Controllers
                                     IsParallelRestricted = true,
 
                                     IsScheduled = false,
-                                    OrderIndex = 1
+                                    OrderIndex = 1,
+                                    TotalCount = 1,
+                                    CurrentIndex = 0
                                 });
                             }
                         }
@@ -611,6 +616,8 @@ namespace Biovation.Brands.Virdi.Controllers
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = userIds.Count
 
                         });
 
@@ -682,7 +689,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
-
+                    CurrentIndex = 0
                 });
 
 
@@ -735,6 +742,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
+                        TotalCount = 1,
+                        CurrentIndex = 0
 
                     });
                     _taskService.InsertTask(task);
@@ -949,7 +958,8 @@ namespace Biovation.Brands.Virdi.Controllers
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
-
+                            CurrentIndex = 0,
+                            TotalCount = 1
                         });
 
                     }
