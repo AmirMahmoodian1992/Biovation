@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 using TaskItem = Biovation.Domain.TaskItem;
 
@@ -34,8 +35,9 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
+        private readonly BiovationConfigurationManager _configurationManager;
 
-        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses)
+        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
         {
             _callbacks = callbacks;
             _virdiServer = virdiServer;
@@ -50,6 +52,7 @@ namespace Biovation.Brands.Virdi.Controllers
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
+            _configurationManager = configurationManager;
         }
 
         [HttpGet]
@@ -383,6 +386,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.UnlockDevice,
                         Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
@@ -456,7 +460,9 @@ namespace Biovation.Brands.Virdi.Controllers
 
             }
 
-            return Task.Run(() =>
+            if (_configurationManager.LockDevice)
+            {
+                return Task.Run(() =>
             {
                 try
                 {
@@ -491,6 +497,9 @@ namespace Biovation.Brands.Virdi.Controllers
                     return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                 }
             });
+            }
+
+            return Task.Run(() => new ResultViewModel { Validate = 0, Message = "The LockDevice option is False" });
         }
         /*
         [HttpPost]

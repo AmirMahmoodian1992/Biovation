@@ -414,6 +414,22 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
+        public bool LockDevice
+        {
+            get
+            {
+                try
+                {
+                    return string.Equals(Configuration.GetSection("AppSettings")["LockDevice"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return false;
+                }
+            }
+        }
+
         // For EOS module to connect directly to kasra database and add records to att.attendance
         public static bool OldRepository
         {
