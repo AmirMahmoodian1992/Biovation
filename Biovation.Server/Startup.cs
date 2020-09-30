@@ -1,8 +1,10 @@
-using System.Reactive.Concurrency;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
+using Biovation.Server.HostedServices;
+using Biovation.Server.Jobs;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
@@ -14,15 +16,12 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using RestSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Quartz;
+using RestSharp;
 using Serilog;
 using System.Reflection;
-using Biovation.Server.HostedServices;
-using Biovation.Server.Jobs;
-using Quartz;
-using Quartz.Impl;
 
 namespace Biovation.Server
 {
@@ -117,6 +116,8 @@ namespace Biovation.Server
 
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
+
+            services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
 
             services.AddHostedService<TaskMangerHostedService>();
         }
