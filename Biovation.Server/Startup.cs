@@ -50,7 +50,7 @@ namespace Biovation.Server
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public async void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
                 .AddJsonOptions(options =>
@@ -104,13 +104,6 @@ namespace Biovation.Server
             });
 
             services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
-            //services.AddScoped<IJob, ExecuteScheduledTaskJob>();
-            //services.AddTransient<IJob, ExecuteScheduledTaskJob>();
-            //var schedulerFactory = new StdSchedulerFactory();
-            //var scheduler = await schedulerFactory.GetScheduler();
-            //await scheduler.Start();
-            //services.AddSingleton(scheduler);
-
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
