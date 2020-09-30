@@ -22,7 +22,7 @@ namespace Biovation.Server.Jobs
         {
             try
             {
-                _logger.LogDebug("Inside the job");
+                _logger.LogDebug("Inside the ExecuteScheduledTaskJob");
                 var task = JsonConvert.DeserializeObject<TaskInfo>(context.MergedJobDataMap.GetString("TaskInfo"));
                 var restRequest = new RestRequest($"{task.DeviceBrand.Name}/{task.DeviceBrand.Name}Task/ExecuteTask", Method.POST);
                 restRequest.AddJsonBody(task);

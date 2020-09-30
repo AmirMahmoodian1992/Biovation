@@ -100,6 +100,7 @@ namespace Biovation.Server
                 });
 
                 config.AddJob<ExecuteScheduledTaskJob>(options => { options.StoreDurably(); });
+                config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
             });
 
             services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
@@ -118,6 +119,7 @@ namespace Biovation.Server
             ConfigureRepositoriesServices(services);
 
             services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
+            services.AddScoped<RecurringTasksManager, RecurringTasksManager>();
 
             services.AddHostedService<TaskMangerHostedService>();
         }

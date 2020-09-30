@@ -17,6 +17,7 @@ namespace Biovation.Server.HostedServices
         private readonly ILogger<TaskMangerHostedService> _logger;
 
         private readonly List<TaskInfo> _scheduledTasks = new List<TaskInfo>();
+        private readonly List<TaskInfo> _recurringTasks = new List<TaskInfo>();
 
         public static bool NewTasksAdded = true;
 
@@ -31,14 +32,13 @@ namespace Biovation.Server.HostedServices
             _timer = new Timer(ScheduleNewTasks, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
 
+            _logger.LogDebug("Task Manger Hosted Service Started");
 
             return Task.CompletedTask;
         }
 
         private void ScheduleNewTasks(object state)
         {
-            _logger.LogDebug($"In TaskMangerHostedService, The value is: {NewTasksAdded}");
-
             if (NewTasksAdded)
             {
                 NewTasksAdded = false;
@@ -46,12 +46,16 @@ namespace Biovation.Server.HostedServices
                 using var scope = _services.CreateScope();
                 var scheduledTasksManager = scope.ServiceProvider.GetRequiredService<ScheduledTasksManager>();
                 scheduledTasksManager.ScheduleTasks(_scheduledTasks);
+
+                var recurringTasksManager = scope.ServiceProvider.GetRequiredService<RecurringTasksManager>();
+                recurringTasksManager.ScheduleTasks(_recurringTasks);
             }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
+            _logger.LogDebug("Task Manger Hosted Service Stopped");
             return Task.CompletedTask;
         }
 
