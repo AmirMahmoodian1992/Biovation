@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v2
@@ -26,12 +27,38 @@ namespace Biovation.Service.Api.v2
         }
 
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
-            int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
-            string excludedTaskStatusCodes = default, int pageNumber = default,
+            int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = default,
+            List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default)
         {
-            return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
+            var taskStatusCodesString = string.Empty;
+            if (taskStatusCodesString != null)
+            {
+                taskStatusCodesString += '(';
+                foreach (var taskStatusCode in taskStatusCodesString)
+                {
+                    taskStatusCodesString += $"{taskStatusCode},";
+                }
+
+                taskStatusCodesString = taskStatusCodesString.Trim(',');
+                taskStatusCodesString += ')';
+            }
+
+            var excludedTaskStatusCodesString = string.Empty;
+            if (excludedTaskStatusCodes != null)
+            {
+                excludedTaskStatusCodesString += '(';
+                foreach (var excludedTaskStatusCode in excludedTaskStatusCodes)
+                {
+                    excludedTaskStatusCodesString += $"{excludedTaskStatusCode},";
+                }
+
+                excludedTaskStatusCodesString = excludedTaskStatusCodesString.Trim(',');
+                excludedTaskStatusCodesString += ')';
+            }
+
+            return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodesString,
+                excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId);
         }
 
         public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default)

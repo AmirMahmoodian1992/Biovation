@@ -24,10 +24,8 @@ namespace Biovation.Domain
         [OneToOne]
         public Lookup DeviceBrand { get; set; }
 
-
         public int CurrentIndex { get; set; }
         public int TotalCount { get; set; }
-
 
         [OneToOne]
         public User UpdatedBy { get; set; }
@@ -38,12 +36,6 @@ namespace Biovation.Domain
         public string SchedulingPattern { get; set; }
 
         public DateTimeOffset QueuedAt { get; set; }
-
-
-
-
-
-
-
+        public DateTimeOffset DueDate { get; set; }
     }
 }

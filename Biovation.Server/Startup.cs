@@ -1,3 +1,4 @@
+using System.Reactive.Concurrency;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -18,6 +19,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using Biovation.Server.HostedServices;
+using Biovation.Server.Jobs;
+using Quartz;
+using Quartz.Impl;
 
 namespace Biovation.Server
 {
@@ -46,7 +51,7 @@ namespace Biovation.Server
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public async void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
                 .AddJsonOptions(options =>
@@ -79,11 +84,41 @@ namespace Biovation.Server
 
             });
 
+            services.AddQuartz(config =>
+            {
+                config.UseMicrosoftDependencyInjectionJobFactory(options =>
+                {
+                    options.AllowDefaultConstructor = true;
+                });
+
+                config.UseMicrosoftDependencyInjectionScopedJobFactory();
+
+                config.UseSimpleTypeLoader();
+                config.UseInMemoryStore();
+                config.UseDefaultThreadPool(tp =>
+                {
+                    tp.MaxConcurrency = 10;
+                });
+
+                config.AddJob<ExecuteScheduledTaskJob>(options => { options.StoreDurably(); });
+            });
+
+            services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
+            //services.AddScoped<IJob, ExecuteScheduledTaskJob>();
+            //services.AddTransient<IJob, ExecuteScheduledTaskJob>();
+            //var schedulerFactory = new StdSchedulerFactory();
+            //var scheduler = await schedulerFactory.GetScheduler();
+            //await scheduler.Start();
+            //services.AddSingleton(scheduler);
+
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
+
+            services.AddHostedService<TaskMangerHostedService>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
