@@ -66,14 +66,15 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.EnrollFromTerminal,
                         Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>()
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
                     };
+
                     task.TaskItems.Add(new TaskItem
                     {
                         Status = _taskStatuses.Queued,
                         TaskItemType = _taskItemTypes.EnrollFromTerminal,
                         Priority = _taskPriorities.Medium,
-                        DueDate = DateTime.Today,
                         DeviceId = devices.DeviceId,
                         Data = JsonConvert.SerializeObject(new { deviceId }),
                         IsParallelRestricted = true,
@@ -82,6 +83,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CurrentIndex = 0,
                         TotalCount = 1
                     });
+
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
@@ -132,8 +134,10 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = _taskTypes.SendUsers,
                         Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
-                        TaskItems = new List<TaskItem>()
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
                     };
+
                     foreach (var id in userIds)
                     {
                         task.TaskItems.Add(new TaskItem
@@ -141,9 +145,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.SendUser,
                             Priority = _taskPriorities.Medium,
-                            DueDate = DateTime.Today,
                             DeviceId = deviceId,
-
                             Data = JsonConvert.SerializeObject(new { UserId = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
@@ -239,7 +241,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = _taskTypes.EnrollFaceFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
-                        TaskItems = new List<TaskItem>()
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
                     };
 
                     task.TaskItems.Add(new TaskItem
@@ -247,16 +250,13 @@ namespace Biovation.Brands.Virdi.Controllers
                         Status = _taskStatuses.Queued,
                         TaskItemType = _taskItemTypes.EnrollFaceFromTerminal,
                         Priority = _taskPriorities.Medium,
-                        DueDate = DateTime.Today,
                         DeviceId = deviceId,
-
                         Data = JsonConvert.SerializeObject(new { UserId = userId }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
                         TotalCount = 1,
                         CurrentIndex = 0
-
                     });
 
                     _taskService.InsertTask(task);

@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
+using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Commands
 {
@@ -72,23 +73,23 @@ namespace Biovation.Data.Commands
             services.AddSingleton<GenericRepository, GenericRepository>();
 
 
-            services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
-            services.AddScoped<Repository.SQL.v2.UserRepository, Repository.SQL.v2.UserRepository>();
-            services.AddScoped<Repository.SQL.v2.DeviceRepository, Repository.SQL.v2.DeviceRepository>();
-            services.AddScoped<Repository.SQL.v2.PlateDetectionRepository, Repository.SQL.v2.PlateDetectionRepository>();
-            services.AddScoped<Repository.SQL.v2.AccessGroupRepository, Repository.SQL.v2.AccessGroupRepository>();
-            services.AddScoped<Repository.SQL.v2.AdminDeviceRepository, Repository.SQL.v2.AdminDeviceRepository>();
-            services.AddScoped<Repository.SQL.v2.BlackListRepository, Repository.SQL.v2.BlackListRepository>();
-            services.AddScoped<Repository.SQL.v2.DeviceGroupRepository, Repository.SQL.v2.DeviceGroupRepository>();
-            services.AddScoped<Repository.SQL.v2.FingerTemplateRepository, Repository.SQL.v2.FingerTemplateRepository>();
-            services.AddScoped<Repository.SQL.v2.FaceTemplateRepository, Repository.SQL.v2.FaceTemplateRepository>();
-            services.AddScoped<Repository.SQL.v2.GenericCodeMappingRepository, Repository.SQL.v2.GenericCodeMappingRepository>();
-            services.AddScoped<Repository.SQL.v2.LogRepository, Repository.SQL.v2.LogRepository>();
-            services.AddScoped<Repository.SQL.v2.LookupRepository, Repository.SQL.v2.LookupRepository>();
-            services.AddScoped<Repository.SQL.v2.TaskRepository, Repository.SQL.v2.TaskRepository>();
-            services.AddScoped<Repository.SQL.v2.TimeZoneRepository, Repository.SQL.v2.TimeZoneRepository>();
-            services.AddScoped<Repository.SQL.v2.UserCardRepository, Repository.SQL.v2.UserCardRepository>();
-            services.AddScoped<Repository.SQL.v2.UserGroupRepository, Repository.SQL.v2.UserGroupRepository>();
+            services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<UserRepository, UserRepository>();
+            services.AddScoped<DeviceRepository, DeviceRepository>();
+            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
+            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
+            services.AddScoped<BlackListRepository, BlackListRepository>();
+            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
+            services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddScoped<LogRepository, LogRepository>();
+            services.AddScoped<LookupRepository, LookupRepository>();
+            services.AddScoped<TaskRepository, TaskRepository>();
+            services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
+            services.AddScoped<UserCardRepository, UserCardRepository>();
+            services.AddScoped<UserGroupRepository, UserGroupRepository>();
 
 
 

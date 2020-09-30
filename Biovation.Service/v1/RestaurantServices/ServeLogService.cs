@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Domain.RestaurantModels;
-using Biovation.Repository.RestaurantRepositories;
+using Biovation.Repository.Sql.v1.RestaurantRepositories;
 
 namespace Biovation.Service.Sql.v1.RestaurantServices
 {

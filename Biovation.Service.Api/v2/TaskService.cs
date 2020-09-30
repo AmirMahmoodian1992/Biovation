@@ -32,10 +32,10 @@ namespace Biovation.Service.Api.v2
             int pageSize = default, int taskItemId = default)
         {
             var taskStatusCodesString = string.Empty;
-            if (taskStatusCodesString != null)
+            if (taskStatusCodes != null)
             {
                 taskStatusCodesString += '(';
-                foreach (var taskStatusCode in taskStatusCodesString)
+                foreach (var taskStatusCode in taskStatusCodes)
                 {
                     taskStatusCodesString += $"{taskStatusCode},";
                 }

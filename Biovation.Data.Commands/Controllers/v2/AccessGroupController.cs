@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Biovation.Repository.SQL.v2;
+using Biovation.Repository.Sql.v2;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace Biovation.Data.Commands.Controllers.v2

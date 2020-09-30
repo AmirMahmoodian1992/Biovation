@@ -18,10 +18,7 @@ namespace Biovation.Domain
         public bool IsParallelRestricted { get; set; }  
         public string Data { get; set; }
         public string Result { get; set; }
-        public DateTimeOffset DueDate { get; set; }
         public bool IsScheduled { get; set; }
-
-
         public int CurrentIndex { get; set; }
         public int TotalCount { get; set; }
         public DateTimeOffset FinishedAt { get; set; }

@@ -1,16 +1,15 @@
 ﻿using Biovation.Brands.Virdi.Command;
+using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
-using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.Virdi.Manager;
-using Biovation.Service.Api.v1;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -53,7 +52,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(brandId:int.Parse(DeviceBrands.VirdiCode));
+                    var devices = _deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {
@@ -62,7 +61,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = _taskTypes.SendUsers,
                         Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
-                        TaskItems = new List<TaskItem>()
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
                     };
                     foreach (var device in devices)
                     {
@@ -71,7 +71,6 @@ namespace Biovation.Brands.Virdi.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
                             Priority = _taskPriorities.Medium,
-                            DueDate = DateTime.Today,
                             DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { accessGroupId }),
                             IsParallelRestricted = true,
