@@ -39,7 +39,8 @@ namespace Biovation.Server.Jobs
                     CreatedBy = recurringTask.CreatedBy,
                     Status = _taskStatuses.Queued,
                     TaskItems = recurringTask.TaskItems,
-                    TaskType = recurringTask.TaskType
+                    TaskType = recurringTask.TaskType,
+                    Parent = recurringTask
                 };
 
                 var insertionResult = _taskService.InsertTask(task);

@@ -37,5 +37,6 @@ namespace Biovation.Domain
 
         public DateTimeOffset QueuedAt { get; set; }
         public DateTimeOffset DueDate { get; set; }
+        public TaskInfo Parent { get; set; }
     }
 }
