@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Server.Jobs;
 using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using Quartz;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Managers
 {
@@ -37,7 +37,7 @@ namespace Biovation.Server.Managers
 
                         var job = JobBuilder.Create<ExecuteScheduledTaskJob>().WithIdentity(storedRecurringTask.Id.ToString(), "RecurringTasks")
                             .UsingJobData("TaskInfo", JsonConvert.SerializeObject(storedRecurringTask)).Build();
-                        var trigger = TriggerBuilder.Create().StartAt(storedRecurringTask.DueDate).Build();
+                        var trigger = TriggerBuilder.Create().StartAt(storedRecurringTask.DueDate).WithCronSchedule(storedRecurringTask.SchedulingPattern).Build();
                         _scheduler.ScheduleJob(job, trigger);
 
                         recurringTasks.Add(storedRecurringTask);
