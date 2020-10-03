@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using UNIONCOMM.SDK.UCBioBSP;
 using Encoding = System.Text.Encoding;
 
@@ -89,7 +90,7 @@ namespace Biovation.Brands.Virdi.Command
                 var isPassword = false;
                 var isFace = false;
 
-                //                    fpData.ClearFPData();
+                //fpData.ClearFPData();
                 _callbacks.ServerUserData.InitUserData();
 
                 _callbacks.ServerUserData.IsBlacklist = UserObj.IsActive ? IsBlackList : 1;
@@ -100,6 +101,9 @@ namespace Biovation.Brands.Virdi.Command
                 //var windowsEncoding = Encoding.UTF32;
 
                 var userName = string.IsNullOrEmpty(UserObj.UserName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(UserObj.UserName));
+                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" }};
+
+                userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
                 _callbacks.ServerUserData.UserID = (int)UserObj.Id;
                 _callbacks.ServerUserData.UniqueID = UserObj.Id.ToString();
                 _callbacks.ServerUserData.UserName = userName;

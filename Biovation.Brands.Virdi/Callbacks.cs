@@ -148,6 +148,7 @@ namespace Biovation.Brands.Virdi
                 try
                 {
                     var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+              
                     var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
                     if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
                     {
@@ -770,7 +771,7 @@ namespace Biovation.Brands.Virdi
 
         private void TerminalConnectedCallback(int terminalId, string terminalIp)
         {
-            var existDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
+            var existDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
 
             Task.Run(async () =>
                 {
@@ -1732,6 +1733,7 @@ namespace Biovation.Brands.Virdi
                 return;
             }
 
+       
             var isoEncoding = Encoding.GetEncoding(28591);
             var windowsEncoding = Encoding.GetEncoding(1256);
 
@@ -1750,6 +1752,18 @@ namespace Biovation.Brands.Virdi
     +Blacklist:{TerminalUserData.IsBlacklist}
     +Progress:{TerminalUserData.CurrentIndex}/{TerminalUserData.TotalNumber}", logType: LogType.Verbose);
 
+
+
+            byte[] picture = null;
+            try
+            {
+                if (TerminalUserData.PictureDataLength > 0)
+                    picture = TerminalUserData.PictureData as byte[];
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
             // TerminalUserData.GetUserDataFromTerminal(0, terminalId, TerminalUserData.UserID);
             var user = new User
             {
@@ -1766,7 +1780,8 @@ namespace Biovation.Brands.Virdi
                 UserName = userName,
                 FirstName = firstName,
                 SurName = surName,
-                IsActive = true
+                IsActive = true,
+                ImageBytes = picture
             };
 
             RetrieveUsers.Add(user);
@@ -1797,6 +1812,22 @@ namespace Biovation.Brands.Virdi
                 var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace) : null;
                 var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace) : userName;
 
+                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" } , { "Z", "ژ" } };
+
+                userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                surName = replacements.Aggregate(surName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                firstName = replacements.Aggregate(firstName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                byte[] picture = null;
+                try
+                {
+                    if (TerminalUserData.PictureDataLength > 0)
+                        picture = TerminalUserData.PictureData as byte[];
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
                 var user = new User
                 {
                     Id = TerminalUserData.UserID,
@@ -1812,7 +1843,8 @@ namespace Biovation.Brands.Virdi
                     UserName = userName,
                     FirstName = firstName,
                     SurName = surName,
-                    IsActive = true
+                    IsActive = true,
+                    ImageBytes = picture
                 };
 
                 //if (RetrieveUsers.All(retrievedUser => retrievedUser.Id != user.Id))

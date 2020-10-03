@@ -38,7 +38,25 @@ namespace Biovation.Domain
         /// </summary>
         /// <value>شماره تماس</value>
         public string TelNumber { get; set; }
-        public byte[] Image { get; set; }
+
+        private byte[] _imageBytes;
+        public byte[] ImageBytes
+        {
+            get => _imageBytes;
+
+            set =>
+                // ImageBytes = value ;
+                _imageBytes = value;
+        }
+
+        public string Image
+        {
+            get => _imageBytes!=null?Convert.ToBase64String(_imageBytes):null;
+            set =>
+                //Image = value;
+                
+                _imageBytes = ImageBytes != null?Convert.FromBase64String(value):null;
+        }
         /// <summary>
         /// نام
         /// </summary>

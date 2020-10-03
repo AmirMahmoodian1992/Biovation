@@ -66,6 +66,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.EnrollFromTerminal,
                         Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Virdi,
                         TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
