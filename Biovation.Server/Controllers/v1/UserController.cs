@@ -233,7 +233,7 @@ namespace Biovation.Server.Controllers.v1
 
                     var restRequest =
                         new RestRequest(
-                            $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
+                            $"/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
                             Method.GET);
                     restRequest.AddParameter("code", deviceBasic.Code);
                     restRequest.AddParameter("userId", userId);
