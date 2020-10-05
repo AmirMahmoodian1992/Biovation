@@ -23,7 +23,11 @@ using RestSharp;
 using Serilog;
 using System.Reflection;
 using System.Text;
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
+using Biovation.Brands.Virdi.HostedServices;
 using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -58,7 +62,11 @@ namespace Biovation.Brands.Virdi
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
 
+            var metrics = new MetricsBuilder()
+                .Configuration.ReadFrom(configuration); 
+
             Configuration = builder.Build();
+            metrics.Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -69,7 +77,10 @@ namespace Biovation.Brands.Virdi
                 {
                     options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
                     options.JsonSerializerOptions.IgnoreNullValues = true;
-                });
+                }).AddMetrics();
+
+            //services.AddMvcCore().AddMetricsCore();
+            services.AddHealthChecks();
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -79,6 +90,9 @@ namespace Biovation.Brands.Virdi
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
             ConfigureVirdiServices(services);
+
+            services.AddHostedService<PingCollectorHostedService>();
+            services.AddHostedService<BroadcastMetricsHostedService>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
@@ -318,11 +332,14 @@ namespace Biovation.Brands.Virdi
 
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
+            
+            app.UseHealthChecks("/biovation/api/health");
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
         }
     }
 }

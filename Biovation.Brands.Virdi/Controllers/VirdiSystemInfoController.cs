@@ -9,10 +9,10 @@ namespace Biovation.Brands.Virdi.Controllers
     public class VirdiSystemInfoController : Controller
     {
         [HttpGet]
-        public ResultViewModel<ModuleInfo> GetInfo()
+        public ResultViewModel<ServiceInfo> GetInfo()
         {
-            var brandInfo = new ModuleInfo();
-            var result = new ResultViewModel<ModuleInfo>();
+            var brandInfo = new ServiceInfo();
+            var result = new ResultViewModel<ServiceInfo>();
             brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name.Split('.').LastOrDefault();
             brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             result.Data = brandInfo;

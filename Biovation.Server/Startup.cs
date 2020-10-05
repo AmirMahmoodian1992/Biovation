@@ -18,6 +18,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
+using Biovation.Domain;
+using Biovation.Server.HostedServices;
+using Log = Serilog.Log;
 
 namespace Biovation.Server
 {
@@ -37,12 +42,16 @@ namespace Biovation.Server
 
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
+            var metrics = new MetricsBuilder()
+                .Configuration.ReadFrom(configuration);
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(environment.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+            metrics.Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -53,7 +62,7 @@ namespace Biovation.Server
                         {
                             options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
                             options.JsonSerializerOptions.IgnoreNullValues = true;
-                        });
+                        }).AddMetrics();
 
             services.AddApiVersioning(config =>
             {
@@ -82,8 +91,14 @@ namespace Biovation.Server
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
+            var serviceStatuses = new SystemInfo();
+            services.AddSingleton(serviceStatuses);
+
+
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
+
+            services.AddHostedService<ServicesHealthCheckHostedService>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)

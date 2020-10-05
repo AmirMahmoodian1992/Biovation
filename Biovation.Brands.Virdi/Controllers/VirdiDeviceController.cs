@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using App.Metrics;
 using Biovation.CommonClasses.Manager;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 using TaskItem = Biovation.Domain.TaskItem;

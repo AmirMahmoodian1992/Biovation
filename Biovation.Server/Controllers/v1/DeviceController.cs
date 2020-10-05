@@ -1,5 +1,4 @@
 ﻿using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -20,18 +19,19 @@ namespace Biovation.Server.Controllers.v1
     [ApiVersion("1.0")]
     public class DeviceController : Controller
     {
-        private readonly RestClient _restClient;
-        private readonly DeviceService _deviceService;
-        private readonly UserService _userService;
-
         private readonly Lookups _lookups;
+        private readonly RestClient _restClient;
+        private readonly UserService _userService;
+        private readonly DeviceService _deviceService;
+        private readonly SystemInfo _systemInformation;
 
-        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups)
+        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation)
         {
-            _restClient = restClient;
-            _deviceService = deviceService;
-            _userService = userService;
             _lookups = lookups;
+            _restClient = restClient;
+            _userService = userService;
+            _deviceService = deviceService;
+            _systemInformation = systemInformation;
         }
 
         //[HttpGet]
@@ -177,12 +177,8 @@ namespace Biovation.Server.Controllers.v1
         [Route("DeviceBrands")]
         public async Task<List<Lookup>> DeviceBrands(bool loadedOnly = true)
         {
-            //TODO Fix get online brands
-            return await Task.Run(() => _deviceService.GetDeviceBrands());
-            //if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
-            //var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
-            //var requestResult = await _restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-            //return requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0 ? null : requestResult.Data.Data.Modules.Select(brand => Lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
+            if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
+            return _systemInformation.Services.Select(brand => _lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
         }
 
         [HttpGet]
@@ -191,16 +187,11 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                //TODO Fix get online brands
                 var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode is null ? 0 : Convert.ToInt32(brandCode));
-                return deviceModels;
-                //if (!loadedBrandsOnly) return deviceModels;
-                //var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
-                //var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
-                //if (requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0) return null;
+                if (!loadedBrandsOnly) return deviceModels;
 
-                //return deviceModels.Where(dm => requestResult.Data.Data.Modules.Any(db =>
-                //    string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
+                return deviceModels.Where(dm => _systemInformation.Services.Any(db =>
+                    string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
             });
         }
 
@@ -216,7 +207,7 @@ namespace Biovation.Server.Controllers.v1
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
                 if (requestResult.StatusCode != HttpStatusCode.OK || requestResult.Data.Validate == 0) return null;
 
-                return deviceModels.Where(dm => requestResult.Data.Data.Modules.Any(db =>
+                return deviceModels.Where(dm => requestResult.Data.Data.Services.Any(db =>
                     string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
             });
         }
@@ -290,7 +281,8 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(() =>
             {
                 var resultList = new List<DeviceBasicInfo>();
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                //var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _systemInformation.Services;
 
                 Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
@@ -314,7 +306,7 @@ namespace Biovation.Server.Controllers.v1
         /// <returns></returns>
         [HttpPost]
         [Route("RetrieveUserFromDevice")]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice([FromQuery]int deviceId, [FromBody] List<int> userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice([FromQuery] int deviceId, [FromBody] List<int> userId)
         {
             return Task.Run(async () =>
             {
