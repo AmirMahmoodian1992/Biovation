@@ -19,5 +19,9 @@
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Managers\" />
+  </ItemGroup>
+
 
 </Project>

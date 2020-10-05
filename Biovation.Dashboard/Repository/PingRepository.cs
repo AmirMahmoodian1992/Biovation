@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
+using Biovation.Domain.DashboardModels;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 
@@ -21,20 +22,32 @@ namespace Biovation.Dashboard.Repository
         }
 
 
-        public ResultViewModel AddPingTimeStamp(PingStatus pingModel)
+        public ResultViewModel AddPingTimeStamp(HistogramMetrics histogram)
         {
 
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@hostAddress", SqlDbType.NVarChar) { Value = pingModel.HostAddress },
-                new SqlParameter("@DestinationAddress", SqlDbType.NVarChar) { Value = pingModel.DestinationAddress },
-                new SqlParameter("@ttl", SqlDbType.Int) { Value = pingModel.TimeToLive },
-                new SqlParameter("@roundTripTime", SqlDbType.BigInt) { Value = pingModel.RoundTripTime },
-                new SqlParameter("@status", SqlDbType.NVarChar) { Value = pingModel.Status },
+                //new SqlParameter("@hostAddress", SqlDbType.NVarChar) { Value =  histogram},
+                //new SqlParameter("@DestinationAddress", SqlDbType.NVarChar) { Value = pingModel.DestinationAddress },
+                //new SqlParameter("@RoundTripTime", SqlDbType.BigInt) { Value = pingModel.RoundTripTime },
+                //new SqlParameter("@Data", SqlDbType.NVarChar) { Value = pingModel.Status }
 
             };
 
-            return _repository.ToResultList<ResultViewModel>("InsertPing", parameters,connectionInfo:_connectionInfo).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("InsertPing", parameters, connectionInfo: _connectionInfo).Data.FirstOrDefault();
+
+        }
+        public ResultViewModel CreatePingTable(string tableName)
+        {
+
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@TableName", SqlDbType.NVarChar) { Value = tableName},
+                new SqlParameter("@DbName", SqlDbType.NVarChar) { Value = _connectionInfo.InitialCatalog}
+
+            };
+
+            return _repository.ToResultList<ResultViewModel>("CreatePing", parameters,connectionInfo:_connectionInfo).Data.FirstOrDefault();
 
         }
 

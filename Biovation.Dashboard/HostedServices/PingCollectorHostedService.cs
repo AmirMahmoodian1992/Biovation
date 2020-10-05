@@ -1,5 +1,5 @@
 ﻿using Biovation.CommonClasses.Manager;
-using Biovation.Dashboard.Managers;
+//using Biovation.Dashboard.Managers;
 using Biovation.Dashboard.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,12 +37,12 @@ namespace Biovation.Dashboard.HostedServices
 
         private void CollectPing(object state)
         {
-            using var scope = _services.CreateScope();
-            //var pingCollector = scope.ServiceProvider.GetRequiredService<PingCollector>();
-            var pingCollector = new PingCollector(scope.ServiceProvider.GetRequiredService<RestClient>(),
-                scope.ServiceProvider.GetRequiredService<PingRepository>(),
-                      scope.ServiceProvider.GetRequiredService<ILogger<PingCollector>>(), _localIpAddress);
-            pingCollector.CollectPing();
+            //using var scope = _services.CreateScope();
+            ////var pingCollector = scope.ServiceProvider.GetRequiredService<PingCollector>();
+            //var pingCollector = new PingCollector(scope.ServiceProvider.GetRequiredService<RestClient>(),
+            //    scope.ServiceProvider.GetRequiredService<PingRepository>(),
+            //          scope.ServiceProvider.GetRequiredService<ILogger<PingCollector>>(), _localIpAddress);
+            //pingCollector.CollectPing();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
