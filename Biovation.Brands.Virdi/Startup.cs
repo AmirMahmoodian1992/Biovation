@@ -152,28 +152,14 @@ namespace Biovation.Brands.Virdi
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
-
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var serviceCollection = new ServiceCollection();
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
-
             var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
-            serviceCollection.AddSingleton(connectionInfo);
-            serviceCollection.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
             serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
             serviceCollection.AddScoped<LookupRepository, LookupRepository>();
@@ -201,6 +187,14 @@ namespace Biovation.Brands.Virdi
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
 
+
+            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
+
+            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
+            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
+            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+
             var lookups = new Lookups
             {
                 TaskStatuses = taskStatusesQuery.Result,
@@ -215,14 +209,6 @@ namespace Biovation.Brands.Virdi
                 LogEvents = logEventsQuery.Result,
                 MatchingTypes = matchingTypeQuery.Result
             };
-
-            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
-
-            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
-            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
-            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
-            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
-
 
             var genericCodeMappings = new GenericCodeMappings
             {
