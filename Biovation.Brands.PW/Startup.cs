@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
@@ -30,6 +31,8 @@ namespace Biovation.Brands.PW
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
+
+        public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
@@ -217,6 +220,8 @@ namespace Biovation.Brands.PW
 
         private void ConfigurePwServices(IServiceCollection services)
         {
+            services.AddSingleton(OnlineDevices);
+
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<PwCodeMappings, PwCodeMappings>();
 
