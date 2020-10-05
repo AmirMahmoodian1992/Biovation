@@ -1,11 +1,11 @@
-﻿using DataAccessLayerCore.Repositories;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository.SQL.v2
+namespace Biovation.Repository.Sql.v2
 {
     public class TimeZoneRepository
     {

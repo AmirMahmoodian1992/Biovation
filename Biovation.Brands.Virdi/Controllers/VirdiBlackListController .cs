@@ -55,9 +55,9 @@ namespace Biovation.Brands.Virdi.Controllers
                         TaskType = _taskTypes.SendBlackList,
                         Priority = _taskPriorities.Medium,
                         DeviceBrand = _deviceBrands.Virdi,
-                        TaskItems = new List<TaskItem>()
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
                     };
-
 
                     foreach (var blacklist in blackLists)
                     {
@@ -71,7 +71,6 @@ namespace Biovation.Brands.Virdi.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.SendBlackList,
                             Priority = _taskPriorities.Medium,
-                            DueDate = DateTime.Today,
                             DeviceId = deviceId,
                             Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Id }),
                             IsParallelRestricted = true,

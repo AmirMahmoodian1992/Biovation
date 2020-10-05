@@ -41,7 +41,7 @@ namespace Biovation.Brands.Virdi.Manager
                 switch (taskItem.TaskItemType.Code)
                 {
 
-                    case TaskItemTypes.GetServeLogsCode:
+                    case TaskItemTypes.GetLogsCode:
                         {
                             try
                             {
@@ -52,7 +52,7 @@ namespace Biovation.Brands.Virdi.Manager
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
-
+                                taskItem.ExecutionAt = DateTime.Now;
                             }
                             catch (Exception exception)
                             {
@@ -62,7 +62,7 @@ namespace Biovation.Brands.Virdi.Manager
                             break;
                         }
 
-                    case TaskItemTypes.GetServeLogsInPeriodCode:
+                    case TaskItemTypes.GetLogsInPeriodCode:
                         {
                             try
                             {

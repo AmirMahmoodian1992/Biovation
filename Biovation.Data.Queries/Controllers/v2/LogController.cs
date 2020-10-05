@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {

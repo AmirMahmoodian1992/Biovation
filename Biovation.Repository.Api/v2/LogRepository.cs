@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -15,7 +14,7 @@ namespace Biovation.Repository.Api.v2
             _restClient = restClient;
         }
 
-        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, 
+        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default,
             string order = default, long onlineUserId = default, bool? successTransfer = default)
         {
@@ -37,13 +36,13 @@ namespace Biovation.Repository.Api.v2
 
         public Task<ResultViewModel> AddLog(Log log)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
 
                 var restRequest = new RestRequest("Commands/v2/Log/AddLog", Method.POST);
                 restRequest.AddJsonBody(log);
-                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
-                return requestResult.Result.Data;
+                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                return requestResult.Data;
             });
         }
 
@@ -61,59 +60,59 @@ namespace Biovation.Repository.Api.v2
 
         public Task<ResultViewModel> AddLog(List<Log> logs)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var restRequest = new RestRequest("Commands/v2/Log/AddLogBulk", Method.POST);
                 restRequest.AddJsonBody(logs);
-                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
-                return requestResult.Result.Data;
+                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                return requestResult.Data;
             });
         }
 
         public Task<ResultViewModel> UpdateLog(List<Log> logs)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
 
                 var restRequest = new RestRequest("Commands/v2/Log/UpdateLog", Method.PUT);
                 restRequest.AddJsonBody(logs);
-                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
-                return requestResult.Result.Data;
+                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                return requestResult.Data;
             });
         }
         public Task<ResultViewModel> AddLogImage(Log log)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
 
                 var restRequest = new RestRequest("Commands/v2/Log/AddLogImage", Method.PATCH);
                 restRequest.AddJsonBody(log);
-                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
-                return requestResult.Result.Data;
+                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                return requestResult.Data;
             });
         }
-        
+
         public Task<ResultViewModel> UpdateLog(Log log)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
 
                 var restRequest = new RestRequest("Commands/v2/Log/UpdateLog", Method.PUT);
                 restRequest.AddJsonBody(log);
-                var requestResult = _restClient.ExecuteAsync<Task<ResultViewModel>>(restRequest);
-                return requestResult.Result.Data;
+                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                return requestResult.Data;
             });
         }
 
         public Task<List<Log>> CheckLogInsertion(List<Log> logs)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
 
                 var restRequest = new RestRequest("Commands/v2/Log/CheckLogInsertion", Method.PUT);
                 restRequest.AddJsonBody(logs);
-                var requestResult = _restClient.ExecuteAsync<Task<List<Log>>>(restRequest);
-                return requestResult.Result.Data;
+                var requestResult = await _restClient.ExecuteAsync<List<Log>>(restRequest);
+                return requestResult.Data;
             });
         }
     }

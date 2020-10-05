@@ -46,5 +46,9 @@ namespace Biovation.Domain
         /// موفق یا ناموفق بودن تردد
         /// </summary>
         public bool? State { get; set; }
+        /// <summary>
+        /// نوع شناسایی
+        /// </summary>
+        public Lookup MatchingType { get; set; }
     }
 }

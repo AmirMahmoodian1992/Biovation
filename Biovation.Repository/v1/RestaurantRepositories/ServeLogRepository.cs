@@ -9,7 +9,7 @@ using Biovation.Domain.RestaurantModels;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository.RestaurantRepositories
+namespace Biovation.Repository.Sql.v1.RestaurantRepositories
 {
     public class ServeLogRepository
     {

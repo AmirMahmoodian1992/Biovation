@@ -50,7 +50,6 @@ namespace Biovation.Brands.Virdi.Command
             {
                 Logger.Log($"RetrieveLogInPeriod,The device: {Code} is not connected.");
                 return new ResultViewModel { Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 0, Code = 10006 };
-
             }
 
             try
@@ -91,8 +90,8 @@ namespace Biovation.Brands.Virdi.Command
                 //{
                 //    System.Threading.Thread.Sleep(3000);
                 //}
-                var result = Callbacks.RetrieveLogs;
-                var count = result.Count;
+                //var result = Callbacks.RetrieveLogs;
+                //var count = result.Count;
                 //Task.Run(() =>
                 //{
                 //    _logService.AddLog(result);
@@ -100,7 +99,7 @@ namespace Biovation.Brands.Virdi.Command
 
                 //Callbacks.RetrieveLogs = new List<Log>();
 
-                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = count.ToString(), Validate = 1 } : new ResultViewModel { Id = DeviceId, Message = count.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
+                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = DeviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
             }
             catch (Exception exception)
             {

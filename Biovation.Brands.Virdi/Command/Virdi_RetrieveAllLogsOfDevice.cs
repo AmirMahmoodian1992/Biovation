@@ -77,14 +77,14 @@ namespace Biovation.Brands.Virdi.Command
                 //{
                 //    System.Threading.Thread.Sleep(3000);
                 //}
-                var result = Callbacks.RetrieveLogs;
-                var count = result.Count;
+                //var result = Callbacks.RetrieveLogs;
+                //var count = result.Count;
 
 
 
                 //Callbacks.RetrieveLogs = new List<Log>();
                 Callbacks.GetLogTaskFinished = true;
-                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = count.ToString(), Validate = 1 } : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = count.ToString(), Validate = 1 };
+                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 };
             }
             catch (Exception exception)
             {

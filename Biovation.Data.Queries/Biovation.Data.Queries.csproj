@@ -85,6 +85,8 @@
     <None Remove="Scripts\01.Tables\0074-Create PlateDetectionPictureLog-UP.sql" />
     <None Remove="Scripts\01.Tables\0075-Alter Device-UP.sql" />
     <None Remove="Scripts\01.Tables\0076-Alter LicensePlate-UP.sql" />
+    <None Remove="Scripts\01.Tables\0077-Alter Task.sql" />
+    <None Remove="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -302,6 +304,7 @@
     <None Remove="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <None Remove="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <None Remove="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <None Remove="Scripts\06.Views\0001-Select TaskOrdered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -377,6 +380,8 @@
     <EmbeddedResource Include="Scripts\01.Tables\0068-Alter Log-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0069-Alter LogData TableType-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0078-Alter TaskItem.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0077-Alter Task.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0071-Alter DeviceModel.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0072-Create LicensePlate-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0073-Create PlateDetectionLog-UP.sql" />
@@ -575,10 +580,6 @@
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0198-Create AddUser-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
@@ -600,6 +601,7 @@
     <EmbeddedResource Include="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <EmbeddedResource Include="Scripts\06.Views\0001-Select TaskOrdered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -613,6 +615,7 @@
   <ItemGroup>
     <Folder Include="Scripts\02.Functions\" />
     <Folder Include="Scripts\04.Triggers\" />
+    <Folder Include="Scripts\07.Jobs\" />
   </ItemGroup>
 
   <ItemGroup>

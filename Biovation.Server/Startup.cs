@@ -2,6 +2,9 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
+using Biovation.Server.HostedServices;
+using Biovation.Server.Jobs;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
@@ -13,9 +16,10 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using RestSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Quartz;
+using RestSharp;
 using Serilog;
 using System.Reflection;
 using App.Metrics;
@@ -88,6 +92,28 @@ namespace Biovation.Server
 
             });
 
+            services.AddQuartz(config =>
+            {
+                config.UseMicrosoftDependencyInjectionJobFactory(options =>
+                {
+                    options.AllowDefaultConstructor = true;
+                });
+
+                config.UseMicrosoftDependencyInjectionScopedJobFactory();
+
+                config.UseSimpleTypeLoader();
+                config.UseInMemoryStore();
+                config.UseDefaultThreadPool(tp =>
+                {
+                    tp.MaxConcurrency = 10;
+                });
+
+                config.AddJob<ExecuteScheduledTaskJob>(options => { options.StoreDurably(); });
+                config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
+            });
+
+            services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
@@ -98,6 +124,10 @@ namespace Biovation.Server
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
 
+            services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
+            services.AddScoped<RecurringTasksManager, RecurringTasksManager>();
+
+            services.AddHostedService<TaskMangerHostedService>();
             services.AddHostedService<ServicesHealthCheckHostedService>();
         }
 

@@ -27,10 +27,10 @@ namespace Biovation.Server.Controllers.v1
         public Task<List<TaskInfo>> Tasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             string excludedTaskStatusCodes = default, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, int taskItemId = default)
         {
-            return _taskService.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                excludedTaskStatusCodes, pageNumber, pageSize);
+            return _taskService.GetTasks(taskId,brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
         }
 
 

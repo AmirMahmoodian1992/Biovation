@@ -23,8 +23,8 @@ namespace Biovation.CommonClasses
                 ?.Replace("ZK", "ZkTeco");
             Task.Run(() =>
             {
-                lock (Serilog.Log.Logger)
-                {
+                //lock (Serilog.Log.Logger)
+                //{
                     try
                     {
                         var callingAssemblyName = baseCallingAssemblyName;
@@ -84,7 +84,7 @@ namespace Biovation.CommonClasses
                     {
                         //ignore
                     }
-                }
+                //}
             });
         }
 
@@ -94,8 +94,8 @@ namespace Biovation.CommonClasses
                 ?.Replace("ZK", "ZkTeco");
             Task.Run(() =>
             {
-                lock (Serilog.Log.Logger)
-                {
+                //lock (Serilog.Log.Logger)
+                //{
                     try
                     {
                         var callingAssemblyName = baseCallingAssemblyName;
@@ -158,7 +158,7 @@ namespace Biovation.CommonClasses
                     {
                         Log(exception);
                     }
-                }
+                //}
             });
         }
 
@@ -169,8 +169,8 @@ namespace Biovation.CommonClasses
             Task.Run(() =>
             {
                 var callingAssemblyName = baseCallingAssemblyName;
-                lock (Serilog.Log.Logger)
-                {
+                //lock (Serilog.Log.Logger)
+                //{
 
                     switch (logType)
                     {
@@ -210,7 +210,7 @@ namespace Biovation.CommonClasses
                             Console.WriteLine();
                             break;
                     }
-                }
+                //}
             });
         }
     }

@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.Repository.Sql.v2;
 using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Data.Queries.Controllers.v2
