@@ -99,11 +99,13 @@ namespace Biovation.Brands.Virdi.Command
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
                 //var windowsEncoding = Encoding.UTF32;
+                var replacements = new Dictionary<string, string> { { "ک","~"}, {  "ژ" , "Ž" } };
 
-                var userName = string.IsNullOrEmpty(UserObj.UserName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(UserObj.UserName));
-                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" }};
+                var userName = replacements.Aggregate(UserObj.UserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
 
-                userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                //userName = string.IsNullOrEmpty(UserObj.UserName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(UserObj.UserName));
+                userName = string.IsNullOrEmpty(userName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(userName));
+
                 _callbacks.ServerUserData.UserID = (int)UserObj.Id;
                 _callbacks.ServerUserData.UniqueID = UserObj.Id.ToString();
                 _callbacks.ServerUserData.UserName = userName;
