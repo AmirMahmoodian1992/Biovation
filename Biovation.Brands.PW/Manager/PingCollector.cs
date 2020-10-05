@@ -38,7 +38,7 @@ namespace Biovation.Brands.PW.Manager
             try
             {
                 var restRequest = new RestRequest("/device/devices", Method.GET);
-                restRequest.AddQueryParameter("brandId", DeviceBrands.VirdiCode);
+                restRequest.AddQueryParameter("brandId", DeviceBrands.ProcessingWorldCode);
                 var restResult = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest).Result.Data;
 
                 if (restResult is null)
@@ -46,7 +46,7 @@ namespace Biovation.Brands.PW.Manager
 
                 foreach (var device in restResult)
                 {
-                    _ = Task.Run(() =>
+                    Task.Run(() =>
                     {
                         var ping = new Ping();
                         var reply = ping.Send(device.IpAddress, 1000);
