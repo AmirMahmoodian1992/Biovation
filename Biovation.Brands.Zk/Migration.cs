@@ -18,7 +18,7 @@ namespace Biovation.Brands.ZK
                 var everyTimeUpgrader =
                         DeployChanges.To
                             .SqlDatabase(connectionString)
-                            //.WithScriptsEmbeddedInAssembly(Assembly.UnsafeLoadFrom(HomeDirectory + @"Biovation.Brands.Virdi.dll"))
+                            //.WithScriptsEmbeddedInAssembly(Assembly.UnsafeLoadFrom(HomeDirectory + @"Biovation.Brands.Zk.dll"))
                             //.WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly(), name => name.Contains("SP") || name.Contains("Functions") || name.Contains("Triggers"))
                             .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
                             .WithPreprocessor(new ScriptPreprocessor())

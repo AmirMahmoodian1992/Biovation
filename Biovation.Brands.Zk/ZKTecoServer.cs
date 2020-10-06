@@ -1,41 +1,23 @@
-﻿using System;
-using Biovation.Brands.ZK.Devices;
+﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.ZK.Manager;
-using Biovation.CommonClasses.Models.ConstantValues;
 using Biovation.Constants;
-using Biovation.Domain;
-using DeviceBrands = Biovation.CommonClasses.Models.ConstantValues.DeviceBrands;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK
 {
-    public class ZKTecoServer
+    public class ZkTecoServer
     {
         /// <summary>
         /// نمونه ی ساخته شده از سرور
         /// </summary>
-        private static ZKTecoServer _zkServerObj;
-        private static readonly object FactoryLockObject = new object();
-        private static readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
-        //private static readonly CommunicationManager<bool> CommunicationManager = new CommunicationManager<bool>();
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
         private readonly List<DeviceBasicInfo> _zkDevices;
-        private readonly DeviceService _commonDeviceService = new DeviceService();
-        private static bool _readingLogsInProgress;
-
-        public static Queue<Task> LogReaderQueue = new Queue<Task>();
-
-
-        ////
-        ///Task And Queue
-        private static List<TaskInfo> _tasks = new List<TaskInfo>();
-        private static readonly TaskService TaskService = new TaskService();
-        private static bool _processingQueueInProgress;
         /// 
 
         /// <summary>
@@ -43,17 +25,11 @@ namespace Biovation.Brands.ZK
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public static ZKTecoServer FactoryZKServer()
-        {
-            lock (FactoryLockObject)
-            {
-                return _zkServerObj ?? (_zkServerObj = new ZKTecoServer());
-            }
-        }
 
-        private ZKTecoServer()
+        private ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
         {
-            _zkDevices = _commonDeviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
+            _onlineDevices = onlineDevices;
+            _zkDevices = deviceService.GetDevices(brandId:int.Parse(DeviceBrands.ZkTecoCode)).Where(x => x.Active).ToList();
         }
 
         public void StartServer()
@@ -70,13 +46,13 @@ namespace Biovation.Brands.ZK
         {
             await Task.Run(() =>
             {
-                lock (OnlineDevices)
+                lock (_onlineDevices)
                 {
-                    if (OnlineDevices.ContainsKey(deviceInfo.Code))
+                    if (_onlineDevices.ContainsKey(deviceInfo.Code))
                     {
                         try
                         {
-                            OnlineDevices[deviceInfo.Code].Disconnect();
+                            _onlineDevices[deviceInfo.Code].Disconnect();
                         }
                         catch (Exception exception)
                         {
@@ -93,15 +69,16 @@ namespace Biovation.Brands.ZK
                     Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
             });
         }
-
         public async void DisconnectFromDevice(DeviceBasicInfo deviceInfo)
         {
             await Task.Run(() =>
             {
-                lock (OnlineDevices)
-                    if (!OnlineDevices.ContainsKey(deviceInfo.Code)) return;
+                lock (_onlineDevices)
+                {
+                    if (!_onlineDevices.ContainsKey(deviceInfo.Code)) return;
+                    _onlineDevices[deviceInfo.Code].Disconnect();
+                }
 
-                OnlineDevices[deviceInfo.Code].Disconnect();
                 //lock (OnlineDevices)
                 //    OnlineDevices.Remove(deviceInfo.Code);
             });
@@ -109,77 +86,15 @@ namespace Biovation.Brands.ZK
 
         public void StopServer()
         {
-            lock (OnlineDevices)
+            lock (_onlineDevices)
             {
-                foreach (var onlineDevice in OnlineDevices)
+                foreach (var onlineDevice in _onlineDevices)
                 {
                     onlineDevice.Value.Disconnect();
                 }
             }
         }
 
-        public static Dictionary<uint, Device> GetOnlineDevices()
-        {
-            lock (OnlineDevices)
-            {
-                return OnlineDevices;
-            }
-        }
-        /*
-        public static void StartReadLogs()
-        {
-            if (_readingLogsInProgress)
-                return;
-
-            _readingLogsInProgress = true;
-            while (true)
-            {
-                Task logReader;
-                lock (LogReaderQueue)
-                {
-                    if (LogReaderQueue.Count <= 0)
-                    {
-                        _readingLogsInProgress = false;
-                        return;
-                    }
-
-                    logReader = LogReaderQueue.Dequeue();
-                }
-
-                logReader.Start();
-                Task.WaitAll(logReader);
-            }
-        }
-        */
-        public static void ProcessQueue()
-        {
-            lock (_tasks)
-                _tasks = TaskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode,
-                    excludedTaskStatusCodes: new List<string> { TaskStatuses.Done.Code, TaskStatuses.Failed.Code }).Result;
-
-            if (_processingQueueInProgress)
-                return;
-
-            _processingQueueInProgress = true;
-            while (true)
-            {
-                TaskInfo taskInfo;
-                lock (_tasks)
-                {
-                    if (_tasks.Count <= 0)
-                    {
-                        _processingQueueInProgress = false;
-                        return;
-                    }
-
-                    taskInfo = _tasks.First();
-                }
-
-                TaskManager.ExecuteTask(taskInfo);
-                lock (_tasks)
-                    _tasks.Remove(taskInfo);
-            }
-        }
 
     }
 }

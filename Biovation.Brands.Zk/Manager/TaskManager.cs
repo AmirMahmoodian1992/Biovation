@@ -1,18 +1,31 @@
-﻿using System;
-using Biovation.Brands.ZK.Command;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+﻿using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Brands.ZK.Command;
+
 namespace Biovation.Brands.ZK.Manager
 {
-    public static class TaskManager
+    public class TaskManager
     {
-        private static readonly TaskService TaskService = new TaskService();
-        public static void ExecuteTask(TaskInfo taskInfo)
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly CommandFactory _commandFactory;
+
+        private List<TaskInfo> _tasks = new List<TaskInfo>();
+        private bool _processingQueueInProgress;
+        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory)
+        {
+            _taskService = taskService;
+            _commandFactory = commandFactory;
+            _taskStatuses = taskStatuses;
+        }
+        public void ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)
             {
@@ -31,7 +44,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
@@ -45,23 +58,23 @@ namespace Biovation.Brands.ZK.Manager
                         }
 
                     case TaskItemTypes.GetLogsInPeriodCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)CommandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
-                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                            });
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                });
 
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                        }
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
 
                     case TaskItemTypes.GetServeLogsInPeriodCode:
                         {
@@ -69,7 +82,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(
+                                    result = (ResultViewModel)_commandFactory.Factory(
                                         CommandType.RetrieveLogsOfDeviceInPeriod,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
@@ -89,7 +102,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.SendUserToDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.SendUserToDevice,
                                      new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
 
                                 });
@@ -108,7 +121,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.UnlockDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UnlockDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
 
                                 });
@@ -128,7 +141,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.LockDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.LockDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
@@ -146,7 +159,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
@@ -159,30 +172,30 @@ namespace Biovation.Brands.ZK.Manager
                             break;
                         }
                     case TaskItemTypes.RetrieveAllUsersFromTerminalCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)CommandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                            });
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                });
 
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                        }
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case TaskItemTypes.OpenDoorCode:
                         {
                             try
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.OpenDoor,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.OpenDoor,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
@@ -200,7 +213,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.SendAccessGroupToDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.SendAccessGroupToDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
@@ -214,30 +227,30 @@ namespace Biovation.Brands.ZK.Manager
                         }
 
                     case TaskItemTypes.ClearLogCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)CommandFactory.Factory(CommandType.ClearLogOfDevice,
-                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                            });
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.ClearLogOfDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+                            break;
 
                         }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                        }
-                        break;
-
-                    }
                     case TaskItemTypes.UpgradeDeviceFirmwareCode:
                         {
                             try
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.UpgradeFirmware,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UpgradeFirmware,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
@@ -256,7 +269,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                             }
@@ -275,7 +288,7 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)CommandFactory.Factory(CommandType.EnrollFromTerminal,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.EnrollFromTerminal,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                             }
@@ -290,23 +303,23 @@ namespace Biovation.Brands.ZK.Manager
 
 
                     case TaskItemTypes.SendTimeZoneToTerminalCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)CommandFactory.Factory(CommandType.SendTimeZoneToDevice,
-                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                            });
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.SendTimeZoneToDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
 
-                        }
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
 
                 }
 
@@ -314,13 +327,43 @@ namespace Biovation.Brands.ZK.Manager
                 {
                     if (result is null) return;
                     taskItem.Result = JsonConvert.SerializeObject(result);
-                    taskItem.Status = TaskStatuses.GetTaskStatusByCode(result.Code.ToString());
+                    taskItem.Status = _taskStatuses.GetTaskStatusByCode(result.Code.ToString());
 
-                    TaskService.UpdateTaskStatus(taskItem);
+                    _taskService.UpdateTaskStatus(taskItem);
                 });
 
                 if (taskItem.IsParallelRestricted)
                     executeTask?.Wait();
+            }
+        }
+
+        public void ProcessQueue()
+        {
+            lock (_tasks)
+                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
+                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code }).Result;
+
+            if (_processingQueueInProgress)
+                return;
+
+            _processingQueueInProgress = true;
+            while (true)
+            {
+                TaskInfo taskInfo;
+                lock (_tasks)
+                {
+                    if (_tasks.Count <= 0)
+                    {
+                        _processingQueueInProgress = false;
+                        return;
+                    }
+
+                    taskInfo = _tasks.First();
+                }
+
+                ExecuteTask(taskInfo);
+                lock (_tasks)
+                    _tasks.Remove(taskInfo);
             }
         }
     }

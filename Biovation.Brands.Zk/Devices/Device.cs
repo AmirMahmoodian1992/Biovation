@@ -2,17 +2,18 @@
 using Biovation.Brands.ZK.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using RestSharp;
 using zkemkeeper;
 using TimeZone = Biovation.CommonClasses.Models.TimeZone;
 // ReSharper disable InconsistentlySynchronizedField
@@ -23,17 +24,19 @@ namespace Biovation.Brands.ZK.Devices
     public class Device : IDevices
     {
         protected readonly DeviceBasicInfo DeviceInfo;
-        protected readonly ZkLogService ZKLogService = new ZkLogService();
-        private readonly TaskService _taskService = new TaskService();
-        private readonly UserService _userService = new UserService();
-        private readonly DeviceService _commonDeviceService = new DeviceService();
-        protected readonly LogService CommonLogService = new LogService();
-        private readonly AccessGroupService _commonAccessGroupService = new AccessGroupService();
-        protected readonly UserService CommonUserService = new UserService();
-        protected readonly UserCardService CommonUserCardService = new UserCardService();
-        protected readonly FingerTemplateService FingerTemplateService = new FingerTemplateService();
-        protected readonly FaceTemplateService FaceTemplateService = new FaceTemplateService();
-        private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
+        protected readonly ZkLogService ZkLogService;
+        private readonly TaskService _taskService;
+        private readonly UserService _userService;
+        private readonly DeviceService _deviceService;
+        protected readonly LogService LogService;
+        private readonly AccessGroupService _accessGroupService;
+        protected readonly UserService UserService;
+        protected readonly UserCardService UserCardService;
+        protected readonly FingerTemplateService FingerTemplateService;
+        protected readonly FaceTemplateService FaceTemplateService;
+        private readonly Dictionary<uint, Device> _onlineDevices;
+        //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
+        private readonly RestClient _restClient;
         protected CancellationTokenSource TokenSource = new CancellationTokenSource();
 
         protected readonly CZKEMClass ZKTecoSdk = new CZKEMClass(); //create Standalone _zkTecoSdk class dynamically
@@ -41,9 +44,21 @@ namespace Biovation.Brands.ZK.Devices
 
         private readonly bool _isGetLogEnable = ConfigurationManager.GetAllLogWhenConnect;
         protected static readonly object LockObject = new object();
-        internal Device(DeviceBasicInfo info)
+        internal Device(DeviceBasicInfo info, ZkLogService zkLogService, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices)
         {
             DeviceInfo = info;
+            ZkLogService = zkLogService;
+            _taskService = taskService;
+            UserService = userService;
+            _userService = userService;
+            _deviceService = deviceService;
+            LogService = logService;
+            _accessGroupService = accessGroupService;
+            FingerTemplateService = fingerTemplateService;
+            UserCardService = userCardService;
+            FaceTemplateService = faceTemplateService;
+            _restClient = restClient;
+            _onlineDevices = onlineDevices;
         }
 
         public DeviceBasicInfo GetDeviceInfo()
@@ -137,7 +152,7 @@ namespace Biovation.Brands.ZK.Devices
                     Logger.Log(exception);
                 }
 
-                _commonDeviceService.ModifyDeviceBasicInfoByID(DeviceInfo);
+                _deviceService.ModifyDeviceBasicInfoByID(DeviceInfo);
 
                 if (DeviceInfo.TimeSync)
                 {
@@ -171,9 +186,9 @@ namespace Biovation.Brands.ZK.Devices
                 }
             }
 
-            if (!ZKTecoServer.GetOnlineDevices().ContainsKey(DeviceInfo.Code))
+            if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
             {
-                ZKTecoServer.GetOnlineDevices().Add(DeviceInfo.Code, this);
+                _onlineDevices.Add(DeviceInfo.Code, this);
             }
             var connectionStatus = new ConnectionStatus
             {
@@ -195,7 +210,7 @@ namespace Biovation.Brands.ZK.Devices
                 //ignore
             }
 
-            CommonLogService.AddLog(new Log
+            LogService.AddLog(new Log
             {
                 DeviceId = DeviceInfo.DeviceId,
                 LogDateTime = DateTime.Now,
@@ -232,7 +247,7 @@ namespace Biovation.Brands.ZK.Devices
                     OrderIndex = 1
                 });
                 _taskService.InsertTask(task).Wait();
-                ZKTecoServer.ProcessQueue();
+                ZkTecoServer.ProcessQueue();
 
             }
 
@@ -296,9 +311,9 @@ namespace Biovation.Brands.ZK.Devices
                     TokenSource.Cancel(false);
             }
 
-            lock (ZKTecoServer.GetOnlineDevices())
-                if (ZKTecoServer.GetOnlineDevices().ContainsKey(DeviceInfo.Code))
-                    ZKTecoServer.GetOnlineDevices().Remove(DeviceInfo.Code);
+            lock (_onlineDevices)
+                if (_onlineDevices.ContainsKey(DeviceInfo.Code))
+                    _onlineDevices.Remove(DeviceInfo.Code);
 
             var connectionStatus = new ConnectionStatus
             {
@@ -321,7 +336,7 @@ namespace Biovation.Brands.ZK.Devices
                 //ignore
             }
 
-            CommonLogService.AddLog(new Log
+            LogService.AddLog(new Log
             {
                 DeviceId = DeviceInfo.DeviceId,
                 LogDateTime = DateTime.Now,
@@ -352,13 +367,13 @@ namespace Biovation.Brands.ZK.Devices
                 LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
                 EventLog = LogEvents.Authorized,
                 UserId = iUserId,
-                MatchingType = ZKCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                MatchingType = ZkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                     
                 TnaEvent = (ushort)iInOutMode,
                 SubEvent = LogSubEvents.Normal
             };
 
-            ZKLogService.AddLog(log);
+            ZkLogService.AddLog(log);
         }
         //If your fingerprint(or your card) passes the verification,this event will be triggered
 
@@ -385,12 +400,12 @@ namespace Biovation.Brands.ZK.Devices
                     LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
                     EventLog = LogEvents.Authorized,
                     UserId = userId,
-                    MatchingType = ZKCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                    MatchingType = ZkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                     TnaEvent = (ushort)iInOutMode,
                     SubEvent = LogSubEvents.Normal
                 };
 
-                ZKLogService.AddLog(log);
+                ZkLogService.AddLog(log);
             }
             catch (Exception exception)
             {
@@ -406,9 +421,9 @@ namespace Biovation.Brands.ZK.Devices
 
         private void OnDisconnectedCallback()
         {
-            if (ZKTecoServer.GetOnlineDevices().ContainsKey(DeviceInfo.Code))
+            if (_onlineDevices.ContainsKey(DeviceInfo.Code))
             {
-                ZKTecoServer.GetOnlineDevices().Remove(DeviceInfo.Code);
+                _onlineDevices.Remove(DeviceInfo.Code);
             }
 
             var connectionStatus = new ConnectionStatus
@@ -426,7 +441,7 @@ namespace Biovation.Brands.ZK.Devices
                 _communicationManager.CallRest(
                     "/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
                     new List<object> { data });
-                CommonLogService.AddLog(new Log
+                LogService.AddLog(new Log
                 {
                     DeviceId = DeviceInfo.DeviceId,
                     LogDateTime = DateTime.Now,
@@ -450,7 +465,7 @@ namespace Biovation.Brands.ZK.Devices
             {
                 var errorCode = 0;
                 // _zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);
-                var card = CommonUserCardService.GetActiveUserCard(user.Id).FirstOrDefault(c => c.IsActive);
+                var card = UserCardService.GetActiveUserCard(user.Id).FirstOrDefault(c => c.IsActive);
                 if (card != null)
                 {
                     if (ZKTecoSdk.SetStrCardNumber(card.CardNum))
@@ -524,7 +539,7 @@ namespace Biovation.Brands.ZK.Devices
 
                         }
 
-                        var userAccessGroups = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id);
+                        var userAccessGroups = _accessGroupService.GetAccessGroupsOfUser(user.Id);
                         var validAccessGroup =
                             userAccessGroups.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
@@ -617,7 +632,7 @@ namespace Biovation.Brands.ZK.Devices
                                     //EventLog = Event.ATHORIZED,
                                     EventLog = LogEvents.Authorized,
                                     UserId = userId,
-                                    MatchingType = ZKCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    MatchingType = ZkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                                     TnaEvent = (ushort)iInOutMode
                                 };
 
@@ -640,10 +655,10 @@ namespace Biovation.Brands.ZK.Devices
 
                     Task.Run(() =>
                     {
-                        ZKLogService.AddLog(lstLogs);
+                        ZkLogService.AddLog(lstLogs);
                         if (!saveFile) return;
 
-                        CommonLogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
+                        LogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
                     }, TokenSource.Token);
 
                     Logger.Log($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.", logType: LogType.Information);
@@ -734,7 +749,7 @@ namespace Biovation.Brands.ZK.Devices
                                     //EventLog = Event.ATHORIZED,
                                     EventLog = LogEvents.Authorized,
                                     UserId = userId,
-                                    MatchingType = ZKCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    MatchingType = ZkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                                     TnaEvent = (ushort)iInOutMode
                                 };
 
@@ -755,7 +770,7 @@ namespace Biovation.Brands.ZK.Devices
                         }
                     }
 
-                    Task.Run(() => { ZKLogService.AddLog(lstLogs); }, TokenSource.Token);
+                    Task.Run(() => { ZkLogService.AddLog(lstLogs); }, TokenSource.Token);
 
                     Logger.Log($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.", logType: LogType.Information);
 
@@ -960,7 +975,7 @@ namespace Biovation.Brands.ZK.Devices
                             Password = password,
                             UserName = name,
                         };
-                        var existUser = CommonUserService.GetUser(userId, false);
+                        var existUser = UserService.GetUser(userId, false);
                         if (existUser != null)
                         {
                             user = new User
@@ -982,7 +997,7 @@ namespace Biovation.Brands.ZK.Devices
                             };
                         }
 
-                        CommonUserService.ModifyUser(user);
+                        UserService.ModifyUser(user);
                         Logger.Log("<--User is Modified");
 
                         user.FingerTemplates = new List<FingerTemplate>();
@@ -999,7 +1014,7 @@ namespace Biovation.Brands.ZK.Devices
                                     UserId = user.Id
                                 };
 
-                                CommonUserCardService.ModifyUserCard(card);
+                                UserCardService.ModifyUserCard(card);
                                 Logger.Log("<--User card is Modified");
                             }
                         }

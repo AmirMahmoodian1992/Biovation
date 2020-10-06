@@ -1,5 +1,6 @@
 ﻿using Biovation.Brands.ZK.Model;
 using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 
 namespace Biovation.Brands.ZK.Devices
 {

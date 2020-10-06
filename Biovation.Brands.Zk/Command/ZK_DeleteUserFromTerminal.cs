@@ -7,6 +7,9 @@ using Biovation.CommonClasses.Interface;
 using Biovation.CommonClasses.Models;
 using Biovation.CommonClasses.Models.ConstantValues;
 using Biovation.CommonClasses.Service;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -25,19 +28,21 @@ namespace Biovation.Brands.ZK.Command
         private int TaskItemId { get; }
 
 
-        private readonly DeviceService _deviceService = new DeviceService();
-        private static readonly TaskService _taskService = new TaskService();
-        private readonly LogService _logService = new LogService();
+        private readonly DeviceService _deviceService;
+        private static readonly TaskService _taskService;
+        private readonly LogService _logService;
 
-        public ZKDeleteUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        public ZKDeleteUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, LogService logService)
         {
+            OnlineDevices = devices;
+            _deviceService = deviceService;
+            _logService = logService;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
             var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (uint)(data["userId"]);
-            OnlineDevices = devices;
         }
         public object Execute()
         {

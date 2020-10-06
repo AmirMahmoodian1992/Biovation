@@ -60,7 +60,7 @@ namespace Biovation.Brands.ZK.Model {
             var localIP = localIPAddresses.First(x => x.AddressFamily == AddressFamily.InterNetwork);
             
             _machineIpAddress = localIP.ToString();
-            _serverPort = Convert.ToInt32(appSetting["virdi_server_port"]);
+            _serverPort = Convert.ToInt32(appSetting["Zk_server_port"]);
             _commandServerIp = appSetting["unis_command_server_ip"];
             _commandServerPort = int.Parse(appSetting["unis_command_server_port"]);
             _udbServerIp = appSetting["unis_udb_server_ip"];
@@ -68,7 +68,7 @@ namespace Biovation.Brands.ZK.Model {
             _unisDatabase = appSetting["unis_database"];
             _unisDatabaseUsername = appSetting["unis_database_username"];
             _unisDatabasePassword = appSetting["unis_database_password"];
-            _deviceCount = Convert.ToInt32(appSetting["virdi_device_count"]);
+            _deviceCount = Convert.ToInt32(appSetting["Zk_device_count"]);
         }
 
         public int ServerPort { get { return _serverPort; } }
@@ -97,7 +97,7 @@ namespace Biovation.Brands.ZK.Model {
         public int UdbServerPort { get { return _udbServerPort; } }
 
         /// <summary>
-        /// Version of Virdi AMS software
+        /// Version of Zk AMS software
         /// </summary>
         public string Version { get { return _version; } }
 

@@ -43,7 +43,7 @@ namespace Biovation.Brands.Virdi.Command
             Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             OnlineDevices = virdiServer.GetOnlineDevices();
 
-            _callbacks = callbacks;
+            _callbacks = callbacks; 
             _logService = logService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;

@@ -42,7 +42,7 @@ namespace Biovation.Brands.ZK.Devices
                             Password = password,
                             UserName = name,
                         };
-                        var existUser = CommonUserService.GetUser(userCode:userId, withPicture:false);
+                        var existUser = UserService.GetUser(userCode:userId, withPicture:false);
                         if (existUser != null)
                         {
                             user = new User
@@ -65,8 +65,8 @@ namespace Biovation.Brands.ZK.Devices
                             };
                         }
 
-                        CommonUserService.ModifyUser(user);
-                        user.Id = (CommonUserService.GetUser(userCode: user.Code, withPicture: false)).Id;
+                        UserService.ModifyUser(user);
+                        user.Id = (UserService.GetUser(userCode: user.Code, withPicture: false)).Id;
                         Logger.Log("<--User is Modified");
 
                         user.FingerTemplates = new List<FingerTemplate>();
@@ -83,7 +83,7 @@ namespace Biovation.Brands.ZK.Devices
                                     UserId = user.Id
                                 };
 
-                                CommonUserCardService.ModifyUserCard(card);
+                                UserCardService.ModifyUserCard(card);
                                 Logger.Log("<--User card is Modified");
                             }
                         }
@@ -317,7 +317,7 @@ namespace Biovation.Brands.ZK.Devices
                                 EventLog = LogEvents.Authorized,
                                 UserId = userId,
                                 //MatchingType = iVerifyMethod,
-                                MatchingType = ZKCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                MatchingType = ZkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                                 TnaEvent = (ushort)iInOutMode
                             };
 
@@ -345,12 +345,12 @@ namespace Biovation.Brands.ZK.Devices
 
                 Task.Run(() =>
                 {
-                    ZKLogService.AddLog(lstLogs);
+                    ZkLogService.AddLog(lstLogs);
                     if (!saveFile) return;
 
                     lock (DeviceInfo)
                     {
-                        CommonLogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
+                        LogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
                     }
                 }, TokenSource.Token);
 
