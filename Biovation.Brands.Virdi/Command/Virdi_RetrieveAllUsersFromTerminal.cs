@@ -18,8 +18,10 @@ namespace Biovation.Brands.Virdi.Command
         private int DeviceId { get; }
         private uint Code { get; }
         private int TaskItemId { get; }
+        //private TaskItem TaskItem { get; }
 
         private readonly Callbacks _callbacks;
+
 
         public VirdiRetrieveUsersListFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, DeviceService deviceService)
         {
@@ -27,20 +29,24 @@ namespace Biovation.Brands.Virdi.Command
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
-
+         
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
         public object Execute()
         {
+
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetriveUser,The device: {Code} is not connected.");
+
+                //TaskItem.Status.Code = TaskStatuses.DeviceDisconnectedCode;
                 return new ResultViewModel<List<User>> { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 0, Data = new List<User>() };
 
             }
 
             try
             {
+                
                 // Callbacks.modifyUserData = false;
                 Callbacks.GetUserTaskFinished = true;
                 Callbacks.RetrieveUsers = new List<User>();
@@ -61,12 +67,13 @@ namespace Biovation.Brands.Virdi.Command
                     Callbacks.RetrieveUsers = new List<User>();
                     Callbacks.GetUserTaskFinished = true;
 
-
+                    //TaskItem.Status.Code = TaskStatuses.DoneCode;
                     return new ResultViewModel<List<User>> { Data = result, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
 
                 }
 
                 Logger.Log($"  +Cannot retrieve users from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n");
+                //TaskItem.Status.Code = TaskStatuses.FailedCode;
                 return new ResultViewModel<List<User>> { Code = Convert.ToInt64(TaskStatuses.FailedCode), Data = new List<User>(), Id = DeviceId, Message = "0", Validate = 1 };
             }
             catch (Exception exception)

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Repository.SQL.v2;
+using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2

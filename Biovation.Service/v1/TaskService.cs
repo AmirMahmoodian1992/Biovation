@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.Domain;
+using Biovation.Repository.Sql.v1;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using Biovation.Repository;
 
 namespace Biovation.Service.Sql.v1
 {

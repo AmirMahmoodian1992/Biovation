@@ -11,6 +11,7 @@ namespace Biovation.Constants
         public const string InProgressCode = "10004";
         public const string ScheduledCode = "10005";
         public const string DeviceDisconnectedCode = "10006";
+        public const string RecurringCode = "10007";
 
         public TaskStatuses(Lookups lookups)
         {
@@ -20,6 +21,7 @@ namespace Biovation.Constants
             InProgress = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, InProgressCode));
             Scheduled = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, ScheduledCode));
             DeviceDisconnected = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, DeviceDisconnectedCode));
+            Recurring = lookups.TaskStatuses.FirstOrDefault(lookup => string.Equals(lookup.Code, RecurringCode));
         }
 
         public Lookup Queued;
@@ -28,6 +30,7 @@ namespace Biovation.Constants
         public Lookup InProgress;
         public Lookup Scheduled;
         public Lookup DeviceDisconnected;
+        public Lookup Recurring;
 
 
         public Lookup GetTaskStatusByCode(string statusCode)
@@ -51,6 +54,9 @@ namespace Biovation.Constants
 
                 case DeviceDisconnectedCode:
                     return DeviceDisconnected;
+
+                case RecurringCode:
+                    return Recurring;
 
                 default:
                     return null;

@@ -5,7 +5,7 @@ using Biovation.Domain;
 using Biovation.Domain.RestaurantModels;
 using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository.RestaurantRepositories
+namespace Biovation.Repository.Sql.v1.RestaurantRepositories
 {
     public class RestaurantRepository
     {

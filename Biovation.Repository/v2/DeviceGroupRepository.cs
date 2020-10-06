@@ -7,7 +7,7 @@ using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository.SQL.v2
+namespace Biovation.Repository.Sql.v2
 {
 
     public class DeviceGroupRepository

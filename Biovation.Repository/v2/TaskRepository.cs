@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
@@ -7,7 +6,7 @@ using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository.SQL.v2
+namespace Biovation.Repository.Sql.v2
 {
     public class TaskRepository
     {
@@ -18,11 +17,12 @@ namespace Biovation.Repository.SQL.v2
             _repository = repository;
         }
 
-        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default)
+        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int taskItemId = default)
         {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@taskId", taskId),
+                 new SqlParameter("@taskItemId", taskItemId),
                 new SqlParameter("@brandId", brandCode),
                 new SqlParameter("@deviceId", deviceId),
                 new SqlParameter("@taskTypeCode", taskTypeCode),
@@ -46,8 +46,7 @@ namespace Biovation.Repository.SQL.v2
 
         public ResultViewModel InsertTask(TaskInfo task)
         {
-            var taskItemsDataTable =
-                JsonConvert.DeserializeObject<DataTable>(JsonConvert.SerializeObject(task.TaskItems?.Select(item => new
+            /*var taskItemsDataTable =JsonConvert.SerializeObject(task.TaskItems?.Select(item => new
                 {
                     item.Id,
                     TaskId = task.Id,
@@ -61,15 +60,21 @@ namespace Biovation.Repository.SQL.v2
                     item.IsScheduled,
                     item.DueDate,
                     item.IsParallelRestricted
-                })));
+                }));*/
+            var taskItemsData = JsonConvert.SerializeObject(task.TaskItems);
+              
+
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@taskTypeCode", task.TaskType?.Code),
                 new SqlParameter("@priorityLevelCode", task.Priority?.Code),
                 new SqlParameter("@createdBy", task.CreatedBy?.Id),
                 new SqlParameter("@createdAt", task.CreatedAt),
+                new SqlParameter("@updatedBy", task.UpdatedBy),
+                new SqlParameter("@updatedAt", task.UpdatedAt),
+                new SqlParameter("@schedulingPattern", task.SchedulingPattern),
                 new SqlParameter("@deviceBrandId", task.DeviceBrand.Code),
-                new SqlParameter("@taskItems", taskItemsDataTable)
+                new SqlParameter("@json", taskItemsData)
             };
 
             return _repository.ToResultList<ResultViewModel>("InsertTask", parameters).Data.FirstOrDefault();
@@ -77,12 +82,15 @@ namespace Biovation.Repository.SQL.v2
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {
+   
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", taskItem.Id),
                 new SqlParameter("@statusCode", taskItem.Status.Code),
-                new SqlParameter("@result", taskItem.Result)
-            };
+                new SqlParameter("@result", taskItem.Result),
+                new SqlParameter("@CurrentIndex", taskItem.CurrentIndex),
+                new SqlParameter("@TotalCount", taskItem.TotalCount),
+                };
 
             return _repository.ToResultList<ResultViewModel>("UpdateTaskItemStatus", parameters).Data.FirstOrDefault();
         }

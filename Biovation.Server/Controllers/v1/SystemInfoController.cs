@@ -1,96 +1,69 @@
-﻿//using Biovation.CommonClasses;
-//using Biovation.CommonClasses.Manager;
-//using Biovation.CommonClasses.Models;
-//using RestSharp;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Net;
-//using System.Threading.Tasks;
-//using System.Web.Http;
+﻿using Biovation.CommonClasses;
+using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
+using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-//namespace Biovation.WebService.APIControllers
-//{
-//    public class SystemInfoController : ApiController
-//    {
-//        private readonly RestClient _restClient;
+namespace Biovation.Server.Controllers.v1
+{
+    public class SystemInfoController : Controller
+    {
+        private readonly SystemInfo _systemInfo;
+        private readonly RestClient _restClient;
 
-//        public SystemInfoController()
-//        {
-//            _restClient = (RestClient)new RestClient($"http://localhost:{ConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
-//        }
+        public SystemInfoController(RestClient restClient, SystemInfo systemInfo)
+        {
+            _systemInfo = systemInfo;
+            _restClient = restClient;
+        }
 
-//        [HttpGet]
-//        public Task<ResultViewModel<SystemInfo>> LoadedBrand()
-//        {
-//            return Task.Run(async () =>
-//            {
-//                try
-//                {
-//                    var systemInfo = new SystemInfo();
-//                    var brandList = Lookups.DeviceBrands;
-//                    systemInfo.Modules=new List<ModuleInfo>();
-
-//                    foreach (var brand in brandList)
-//                    {
-//                        var restRequest = new RestRequest($"{brand.Name}/{brand.Name}SystemInfo/GetInfo");
-//                        var requestResult = await _restClient.ExecuteAsync<ResultViewModel<ModuleInfo>>(restRequest);
-
-//                        if (requestResult.StatusCode != HttpStatusCode.OK) continue;
-
-//                        var res = requestResult.Data;
-//                        res.Validate = string.IsNullOrEmpty(res.Message) ? 1 : res.Validate;
-
-//                        systemInfo.Modules.Add(res.Data);
-//                    }
-
-//                    return new ResultViewModel<SystemInfo> { Validate = 1, Data = systemInfo };
-//                }
-//                catch (Exception e)
-//                {
-//                    return new ResultViewModel<SystemInfo> { Validate = 0, Message = e.Message };
-//                }
-//            });
-//        }
+        [HttpGet]
+        public Task<ResultViewModel<SystemInfo>> LoadedBrand()
+        {
+            return Task.Run(() => new ResultViewModel<SystemInfo> { Validate = 1, Data = _systemInfo });
+        }
 
 
-//        [HttpPost]
-//        public Task<List<ResultViewModel<ModuleInfo>>> RestartModules(List<ModuleInfo> modules)
-//        {
-//            return Task.Run(() =>
-//            {
-//                var resultList = new List<ResultViewModel<ModuleInfo>>();
+        [HttpPost]
+        public Task<List<ResultViewModel<ServiceInfo>>> RestartServices(List<ServiceInfo> services)
+        {
+            return Task.Run(async () =>
+            {
+                var resultList = new List<ResultViewModel<ServiceInfo>>();
 
-//                var moduleList = KernelManager.ModulesArray.ToList();
+                var loadedServices = _systemInfo.Services;
 
-//                foreach (var module in modules)
-//                {
+                foreach (var service in services)
+                {
+                    var moduleInfo = loadedServices.FirstOrDefault(brand => string.Equals(brand.Name, service.Name));
+                    if (moduleInfo == null)
+                    {
+                        resultList.Add(new ResultViewModel<ServiceInfo> { Validate = 1, Message = $"Module : {service.Name } Not Loaded", Data = service });
+                        continue;
+                    }
+                    try
+                    {
+                        var restRequest = new RestRequest($"{moduleInfo.Name}/{moduleInfo.Name}Service/Restart", Method.POST);
+                        await _restClient.ExecuteAsync(restRequest);
 
-//                    var moduleInfo = moduleList.FirstOrDefault(brand => brand.GetBrandName() == module.Name);
-//                    if (moduleInfo == null)
-//                    {
-//                        resultList.Add(new ResultViewModel<ModuleInfo> { Validate = 1, Message = $"Module : {module.Name } Not Loaded", Data = module });
-//                        continue;
-//                    }
-//                    try
-//                    {
-//                        moduleInfo.StopService();
-//                        moduleInfo.StartService();
-//                        Logger.Log($"Module : {moduleInfo.GetBrandName() } Restart");
+                        Logger.Log($"Module : {moduleInfo.Name} Restart");
 
-//                        resultList.Add(new ResultViewModel<ModuleInfo> { Validate = 1, Message = $"Module : {moduleInfo.GetBrandName() } Restart", Data = modules.FirstOrDefault(brand => brand.Name == moduleInfo.GetBrandName()) });
+                        resultList.Add(new ResultViewModel<ServiceInfo> { Validate = 1, Message = $"Module : {moduleInfo.Name} Restart", Data = services.FirstOrDefault(brand => brand.Name == moduleInfo.Name) });
 
-//                    }
-//                    catch (Exception e)
-//                    {
-//                        resultList.Add(new ResultViewModel<ModuleInfo> { Validate = 0, Message = e.Message, Data = modules.FirstOrDefault(brand => brand.Name == moduleInfo.GetBrandName()) });
-//                        Console.WriteLine(e);
-//                        throw;
-//                    }
-//                }
+                    }
+                    catch (Exception e)
+                    {
+                        resultList.Add(new ResultViewModel<ServiceInfo> { Validate = 0, Message = e.Message, Data = services.FirstOrDefault(brand => brand.Name == moduleInfo.Name) });
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                }
 
-//                return resultList;
-//            });
-//        }
-//    }
-//}
+                return resultList;
+            });
+        }
+    }
+}

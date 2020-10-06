@@ -8,7 +8,7 @@
     "**/platforms"
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:9038",
+    "BaseUrl": "http://localhost:9002",
     "UseServiceDiscovery": false
   },
   "Routes": [
@@ -21,6 +21,18 @@
         {
           "Host": "localhost",
           "Port": 9022
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/dashboard/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9060
         }
       ]
     },

@@ -1,14 +1,14 @@
-﻿using Biovation.CommonClasses;
-using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
+using Biovation.Domain;
+using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository.SQL.v2
+namespace Biovation.Repository.Sql.v2
 {
     public class LogRepository
     {

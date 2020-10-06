@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -14,15 +14,10 @@ namespace Biovation.Data.Queries.Controllers.v2
     {
         private readonly DeviceRepository _deviceRepository;
 
-
         public DeviceController(DeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;
         }
-
-
-
-
 
         [HttpGet]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = 0, int groupId = 0,
@@ -40,7 +35,6 @@ namespace Biovation.Data.Queries.Controllers.v2
             return Task.Run(() => _deviceRepository.GetDevice(id, adminUserId));
         }
 
-
         [HttpGet]
         [Route("DeviceModels/{id?}")]
         public Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels(long id = 0, string brandId = default,
@@ -48,7 +42,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _deviceRepository.GetDeviceModels(id, brandId, name, pageNumber, pageSize));
         }
-
 
         [HttpGet]
         [Route("BioAuthModeWithDeviceId")]
@@ -63,7 +56,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _deviceRepository.GetLastConnectedTime(deviceId));
         }
-
 
         [HttpGet]
         [Route("DeviceBrands")]

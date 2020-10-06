@@ -2,6 +2,9 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
+using Biovation.Server.HostedServices;
+using Biovation.Server.Jobs;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
@@ -13,11 +16,17 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using RestSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Quartz;
+using RestSharp;
 using Serilog;
 using System.Reflection;
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
+using Biovation.Domain;
+using Biovation.Server.HostedServices;
+using Log = Serilog.Log;
 
 namespace Biovation.Server
 {
@@ -37,12 +46,16 @@ namespace Biovation.Server
 
             BiovationConfiguration = new BiovationConfigurationManager(configuration);
 
+            var metrics = new MetricsBuilder()
+                .Configuration.ReadFrom(configuration);
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(environment.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+            metrics.Build();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -53,7 +66,7 @@ namespace Biovation.Server
                         {
                             options.JsonSerializerOptions.Converters.Add(new TimeSpanToStringConverter());
                             options.JsonSerializerOptions.IgnoreNullValues = true;
-                        });
+                        }).AddMetrics();
 
             services.AddApiVersioning(config =>
             {
@@ -79,11 +92,43 @@ namespace Biovation.Server
 
             });
 
+            services.AddQuartz(config =>
+            {
+                config.UseMicrosoftDependencyInjectionJobFactory(options =>
+                {
+                    options.AllowDefaultConstructor = true;
+                });
+
+                config.UseMicrosoftDependencyInjectionScopedJobFactory();
+
+                config.UseSimpleTypeLoader();
+                config.UseInMemoryStore();
+                config.UseDefaultThreadPool(tp =>
+                {
+                    tp.MaxConcurrency = 10;
+                });
+
+                config.AddJob<ExecuteScheduledTaskJob>(options => { options.StoreDurably(); });
+                config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
+            });
+
+            services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
+            var serviceStatuses = new SystemInfo();
+            services.AddSingleton(serviceStatuses);
+
+
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
+
+            services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
+            services.AddScoped<RecurringTasksManager, RecurringTasksManager>();
+
+            services.AddHostedService<TaskMangerHostedService>();
+            services.AddHostedService<ServicesHealthCheckHostedService>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)

@@ -8,7 +8,7 @@ using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 
-namespace Biovation.Repository.SQL.v2
+namespace Biovation.Repository.Sql.v2
 {
     public class PlateDetectionRepository
     {

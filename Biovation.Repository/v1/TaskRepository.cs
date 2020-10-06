@@ -6,7 +6,7 @@ using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
 
-namespace Biovation.Repository
+namespace Biovation.Repository.Sql.v1
 {
     public class TaskRepository
     {
@@ -57,9 +57,9 @@ namespace Biovation.Repository
                     item.Result,
                     item.OrderIndex,
                     item.IsScheduled,
-                    item.DueDate,
                     item.IsParallelRestricted
                 })));
+
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@taskTypeCode", task.TaskType?.Code),
@@ -67,6 +67,7 @@ namespace Biovation.Repository
                 new SqlParameter("@createdBy", task.CreatedBy?.Id),
                 new SqlParameter("@createdAt", task.CreatedAt),
                 new SqlParameter("@deviceBrandId", task.DeviceBrand.Code),
+                new SqlParameter("@dueDate", task.DueDate),
                 new SqlParameter("@taskItems", taskItemsDataTable)
             };
 

@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
-using Biovation.Repository.SQL.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -28,10 +28,10 @@ namespace Biovation.Data.Queries.Controllers.v2
         //TODO::QUERY dynamic
         [HttpGet]
         /*[Route("GetTasks")]*/
-        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default)
+        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
         {
 
-            var tasksResult = _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes);
+            var tasksResult = _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes,taskItemId);
 
             var result = new PagingResult<TaskInfo>
             {

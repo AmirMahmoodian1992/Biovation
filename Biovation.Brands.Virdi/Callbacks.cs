@@ -6,6 +6,12 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Kasra.MessageBus.Domain.Enumerators;
+using Kasra.MessageBus.Domain.Interfaces;
+using Kasra.MessageBus.Infrastructure;
+using Kasra.MessageBus.Managers.Sinks.EventBus;
+using Kasra.MessageBus.Managers.Sinks.Internal;
+using Microsoft.Extensions.Logging;
 using MoreLinq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -35,6 +41,7 @@ namespace Biovation.Brands.Virdi
         private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
         private readonly LogEvents _logEvents;
+        private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
@@ -47,10 +54,15 @@ namespace Biovation.Brands.Virdi
         public static bool UploadFirmwareFileTaskFinished = true;
         public static bool UpgradeFirmwareTaskFinished = true;
         public static List<User> RetrieveUsers = new List<User>();
-        public static List<Log> RetrieveLogs = new List<Log>();
         public static Dictionary<int, List<Log>> RetrievedLogs = new Dictionary<int, List<Log>>();
         private readonly TaskService _taskService;
         private readonly AccessGroupService _accessGroupService;
+        private readonly ILogger<Callbacks> _logger;
+
+        ////===========================
+        //Todo: Find better solution
+        private readonly Dictionary<int, TaskInfo> _tasks = new Dictionary<int, TaskInfo>();
+
 
         private BiovationConfigurationManager BiovationConfiguration { get; set; }
 
@@ -124,6 +136,18 @@ namespace Biovation.Brands.Virdi
         //    }
         //}
 
+
+
+        //integration
+
+
+
+        private readonly ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
+        private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
+
+        private readonly ISource<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateInternalSource;
+        private const string DeviceConnectionStateTopicName = "BiovationDeviceConnectionStateEvent";
+
         public void DeleteUserFromDeviceFastSearch(uint deviceCode, int userId)
         {
             lock (_fastSearchOfDevices)
@@ -148,27 +172,29 @@ namespace Biovation.Brands.Virdi
                 try
                 {
                     var user = _commonUserService.GetUsers(userId).FirstOrDefault();
-              
-                    var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
-                    if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
+                    if (user != null)
                     {
-                        var fpData = _fingerPrintDataOfDevices[(int)deviceCode];
-                        var fastSearch = _fastSearchOfDevices[(int)deviceCode];
-                        fpData.ClearFPData();
-
-                        for (var i = 0; i < userFingerTemplates.Count - 1; i += 2)
+                        var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
+                        if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
                         {
-                            fpData.Import(0, userFingerTemplates[i].FingerIndex.OrderIndex, 2, 400, 400,
-                                userFingerTemplates[i].Template, userFingerTemplates[i + 1].Template);
+                            var fpData = _fingerPrintDataOfDevices[(int)deviceCode];
+                            var fastSearch = _fastSearchOfDevices[(int)deviceCode];
+                            fpData.ClearFPData();
+
+                            for (var i = 0; i < userFingerTemplates.Count - 1; i += 2)
+                            {
+                                fpData.Import(0, userFingerTemplates[i].FingerIndex.OrderIndex, 2, 400, 400,
+                                    userFingerTemplates[i].Template, userFingerTemplates[i + 1].Template);
+                            }
+
+                            var firTemplate = fpData.TextFIR;
+                            fastSearch?.AddFIR(firTemplate, userId);
+                            fpData.ClearFPData();
                         }
 
-                        var firTemplate = fpData.TextFIR;
-                        fastSearch?.AddFIR(firTemplate, userId);
-                        fpData.ClearFPData();
+                        else
+                            LoadFingerTemplates();
                     }
-
-                    else
-                        LoadFingerTemplates();
                 }
                 catch (Exception exception)
                 {
@@ -182,7 +208,8 @@ namespace Biovation.Brands.Virdi
             , LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService
             , VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, DeviceBrands deviceBrands
-            , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager)
+            , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
+            , ILogger<Callbacks> logger, TaskStatuses taskStatuses)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -193,6 +220,7 @@ namespace Biovation.Brands.Virdi
             _blackListService = blackListService;
             _faceTemplateService = faceTemplateService;
             _taskService = taskService;
+            _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
             BiovationConfiguration = biovationConfiguration;
             _virdiLogService = virdiLogService;
@@ -206,6 +234,7 @@ namespace Biovation.Brands.Virdi
             _biometricTemplateManager = biometricTemplateManager;
             _monitoringRestClient = (RestClient)new RestClient(biovationConfiguration.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
+            _logger = logger;
             // create UCSAPI Instance
             UcsApi = ucsapi;
 
@@ -301,6 +330,30 @@ namespace Biovation.Brands.Virdi
             //
             _ucBioBsp.OnCaptureEvent += ucBioBSP_OnCaptureEvent;
             _ucBioBsp.OnEnrollEvent += ucBioBSP_OnEnrollEvent;
+
+
+
+            //integration 
+            var kafkaServerAddress = BiovationConfiguration.KafkaServerAddress;
+            _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
+               .Build<DataChangeMessage<TaskInfo>>();
+
+            var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(BiovationTopicName)
+                .BuildTarget<DataChangeMessage<TaskInfo>>();
+
+            var biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(_biovationInternalSource, biovationKafkaTarget);
+            biovationTaskConnectorNode.StartProcess();
+
+            //DeviceStatus integration 
+            _deviceConnectionStateInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
+                        .Build<DataChangeMessage<ConnectionStatus>>();
+
+            var deviceConnectionStateKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(DeviceConnectionStateTopicName)
+                .BuildTarget<DataChangeMessage<ConnectionStatus>>();
+
+            var deviceConnectionStateConnectorNode = new ConnectorNode<DataChangeMessage<ConnectionStatus>>(_deviceConnectionStateInternalSource, deviceConnectionStateKafkaTarget);
+            deviceConnectionStateConnectorNode.StartProcess();
+
         }
 
         private void GetAccessLogCount(int clientId, int terminalId, int logCount)
@@ -788,6 +841,18 @@ namespace Biovation.Brands.Virdi
                         restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
 
                         await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        //integration
+                        var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
+                        var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
+                        {
+                            new DataChangeMessage<ConnectionStatus>
+                            {
+                                Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                                TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = connectionStatusList
+                            }
+                        };
+
+                        _deviceConnectionStateInternalSource.PushData(biovationBrokerMessageData);
 
                         await _logService.AddLog(new Log
                         {
@@ -864,7 +929,6 @@ namespace Biovation.Brands.Virdi
 
             Logger.Log($"Connected device: {{ ID: {terminalId} , IP: {terminalIp} }}", logType: LogType.Information);
             Logger.Log($"Retrieving new log: {{ ID: {terminalId} , IP: {terminalIp} }}", logType: LogType.Information);
-            RetrieveLogs = new List<Log>();
 
             Task.Run(() =>
             {
@@ -1556,21 +1620,12 @@ namespace Biovation.Brands.Virdi
 
         private void GetAccessLogCallback(int clientId, int terminalId)
         {
-            //RetrieveLogs = new List<Log>();
-            //GetLogTaskFinished = false;
-            Logger.Log($@"<--EventGetAccessLog
-    +ClientID:{clientId}
-    +TerminalID:{terminalId}
-    +ErrorCode:{UcsApi.ErrorCode}
-    +UserID:{AccessLogData.UserID}
-    +DateTime:{AccessLogData.DateTime}
-    +AuthMode:{AccessLogData.AuthMode}
-    +AuthType:{AccessLogData.AuthType}
-    +IsAuthorized:{AccessLogData.IsAuthorized}
-    +Result:{AccessLogData.AuthResult}
-    +RFID:{AccessLogData.RFID}
-    +PictureDataLength:{AccessLogData.PictureDataLength}
-    +Progress:{AccessLogData.CurrentIndex}/{AccessLogData.TotalNumber}/Total:{_logCount}");
+            if (string.Equals(AccessLogData.DateTime, "0000-00-00 00:00:00", StringComparison.InvariantCultureIgnoreCase))
+                return;
+
+            Task<List<TaskInfo>> taskAwaiter = null;
+            if (!_tasks.ContainsKey(clientId))
+                taskAwaiter = _taskService.GetTasks(excludedTaskStatusCodes: string.Empty, taskItemId: clientId);
 
             byte[] picture = null;
             try
@@ -1582,10 +1637,9 @@ namespace Biovation.Brands.Virdi
             {
                 Logger.Log(exception);
             }
-            //var deviceBasicInfo = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
 
-            if (string.Equals(AccessLogData.DateTime, "0000-00-00 00:00:00", StringComparison.InvariantCultureIgnoreCase))
-                return;
+            int currentIndex = AccessLogData.CurrentIndex;
+            int totalCount = AccessLogData.TotalNumber;
 
             var log = new Log
             {
@@ -1602,38 +1656,70 @@ namespace Biovation.Brands.Virdi
                 TnaEvent = 0
             };
 
-            //if (log.EventId == Event.ATHORIZED)
-            //{
-            //    RetrieveLogs.Add(log);
-            //}
-            if (!RetrievedLogs.ContainsKey(clientId))
-                RetrievedLogs[clientId] = new List<Log>();
-
-            RetrievedLogs[clientId].Add(log);
-
-            if (AccessLogData.CurrentIndex == AccessLogData.TotalNumber)
+            Task.Run(async () =>
             {
-                Logger.Log($"Retrieving logs from device: {terminalId} is finished. {AccessLogData.CurrentIndex} logs retrieved and total {AccessLogData.TotalNumber} and {TerminalUserData.CurrentIndex}/{TerminalUserData.TotalNumber} in progress");
-                //var tempLogList = new List<Log>();
-                //tempLogList.AddRange(RetrieveLogs);
-                //GetLogTaskFinished = true;
+                _logger.LogDebug($@"<--EventGetAccessLog
+    +ClientID:{clientId}
+    +TerminalID:{terminalId}
+    +ErrorCode:{UcsApi.ErrorCode}
+    +UserID:{log.UserId}
+    +DateTime:{log.LogDateTime}
+    +AuthMode:{log.SubEvent.Code}
+    +AuthType:{log.AuthType}
+    +IsAuthorized:{log.EventLog.Code == LogEvents.AuthorizedCode}
+    +Result:{log.EventLog.Code == LogEvents.AuthorizedCode}
+    +RFID:{AccessLogData.RFID}
+    +PictureDataLength:{log.PicByte.Length}
+    +Progress:{currentIndex}/{totalCount}/Total:{_logCount}");
 
-                Task.Run(() =>
+                if (!RetrievedLogs.ContainsKey(clientId))
+                    RetrievedLogs[clientId] = new List<Log>();
+
+                RetrievedLogs[clientId].Add(log);
+
+                if (currentIndex == totalCount)
                 {
-                    _virdiLogService.AddLog(RetrievedLogs[clientId]);
-                }).ContinueWith(_ => { RetrievedLogs.Remove(clientId); });
+                    Logger.Log($"Retrieving logs from device: {terminalId} is finished. {currentIndex} logs retrieved and total {totalCount} and {currentIndex}/{totalCount} in progress");
 
-                //try
-                //{
-                //    GetLogSemaphore.Release();
-                //}
-                //catch (Exception exception)
-                //{
-                //    Logger.Log(exception);
-                //}
+                    await Task.Run(async () =>
+                    {
+                        var logInsertion = await _virdiLogService.AddLog(RetrievedLogs[clientId]);
 
-                //RetrieveLogs = new List<Log>();
-            }
+                        var taskItem = _taskService.GetTaskItem(clientId);
+                        taskItem.Status = logInsertion is null || !logInsertion.Success ? _taskStatuses.Failed : _taskStatuses.Done;
+                        taskItem.Result = logInsertion is null || !logInsertion.Success ? JsonConvert.SerializeObject(logInsertion) : taskItem.Result;
+                        _taskService.UpdateTaskStatus(taskItem);
+                    }).ContinueWith(_ => { RetrievedLogs.Remove(clientId); });
+                }
+
+                TaskInfo task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
+                if (_tasks.ContainsKey(clientId))
+                    task = _tasks[clientId];
+                else
+                {
+                    task = taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null;
+                    if (task != null)
+                        _tasks.Add(clientId, task);
+                }
+
+                if (task != null)
+                {
+                    task.TotalCount = totalCount;
+                    task.CurrentIndex = currentIndex;
+                    var taskList = new List<TaskInfo> { task };
+
+                    var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
+                    {
+                        new DataChangeMessage<TaskInfo>
+                        {
+                            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = taskList
+                        }
+                    };
+
+                    _biovationInternalSource.PushData(biovationBrokerMessageData);
+                }
+            });
         }
 
         private void TerminalDisconnectedCallback(int terminalId)
@@ -1662,10 +1748,23 @@ namespace Biovation.Brands.Virdi
                     //_communicationManager.CallRest("/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
                     //                 new List<object> { data });
 
-                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+                   // var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                   // restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
 
-                    await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                   // await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //integration
+                   
+                    var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
+                    var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
+                    {
+                        new DataChangeMessage<ConnectionStatus>
+                        {
+                            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = connectionStatusList
+                        }
+                    };
+
+                    _deviceConnectionStateInternalSource.PushData(biovationBrokerMessageData);
 
                     await _logService.AddLog(new Log
                     {
@@ -1673,6 +1772,7 @@ namespace Biovation.Brands.Virdi
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.Disconnect
                     });
+
                 }
                 catch (Exception)
                 {
@@ -1732,8 +1832,7 @@ namespace Biovation.Brands.Virdi
             {
                 return;
             }
-
-       
+           
             var isoEncoding = Encoding.GetEncoding(28591);
             var windowsEncoding = Encoding.GetEncoding(1256);
 
@@ -1785,11 +1884,25 @@ namespace Biovation.Brands.Virdi
             };
 
             RetrieveUsers.Add(user);
-
+            //int totalCount = TerminalUserData.TotalNumber;
+            //int currentIndex = TerminalUserData.CurrentIndex;
             if (TerminalUserData.CurrentIndex == TerminalUserData.TotalNumber)
             {
                 GetUserTaskFinished = true;
             }
+            /*Task.Run(async () =>
+            {
+
+                var taskItem = _taskService.GetTaskItem(clientId);
+                if (taskItem != null)
+                {
+                    taskItem.TotalCount = totalCount;
+                    taskItem.CurrentIndex = currentIndex;
+
+                }
+
+                _taskService.UpdateTaskStatus(taskItem);
+            });*/
             //for (var i = 0; i < 20; i++)
             //{
             //    Thread.Sleep(100);

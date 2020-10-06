@@ -19,13 +19,13 @@
     <PackageReference Include="App.Metrics.AspNetCore.Tracking" Version="4.1.0" />
     <PackageReference Include="App.Metrics.Extensions.Mvc" Version="1.2.1" />
     <PackageReference Include="App.Metrics.Formatters.Json" Version="4.1.0" />
-    <PackageReference Include="InfluxDB.Client" Version="1.11.0" />
-    <PackageReference Include="InfluxDB.Client.Flux" Version="1.11.0" />
+    <PackageReference Include="App.Metrics.Reporting.Http" Version="4.1.0" />
     <PackageReference Include="InfluxDB.Collector" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.7" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="morelinq" Version="3.3.2" />
+    <PackageReference Include="Quartz.AspNetCore" Version="3.1.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
   </ItemGroup>
