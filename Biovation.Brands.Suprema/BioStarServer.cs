@@ -88,15 +88,17 @@ namespace Biovation.Brands.Suprema
         private readonly LogService _logService;
         private readonly SupremaLogService _supremaLogService;
 
-        private bool _readingLogsInProgress;
+      
         private bool _handlingOfflineEventsInProgress;
 
         private readonly LogEvents _logEvents;
         private readonly MatchingTypes _matchingTypes;
 
 
-        public Queue<KeyValuePair<uint, Task>> LogReaderQueue = new Queue<KeyValuePair<uint, Task>>();
-        public Queue<KeyValuePair<uint, Task>> OfflineEventHandlersQueue = new Queue<KeyValuePair<uint, Task>>();
+        public static Queue<KeyValuePair<uint, Task>> LogReaderQueue = new Queue<KeyValuePair<uint, Task>>();
+        public static Queue<KeyValuePair<uint, Task>> OfflineEventHandlersQueue = new Queue<KeyValuePair<uint, Task>>();
+
+        private static bool _readingLogsInProgress;
 
         public BioStarServer(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, SupremaLogService supremaLogService, RestClient monitoringRestClient)
         {
@@ -1602,7 +1604,7 @@ namespace Biovation.Brands.Suprema
             return _onlineDevices;
         }
 
-        public void StartReadLogs()
+        public static void StartReadLogs()
         {
             if (_readingLogsInProgress)
                 return;

@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Brands.Suprema.Devices;
+﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.SocketHandler;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -12,14 +11,14 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
-        private ClientConnection Sender { get; }
 
-        public SupremaGetOnlineDevices(Dictionary<uint, Device> devices, ClientConnection sender)
+
+        public SupremaGetOnlineDevices(Dictionary<uint, Device> onlineDevices )
         {
-            OnlineDevices = devices;
-            Sender = sender;
+            _onlineDevices = onlineDevices;
+
         }
 
         /// <summary>
@@ -28,25 +27,19 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-            if (Sender == null)
-            {
-                Logger.Log("Get Online Devices Command:" +
-                                  "Error: No connection has been set for this command!");
-
-                return false;
-            }
+           
 
             var deviceList = new List<int>();
 
-            foreach (var device in OnlineDevices)
+            foreach (var device in _onlineDevices)
             {
                 deviceList.Add(Convert.ToInt32(device.Value.GetDeviceInfo().DeviceId));
             }
 
             var data = Newtonsoft.Json.JsonConvert.SerializeObject(deviceList);
 
-            Sender.Send(data);
-            Sender.Disconnect();
+           // Sender.Send(data);
+            //Sender.Disconnect();
 
             return true;
         }

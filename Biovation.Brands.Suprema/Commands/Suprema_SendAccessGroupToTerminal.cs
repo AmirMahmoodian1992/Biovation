@@ -1,12 +1,10 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -15,27 +13,29 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
+
 
         private int DeviceId { get; }
         private uint Code { get; }
         private int AccessGroupId { get; set; }
         private AccessGroup AccessGroupObj { get; }
 
-        private readonly AccessGroupService _accessGroupService = new AccessGroupService();
+        private readonly AccessGroupService _accessGroupService;
 
-        public SupremaSendAccessGroupToTerminal(uint code, int accessGroupId, Dictionary<uint, Device> devices)
+        public SupremaSendAccessGroupToTerminal(uint code, int accessGroupId, Dictionary<uint, Device> onlineDevices)
         {
             Code = code;
             AccessGroupId = accessGroupId;
-            AccessGroupObj = _accessGroupService.GetAccessGroupById(accessGroupId);
-            OnlineDevices = devices;
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
+            _onlineDevices = onlineDevices;
+            AccessGroupObj = _accessGroupService.GetAccessGroup(accessGroupId);
+            _onlineDevices = onlineDevices;
+            DeviceId = onlineDevices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
         }
 
         public object Execute()
         {
-            if (OnlineDevices.All(device => device.Key != Code))
+            if (_onlineDevices.All(device => device.Key != Code))
             {
                 Console.WriteLine($"[Suprema] : The device: {Code} is not connected.");
                 return false;
@@ -49,7 +49,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             try
             {
-                var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+                var device = _onlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.TransferAccessGroup(AccessGroupObj.Id);
                 return result;
             }

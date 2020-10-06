@@ -9,29 +9,29 @@ namespace Biovation.Brands.Suprema.Commands
 {
     class SupremaDeleteUserFromTerminal : ICommand
     {
-        private Dictionary<uint, Device> OnlineDevices { get; }
-
+        // private Dictionary<uint, Device> _onlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
         private uint DeviceId { get; }
 
         private uint UserId { get; }
 
         private readonly TaskStatuses _taskStatuses;
-        public SupremaDeleteUserFromTerminal(uint deviceId, Dictionary<uint, Device> devices, uint userId, TaskStatuses taskStatuses)
+        public SupremaDeleteUserFromTerminal(uint deviceId, uint userId, TaskStatuses taskStatuses, Dictionary<uint, Device> onlineDevices)
         {
             DeviceId = deviceId;
-            OnlineDevices = devices;
             UserId = userId;
             _taskStatuses = taskStatuses;
+            _onlineDevices = onlineDevices;
         }
 
         public object Execute()
         {
-            if (!OnlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
+            if (!_onlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
             {
                 return null;
             }
 
-            var successDeleteUser = OnlineDevices[DeviceId].DeleteUser(UserId);
+            var successDeleteUser = _onlineDevices[DeviceId].DeleteUser(UserId);
             if (successDeleteUser) return new ResultViewModel { Id = DeviceId, Message = "Successfully deleted", Validate = 1, Code = Convert.ToInt64(_taskStatuses.Done.Code) };
             return new ResultViewModel { Id = DeviceId, Message = "UnSuccessfully deleted", Validate = 0, Code = Convert.ToInt64(_taskStatuses.Done.Code) };
         }

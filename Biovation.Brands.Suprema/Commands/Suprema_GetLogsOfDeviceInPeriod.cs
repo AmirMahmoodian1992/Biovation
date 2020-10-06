@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Brands.Suprema.Devices;
+﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -11,18 +11,18 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
         private uint DeviceId { get; }
         private long StartDate { get; }
         private long EndDate { get; }
 
-        public SupremaGetLogsOfDeviceInPeriod(uint deviceId, long startDate, long endDate, Dictionary<uint, Device> devices)
+        public SupremaGetLogsOfDeviceInPeriod(uint deviceId, long startDate, long endDate, Dictionary<uint, Device> onlineDevices)
         {
             DeviceId = deviceId;
             StartDate = startDate;
             EndDate = endDate;
-            OnlineDevices = devices;
+            _onlineDevices = onlineDevices;
         }
 
         /// <summary>
@@ -40,9 +40,9 @@ namespace Biovation.Brands.Suprema.Commands
             var startDateTicks = Convert.ToInt32((StartDate / 10000000) - refDate);
             var endDateTicks = Convert.ToInt32((EndDate / 10000000) - refDate);
 
-            if (OnlineDevices.ContainsKey(DeviceId))
+            if (_onlineDevices.ContainsKey(DeviceId))
             {
-                return OnlineDevices[DeviceId].ReadLogOfPeriod(startDateTicks, endDateTicks);
+                return _onlineDevices[DeviceId].ReadLogOfPeriod(startDateTicks, endDateTicks);
             }
 
             Logger.Log($"Device: {DeviceId} is not connected.");

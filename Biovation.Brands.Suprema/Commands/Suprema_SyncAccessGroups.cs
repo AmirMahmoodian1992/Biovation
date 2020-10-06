@@ -1,11 +1,12 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -15,16 +16,20 @@ namespace Biovation.Brands.Suprema.Commands
     /// <seealso cref="Command" />
     public class SupremaSyncAccessGroups : ICommand
     {
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly DeviceService _deviceService;
 
         /// <summary>
         /// All connected devices
         /// </summary>
         private Dictionary<uint, Device> Devices { get; }
 
-        public SupremaSyncAccessGroups(Dictionary<uint, Device> devices)
+        private readonly AccessGroupService _accessGroupService;
+        private  readonly  
+        public SupremaSyncAccessGroups(Dictionary<uint, Device> devices, DeviceService deviceService, AccessGroupService accessGroupService)
         {
             Devices = devices;
+            _deviceService = deviceService;
+            _accessGroupService = accessGroupService;
         }
 
         /// <summary>
@@ -33,9 +38,9 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-            var accessGroupService = new AccessGroupService();
-
-            var accessGroups = accessGroupService.GetAllAccessGroups();
+       
+                
+            var accessGroups = _accessGroupService.GetAccessGroups();
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
             var offlineEventService = new OfflineEventService();

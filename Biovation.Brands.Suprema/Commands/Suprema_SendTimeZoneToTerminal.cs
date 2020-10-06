@@ -1,12 +1,12 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TimeZone = Biovation.CommonClasses.Models.TimeZone;
+using Biovation.Service.Api.v1;
+using TimeZone = Biovation.Domain.TimeZone;
+
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -15,27 +15,30 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
+
 
         private int DeviceId { get; }
         private uint Code { get; }
         private int TimeZoneId { get; set; }
-        private TimeZone TimeZoneObj { get; }
+       private TimeZone TimeZoneObj { get; }
 
-        private readonly TimeZoneService _timeZoneService = new TimeZoneService();
+        private readonly TimeZoneService _timeZoneService ;
 
-        public SupremaSendTimeZoneToTerminal(uint code, int timeZoneId, Dictionary<uint, Device> devices)
+        public SupremaSendTimeZoneToTerminal(uint code, int timeZoneId,  TimeZoneService timeZoneService, Dictionary<uint, Device> onlineDevices)
         {
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
+            DeviceId = onlineDevices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
             TimeZoneId = timeZoneId;
-            TimeZoneObj = _timeZoneService.GetTimeZoneById(timeZoneId);
-            OnlineDevices = devices;
+            _timeZoneService = timeZoneService;
+            _onlineDevices = onlineDevices;
+            TimeZoneObj = _timeZoneService.TimeZones(timeZoneId);
+            _onlineDevices = onlineDevices;
             Code = code;
         }
 
         public object Execute()
         {
-            if (OnlineDevices.All(device => device.Value.GetDeviceInfo().DeviceId != DeviceId))
+            if (_onlineDevices.All(device => device.Value.GetDeviceInfo().DeviceId != DeviceId))
             {
                 Console.WriteLine($"[Suprema] : The device: {Code} is not connected.");
                 return false;
@@ -49,7 +52,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             try
             {
-                var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+                var device = _onlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.TransferTimeZone(TimeZoneId);
                 return result;
             }

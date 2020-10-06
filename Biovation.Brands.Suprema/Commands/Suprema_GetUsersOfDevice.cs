@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Brands.Suprema.Devices;
+﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
+using System;
+using System.Collections.Generic;
+using Biovation.Constants;
+using Biovation.Domain;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -15,14 +15,19 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
+        private readonly TaskStatuses _taskStatuses;
+
+
 
         private uint DeviceId { get; }
 
-        public SupremaGetUsersOfDevice(uint deviceId, Dictionary<uint, Device> devices)
+        public SupremaGetUsersOfDevice(uint deviceId, TaskStatuses taskStatuses, Dictionary<uint, Device> onlineDevices)
         {
             DeviceId = deviceId;
-            OnlineDevices = devices;
+            _taskStatuses = taskStatuses;
+            _onlineDevices = onlineDevices;
+  
         }
 
         /// <summary>
@@ -33,12 +38,12 @@ namespace Biovation.Brands.Suprema.Commands
         {
             //var DeviceId = Convert.ToUInt32(items.First());
 
-            if (!OnlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
+            if (!_onlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
             {
                 return null;
             }
 
-            var usersOfDevice = OnlineDevices[DeviceId].GetAllUsers();
+            var usersOfDevice = _onlineDevices[DeviceId].GetAllUsers();
 
             /*for (int i = 0; i < 1000; i++)
             {

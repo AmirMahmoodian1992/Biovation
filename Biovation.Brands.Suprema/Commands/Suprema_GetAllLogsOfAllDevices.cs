@@ -11,12 +11,12 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
 
-        public SupremaGetLogsOfAllDevices(Dictionary<uint, Device> devices)
+        public SupremaGetLogsOfAllDevices(Dictionary<uint, Device> onlineDevices)
         {
-            OnlineDevices = devices;
+            _onlineDevices = onlineDevices;
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Biovation.Brands.Suprema.Commands
             //var startDate = itemsList[1].ToString();
             //var endDate = itemsList[2].ToString();
 
-            foreach (var device in OnlineDevices)
+            foreach (var device in _onlineDevices)
             {
                 var refDate = new DateTime(1970, 1, 1).Ticks / 10000000;
                 var startDateTicks =
@@ -41,7 +41,7 @@ namespace Biovation.Brands.Suprema.Commands
                 var endDateTicks = Convert.ToInt32(Convert.ToInt64(DateTime.Today.AddDays(1).Ticks) / 10000000 - refDate);
 
 
-                OnlineDevices[device.Value.GetDeviceInfo().Code].ReadLogOfPeriod(startDateTicks, endDateTicks);
+                _onlineDevices[device.Value.GetDeviceInfo().Code].ReadLogOfPeriod(startDateTicks, endDateTicks);
                 Logger.Log($"Device: {device.Value.GetDeviceInfo().DeviceId} is discharged.");
 
                 return true;

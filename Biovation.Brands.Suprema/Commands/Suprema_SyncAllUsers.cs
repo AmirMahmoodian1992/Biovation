@@ -1,12 +1,12 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
+using Biovation.Domain;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -18,9 +18,9 @@ namespace Biovation.Brands.Suprema.Commands
     {
         private readonly object _lockObject = new object();
 
-        private readonly AccessGroupService _accessGroupService = new AccessGroupService();
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly UserService _userService = new UserService();
+        private readonly AccessGroupService _accessGroupService;
+        private readonly DeviceService _deviceService;
+        private readonly UserService _userService;
 
         /// <summary>
         /// All connected devices
@@ -84,7 +84,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             foreach (var Event in allUserEvents)
             {
-                var user = _userService.GetUser(userCode:Event.Id, withPicture:false);
+                var user = _userService.GetUser(userCode: Event.Id, withPicture: false);
                 var accessGroupService = new AccessGroupService();
                 var userAccess = accessGroupService.GetAccessGroupsOfUser(user.Id);
 
@@ -272,7 +272,7 @@ namespace Biovation.Brands.Suprema.Commands
                 {
                     tasks.Add(Task.Run(() =>
                     {
-                        var user = _userService.GetUser(userCode:Event.Id, withPicture:false);
+                        var user = _userService.GetUser(userCode: Event.Id, withPicture: false);
 
                         //var localDevice = tempDevice;
                         //var device = deviceFactory.Factory(tempDevice.Value, ConnectionType);

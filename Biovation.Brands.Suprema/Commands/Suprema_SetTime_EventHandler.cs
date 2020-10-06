@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Biovation.Brands.Suprema.Devices;
+using Biovation.CommonClasses.Interface;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Devices;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -14,12 +13,12 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public SupremaSetTime(int timeToSet, Dictionary<uint, Device> devices)
+        public SupremaSetTime(int timeToSet, Dictionary<uint, Device> onlineDevices)
         {
-            OnlineDevices = devices;
             TimeToSet = timeToSet;
+            _onlineDevices = onlineDevices;
         }
 
         public object Execute()
@@ -28,7 +27,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             var tasksDevice = new List<Task>();
 
-            foreach (var device in OnlineDevices)
+            foreach (var device in _onlineDevices)
             {
                 tasksDevice.Add(Task.Run(() =>
                 {

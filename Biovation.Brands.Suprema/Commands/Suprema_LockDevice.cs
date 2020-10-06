@@ -1,30 +1,30 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.CommonClasses;
+using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
 
 namespace Biovation.Brands.Suprema.Commands
 {
     class SupremaLockDevice : ICommand
     {
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
+
         private int DeviceId { get; }
         private uint Code { get; }
 
-        public SupremaLockDevice(uint code, Dictionary<uint, Device> devices)
+        public SupremaLockDevice(uint code, Dictionary<uint, Device> devices, Dictionary<uint, Device> onlineDevices)
         {
             Code = code;
+            _onlineDevices = onlineDevices;
             DeviceId = devices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
-            OnlineDevices = devices;
+            
         }
 
         public object Execute()
         {
-            if (OnlineDevices.All(device => device.Key != Code))
+            if (_onlineDevices.All(device => device.Key != Code))
             {
                 Console.WriteLine($"[Suprema] : The device: {Code} is not connected.");
                 return new ResultViewModel { Validate = 0, Id = DeviceId };
@@ -32,12 +32,12 @@ namespace Biovation.Brands.Suprema.Commands
 
             try
             {
-                var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+                var device = _onlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.LockDevice();
                 if (result)
                 {
                     Console.WriteLine($"[Suprema] --> Terminal:{Code} Locked(Shutdown)");
-                    Console.WriteLine("   +ErrorCode :" + result);
+                    Console.WriteLine("   +ErrorCode :" + true);
                     Console.WriteLine("");
                 }
                 else
@@ -47,7 +47,7 @@ namespace Biovation.Brands.Suprema.Commands
                     Console.WriteLine("");
                 }
 
-                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId }; ;
+                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId };
             }
             catch (Exception exception)
             {

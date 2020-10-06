@@ -1,40 +1,57 @@
-﻿using System;
+﻿using Biovation.Brands.Suprema.Manager;
+using Biovation.CommonClasses;
+using Biovation.CommonClasses.Interface;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.Suprema.Devices;
-using Biovation.Brands.Suprema.Manager;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
-using RestSharp;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Suprema.Commands
 {
     public class SupremaRetrieveUserFromDevice : ICommand
     {
-        private Dictionary<uint, Device> OnlineDevices { get; }
+
+
+        private readonly Dictionary<uint, Device> _onlineDevices;
+
+
 
         private uint DeviceId { get; }
 
         private uint UserId { get; }
         //private uint Code { get; }
 
-        private readonly DeviceService _deviceService = new DeviceService();
-        private UserService _userService = new UserService();
-        private UserCardService _userCardService = new UserCardService();
-        private FingerTemplateService _fingerTemplateService = new FingerTemplateService();
-        private FaceTemplateService _faceTemplateService = new FaceTemplateService();
-        private AccessGroupService _commonAccessGroupService = new AccessGroupService();
+        private readonly DeviceService _deviceService;
+        private readonly UserService _userService;
+        private readonly UserCardService _userCardService;
+        private readonly FingerTemplateService _fingerTemplateService;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly AccessGroupService _commonAccessGroupService;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
 
-        public SupremaRetrieveUserFromDevice(uint deviceId, Dictionary<uint, Device> devices, uint userId)
+        public SupremaRetrieveUserFromDevice(uint deviceId, uint userId, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, AccessGroupService commonAccessGroupService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes)
         {
             DeviceId = deviceId;
-            OnlineDevices = devices;
+            _onlineDevices = onlineDevices;
+            _userService = userService;
+            _userCardService = userCardService;
+            _fingerTemplateService = fingerTemplateService;
+            _faceTemplateService = faceTemplateService;
+            _commonAccessGroupService = commonAccessGroupService;
+            _fingerTemplateTypes = fingerTemplateTypes;
+
+            _biometricTemplateManager = biometricTemplateManager;
+            _faceTemplateTypes = faceTemplateTypes;
             UserId = userId;
+            _deviceService = deviceService;
             //Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId((int)DeviceId, DeviceBrands.SupremaCode)?.Code ?? 0;
 
         }
@@ -44,11 +61,11 @@ namespace Biovation.Brands.Suprema.Commands
 
         public object Execute()
         {
-            if (!OnlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
+            if (!_onlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
             {
                 return null;
             }
-            var userOfDevice = OnlineDevices[DeviceId].GetUser(UserId);
+            var userOfDevice = _onlineDevices[DeviceId].GetUser(UserId);
             if (!(userOfDevice is null))
             {
                 try
@@ -66,7 +83,8 @@ namespace Biovation.Brands.Suprema.Commands
 
                     var user = new User
                     {
-                        Id = 0, 
+                        Id = 0,
+                        //todo
                         Code = userOfDevice.Id,
                         AdminLevel = userOfDevice.AdminLevel,
                         StartDate = userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00"
@@ -86,14 +104,14 @@ namespace Biovation.Brands.Suprema.Commands
 
 
 
-                    var existUser = _userService.GetUser(userCode:userOfDevice.Id);
+                    var existUser = _userService.GetUsers( userOfDevice.Id).FirstOrDefault();
 
                     if (existUser != null)
                     {
                         user = new User
                         {
                             Id = 0,
-                            Code = userOfDevice.Id,
+                            //Code = userOfDevice.Id,
                             AdminLevel = userOfDevice.AdminLevel,
                             StartDate = userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00"
                                 ? DateTime.Parse("1970/01/01")
@@ -111,7 +129,7 @@ namespace Biovation.Brands.Suprema.Commands
                     }
 
                     _userService.ModifyUser(user);
-                    user.Id = _userService.GetUser(userCode: userOfDevice.Id).Id;
+                    user.Id = _userService.GetUsers(userOfDevice.Id).FirstOrDefault().Id;
 
                     //Card
                     try
@@ -156,7 +174,7 @@ namespace Biovation.Brands.Suprema.Commands
                             {
 
                                 // if (existUser.FingerTemplates.Exists(fp =>
-                                //fp.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(fingerIndex).Code && fp.FingerTemplateType == FingerTemplateTypes.V400))
+                                //fp.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerIndex).Code && fp.FingerTemplateType == _fingerTemplateTypes.V400))
 
 
                                 var firstTemplateSampleChecksum = userOfDevice.FingerTemplates[i].CheckSum;
@@ -174,7 +192,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 //var fingerTemplates = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id).Where(ft => ft.FingerTemplateType.Code == tempFingerTemplateTypes.Code).ToList();
                                 //var fingerTemplates = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id).ToList();
                                 var fingerTemplates = existUser.FingerTemplates
-                                    .Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.SU384.Code).ToList();
+                                    .Where(ft => ft.FingerTemplateType.Code == _fingerTemplateTypes.SU384.Code).ToList();
 
 
                                 if (fingerTemplates.Exists(ft => ft.CheckSum == firstTemplateSampleChecksum) &&
@@ -192,8 +210,8 @@ namespace Biovation.Brands.Suprema.Commands
 
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
-                                    FingerIndex = BiometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft =>
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Count(ft =>
                                         ft.FingerIndex.Code ==
                                         userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
                                     TemplateIndex = 0,
@@ -201,14 +219,14 @@ namespace Biovation.Brands.Suprema.Commands
                                     Template = userOfDevice.FingerTemplates[i].Template,
                                     CheckSum = firstTemplateSampleChecksum,
                                     UserId = user.Id,
-                                    FingerTemplateType = FingerTemplateTypes.SU384
+                                    FingerTemplateType = _fingerTemplateTypes.SU384
                                 });
 
 
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
-                                    FingerIndex = BiometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft =>
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Count(ft =>
                                         ft.FingerIndex.Code ==
                                         userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
                                     TemplateIndex = 1,
@@ -216,7 +234,7 @@ namespace Biovation.Brands.Suprema.Commands
                                     Template = userOfDevice.FingerTemplates[i + 1].Template,
                                     CheckSum = secondTemplateSampleChecksum,
                                     UserId = user.Id,
-                                    FingerTemplateType = FingerTemplateTypes.SU384
+                                    FingerTemplateType = _fingerTemplateTypes.SU384
                                 });
                             }
                             else
@@ -239,26 +257,26 @@ namespace Biovation.Brands.Suprema.Commands
 
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
-                                    FingerIndex = BiometricTemplateManager.GetFingerIndex(0),
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
                                     Index = userOfDevice.FingerTemplates[i].Index,
                                     TemplateIndex = 0,
                                     Size = userOfDevice.FingerTemplates[i].Size,
                                     Template = userOfDevice.FingerTemplates[i].Template,
                                     CheckSum = firstTemplateSampleChecksum,
                                     UserId = user.Id,
-                                    FingerTemplateType = FingerTemplateTypes.SU384
+                                    FingerTemplateType = _fingerTemplateTypes.SU384
                                 });
 
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
-                                    FingerIndex = BiometricTemplateManager.GetFingerIndex(0),
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
                                     Index = userOfDevice.FingerTemplates[i + 1].Index,
                                     TemplateIndex = 1,
                                     Size = userOfDevice.FingerTemplates[i + 1].Size,
                                     Template = userOfDevice.FingerTemplates[i + 1].Template,
                                     CheckSum = secondTemplateSampleChecksum,
                                     UserId = user.Id,
-                                    FingerTemplateType = FingerTemplateTypes.SU384
+                                    FingerTemplateType = _fingerTemplateTypes.SU384
                                 });
                             }
                         }
@@ -288,7 +306,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 if (user.FaceTemplates is null)
                                     user.FaceTemplates = new List<FaceTemplate>();
 
-                                var userFaces = _faceTemplateService.GetFaceTemplateByUserId(user.Id);
+                                var userFaces = _faceTemplateService.FaceTemplates(userId:user.Id);
                                 //existUser.FaceTemplates = new List<FaceTemplate>();
 
                                 if (existUser != null)
@@ -297,7 +315,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 var faceTemplate = new FaceTemplate
                                 {
                                     Index = faceCount,
-                                    FaceTemplateType = FaceTemplateTypes.VFACE,
+                                    FaceTemplateType = _faceTemplateTypes.VFACE,
                                     UserId = user.Id,
                                     Template = userOfDevice.FaceTemplates[0].Template,
                                     CheckSum = userOfDevice.FaceTemplates[0].CheckSum,
@@ -306,7 +324,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 if (existUser != null)
                                 {
                                     if (!existUser.FaceTemplates.Exists(fp =>
-                                        fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
+                                        fp.FaceTemplateType.Code == _faceTemplateTypes.VFACE.Code))
                                         user.FaceTemplates.Add(faceTemplate);
                                 }
                                 else
@@ -333,19 +351,22 @@ namespace Biovation.Brands.Suprema.Commands
                         {
                             try
                             {
+                                //todo
+                                //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(userId:user.Id,userGroupId: 4);
 
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
-                                    var devices =
-                                        _deviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.VirdiCode);
+                                    var onlineDevices =
+                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.VirdiCode));
 
-                                    foreach (var device in devices)
+                                    foreach (var device in onlineDevices)
                                     {
                                         //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
                                         var restRequest = new RestRequest($"Suprema/SupremaDevice/SendUserToDevice");
                                         restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
-                                        restRequest.AddQueryParameter("userId", user.Code.ToString());
+                                        //restRequest.AddQueryParameter("userId", user.Code.ToString());
+                                        restRequest.AddQueryParameter("userId", user.Id.ToString());
                                     }
                                 }
 
@@ -361,7 +382,7 @@ namespace Biovation.Brands.Suprema.Commands
                                                 var restRequest =
                                                     new RestRequest($"Suprema/SupremaDevice/SendUserToDevice");
                                                 restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
-                                                restRequest.AddQueryParameter("userId", user.Code.ToString());
+                                                restRequest.AddQueryParameter("userId", user.Id.ToString());
                                             }
                                         }
                                     }
@@ -384,8 +405,8 @@ namespace Biovation.Brands.Suprema.Commands
                 }
                 return new ResultViewModel<User> { Data = userOfDevice, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
             }
-            return new ResultViewModel<User> {Id = DeviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
-            
+            return new ResultViewModel<User> { Id = DeviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+
         }
 
         public string GetDescription()

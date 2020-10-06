@@ -1,10 +1,10 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -17,14 +17,14 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
         private uint DeviceId { get; }
 
-        public SupremaGetAllLogsOfDevice(uint deviceId, Dictionary<uint, Device> devices)
+        public SupremaGetAllLogsOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices)
         {
             DeviceId = deviceId;
-            OnlineDevices = devices;
+            _onlineDevices = onlineDevices;
         }
 
         /// <summary>
@@ -33,10 +33,10 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-            if (OnlineDevices.ContainsKey(DeviceId))
+            if (_onlineDevices.ContainsKey(DeviceId))
             {
-                //OnlineDevices[DeviceId].ReadOfflineLog(new CancellationToken());
-                BioStarServer.LogReaderQueue.Enqueue(new KeyValuePair<uint, Task>(DeviceId, new Task(() => OnlineDevices[DeviceId].ReadOfflineLog(new CancellationToken()))));
+                //_onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken());
+                BioStarServer.LogReaderQueue.Enqueue(new KeyValuePair<uint, Task>(DeviceId, new Task(() => _onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken()))));
                 BioStarServer.StartReadLogs();
                 return true;
             }
