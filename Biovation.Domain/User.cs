@@ -40,6 +40,7 @@ namespace Biovation.Domain
         public string TelNumber { get; set; }
 
         private byte[] _imageBytes;
+        private string _image;
         public byte[] ImageBytes
         {
             get => _imageBytes;
@@ -51,12 +52,17 @@ namespace Biovation.Domain
 
         public string Image
         {
-            get => _imageBytes!=null?Convert.ToBase64String(_imageBytes):null;
-            set =>
-                //Image = value;
-                
-                _imageBytes = ImageBytes != null?Convert.FromBase64String(value):null;
+             get => _imageBytes!=null?Convert.ToBase64String(_imageBytes):_image;
+            //get => _image;
+            set
+            {
+                _imageBytes = ImageBytes != null ? Convert.FromBase64String(value) : null;
+                _image = value;
+            }
+            //Image = value;
+            // _image =  value;
         }
+
         /// <summary>
         /// نام
         /// </summary>

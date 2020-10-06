@@ -61,7 +61,7 @@ namespace Biovation.Brands.Virdi.Command
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
-            UserObj = userService.GetUsers(UserId).FirstOrDefault();
+            UserObj = userService.GetUsers(UserId,true).FirstOrDefault();
 
             var blackList = blackListService.GetBlacklist(id: default, userId: UserId, deviceId: DeviceId, startDate: DateTime.Now, endDate: DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
@@ -109,7 +109,8 @@ namespace Biovation.Brands.Virdi.Command
                 _callbacks.ServerUserData.UserID = (int)UserObj.Id;
                 _callbacks.ServerUserData.UniqueID = UserObj.Id.ToString();
                 _callbacks.ServerUserData.UserName = userName;
-
+                _callbacks.ServerUserData.SetPictureData(UserObj.ImageBytes.Length,"3",UserObj.ImageBytes);
+              
                 var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(personId: UserId);
                 _callbacks.ServerUserData.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId) ? 1 : 0;
 

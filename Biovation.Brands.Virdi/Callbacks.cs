@@ -1806,19 +1806,22 @@ namespace Biovation.Brands.Virdi
             {
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
-
+                
                 var userName = string.IsNullOrEmpty(TerminalUserData.UserName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(TerminalUserData.UserName));
                 var indexOfSpace = userName?.IndexOf(' ') ?? 0;
                 var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace) : null;
                 var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace) : userName;
 
                 var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" } , { "Z", "ژ" } };
+                if (userName != null)
+                {
+                    userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                    surName = replacements.Aggregate(surName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                    firstName = replacements.Aggregate(firstName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
 
-                userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-                surName = replacements.Aggregate(surName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-                firstName = replacements.Aggregate(firstName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-
+                }
                 byte[] picture = null;
+      
                 try
                 {
                     if (TerminalUserData.PictureDataLength > 0)
