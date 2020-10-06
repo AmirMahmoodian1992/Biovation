@@ -267,12 +267,12 @@ namespace Biovation.Brands.Virdi
             var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
             //var virdiCodeMappings = new VirdiCodeMappings(serviceProvider.GetService<GenericCodeMappings>());
 
-            var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
-                , serviceProvider.GetService<AccessGroupService>(), serviceProvider.GetService<FingerTemplateService>(), serviceProvider.GetService<LogService>(), serviceProvider.GetService<BlackListService>()
-                , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
-                , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
-                , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
-
+            //var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
+            //    , serviceProvider.GetService<AccessGroupService>(), serviceProvider.GetService<FingerTemplateService>(), serviceProvider.GetService<LogService>(), serviceProvider.GetService<BlackListService>()
+            //    , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
+            //    , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
+            //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
+            var virdiCallBacks = serviceProvider.GetService<Callbacks>();
 
             services.AddSingleton(UcsApi);
             services.AddSingleton(UcBioApi);

@@ -1,0 +1,70 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Web.Http;
+using Biovation.Brands.ZK.Command;
+using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.CommonClasses.Service;
+using Newtonsoft.Json;
+
+namespace Biovation.Brands.ZK.ApiControllers
+{
+    public class ZKLogController : ApiController
+    {
+
+
+        private readonly TaskService _taskService = new TaskService();
+        private readonly UserService _userService = new UserService();
+        private readonly DeviceService _deviceService = new DeviceService();
+
+        [HttpPost]
+        public Task<ResultViewModel> ClearLog(uint code, DateTime? fromDate, DateTime? toDate)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var device = _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.ZkTecoCode);
+                    var creatorUser = _userService.GetUser(123456789, false);
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = TaskTypes.ClearLog,
+                        Priority = TaskPriorities.Medium,
+                        DeviceBrand = DeviceBrands.ZkTeco,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = TaskStatuses.Queued,
+                        TaskItemType = TaskItemTypes.ClearLog,
+                        Priority = TaskPriorities.Medium,
+                        DueDate = DateTime.Today,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new
+                        {
+                            fromDate,
+                            toDate
+                        }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+
+                        OrderIndex = 1
+                    });
+
+
+                    _taskService.InsertTask(task).Wait();
+                    ZKTecoServer.ProcessQueue();
+                    return new ResultViewModel {Validate = 1, Message = "Clear LOg queued"};
+                }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                }
+            });
+
+        }
+    }
+}
