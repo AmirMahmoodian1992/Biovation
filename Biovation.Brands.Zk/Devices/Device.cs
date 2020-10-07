@@ -233,9 +233,6 @@ namespace Biovation.Brands.ZK.Devices
                 IsConnected = true
             };
 
-            var data = JsonConvert.SerializeObject(connectionStatus);
-            data = "jsoninput=" + data;
-
             try
             {
                 //_communicationManager.CallRest(
@@ -273,6 +270,7 @@ namespace Biovation.Brands.ZK.Devices
                     Priority = _taskPriorities.Medium,
                     TaskItems = new List<TaskItem>(),
                     DeviceBrand = _deviceBrands.ZkTeco,
+                    DueDate = DateTimeOffset.Now
                 };
 
                 task.TaskItems.Add(new TaskItem
@@ -280,7 +278,6 @@ namespace Biovation.Brands.ZK.Devices
                     Status = _taskStatuses.Queued,
                     TaskItemType = _taskItemTypes.GetLogs,
                     Priority = _taskPriorities.Medium,
-                    
                     DeviceId = DeviceInfo.DeviceId,
                     Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
                     IsParallelRestricted = true,

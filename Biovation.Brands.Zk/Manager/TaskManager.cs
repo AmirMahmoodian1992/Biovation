@@ -340,8 +340,8 @@ namespace Biovation.Brands.ZK.Manager
         public void ProcessQueue()
         {
             lock (_tasks)
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                    excludedTaskStatusCodes: new List<string> { _taskStatuses.DoneCode, _taskStatuses.FailedCode }).Result;
+                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode,
+                    excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
 
             if (_processingQueueInProgress)
                 return;

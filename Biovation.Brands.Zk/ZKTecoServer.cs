@@ -10,13 +10,14 @@ using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK
 {
-    public class ZKTecoServer
+    public class ZkTecoServer
     {
         /// <summary>
         /// نمونه ی ساخته شده از سرور
         /// </summary>
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly DeviceFactory _deviceFactory;
         private readonly List<DeviceBasicInfo> _zkDevices;
         /// 
 
@@ -26,21 +27,18 @@ namespace Biovation.Brands.ZK
         /// </summary>
         /// <returns></returns>
 
-        private ZKTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
+        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory)
         {
             _onlineDevices = onlineDevices;
+            _deviceFactory = deviceFactory;
             _zkDevices = deviceService.GetDevices(brandId:DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
         }
-
-        
 
         /// <summary>
         /// <En>Make or return the unique instance of Zk Server.</En>
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
         /// </summary>
         /// <returns></returns>
-
-
         public void StartServer()
         {
             Logger.Log("Service started.");
@@ -72,7 +70,7 @@ namespace Biovation.Brands.ZK
 
                 if (!deviceInfo.Active) return;
 
-                var device = DeviceFactory.Factory(deviceInfo);
+                var device = _deviceFactory.Factory(deviceInfo);
                 var connectResult = device.Connect();
                 if (!connectResult)
                     Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);

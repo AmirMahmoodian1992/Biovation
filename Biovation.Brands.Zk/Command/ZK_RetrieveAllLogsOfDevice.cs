@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKRetrieveAllLogsOfDevice : ICommand
+    public class ZkRetrieveAllLogsOfDevice : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -21,16 +21,11 @@ namespace Biovation.Brands.ZK.Command
         private int DeviceId { get; }
         private uint Code { get; }
 
-        private readonly DeviceService _deviceService;
-        //private readonly TaskService _taskService = new TaskService();
-        //private readonly UserService _userService = new UserService();
-
-        public ZKRetrieveAllLogsOfDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
+        public ZkRetrieveAllLogsOfDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
-            _deviceService = deviceService;
-            DeviceId = Convert.ToInt32(items[0]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             OnlineDevices = devices;
+            DeviceId = Convert.ToInt32(items[0]);
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
         }
 
         public object Execute()

@@ -13,7 +13,7 @@ using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKSendTimeZoneToDevice : ICommand
+    public class ZkSendTimeZoneToDevice : ICommand
     {/// <summary>
      /// All connected devices
      /// </summary>
@@ -24,12 +24,12 @@ namespace Biovation.Brands.ZK.Command
         private int TimeZoneId { get; set; }
         private TimeZone TimeZoneObj { get; }
         private int TaskItemId { get; }
+
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-
         private readonly TimeZoneService _timeZoneService;
 
-        public ZKSendTimeZoneToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TimeZoneService timeZoneService, DeviceService deviceService, TaskService taskService)
+        public ZkSendTimeZoneToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TimeZoneService timeZoneService, DeviceService deviceService, TaskService taskService)
         {
 
             DeviceId = Convert.ToInt32(items[0]);

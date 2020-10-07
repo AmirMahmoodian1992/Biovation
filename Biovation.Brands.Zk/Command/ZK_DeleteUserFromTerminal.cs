@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKDeleteUserFromTerminal : ICommand
+    public class ZkDeleteUserFromTerminal : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -24,27 +24,24 @@ namespace Biovation.Brands.ZK.Command
         private uint UserId { get; }
         private int TaskItemId { get; }
 
-
-        private readonly DeviceService _deviceService;
-        private static readonly TaskService _taskService;
         private readonly LogService _logService;
 
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
 
-        public ZKDeleteUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public ZkDeleteUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, TaskService taskService)
         {
             OnlineDevices = devices;
-            _deviceService = deviceService;
             _logService = logService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
+
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (uint)(data["userId"]);
         }

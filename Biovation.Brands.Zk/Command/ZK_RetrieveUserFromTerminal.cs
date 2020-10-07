@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKRetrieveUserFromTerminal : ICommand
+    public class ZkRetrieveUserFromTerminal : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -26,8 +26,12 @@ namespace Biovation.Brands.ZK.Command
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
 
-        public ZKRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
+        public ZkRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
         {
+            OnlineDevices = devices;
+            _taskService = taskService;
+            _deviceService = deviceService;
+
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
@@ -35,9 +39,6 @@ namespace Biovation.Brands.ZK.Command
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)(data["userId"]);
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
-            OnlineDevices = devices;
-            _taskService = taskService;
-            _deviceService = deviceService;
         }
         public object Execute()
         {

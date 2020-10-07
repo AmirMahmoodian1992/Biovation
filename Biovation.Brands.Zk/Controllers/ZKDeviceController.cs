@@ -1,4 +1,9 @@
-﻿using Biovation.Brands.ZK.Command;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Biovation.Brands.ZK.Command;
+using Biovation.Brands.ZK.Devices;
 using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
 using Biovation.Constants;
@@ -7,15 +12,11 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.ZK.Devices;
 
-namespace Biovation.Brands.ZK.ApiControllers
+namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZKDeviceController : Controller
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class ZkDeviceController : Controller
     {
         private readonly DeviceService _deviceService;
         private readonly AccessGroupService _accessGroupService;
@@ -29,9 +30,9 @@ namespace Biovation.Brands.ZK.ApiControllers
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly CommandFactory _commandFactory;
-        private readonly ZKTecoServer _zkTecoServer;
+        private readonly ZkTecoServer _zkTecoServer;
 
-        public ZKDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, UserService userService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, Constants.DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZKTecoServer zkTecoServer)
+        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, UserService userService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, Constants.DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer)
         {
             _deviceService = deviceService;
             _accessGroupService = accessGroupService;

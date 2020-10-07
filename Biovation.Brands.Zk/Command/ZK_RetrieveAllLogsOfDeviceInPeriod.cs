@@ -12,7 +12,7 @@ using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKRetrieveAllLogsOfDeviceInPeriod : ICommand
+    public class ZkRetrieveAllLogsOfDeviceInPeriod : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -23,17 +23,16 @@ namespace Biovation.Brands.ZK.Command
         private uint Code { get; }
         private string StartDate { get; }
         private string EndDate { get; }
-        private readonly DeviceService _deviceService;
-
-        private readonly TaskService _taskService;
-        //private readonly UserService _userService = new UserService();
         private int TaskItemId { get; }
-        public ZKRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
+
+        public ZkRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
+            OnlineDevices = devices;
+
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
             var startDate = (DateTime)data["fromDate"];
@@ -41,10 +40,6 @@ namespace Biovation.Brands.ZK.Command
 
             StartDate = startDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
             EndDate = endDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
-
-            OnlineDevices = devices;
-            _deviceService = deviceService;
-            _taskService = taskService;
         }
 
         public object Execute()

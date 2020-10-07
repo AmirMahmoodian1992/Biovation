@@ -1,19 +1,20 @@
-﻿using Biovation.CommonClasses;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.ZK.Devices;
 using Biovation.Brands.ZK.Manager;
+using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
-namespace Biovation.Brands.ZK.ApiControllers
+namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZKUserController : Controller
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class ZkUserController : Controller
     {
         private readonly AccessGroupService _accessGroupService;
         private readonly TaskService _taskService;
@@ -27,7 +28,7 @@ namespace Biovation.Brands.ZK.ApiControllers
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public ZKUserController(AccessGroupService accessGroupService, TaskService taskService, UserService userService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices)
+        public ZkUserController(AccessGroupService accessGroupService, TaskService taskService, UserService userService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices)
         {
             _accessGroupService = accessGroupService;
             _taskService = taskService;

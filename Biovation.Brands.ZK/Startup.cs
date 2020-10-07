@@ -22,13 +22,15 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using Biovation.Brands.ZK.Devices;
+using Biovation.Brands.ZK.Service;
 
 namespace Biovation.Brands.ZK
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
-        public readonly Dictionary<uint, DeviceBasicInfo> OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
+        public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
@@ -72,7 +74,7 @@ namespace Biovation.Brands.ZK
 
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
-            ConfigureZKServices(services);
+            ConfigureZkServices(services);
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
@@ -111,6 +113,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
+            services.AddSingleton<ZkLogService, ZkLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -131,7 +134,6 @@ namespace Biovation.Brands.ZK
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
-
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
@@ -215,20 +217,22 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 
-
-        private void ConfigureZKServices(IServiceCollection services)
+        private void ConfigureZkServices(IServiceCollection services)
         {
+            services.AddSingleton(OnlineDevices);
+            
             services.AddSingleton<ZkCodeMappings, ZkCodeMappings>();
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
-            services.AddSingleton<ZKTecoServer, ZKTecoServer>();
+            services.AddSingleton<DeviceFactory, DeviceFactory>();
+
+            services.AddSingleton<ZkTecoServer, ZkTecoServer>();
             var serviceProvider = services.BuildServiceProvider();
-            var zkTecoServer = serviceProvider.GetService<ZKTecoServer>();
+            var zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
             zkTecoServer.StartServer();
         }
-
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -12,7 +12,7 @@ using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKSendAccessGroupToDevice : ICommand
+    public class ZkSendAccessGroupToDevice : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -22,28 +22,22 @@ namespace Biovation.Brands.ZK.Command
         private int DeviceId { get; }
         private int TaskItemId { get; }
         private uint Code { get; }
-        private int AccessGroupId { get; set; }
+        private int AccessGroupId { get; }
         private AccessGroup AccessGroupObj { get; }
 
-        private readonly AccessGroupService _accessGroupService;
-        private readonly TaskService _taskService;
-        private readonly DeviceService _deviceService;
-
-        public ZKSendAccessGroupToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService, AccessGroupService accessGroupService)
+        public ZkSendAccessGroupToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService, AccessGroupService accessGroupService)
         {
+            OnlineDevices = devices;
+
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
 
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             AccessGroupId = (int)(data["accessGroupId"]);
 
-            AccessGroupObj = _accessGroupService.GetAccessGroup(AccessGroupId);
-            OnlineDevices = devices;
-            _deviceService = deviceService;
-            _taskService = taskService;
-            _accessGroupService = accessGroupService;
+            AccessGroupObj = accessGroupService.GetAccessGroup(AccessGroupId);
         }
 
         public object Execute()

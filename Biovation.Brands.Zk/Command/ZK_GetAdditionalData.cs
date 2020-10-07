@@ -8,16 +8,17 @@ using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKGetAdditionalData : ICommand
+    public class ZkGetAdditionalData : ICommand
     {
         private Dictionary<uint, Device> OnlineDevices { get; }
-
         private int Code { get; }
-        public ZKGetAdditionalData(uint code, Dictionary<uint, Device> devices)
+
+        public ZkGetAdditionalData(uint code, Dictionary<uint, Device> devices)
         {
-            Code = Convert.ToInt32(code);
             OnlineDevices = devices;
+            Code = Convert.ToInt32(code);
         }
+
         public object Execute()
         {
             if (OnlineDevices.All(device => device.Key != Code))

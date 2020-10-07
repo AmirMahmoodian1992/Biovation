@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKClearLogOfDevice : ICommand
+    public class ZkClearLogOfDevice : ICommand
     {
         private Dictionary<uint, Device> OnlineDevices { get; }
         private int Code { get; }
@@ -21,16 +21,12 @@ namespace Biovation.Brands.ZK.Command
         private string EndDate { get; }
         private int DeviceId { get; }
         private int TaskItemId { get; }
-        private readonly TaskService _taskService;
-        private readonly DeviceService _deviceService;
 
-        public ZKClearLogOfDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
+        public ZkClearLogOfDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
         {
-            _taskService = taskService;
-            _deviceService = deviceService;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = (int)(_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            Code = (int)(deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
 
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);

@@ -9,9 +9,10 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace Biovation.Brands.ZK.ApiControllers
+namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZKAccessGroupController : Controller
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class ZkAccessGroupController : Controller
     {
         private readonly DeviceService _deviceService;
         private readonly TaskService _taskService;
@@ -24,7 +25,7 @@ namespace Biovation.Brands.ZK.ApiControllers
         private readonly DeviceBrands _deviceBrands;
 
 
-        public ZKAccessGroupController(DeviceService deviceService, TaskService taskService, UserService userService, TaskTypes taskTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager)
+        public ZkAccessGroupController(DeviceService deviceService, TaskService taskService, UserService userService, TaskTypes taskTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager)
         {
             _deviceService = deviceService;
             _taskService = taskService;

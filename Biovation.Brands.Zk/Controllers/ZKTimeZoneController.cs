@@ -1,17 +1,18 @@
-﻿using Biovation.Brands.ZK.Manager;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Biovation.Brands.ZK.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Biovation.Brands.ZK.ApiControllers
+namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZKTimeZoneController : Controller
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class ZkTimeZoneController : Controller
     {
         private readonly DeviceService _deviceService;
         private readonly TaskService _taskService;
@@ -23,11 +24,17 @@ namespace Biovation.Brands.ZK.ApiControllers
         private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public ZKTimeZoneController(DeviceService deviceService, TaskService taskService, UserService userService)
+        public ZkTimeZoneController(DeviceService deviceService, TaskService taskService, UserService userService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _taskService = taskService;
             _userService = userService;
+            _taskTypes = taskTypes;
+            _taskPriorities = taskPriorities;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskManager = taskManager;
+            _deviceBrands = deviceBrands;
         }
 
         [HttpPost]

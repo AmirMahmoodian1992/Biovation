@@ -12,12 +12,13 @@ using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKSendUserToDevice : ICommand
+    public class ZkSendUserToDevice : ICommand
     {
         /// <summary>
         /// All connected devices
         /// </summary>
         private Dictionary<uint, Device> OnlineDevices { get; }
+        
         private readonly LogService _logService;
 
         private int DeviceId { get; }
@@ -27,15 +28,15 @@ namespace Biovation.Brands.ZK.Command
         private int UserId { get; }
         private User UserObj { get; }
 
-        private readonly UserService _userService;
-        private readonly DeviceService _deviceService;
-        private readonly TaskService _taskService;
-        private readonly AdminDeviceService _adminDeviceService;
         private readonly LogEvents _logEvents;
+        private readonly UserService _userService;
+        private readonly TaskService _taskService;
         private readonly LogSubEvents _logSubEvents;
+        private readonly DeviceService _deviceService;
         private readonly MatchingTypes _matchingTypes;
+        private readonly AdminDeviceService _adminDeviceService;
 
-        public ZKSendUserToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, LogService logService, UserService userService, DeviceService deviceService, TaskService taskService, AdminDeviceService adminDeviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public ZkSendUserToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, LogService logService, UserService userService, DeviceService deviceService, TaskService taskService, AdminDeviceService adminDeviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
 
             DeviceId = Convert.ToInt32(items[0]);

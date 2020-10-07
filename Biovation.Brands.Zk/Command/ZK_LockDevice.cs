@@ -10,7 +10,7 @@ using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKLockDevice : ICommand
+    public class ZkLockDevice : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -20,15 +20,13 @@ namespace Biovation.Brands.ZK.Command
         private uint Code { get; }
 
         private readonly DeviceService _deviceService;
-        private readonly TaskService TaskService ;
 
-        public ZKLockDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
+        public ZkLockDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
+            _deviceService = deviceService;
             DeviceId = Convert.ToInt32(items[0]);
             Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             OnlineDevices = devices;
-            _deviceService = deviceService;
-            TaskService = taskService;
         }
 
         public object Execute()

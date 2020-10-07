@@ -10,24 +10,21 @@ using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
-    public class ZKRetrieveUsersListFromTerminal : ICommand
+    public class ZkRetrieveUsersListFromTerminal : ICommand
     {
         /// <summary>
         /// All connected devices
         /// </summary>
         private Dictionary<uint, Device> OnlineDevices { get; }
-
         private int DeviceId { get; }
         private uint Code { get; }
 
-        private readonly DeviceService _deviceService;
-        public ZKRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
+        public ZkRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
-            DeviceId = Convert.ToInt32(items[0]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
             OnlineDevices = devices;
-            _deviceService = deviceService;
+            DeviceId = Convert.ToInt32(items[0]);
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
         }
         public object Execute()
         {
