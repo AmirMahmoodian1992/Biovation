@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Biovation.Brands.ZK.Devices;
+﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -32,15 +29,22 @@ namespace Biovation.Brands.ZK.Command
         private static readonly TaskService _taskService;
         private readonly LogService _logService;
 
-        public ZKDeleteUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, LogService logService)
+        private readonly LogEvents _logEvents;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
+
+        public ZKDeleteUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             OnlineDevices = devices;
             _deviceService = deviceService;
             _logService = logService;
+            _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
-            var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (uint)(data["userId"]);
         }
@@ -49,7 +53,7 @@ namespace Biovation.Brands.ZK.Command
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"The device: {Code} is not connected.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnected.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"The device: {Code} is not connected.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
             try
@@ -66,27 +70,27 @@ namespace Biovation.Brands.ZK.Command
                         DeviceId = DeviceId,
                         LogDateTime = DateTime.Now,
                         //EventLog = Event.USERREMOVEDFROMDEVICE,
-                        EventLog = LogEvents.RemoveUserFromDevie,
+                        EventLog = _logEvents.RemoveUserFromDevice,
                         UserId = UserId,
-                        MatchingType = MatchingTypes.Finger,
-                        SubEvent = LogSubEvents.Normal,
+                        MatchingType = _matchingTypes.Finger,
+                        SubEvent = _logSubEvents.Normal,
                         TnaEvent = 0,
                         SuccessTransfer = true
                     };
 
                     _logService.AddLog(log);
 
-                    return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"+User {UserId} successfuly deleted from device: {Code}.\n", Code = Convert.ToInt64(TaskStatuses.Done.Code) };
+                    return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"+User {UserId} successfuly deleted from device: {Code}.\n", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
 
                 }
                 Logger.Log($"  +Cannot delete user {UserId} from device: {Code} \n");
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code} \n", Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code} \n", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = exception.Message, Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = exception.Message, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
             }
         }

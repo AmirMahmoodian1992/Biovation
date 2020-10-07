@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+    <Folder Include="Libraries\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,6 +30,12 @@
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Interop.zkemkeeper">
+      <HintPath>Libraries\Interop.zkemkeeper.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 

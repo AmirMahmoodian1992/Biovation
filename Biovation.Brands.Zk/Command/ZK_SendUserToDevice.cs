@@ -1,14 +1,14 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -18,7 +18,7 @@ namespace Biovation.Brands.ZK.Command
         /// All connected devices
         /// </summary>
         private Dictionary<uint, Device> OnlineDevices { get; }
-        private readonly LogService _logService = new LogService();
+        private readonly LogService _logService;
 
         private int DeviceId { get; }
         private int TaskItemId { get; }
@@ -27,22 +27,33 @@ namespace Biovation.Brands.ZK.Command
         private int UserId { get; }
         private User UserObj { get; }
 
-        private readonly UserService _userService = new UserService();
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly TaskService _taskService = new TaskService();
-        private readonly AdminDeviceService _adminDeviceService = new AdminDeviceService();
+        private readonly UserService _userService;
+        private readonly DeviceService _deviceService;
+        private readonly TaskService _taskService;
+        private readonly AdminDeviceService _adminDeviceService;
+        private readonly LogEvents _logEvents;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
 
-        public ZKSendUserToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        public ZKSendUserToDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, LogService logService, UserService userService, DeviceService deviceService, TaskService taskService, AdminDeviceService adminDeviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
-            var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
-            UserObj = _userService.GetUser(UserId, false);
+            UserObj = _userService.GetUsers(UserId).FirstOrDefault();
             OnlineDevices = devices;
+            _logService = logService;
+            _userService = userService;
+            _deviceService = deviceService;
+            _taskService = taskService;
+            _adminDeviceService = adminDeviceService;
+            _logEvents = logEvents;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
         }
 
         public object Execute()
@@ -50,13 +61,13 @@ namespace Biovation.Brands.ZK.Command
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnected.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
             if (UserObj == null)
             {
                 Logger.Log($"User {UserId} does not exist.");
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"User {UserId} does not exist.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnected.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"User {UserId} does not exist.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
             try
@@ -69,21 +80,21 @@ namespace Biovation.Brands.ZK.Command
                 {
                     DeviceId = DeviceId,
                     LogDateTime = DateTime.Now,
-                    EventLog = LogEvents.AddUserToDevice,
+                    EventLog = _logEvents.AddUserToDevice,
                     UserId = UserId,
-                    MatchingType = MatchingTypes.Finger,
-                    SubEvent = LogSubEvents.Normal,
+                    MatchingType = _matchingTypes.Finger,
+                    SubEvent = _logSubEvents.Normal,
                     TnaEvent = 0
                 };
 
                 _logService.AddLog(log);
-                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId, Message = $"User {UserId} Send", Code = Convert.ToInt64(TaskStatuses.Done.Code) };
+                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId, Message = $"User {UserId} Send", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
 
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = exception.Message, Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = exception.Message, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
             }
         }

@@ -1,14 +1,14 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -23,17 +23,19 @@ namespace Biovation.Brands.ZK.Command
         private int TaskItemId { get; }
         private uint Code { get; }
 
-        private readonly DeviceService _deviceService = new DeviceService();
-        private static readonly TaskService _taskService = new TaskService();
-        public ZKUnlockDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        private readonly DeviceService _deviceService;
+        private readonly TaskService _taskService;
+        public ZKUnlockDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0; ;
-            var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0); ;
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             OnlineDevices = devices;
+            _deviceService = deviceService;
+            _taskService = taskService;
         }
 
         public object Execute()
@@ -41,7 +43,7 @@ namespace Biovation.Brands.ZK.Command
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnected.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
             try
@@ -52,19 +54,19 @@ namespace Biovation.Brands.ZK.Command
                 {
                     Logger.Log($" --> Terminal:{Code} UnLocked(Shutdown)");
                     Logger.Log("   +ErrorCode :" + true + "\n");
-                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Done.Code) };
+                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
                 }
                 else
                 {
                     Logger.Log("");
                     Logger.Log($"--> Couldn't Terminal:{Code} UnLock(Shutdown)\n");
-                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
                 }
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
         }
 

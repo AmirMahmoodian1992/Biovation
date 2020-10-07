@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Biovation.Brands.ZK.Devices;
+﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -23,26 +23,28 @@ namespace Biovation.Brands.ZK.Command
         private int UserId { get; }
         private uint Code { get; }
         private int TaskItemId { get; }
-        private readonly TaskService _taskService = new TaskService();
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly TaskService _taskService;
+        private readonly DeviceService _deviceService;
 
-        public ZKRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        public ZKRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
         {
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
-            var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)(data["userId"]);
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
             OnlineDevices = devices;
+            _taskService = taskService;
+            _deviceService = deviceService;
         }
         public object Execute()
         {
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"The device: {Code} is not connected.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnected.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = $"The device: {Code} is not connected.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
 
@@ -50,12 +52,12 @@ namespace Biovation.Brands.ZK.Command
             {
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.GetAndSaveUser(UserId);
-                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Done.Code) };
+                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate =  0, Id = DeviceId,Message = exception.Message,Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = exception.Message, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
         }
 

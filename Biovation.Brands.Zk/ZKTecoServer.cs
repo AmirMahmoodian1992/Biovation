@@ -10,7 +10,7 @@ using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK
 {
-    public class ZkTecoServer
+    public class ZKTecoServer
     {
         /// <summary>
         /// نمونه ی ساخته شده از سرور
@@ -26,11 +26,20 @@ namespace Biovation.Brands.ZK
         /// </summary>
         /// <returns></returns>
 
-        private ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
+        private ZKTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
         {
             _onlineDevices = onlineDevices;
-            _zkDevices = deviceService.GetDevices(brandId:int.Parse(DeviceBrands.ZkTecoCode)).Where(x => x.Active).ToList();
+            _zkDevices = deviceService.GetDevices(brandId:DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
         }
+
+        
+
+        /// <summary>
+        /// <En>Make or return the unique instance of Zk Server.</En>
+        /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
+        /// </summary>
+        /// <returns></returns>
+
 
         public void StartServer()
         {

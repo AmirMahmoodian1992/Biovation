@@ -341,7 +341,7 @@ namespace Biovation.Brands.ZK.Manager
         {
             lock (_tasks)
                 _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code }).Result;
+                    excludedTaskStatusCodes: new List<string> { _taskStatuses.DoneCode, _taskStatuses.FailedCode }).Result;
 
             if (_processingQueueInProgress)
                 return;

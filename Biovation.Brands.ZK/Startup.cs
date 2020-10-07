@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.ZK.Command;
@@ -19,7 +13,6 @@ using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +20,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace Biovation.Brands.ZK
 {
@@ -228,14 +223,16 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
-
+            services.AddSingleton<ZKTecoServer, ZKTecoServer>();
             var serviceProvider = services.BuildServiceProvider();
+            var zkTecoServer = serviceProvider.GetService<ZKTecoServer>();
+            zkTecoServer.StartServer();
         }
 
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {

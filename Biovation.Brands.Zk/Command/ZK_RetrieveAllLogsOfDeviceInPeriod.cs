@@ -1,14 +1,14 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -23,16 +23,17 @@ namespace Biovation.Brands.ZK.Command
         private uint Code { get; }
         private string StartDate { get; }
         private string EndDate { get; }
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly TaskService _taskService = new TaskService();
+        private readonly DeviceService _deviceService;
+
+        private readonly TaskService _taskService;
         //private readonly UserService _userService = new UserService();
         private int TaskItemId { get; }
-        public ZKRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        public ZKRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
-            var taskItem = _taskService.GetTaskItem(TaskItemId).Result;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
             var startDate = (DateTime)data["fromDate"];
@@ -42,6 +43,8 @@ namespace Biovation.Brands.ZK.Command
             EndDate = endDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
 
             OnlineDevices = devices;
+            _deviceService = deviceService;
+            _taskService = taskService;
         }
 
         public object Execute()
@@ -62,13 +65,13 @@ namespace Biovation.Brands.ZK.Command
 
                 //ZKTecoServer.StartReadLogs();
 
-                //var creatorUser = _userService.GetUser(123456789, false);
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 //var task = new TaskInfo
                 //{
                 //    CreatedAt = DateTimeOffset.Now,
                 //    CreatedBy = creatorUser,
                 //    TaskType = TaskTypes.GetLogsInPeriod,
-                //    Priority = TaskPriorities.Medium,
+                //    Priority = _taskPriorities.Medium,
                 //    TaskItems = new List<TaskItem>(),
                 //    DeviceBrand = DeviceBrands.ZkTeco,
 
@@ -77,7 +80,7 @@ namespace Biovation.Brands.ZK.Command
                 //{
                 //    Status = TaskStatuses.Queued,
                 //    TaskItemType = TaskItemTypes.GetLogsInPeriod,
-                //    Priority = TaskPriorities.Medium,
+                //    Priority = _taskPriorities.Medium,
                 //    DueDate = DateTimeOffset.Now,
                 //    DeviceId = DeviceId,
                 //    Data = JsonConvert.SerializeObject(new { fromDate = StartDate, toDate = EndDate }),
@@ -86,7 +89,7 @@ namespace Biovation.Brands.ZK.Command
                 //    OrderIndex = 1,
 
                 //});
-                //_taskService.InsertTask(task).Wait();
+                //_taskService.InsertTask(task);
                 //ZKTecoServer.ProcessQueue();
                 //return new ResultViewModel { Id = device.GetDeviceInfo().Code, Message = $@"تخلیه دستگاه {device.GetDeviceInfo().Code} شروع شد", Code=Convert.ToInt64(TaskStatuses.Queued.Code) };
             }

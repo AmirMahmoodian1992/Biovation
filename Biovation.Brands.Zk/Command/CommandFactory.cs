@@ -1,10 +1,10 @@
-﻿using Biovation.CommonClasses.Interface;
+﻿using Biovation.Brands.ZK.Devices;
+using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
-using Biovation.Brands.ZK.Devices;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -26,8 +26,6 @@ namespace Biovation.Brands.ZK.Command
         //    return Factory(transferModelData.EventId);
         //}
 
-        private readonly ZkTecoServer _zkServer;
-
         private readonly LogEvents _logEvents;
         private readonly LogService _logService;
         private readonly UserService _userService;
@@ -37,29 +35,20 @@ namespace Biovation.Brands.ZK.Command
         private readonly MatchingTypes _matchingTypes;
         private readonly DeviceService _deviceService;
         private readonly TimeZoneService _timeZoneService;
-        private readonly UserCardService _userCardService;
-        private readonly BlackListService _blackListService;
         private readonly AdminDeviceService _adminDeviceService;
         private readonly AccessGroupService _accessGroupService;
-        private readonly FaceTemplateService _faceTemplateService;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
 
-        public CommandFactory(ZkTecoServer zkServer, LogService logService,
-            UserService userService, TaskService taskService, DeviceService deviceService,
-            UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, Dictionary<uint, Device> onlineDevices)
+        public CommandFactory(LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, AdminDeviceService adminDeviceService,
+            AccessGroupService accessGroupService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, Dictionary<uint, Device> onlineDevices)
         {
-            _zkServer = zkServer;
             _logService = logService;
             _userService = userService;
             _taskService = taskService;
             _deviceService = deviceService;
-            _userCardService = userCardService;
-            _blackListService = blackListService;
             _adminDeviceService = adminDeviceService;
             _accessGroupService = accessGroupService;
-            _faceTemplateService = faceTemplateService;
             _timeZoneService = timeZoneService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
@@ -67,7 +56,7 @@ namespace Biovation.Brands.ZK.Command
             _onlineDevices = onlineDevices;
         }
 
-        public  ICommand Factory(int eventId, List<object> items)
+        public ICommand Factory(int eventId, List<object> items)
         {
             return Factory(new DataTransferModel { EventId = eventId, Items = items });
         }
@@ -99,7 +88,7 @@ namespace Biovation.Brands.ZK.Command
                     //Transfer Access Group request
                     {
                         // var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new ZKSendAccessGroupToDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKSendAccessGroupToDevice(transferModelData.Items, _onlineDevices, _deviceService, _taskService, _accessGroupService);
                         //var accessGroupId = Convert.ToInt32(transferModelData.Items[1]);
 
                     }
@@ -109,7 +98,7 @@ namespace Biovation.Brands.ZK.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var timeZoneId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new ZKSendTimeZoneToDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKSendTimeZoneToDevice(transferModelData.Items, _onlineDevices, _timeZoneService, _deviceService, _taskService);
                     }
 
                 case CommandType.ForceUpdateForSpecificDevice:
@@ -122,7 +111,7 @@ namespace Biovation.Brands.ZK.Command
                         // var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
 
-                        return new ZKSendUserToDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKSendUserToDevice(transferModelData.Items, _onlineDevices, _logService, _userService, _deviceService, _taskService, _adminDeviceService, _logEvents, _logSubEvents, _matchingTypes);
                     }
 
                 case CommandType.SyncAllUsers:
@@ -138,7 +127,7 @@ namespace Biovation.Brands.ZK.Command
                     //Gets and updates all logs from device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new ZKRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices, _deviceService);
                     }
 
                 case CommandType.RetrieveLogsOfDeviceInPeriod:
@@ -147,14 +136,14 @@ namespace Biovation.Brands.ZK.Command
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var sdate = (DateTime)(transferModelData.Items[1]);
                         //var edate = (DateTime)(transferModelData.Items[2]);
-                        return new ZKRetrieveAllLogsOfDeviceInPeriod(transferModelData.Items, _onlineDevices);
+                        return new ZKRetrieveAllLogsOfDeviceInPeriod(transferModelData.Items, _onlineDevices, _deviceService, _taskService);
                     }
 
                 case CommandType.LockDevice:
                     //Locks the device
                     {
                         // var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new ZKRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices, _deviceService);
 
                     }
 
@@ -164,7 +153,7 @@ namespace Biovation.Brands.ZK.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //return new ZKUnlockDevice(code, _onlineDevices);
-                        return new ZKRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices, _deviceService);
                     }
 
                 case CommandType.EnrollFromTerminal:
@@ -180,21 +169,21 @@ namespace Biovation.Brands.ZK.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt64(transferModelData.Items[1]);
-                        return new ZKDeleteUserFromTerminal(transferModelData.Items, _onlineDevices);
+                        return new ZKDeleteUserFromTerminal(transferModelData.Items, _onlineDevices, _deviceService, _logService, _logEvents, _logSubEvents, _matchingTypes);
                     }
                 case CommandType.RetrieveUserFromDevice:
                     //Unlocks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new ZKRetrieveUserFromTerminal(transferModelData.Items, _onlineDevices);
+                        return new ZKRetrieveUserFromTerminal(transferModelData.Items, _onlineDevices, _taskService, _deviceService);
                     }
 
                 case CommandType.RetrieveUsersListFromDevice:
                     //Unlocks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new ZKRetrieveUsersListFromTerminal(transferModelData.Items, _onlineDevices);
+                        return new ZKRetrieveUsersListFromTerminal(transferModelData.Items, _onlineDevices, _deviceService);
                     }
                 //Get some data like mac,firmware and etc from device
                 case CommandType.GetDeviceAdditionalData:
@@ -206,7 +195,7 @@ namespace Biovation.Brands.ZK.Command
                 case CommandType.ClearLogOfDevice:
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new ZKClearLogOfDevice(transferModelData.Items, _onlineDevices);
+                        return new ZKClearLogOfDevice(transferModelData.Items, _onlineDevices, _taskService, _deviceService);
                     }
                 #endregion
 

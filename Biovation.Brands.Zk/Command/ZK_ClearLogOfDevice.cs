@@ -30,7 +30,7 @@ namespace Biovation.Brands.ZK.Command
             _deviceService = deviceService;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = (int)(_deviceService.GetDevices(brandId: int.Parse(DeviceBrands.ZkTecoCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            Code = (int)(_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
 
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);

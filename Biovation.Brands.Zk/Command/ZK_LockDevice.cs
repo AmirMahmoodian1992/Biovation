@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Biovation.Brands.ZK.Devices;
+﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -19,14 +19,16 @@ namespace Biovation.Brands.ZK.Command
         private int DeviceId { get; }
         private uint Code { get; }
 
-        private readonly DeviceService _deviceService = new DeviceService();
-        private static readonly TaskService TaskService = new TaskService();
+        private readonly DeviceService _deviceService;
+        private readonly TaskService TaskService ;
 
-        public ZKLockDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        public ZKLockDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
             DeviceId = Convert.ToInt32(items[0]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             OnlineDevices = devices;
+            _deviceService = deviceService;
+            TaskService = taskService;
         }
 
         public object Execute()
@@ -46,19 +48,19 @@ namespace Biovation.Brands.ZK.Command
                 {
                     Logger.Log($" --> Terminal:{Code} Locked(Shutdown)");
                     Logger.Log("   +ErrorCode :" + result + "\n");
-                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Done.Code) };
+                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
                 }
                 else
                 {
                     Logger.Log("");
                     Logger.Log($"-->Couldn't Terminal:{Code} Lock(Shutdown)\n");
-                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                    return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
                 }
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.Failed.Code) };
+                return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
         }
 

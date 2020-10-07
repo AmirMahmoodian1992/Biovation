@@ -1,12 +1,12 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.CommonClasses.Models;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -20,13 +20,14 @@ namespace Biovation.Brands.ZK.Command
         private int DeviceId { get; }
         private uint Code { get; }
 
-        private readonly DeviceService _deviceService = new DeviceService();
-        public ZKRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices)
+        private readonly DeviceService _deviceService;
+        public ZKRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
             DeviceId = Convert.ToInt32(items[0]);
-            Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId(DeviceId, DeviceBrands.ZkTecoCode)?.Code ?? 0;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
             OnlineDevices = devices;
+            _deviceService = deviceService;
         }
         public object Execute()
         {
