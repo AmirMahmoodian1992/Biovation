@@ -15,6 +15,10 @@ namespace Biovation.Domain
         /// <value>شماره کاربر در دیتابیس</value>
         [Id]
         public long Id { get; set; }
+
+        public long Code { get; set; }
+
+        public long UniqueId { get; set; }
         /// <summary>
         /// نام کاربری
         /// </summary>
