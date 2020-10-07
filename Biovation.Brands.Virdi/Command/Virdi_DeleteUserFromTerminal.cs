@@ -40,7 +40,7 @@ namespace Biovation.Brands.Virdi.Command
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
             UserId = (int)data["userId"];
-            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
+            Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             OnlineDevices = virdiServer.GetOnlineDevices();
 
             _callbacks = callbacks;

@@ -46,7 +46,7 @@ namespace Biovation.Brands.Virdi.Command
                 TaskItemId = Convert.ToInt32(items[1]);
             }
 
-            Code = deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
+            Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
 
