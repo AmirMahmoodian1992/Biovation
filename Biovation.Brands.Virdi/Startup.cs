@@ -9,9 +9,6 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
-using DataAccessLayerCore;
-using DataAccessLayerCore.Domain;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -97,24 +94,9 @@ namespace Biovation.Brands.Virdi
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
-
-            services.AddSingleton(connectionInfo);
-            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-
             var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
-            services.AddSingleton<GenericRepository, GenericRepository>();
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
             services.AddSingleton<BlackListService, BlackListService>();
@@ -161,15 +143,11 @@ namespace Biovation.Brands.Virdi
 
             serviceCollection.AddSingleton(restClient);
 
-            serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
             serviceCollection.AddScoped<LookupRepository, LookupRepository>();
             serviceCollection.AddScoped<LookupService, LookupService>();
             serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
             
-            //serviceCollection.AddScoped<Lookups, Lookups>();
-            //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
-
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -260,6 +238,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
+            services.AddSingleton<Callbacks, Callbacks>();
 
             var serviceProvider = services.BuildServiceProvider();
 

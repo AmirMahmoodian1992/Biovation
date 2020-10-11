@@ -123,7 +123,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 

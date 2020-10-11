@@ -26,7 +26,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPost]
         public Task<ResultViewModel> InsertTask([FromBody]TaskInfo task)
         {
-            Task.Run(() =>
+            return Task.Run(() =>
             {
                 var taskInsertionResult = _taskRepository.InsertTask(task);
                 if (!taskInsertionResult.Success) return taskInsertionResult;
@@ -37,8 +37,6 @@ namespace Biovation.Data.Commands.Controllers.v2
 
                 return taskInsertionResult;
             });
-
-            throw new InvalidOperationException();
         }
 
         [HttpPut]
@@ -46,7 +44,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             //return Task.Run(() => _taskRepository.UpdateTaskStatus(taskItem));
 
-            Task.Run(() =>
+            return Task.Run(() =>
             {
                 var taskInsertionResult = _taskRepository.UpdateTaskStatus(taskItem);
                 var task = _taskRepository.GetTasks(taskItemId: taskItem.Id, excludedTaskStatusCodes: string.Empty).FirstOrDefault();
@@ -56,9 +54,6 @@ namespace Biovation.Data.Commands.Controllers.v2
                 _taskMessageBusRepository.SendTask(taskList);
                 return taskInsertionResult;
             });
-
-            throw new InvalidOperationException();
-
         }
 
     }

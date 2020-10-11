@@ -13,7 +13,7 @@ namespace Biovation.Service.Api.v1
             _plateDetectionRepository = plateDetectionRepository;
         }
 
-        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
+        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate = default, int entityId = default)
         {
             return _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
         }

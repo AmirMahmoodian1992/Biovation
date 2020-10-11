@@ -25,13 +25,13 @@ namespace Biovation.Repository.Api.v2
 
         //}
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default)
+            string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default)
         {
             var restRequest = new RestRequest("Queries/v2/Device", Method.GET);
             restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             restRequest.AddQueryParameter("groupId", groupId.ToString());
             restRequest.AddQueryParameter("code", code.ToString());
-            restRequest.AddQueryParameter("brandId", brandId.ToString());
+            restRequest.AddQueryParameter("brandId", brandId);
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("modelId", modelId.ToString());
             restRequest.AddQueryParameter("deviceIoTypeId", deviceIoTypeId.ToString());

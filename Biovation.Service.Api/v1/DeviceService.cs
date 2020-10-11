@@ -24,7 +24,7 @@ namespace Biovation.Service.Api.v1
         //    return _deviceRepository.GetDevice(adminUserId);
         //}
         public List<DeviceBasicInfo> GetDevices(long adminUserId = default,
-            int deviceGroupId = default, uint code = default, int brandId = default, string deviceName = null,
+            int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
             int deviceModelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
             return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
@@ -36,10 +36,10 @@ namespace Biovation.Service.Api.v1
             return _deviceRepository.GetDevice(id, (int)adminUserId)?.Data ?? new DeviceBasicInfo();
         }
 
-        public List<DeviceModel> GetDeviceModels(long id = default, int brandId = default,
+        public List<DeviceModel> GetDeviceModels(long id = default, string brandId = default,
             string deviceName = null, int pageNumber = default, int pageSize = default)
         {
-            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), deviceName, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceModel>();
+            return _deviceRepository.GetDeviceModels(id, brandId, deviceName, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceModel>();
         }
 
         public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode)

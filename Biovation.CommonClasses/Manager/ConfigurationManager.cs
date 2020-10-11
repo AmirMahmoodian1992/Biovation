@@ -261,13 +261,13 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static bool GetAllLogWhenConnect
+        public bool GetAllLogWhenConnect
         {
             get
             {
                 try
                 {
-                    return string.Equals(ConfigurationManager.AppSettings["GetAllLogWhenConnect"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["GetAllLogWhenConnect"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -277,13 +277,13 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static bool ClearLogAfterRetrieving
+        public bool ClearLogAfterRetrieving
         {
             get
             {
                 try
                 {
-                    return string.Equals(ConfigurationManager.AppSettings["ClearLogAfterRetrieving"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["ClearLogAfterRetrieving"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
