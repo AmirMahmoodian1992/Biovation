@@ -13,7 +13,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default, int adminUserId = default,
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, int nestingDepthLevel = 5)
         {
             var restRequest = new RestRequest("Queries/v2/AccessGroup/", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
@@ -24,6 +24,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("deviceGroupId", deviceGroupId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AccessGroup>>>(restRequest);
             return requestResult.Result.Data;
         }

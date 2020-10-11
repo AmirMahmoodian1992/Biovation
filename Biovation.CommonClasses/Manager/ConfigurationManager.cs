@@ -213,13 +213,13 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static int SupremaDevicesConnectionPort
+        public int SupremaDevicesConnectionPort
         {
             get
             {
                 try
                 {
-                    return Convert.ToInt32(ConfigurationManager.AppSettings["SupremaDevicesConnectionPort"] ?? "1480");
+                    return Convert.ToInt32(Configuration.GetSection("AppSettings")["SupremaDevicesConnectionPort"] ?? "1480");
                 }
                 catch (Exception exception)
                 {
