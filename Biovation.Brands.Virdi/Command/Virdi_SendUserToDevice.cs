@@ -99,7 +99,7 @@ namespace Biovation.Brands.Virdi.Command
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
                 //var windowsEncoding = Encoding.UTF32;
-                var replacements = new Dictionary<string, string> { { "ک","~"}, {  "ژ" , "Ž" } };
+                var replacements = new Dictionary<string, string> { { "ک","~"}, {  "ژ" , "Z" } };
 
                 var userName = replacements.Aggregate(UserObj.UserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
 
