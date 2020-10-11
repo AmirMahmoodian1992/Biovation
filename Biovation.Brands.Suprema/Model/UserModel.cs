@@ -1,6 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using Biovation.CommonClasses.Models;
+﻿using Biovation.Domain;
 
 namespace Biovation.Brands.Suprema.Model
 {
@@ -67,14 +65,14 @@ namespace Biovation.Brands.Suprema.Model
         /// </summary>
         /// <value>تاریخ آغاز به کار</value>
         //public int StartDate {
-            //get { return _startDate; }
-            //set
-            //{
-                //_startDate = value;
+        //get { return _startDate; }
+        //set
+        //{
+        //_startDate = value;
 
-                //var givenDate = new DateTime(1970, 1, 1).AddTicks((long)value * 10000000);
-                //IsActive = givenDate >= DateTime.Now;
-            //}
+        //var givenDate = new DateTime(1970, 1, 1).AddTicks((long)value * 10000000);
+        //IsActive = givenDate >= DateTime.Now;
+        //}
         //}
 
         //private int _startDate;
@@ -86,17 +84,17 @@ namespace Biovation.Brands.Suprema.Model
         ///// <value>تاریخ پایان قرار داد</value>
         //public int EndDate
         //{
-            //get { return _endDate; }
-            //set
-            //{
-                //_endDate = value;
+        //get { return _endDate; }
+        //set
+        //{
+        //_endDate = value;
 
-                //var givenDate = new DateTime(1970, 1, 1).AddTicks((long)value * 10000000);
-                //if (givenDate > DateTime.Now)
-                //{
-                    //IsActive = false;
-                //}
-            //}
+        //var givenDate = new DateTime(1970, 1, 1).AddTicks((long)value * 10000000);
+        //if (givenDate > DateTime.Now)
+        //{
+        //IsActive = false;
+        //}
+        //}
         //}
 
         //private int _endDate;

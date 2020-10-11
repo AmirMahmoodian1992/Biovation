@@ -11,16 +11,14 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Manager
 {
-    class TaskManager
+    public class TaskManager
     {
-
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
         private readonly CommandFactory _commandFactory;
         private List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
-
 
         public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, DeviceBrands deviceBrands)
         {
@@ -29,6 +27,7 @@ namespace Biovation.Brands.Suprema.Manager
             _taskStatuses = taskStatuses;
             _deviceBrands = deviceBrands;
         }
+
         public void ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)

@@ -1,34 +1,37 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.Suprema.Commands
 {
     /// <summary>
     /// کنترل کننده برای تمامی اتفاقات بر روی تمامی و انواع مختلف ساعت ها
     /// </summary>
-    /// <seealso cref="Command" />
     public class SupremaSyncUser : ICommand
     {
         private User User { get; }
-        private readonly UserService _userService = new UserService();
-        private readonly AccessGroupService _accessGroupService = new AccessGroupService();
-        private readonly DeviceService _deviceService = new DeviceService();
+        private readonly UserService _userService;
+        private readonly AccessGroupService _accessGroupService;
+
         /// <summary>
         /// All connected devices
         /// </summary>
         private Dictionary<uint, Device> OnlineDevices { get; }
 
-        public SupremaSyncUser(int userId, Dictionary<uint, Device> onlineDevices)
+        public SupremaSyncUser(int userId, Dictionary<uint, Device> onlineDevices, UserService userService, AccessGroupService accessGroupService)
         {
-            User = _userService.GetUser(userCode:userId, withPicture:false);
+            //todo:usercode
+            User = _userService.GetUsers(userId).FirstOrDefault();
             OnlineDevices = onlineDevices;
+            _userService = userService;
+            _accessGroupService = accessGroupService;
+
         }
 
         /// <summary>
@@ -37,18 +40,18 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-            var accessGroupService = new AccessGroupService();
-            var userAccess = accessGroupService.GetAccessGroupsOfUser(User.Id);
+
+            var userAccess = _accessGroupService.GetAccessGroups(User.Id);
 
             var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
             var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
             var disable = userAccess.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
 
-            List<DeviceBasicInfo> offlineCheckerDevices;
+            //List<DeviceBasicInfo> offlineCheckerDevices;
             //var validDevice = deviceService.GetUserValidDevices(User.Id, ConnectionType);
 
             var validDevice = new List<DeviceBasicInfo>();
-            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(User.Id);
+            var accessGroups = _accessGroupService.GetAccessGroups(User.Id);
             if (!accessGroups.Any())
             {
                 return true;
@@ -64,14 +67,14 @@ namespace Biovation.Brands.Suprema.Commands
                     }
                 }
             }
-            var offlineEventService = new OfflineEventService();
+            /*  var offlineEventService = new OfflineEventService();*/
 
 
-            #region manageOfflineDevices
+            //  #region manageOfflineDevices
 
-            if (fullAccess != null)
+            /*if (fullAccess != null)
             {
-                offlineCheckerDevices = _deviceService.GetAllDevicesBasicInfos();
+                offlineCheckerDevices = _deviceService.GetDevices();
 
                 foreach (var device in offlineCheckerDevices)
                     offlineEventService.AddOfflineEvent(new OfflineEvent
@@ -84,7 +87,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             else if (noAccess != null)
             {
-                offlineCheckerDevices = _deviceService.GetAllDevicesBasicInfos();
+                offlineCheckerDevices = _deviceService.GetDevices();
 
                 foreach (var device in offlineCheckerDevices)
                     offlineEventService.AddOfflineEvent(new OfflineEvent
@@ -97,7 +100,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             else if (disable != null)
             {
-                offlineCheckerDevices = _deviceService.GetAllDevicesBasicInfos();
+                offlineCheckerDevices = _deviceService.GetDevices();
 
                 foreach (var device in offlineCheckerDevices)
                     offlineEventService.AddOfflineEvent(new OfflineEvent
@@ -110,7 +113,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             else
             {
-                var allDevices = _deviceService.GetAllDevicesBasicInfos();
+                var allDevices = _deviceService.GetDevices();
                 offlineCheckerDevices = validDevice;
 
                 foreach (var device in allDevices)
@@ -128,7 +131,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             #endregion manageOfflineDevices
 
-
+    */
             #region transferUserToDevices
 
             var tasks = new List<Task>();
@@ -144,12 +147,12 @@ namespace Biovation.Brands.Suprema.Commands
                         {
                             if (device.Value.TransferUser(User))
                             {
-                                offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                                /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                                 {
                                     DeviceCode = device.Value.GetDeviceInfo().Code,
                                     Data = User.Id.ToString(),
                                     Type = OfflineEventType.UserInserted
-                                });
+                                });*/
 
                                 Logger.Log($"User {User.Id} transferred to device {device.Value.GetDeviceInfo().DeviceId} successfully.");
                             }
@@ -161,12 +164,12 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 if (device.Value.TransferUser(User))
                                 {
-                                    offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                                    /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                                     {
                                         DeviceCode = device.Value.GetDeviceInfo().Code,
                                         Data = User.Id.ToString(),
                                         Type = OfflineEventType.UserInserted
-                                    });
+                                    });*/
 
                                     Logger.Log(
                                         $"User {User.Id} with FullAccess, transferred to device {device.Value.GetDeviceInfo().DeviceId} successfully.");
@@ -177,12 +180,12 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 if (device.Value.TransferUser(User))
                                 {
-                                    offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                                    /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                                     {
                                         DeviceCode = device.Value.GetDeviceInfo().Code,
                                         Data = User.Id.ToString(),
                                         Type = OfflineEventType.UserInserted
-                                    });
+                                    });*/
 
                                     Logger.Log(
                                         $"User {User.Id} with NoAccess transferred to device {device.Value.GetDeviceInfo().DeviceId} successfully.");
@@ -193,12 +196,12 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 if (device.Value.DeleteUser(Convert.ToUInt32(User.Code)))
                                 {
-                                    offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                                    /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                                     {
                                         DeviceCode = device.Value.GetDeviceInfo().Code,
                                         Data = User.Id.ToString(),
                                         Type = OfflineEventType.UserDeleted
-                                    });
+                                    });*/
 
                                     Logger.Log(
                                         $"User {User.Id} removed from device {device.Value.GetDeviceInfo().DeviceId} successfully, due disabled.");
@@ -212,12 +215,12 @@ namespace Biovation.Brands.Suprema.Commands
 
                                 if (result)
                                 {
-                                    offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                                    /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                                     {
                                         DeviceCode = device.Value.GetDeviceInfo().Code,
                                         Data = User.Id.ToString(),
                                         Type = OfflineEventType.UserDeleted
-                                    });
+                                    });*/
 
                                     Logger.Log(
                                         $"User {User.Id} removed from device {device.Value.GetDeviceInfo().DeviceId} successfully, due no access group found.");

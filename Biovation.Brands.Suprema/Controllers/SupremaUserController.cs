@@ -1,40 +1,58 @@
 ﻿using Biovation.Brands.Suprema.Commands;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.Brands.Suprema.Services;
+using Biovation.CommonClasses;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Http;
-using Biovation.Brands.Suprema.Service;
-using Biovation.CommonClasses;
 
-namespace Biovation.Brands.Suprema.ApiControllers
+namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaUserController : ApiController
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class SupremaUserController : Controller
     {
-        private readonly UserService _commonUserService = new UserService();
-        private readonly AccessGroupService _accessGroupService = new AccessGroupService();
+        private readonly CommandFactory _commandFactory;
+        private readonly FastSearchService _fastSearchService;
+
+        private readonly UserService _userService;
+        private readonly AccessGroupService _accessGroupService;
+
+        public SupremaUserController(UserService userService, AccessGroupService accessGroupService, FastSearchService fastSearchService, CommandFactory commandFactory)
+        {
+            _userService = userService;
+            _accessGroupService = accessGroupService;
+            _fastSearchService = fastSearchService;
+            _commandFactory = commandFactory;
+        }
 
         [HttpGet]
         public Task<List<User>> Users()
         {
-            var user = _commonUserService.GetUsers();
-            return user;
+            return Task.Run(() =>
+            {
+
+                var user = _userService.GetUsers();
+                return user;
+            }
+        );
         }
+
 
         [HttpGet]
         public User Users(int id)
         {
-            var user = _commonUserService.GetUser(id);
+            var user = _userService.GetUsers(userId: id)?.FirstOrDefault();
             return user;
         }
 
         [HttpGet]
         public List<AccessGroup> GetUserAccessGroups(int userId)
         {
-            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(userId);
+            var accessGroups = _accessGroupService.GetAccessGroups(userId: userId);
             return accessGroups.ToList();
         }
 
@@ -43,7 +61,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
         {
             try
             {
-                FastSearchService.GetInstance().Initial();
+                _fastSearchService.Initial();
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)
@@ -69,7 +87,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
                         //var addUserToTerminalCommand = CommandFactory.Factory(CommandType.SendUserToDevice,
                         //    new List<object> {code, receivedUserId});
                         //var result = addUserToTerminalCommand.Execute();
-                        CommandFactory.Factory(CommandType.SendUserToDevice, new List<object> { code, receivedUserId })
+                        _commandFactory.Factory(CommandType.SendUserToDevice, new List<object> { code, receivedUserId })
                             .Execute();
                         //listResult.Add(new ResultViewModel {Message = userId, Validate = Convert.ToInt32(result)});
 
@@ -84,33 +102,12 @@ namespace Biovation.Brands.Suprema.ApiControllers
                 }
             });
 
-
-
-            //try
-            //{
-            //    var userIds = JsonConvert.DeserializeObject<long[]>(userId);
-            //    var listResult = new List<ResultViewModel>();
-            //    foreach (var receivedUserId in userIds)
-            //    {
-            //        var addUserToTerminalCommand = CommandFactory.Factory(CommandType.SendUserToDevice,
-            //            new List<object> { code, receivedUserId });
-            //        var result = addUserToTerminalCommand.Execute();
-            //        listResult.Add(new ResultViewModel { Message = userId, Validate = Convert.ToInt32(result) });
-            //    }
-            //    return listResult;
-            //}
-            //catch (Exception e)
-            //{
-            //    Logger.Log($"--> SendUserToDevice Code: {code}  {e}");
-            //    return new List<ResultViewModel> { new ResultViewModel { Validate = 0 } };
-            //}
-
         }
 
         [HttpPost]
         public ResultViewModel SendUserToAllDevices([FromBody]User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroupsOfUser(user.Id);
+            var accessGroups = _accessGroupService.GetAccessGroups(userId: user.Id);
             if (!accessGroups.Any())
             {
                 return new ResultViewModel { Id = user.Id, Validate = 0 };
@@ -121,7 +118,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
                 {
                     foreach (var deviceGroupMember in deviceGroup.Devices)
                     {
-                        var addUserToTerminalCommand = CommandFactory.Factory(CommandType.SyncAllUsers,
+                        var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SyncAllUsers,
                             new List<object> { deviceGroupMember.Code, user.Code });
 
                         addUserToTerminalCommand.Execute();

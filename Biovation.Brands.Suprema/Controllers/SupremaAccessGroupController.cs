@@ -1,29 +1,38 @@
-﻿using System;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
-using System.Collections.Generic;
-using System.Web.Http;
-using Biovation.Brands.Suprema.Commands;
-using Biovation.Brands.Suprema.Service;
+﻿using Biovation.Brands.Suprema.Commands;
+using Biovation.Brands.Suprema.Services;
 using Biovation.CommonClasses;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 
-namespace Biovation.Brands.Suprema.ApiControllers
+namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaAccessGroupController : ApiController
+    public class SupremaAccessGroupController : Controller
     {
-        private readonly AccessGroupService _accessGroupServices = new AccessGroupService();
+        private readonly CommandFactory _commandFactory;
+        private readonly FastSearchService _fastSearchService;
+        private readonly AccessGroupService _accessGroupServices;
+
+        public SupremaAccessGroupController(AccessGroupService accessGroupServices, CommandFactory commandFactory, FastSearchService fastSearchService)
+        {
+            _accessGroupServices = accessGroupServices;
+            _commandFactory = commandFactory;
+            _fastSearchService = fastSearchService;
+        }
 
         [HttpGet]
         public List<AccessGroup> AccessGroups()
         {
-            var accessGroups = _accessGroupServices.GetAllAccessGroups();
+            var accessGroups = _accessGroupServices.GetAccessGroups();
             return accessGroups;
         }
 
         [HttpGet]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, uint code)
         {
-            var sendAccessGroupCommand = CommandFactory.Factory(CommandType.SendAccessGroupToDevice,
+            var sendAccessGroupCommand = _commandFactory.Factory(CommandType.SendAccessGroupToDevice,
                 new List<object> { code, accessGroupId });
 
             var result = (bool)sendAccessGroupCommand.Execute();
@@ -36,7 +45,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
         {
             try
             {
-                FastSearchService.GetInstance().Initial();
+                _fastSearchService.Initial();
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)

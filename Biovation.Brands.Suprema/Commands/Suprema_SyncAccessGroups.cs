@@ -1,11 +1,10 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
 
 
 namespace Biovation.Brands.Suprema.Commands
@@ -13,10 +12,10 @@ namespace Biovation.Brands.Suprema.Commands
     /// <summary>
     /// کنترل کننده برای تمامی اتفاقات بر روی تمامی و انواع مختلف ساعت ها
     /// </summary>
-    /// <seealso cref="Command" />
     public class SupremaSyncAccessGroups : ICommand
     {
-        private readonly DeviceService _deviceService;
+  
+        private readonly TimeZoneService _timeZoneService;
 
         /// <summary>
         /// All connected devices
@@ -24,12 +23,12 @@ namespace Biovation.Brands.Suprema.Commands
         private Dictionary<uint, Device> Devices { get; }
 
         private readonly AccessGroupService _accessGroupService;
-        private  readonly  
-        public SupremaSyncAccessGroups(Dictionary<uint, Device> devices, DeviceService deviceService, AccessGroupService accessGroupService)
+     
+        public SupremaSyncAccessGroups(Dictionary<uint, Device> devices,AccessGroupService accessGroupService, TimeZoneService timeZoneService)
         {
             Devices = devices;
-            _deviceService = deviceService;
             _accessGroupService = accessGroupService;
+            _timeZoneService = timeZoneService;
         }
 
         /// <summary>
@@ -38,15 +37,15 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-       
-                
+
+
             var accessGroups = _accessGroupService.GetAccessGroups();
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
-            var offlineEventService = new OfflineEventService();
-            var timeZoneService = new TimeZoneService();
+            //var o fflineEventService = new OfflineEventService();
+            // var timeZoneService = new TimeZoneService();
 
-            var timeZones = timeZoneService.GetAllTimeZones();
+            var timeZones = _timeZoneService.GetTimeZones();
 
             var tasksDevice = new List<Task>();
 
@@ -65,17 +64,17 @@ namespace Biovation.Brands.Suprema.Commands
             {
                 #region manageOfflineDevices
 
-                var offlineCheckerDevices = _deviceService.GetAllDevicesBasicInfos();
+             /*   var offlineCheckerDevices = _deviceService.GetDevices();*/
 
-                foreach (var device in offlineCheckerDevices)
+               /* foreach (var device in offlineCheckerDevices)
                 {
-                    offlineEventService.AddOfflineEvent(new OfflineEvent
-                    {
-                        Data = time.Id.ToString(),
-                        DeviceCode = device.Code,
-                        Type = OfflineEventType.TimeZoneChanged
-                    });
-                }
+                     offlineEventService.AddOfflineEvent(new OfflineEvent
+                     {
+                         Data = time.Id.ToString(),
+                         DeviceCode = device.Code,
+                         Type = OfflineEventType.TimeZoneChanged
+                     });
+                }*/
 
                 #endregion
 
@@ -95,12 +94,12 @@ namespace Biovation.Brands.Suprema.Commands
                         {
                             Logger.Log($"Timezone {time.Id} transferred to device {device.Value.GetDeviceInfo().DeviceId} successfully.");
 
-                            offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                            /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                             {
                                 Data = time.Id.ToString(),
                                 DeviceCode = device.Value.GetDeviceInfo().Code,
                                 Type = OfflineEventType.TimeZoneChanged
-                            });
+                            });*/
                         }
                     }));
                 }
@@ -114,17 +113,17 @@ namespace Biovation.Brands.Suprema.Commands
             {
                 #region manageOfflineDevices
 
-                var offlineCheckerDevices = _deviceService.GetAllDevicesBasicInfos();
+               /* var offlineCheckerDevices = _deviceService.GetDevices();*/
 
-                foreach (var device in offlineCheckerDevices)
-                {
-                    offlineEventService.AddOfflineEvent(new OfflineEvent
-                    {
-                        Data = accessGroup.Id.ToString(),
-                        DeviceCode = device.Code,
-                        Type = OfflineEventType.AccessGroupChanged
-                    });
-                }
+                /* foreach (var device in offlineCheckerDevices)
+                 {
+                     offlineEventService.AddOfflineEvent(new OfflineEvent
+                     {
+                         Data = accessGroup.Id.ToString(),
+                         DeviceCode = device.Code,
+                         Type = OfflineEventType.AccessGroupChanged
+                     });
+                 }*/
 
                 //var accessGroupZoneService = new TimeZoneService();
                 //var accessGroupZone = accessGroupZoneService.GetAccessGroupZone(group.GroupMaskId, ConnectionType);
@@ -182,12 +181,12 @@ namespace Biovation.Brands.Suprema.Commands
                         {
                             Logger.Log($"AccessGroup {accessGroup.Id} transferred to device {device.Value.GetDeviceInfo().DeviceId} successfully.");
 
-                            offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                            /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                             {
                                 Data = accessGroup.Id.ToString(),
                                 DeviceCode = device.Value.GetDeviceInfo().Code,
                                 Type = OfflineEventType.AccessGroupChanged
-                            });
+                            });*/
                         }
                     })
                                        );

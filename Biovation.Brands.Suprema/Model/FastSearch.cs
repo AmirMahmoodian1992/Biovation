@@ -1,6 +1,6 @@
 ﻿
-using Biovation.CommonClasses.Models;
 using System.Collections.Generic;
+using Biovation.Domain;
 
 namespace Biovation.Brands.Suprema.Model
 {

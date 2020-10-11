@@ -1,21 +1,27 @@
 ﻿using System.Linq;
 using System.Reflection;
-using System.Web.Http;
-using Biovation.CommonClasses.Models;
+using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Biovation.Brands.Suprema.ApiControllers
+namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaSystemInfoController : ApiController
+    [Microsoft.AspNetCore.Components.Route("Biovation/Api/[controller]/[action]")]
+    public class SupremaSystemInfoController : Controller
     {
         [HttpGet]
-        public ResultViewModel<ModuleInfo> GetInfo()
+        public ResultViewModel<ServiceInfo> GetInfo()
         {
-            var brandInfo = new ModuleInfo();
-            var result = new ResultViewModel<ModuleInfo>();
-            brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name.Split('.').LastOrDefault();
-            brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var brandInfo = new ServiceInfo();
+            var result = new ResultViewModel<ServiceInfo>();
+            var name = Assembly.GetExecutingAssembly().GetName().Name;
+            if (name != null)
+                brandInfo.Name = name.Split('.').LastOrDefault();
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            if (version != null)
+                brandInfo.Version = version.ToString();
             result.Data = brandInfo;
             return result;
         }
+
     }
 }

@@ -1,13 +1,12 @@
 ﻿using Biovation.Brands.Suprema.Model;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Threading;
 
 namespace Biovation.Brands.Suprema.Devices
 {
@@ -21,11 +20,14 @@ namespace Biovation.Brands.Suprema.Devices
         //public Mutex UserTransferMutex = new Mutex();
         public Semaphore DeviceAccessSemaphore;
         protected CancellationToken Token;
-
-
-        protected Device(SupremaDeviceModel info)
+      
+        private readonly UserCardService _userCardService;
+        private readonly AccessGroupService _accessGroupService;
+        protected Device(SupremaDeviceModel info, AccessGroupService accessGroupService, UserCardService userCardService)
         {
             DeviceInfo = info;
+            _accessGroupService = accessGroupService;
+            _userCardService = userCardService;
         }
 
         public void UpdateDeviceInfo(SupremaDeviceModel deviceInfo)
@@ -90,90 +92,92 @@ namespace Biovation.Brands.Suprema.Devices
         public virtual void ReadOfflineEvent()
         {
             //var offlineUserEventService = new OfflineUserEventServices();
-            var userService = new UserService();
-            var accessGroupService = new AccessGroupService();
-            var offlineEventService = new OfflineEventService();
+
+
+            //  var offlineEventService = new OfflineEventService();
             //var userOfflineEvents = offlineEventService.GetUserOfflineEvent(Convert.ToInt32(DeviceInfo.Code), "PersonnelConnectionString");
-            var offlineEvents = offlineEventService.GetOfflineEvents(DeviceInfo.DeviceId);
+            // var offlineEvents = offlineEventService.GetOfflineEvents(DeviceInfo.DeviceId);
 
             //var accessAndTimeOfflineEvents =
             //    offlineAccessAndTimeService.GetAccessAndTimeOfflineEvent(DeviceInfo.DeviceId, "PersonnelConnectionString");
 
-            var accessGroups = accessGroupService.GetAllAccessGroups();
+            //var accessGroups = _accessGroupService.GetAccessGroups();
 
-            if (offlineEvents.Count(offlineEvent => offlineEvent.Type == OfflineEventType.AccessGroupChanged) > 0 &&
-                accessGroups.Count ==
-                offlineEvents.Count(offlineEvent => offlineEvent.Type == OfflineEventType.AccessGroupChanged))
-            {
-                DeleteAllTimeZones();
-                DeleteAllAccessGroups();
-            }
+            //if (/*offlineEvents.Count(offlineEvent => offlineEvent.Type == OfflineEventType.AccessGroupChanged) > 0 &&*/
+            //    accessGroups.Count ==
+            //    offlineEvents.Count(offlineEvent => offlineEvent.Type == OfflineEventType.AccessGroupChanged))
+            //{
 
-            foreach (var offlineEvent in offlineEvents)
-            {
-                if (offlineEvent.Type == OfflineEventType.UserInserted)
-                {
-                    //var userData = userService.GetUser(userOfflineEvent.NUserIdn, "PersonnelConnectionString");
-                    var userData = userService.GetUser(Convert.ToInt64(offlineEvent.Data), false);
-
-                    if (userData != null)
-                    {
-                        if (TransferUser(userData))
-                        {
-                            offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
-                        }
-                    }
-
-                    else
-                    {
-                        Logger.Log("The user with id: " + offlineEvent.Data +
-                                          " has been deleted before from database! \n");
-                        offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
-                    }
-                }
-
-                else if (offlineEvent.Type == OfflineEventType.UserDeleted)
-                {
-                    var userData = userService.GetUser(Convert.ToInt64(offlineEvent.Data), false);
-
-                    if (userData != null)
-                    {
-                        //BSSDK.BS_DeleteUser(GetDeviceInfo().Handle,
-                        //    Convert.ToUInt32(userData.SUserId));
-
-                        //DeleteUser(Convert.ToUInt32(userData.SUserId));
-                        if (DeleteUser(Convert.ToUInt32(userData.Code)))
-                        {
-                            offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
-                        }
-                    }
-
-                    else
-                    {
-                        Logger.Log("The user with id: " + offlineEvent.Data +
-                                          " has been deleted before from database! \n");
-                    }
-                }
-
-                else if (offlineEvent.Type == OfflineEventType.AccessGroupChanged)
-                {
-                    if (!TransferAccessGroup(Convert.ToInt32(offlineEvent.Data))) continue;
-
-                    Logger.Log($"AccessGroup {offlineEvent.Data} transferred to device {offlineEvent.DeviceCode} successfully.");
-
-                    offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
-                }
-
-                else if (offlineEvent.Type == OfflineEventType.TimeZoneChanged)
-                {
-                    if (!TransferTimeZone(Convert.ToInt32(offlineEvent.Data))) continue;
-
-                    Logger.Log($"Timezone {offlineEvent.Data} transferred to device {offlineEvent.DeviceCode} successfully.");
-
-                    offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
-                }
-            }
+            DeleteAllTimeZones();
+            DeleteAllAccessGroups();
         }
+        //}
+
+        //foreach (var offlineEvent in offlineEvents)
+        // {
+        //if (offlineEvent.Type == OfflineEventType.UserInserted)
+        //{
+        //    //var userData = userService.GetUser(userOfflineEvent.NUserIdn, "PersonnelConnectionString");
+        //    var userData = _userService.GetUsers(offlineEvent.Data, false).FirstOrDefault();
+
+        //    if (userData != null)
+        //    {
+        //        if (TransferUser(userData))
+        //        {
+        //           // offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
+        //        }
+        //    }
+
+        //    else
+        //    {
+        //        Logger.Log("The user with id: " + offlineEvent.Data +
+        //                          " has been deleted before from database! \n");
+        //        //offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
+        //    }
+        //}
+
+        //else if (offlineEvent.Type == OfflineEventType.UserDeleted)
+        //{
+        //    var userData = _userService.GetUsers(offlineEvent.Data, false);
+
+        //    if (userData != null)
+        //    {
+        //        //BSSDK.BS_DeleteUser(GetDeviceInfo().Handle,
+        //        //    Convert.ToUInt32(userData.SUserId));
+
+        //        //DeleteUser(Convert.ToUInt32(userData.SUserId));
+        //        if (DeleteUser(Convert.ToUInt32(userData.Code)))
+        //        {
+        //            offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
+        //        }
+        //    }
+
+        //    else
+        //    {
+        //        Logger.Log("The user with id: " + offlineEvent.Data +
+        //                          " has been deleted before from database! \n");
+        //    }
+        //}
+
+        //else if (offlineEvent.Type == OfflineEventType.AccessGroupChanged)
+        //{
+        //    if (!TransferAccessGroup(Convert.ToInt32(offlineEvent.Data))) continue;
+
+        //    Logger.Log($"AccessGroup {offlineEvent.Data} transferred to device {offlineEvent.DeviceCode} successfully.");
+
+        //    offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
+        //}
+
+        //else if (offlineEvent.Type == OfflineEventType.TimeZoneChanged)
+        //{
+        //    if (!TransferTimeZone(Convert.ToInt32(offlineEvent.Data))) continue;
+
+        //    Logger.Log($"Timezone {offlineEvent.Data} transferred to device {offlineEvent.DeviceCode} successfully.");
+
+        //    offlineEventService.DeleteOfflineEvent(offlineEvent.Id);
+        //}
+
+
 
         /// <summary>
         /// <En>Read all log data from device, since last disconnect.</En>
@@ -202,25 +206,28 @@ namespace Biovation.Brands.Suprema.Devices
         /// <param name="cardNumber">شماره کارت مورد نظر</param>
         public void CardValidation(string cardNumber)
         {
-            var cardService = new UserCardService();
-            var cardDevice = cardService.FindUsersByCardNumber(cardNumber);
-            var rowcount = cardDevice.Count;
+
+            var cardDevice = _userCardService.FindUserByCardNumber(cardNumber);
+            //var rowcount = cardDevice.Count;
+
+            //var rowcount = cardDevice.Count;
 
             //Deletes User From Device
-            if (rowcount <= 1) return;
-            var id = Convert.ToUInt32(cardDevice[rowcount - 2].Id);
+            if (cardDevice != null) return;
+            //todo: for row number>2
+            // var id = Convert.ToUInt32(cardDevice[rowcount - 2].Id);
+            //var id = Convert.ToUInt32(cardDevice.Id);
+            //// checks if this id is still on device , then delete from device, maybe user deleted before.
 
-            // checks if this id is still on device , then delete from device, maybe user deleted before.
-            var userservice = new UserService();
-            var code = (uint)userservice.GetUser(userId: id).Code;
-            if (!ExistOnDevice(code)) return;
-            var result = DeleteUser(code);
-            //var result = BSSDK.BS_DeleteUser(DeviceInfo.Handle, id);
+            //var code = (uint)_userService.GetUsers(userId: id).FirstOrDefault().Code;
+            //if (!ExistOnDevice(code)) return;
+            //var result = DeleteUser(code);
+            ////var result = BSSDK.BS_DeleteUser(DeviceInfo.Handle, id);
 
-            if (result != true)
-            {
-                Logger.Log($"Cannot delete user :{cardDevice[rowcount - 2].Id} which had have card number : {cardNumber}");
-            }
+            //if (result != true)
+            //{
+            //    Logger.Log($"Cannot delete user :{cardDevice.Id} which had have card number : {cardNumber}");
+            //}
         }
 
         /// <summary>
@@ -258,8 +265,8 @@ namespace Biovation.Brands.Suprema.Devices
         /// <returns></returns>
         public string GetAccessGroup(long userId)
         {
-            var accessGroupService = new AccessGroupService();
-            var accessGroups = accessGroupService.GetAccessGroupsOfUser(userId);
+
+            var accessGroups = _accessGroupService.GetAccessGroups(userId);
 
             if (accessGroups.Count > 4 || accessGroups.Count < 0)
             {

@@ -1,40 +1,30 @@
-﻿using Biovation.Brands.Suprema.Model;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Brands.Suprema.Model;
+using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
-namespace Biovation.Brands.Suprema.Service
+namespace Biovation.Brands.Suprema.Services
 {
     public class FastSearchService
     {
         private Dictionary<int, FastSearch> _templates;
-        private readonly AccessGroupService _accessGroupService = new AccessGroupService();
+        private readonly AccessGroupService _accessGroupService ;
         //private readonly FingerTemplateService _templateService = new FingerTemplateService();
-        private static readonly Semaphore InitSemaphore = new Semaphore(1, 1);
-        private static readonly object SyncRoot = new object();
-        private static FastSearchService _instance;
-
-        private FastSearchService()
+        private readonly Semaphore _initSemaphore = new Semaphore(1, 1);
+     
+        private FastSearchService(AccessGroupService accessGroupService)
         {
+            _accessGroupService = accessGroupService;
             _templates = new Dictionary<int, FastSearch>();
             //Initial();
         }
 
-        public  FastSearchService GetInstance()
-        {
-            lock (SyncRoot)
-            {
-                if (_instance == null)
-                    _instance = new FastSearchService();
-            }
-            return _instance;
-        }
 
         public void Initial(bool checkExistence = false)
         {
@@ -42,7 +32,7 @@ namespace Biovation.Brands.Suprema.Service
 
             try
             {
-                InitSemaphore.WaitOne(20000);
+                _initSemaphore.WaitOne(20000);
             }
             catch (Exception e)
             {
@@ -56,7 +46,7 @@ namespace Biovation.Brands.Suprema.Service
 
             //var userGroupToUser = _accessGroupService.GetServerSideIdentificationCacheNoTemplate();
 
-            var accessGroups = _accessGroupService.GetAllAccessGroups(getNestingLevel: 1);
+            var accessGroups = _accessGroupService.GetAccessGroups(nestingDepthLevel: 1);
 
 
             //var allTemplates = _templateService.GetAllFingerTemplatesByFingerTemplateType(FingerTemplateType.SU384);
@@ -187,7 +177,7 @@ namespace Biovation.Brands.Suprema.Service
 
             try
             {
-                InitSemaphore.Release();
+                _initSemaphore.Release();
             }
             catch (Exception e)
             {

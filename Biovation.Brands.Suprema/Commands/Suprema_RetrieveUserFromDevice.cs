@@ -353,12 +353,12 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 //todo
                                 //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(userId:user.Id,userGroupId: 4);
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4);
 
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
                                     var onlineDevices =
-                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.VirdiCode));
+                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.VirdiCode).ToString());
 
                                     foreach (var device in onlineDevices)
                                     {

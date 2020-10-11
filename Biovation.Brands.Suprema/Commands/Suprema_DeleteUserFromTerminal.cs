@@ -16,7 +16,7 @@ namespace Biovation.Brands.Suprema.Commands
         private uint UserId { get; }
 
         private readonly TaskStatuses _taskStatuses;
-        public SupremaDeleteUserFromTerminal(uint deviceId, uint userId, TaskStatuses taskStatuses, Dictionary<uint, Device> onlineDevices)
+        public SupremaDeleteUserFromTerminal(uint deviceId, Dictionary<uint, Device> onlineDevices, uint userId, TaskStatuses taskStatuses)
         {
             DeviceId = deviceId;
             UserId = userId;

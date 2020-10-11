@@ -1,20 +1,17 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.Brands.Suprema.Service;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Suprema.Commands
 {
     /// <summary>
     /// کنترل کننده برای تمامی اتفاقات بر روی تمامی و انواع مختلف ساعت ها
     /// </summary>
-    /// <seealso cref="Command" />
     public class SupremaSyncUserOfDevice : ICommand
     {
         private uint DeviceCode { get; }
@@ -23,13 +20,23 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> Devices { get; }
+        ///
+        /// 
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public SupremaSyncUserOfDevice(uint deviceCode, int userId, Dictionary<uint, Device> devices)
+        private readonly BioStarServer _bioStarServer;
+        private readonly AccessGroupService _accessGroupService;
+        private readonly UserService _userService;
+
+        public SupremaSyncUserOfDevice(uint deviceCode, int userId, Dictionary<uint, Device> onlineDevices, BioStarServer bioStarServer, AccessGroupService accessGroupService, UserService userService)
         {
             DeviceCode = deviceCode;
-            Devices = devices?? BioStarServer.GetOnlineDevices();
+            _onlineDevices = onlineDevices;
             UserId = userId;
+
+            _bioStarServer = bioStarServer;
+            _accessGroupService = accessGroupService;
+            _userService = userService;
         }
 
         /// <summary>
@@ -41,22 +48,22 @@ namespace Biovation.Brands.Suprema.Commands
             //var eventID = Convert.ToInt32(items.First());
 
 
-            var userService = new UserService();
-            var user = userService.GetUser(userCode:UserId, withPicture:false);
+
+            var user = _userService.GetUsers(UserId).FirstOrDefault();
 
             if (user == null)
             {
                 return false;
             }
 
-            var accessGroup = new AccessGroupService();
-            var userAccess = accessGroup.GetAccessGroupsOfUser(user.Id);
+
+            var userAccess = _accessGroupService.GetAccessGroups(user.Id);
 
             var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
             var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
             var disable = userAccess.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
 
-            var offlineEventService = new OfflineEventService();
+            /* var offlineEventService = new OfflineEventService();*/
 
             //#region manageOfflineDevices
 
@@ -103,30 +110,30 @@ namespace Biovation.Brands.Suprema.Commands
             //#endregion manageOfflineDevices
 
 
-                #region transferUserToDevice
+            #region transferUserToDevice
 
-                try
+            try
+            {
+                var device = _onlineDevices[Convert.ToUInt32(DeviceCode)];
+
+                Task.Run(() =>
                 {
-                    var device = Devices[Convert.ToUInt32(DeviceCode)];
+                    if (device == null) return;
+                    if (!device.TransferUser(user)) return;
+                    //offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                    //{
+                    //    DeviceCode = device.GetDeviceInfo().Code,
+                    //    Data = user.Id.ToString(),
+                    //    Type = OfflineEventType.UserInserted
+                    //});
 
-                    Task.Run(() =>
-                    {
-                        if (device == null) return;
-                        if (!device.TransferUser(user)) return;
-                        //offlineEventService.DeleteOfflineEvent(new OfflineEvent
-                        //{
-                        //    DeviceCode = device.GetDeviceInfo().Code,
-                        //    Data = user.Id.ToString(),
-                        //    Type = OfflineEventType.UserInserted
-                        //});
-
-                        Logger.Log($"User {user.Id} transferred to device {device.GetDeviceInfo().DeviceId} successfully.");
-                    });
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                    Logger.Log($"User {user.Id} transferred to device {device.GetDeviceInfo().DeviceId} successfully.");
+                });
+            }
+            catch (Exception)
+            {
+                return false;
+            }
 
             #endregion transferUserToDevices
 

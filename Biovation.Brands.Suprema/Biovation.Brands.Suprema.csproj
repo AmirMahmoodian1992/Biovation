@@ -7,6 +7,11 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
   <ItemGroup>
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
   </ItemGroup>
@@ -29,6 +34,22 @@
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Libraries\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Suprema.UFExtractor">
+      <HintPath>Libraries\Suprema.UFExtractor.dll</HintPath>
+    </Reference>
+    <Reference Include="Suprema.UFMatcher">
+      <HintPath>Libraries\Suprema.UFMatcher.dll</HintPath>
+    </Reference>
+    <Reference Include="Suprema.UFScanner">
+      <HintPath>Libraries\Suprema.UFScanner.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

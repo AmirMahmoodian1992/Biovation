@@ -1,7 +1,6 @@
-﻿using Biovation.Brands.Suprema.Model;
-using Biovation.Brands.Suprema.Service;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+﻿using Biovation.Brands.Suprema.Manager;
+using Biovation.Brands.Suprema.Model;
+using Biovation.CommonClasses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,9 +8,10 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Manager;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models.ConstantValues;
+using Biovation.Brands.Suprema.Services;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 {
@@ -22,14 +22,40 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
     internal class FaceStation : Device
     {
         private readonly object _deviceAccessObject = new object();
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly SupremaLogService _supremaLogService = new SupremaLogService();
-        private readonly SupremaDeviceService _supremaDeviceService = new SupremaDeviceService();
+        private readonly DeviceService _deviceService ;
+        private readonly SupremaLogService _supremaLogService ;
+        private readonly UserService _userService;
+        private readonly AccessGroupService _accessGroupService;
+        private readonly UserCardService _userCardService;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly LogService _logService;
 
 
-        public FaceStation(SupremaDeviceModel info)
-            : base(info)
+        private readonly TimeZoneService _timeZoneService;
+        private readonly SupremaCodeMappings _supremaCodeMappings;
+
+        private readonly DeviceBrands _deviceBrands;
+        private readonly MatchingTypes _matchingTypes;
+        private readonly LogEvents _logEvents;
+        private readonly LogSubEvents _logSubEvents;
+        public FaceStation(SupremaDeviceModel info, DeviceService deviceService, SupremaLogService supremaLogService, UserCardService userCardService, AccessGroupService accessGroupService, UserService userService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, MatchingTypes matchingTypes, LogEvents logEvents, LogService logService, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, DeviceBrands deviceBrands, LogSubEvents logSubEvents)
+            : base(info,accessGroupService,userCardService)
         {
+            _deviceService = deviceService;
+            _supremaLogService = supremaLogService;
+            _userCardService = userCardService;
+            _accessGroupService = accessGroupService;
+            _userService = userService;
+            _faceTemplateService = faceTemplateService;
+            _faceTemplateTypes = faceTemplateTypes;
+            _matchingTypes = matchingTypes;
+            _logEvents = logEvents;
+            _logService = logService;
+            _timeZoneService = timeZoneService;
+            _supremaCodeMappings = supremaCodeMappings;
+            _deviceBrands = deviceBrands;
+            _logSubEvents = logSubEvents;
             DeviceAccessSemaphore = new Semaphore(1, 1);
         }
 
@@ -113,8 +139,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             try
             {
                 //card
-                var cardService = new UserCardService();
-                var userCards = cardService.GetActiveUserCard(userData.Id);
+              
+                var userCards = _userCardService.GetCardsByFilter(userData.Id,true);
                 //var rowc = dtCard.Count;
                 if (userCards != null)
                 {
@@ -146,9 +172,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //var hasFaceStillCut = false;
             var hasFaceTemplate = false;
             var nIndexMax = new int[5];
-            var faceService = new FaceTemplateService();
+           
 
-            
             // TODO Important: Add still cut image to face template
             //var userFace = faceService.GetImage(nUserIdn, ConnectionType);
             //if (userFace.Count > 0)
@@ -168,13 +193,13 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //}
 
             //var faceTemplate = faceService.GetFaceTemplate(nUserIdn, ConnectionType);
-            var faceTemplate = (faceService.GetFaceTemplateByUserId(userData.Id).Where(x => x.FaceTemplateType.Code == FaceTemplateTypes.SFACE.Code)).ToList();
+            var faceTemplate = (_faceTemplateService.FaceTemplates(userId:userData.Id).Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)).ToList();
             var rowCount = faceTemplate.Count;
 
             if (rowCount > 0) hasFaceTemplate = true;
 
             //if (hasFaceTemplate && !(faceTemplate.Any(x => x.FaceTemplateType.Code == FaceTemplateTypes.SFACE.Code)))
-            if(hasFaceTemplate)
+            if (hasFaceTemplate)
             {
                 var numberOfFace = 1;
 
@@ -399,8 +424,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //    //return false;
             //}
 
-            var accessGroupService = new AccessGroupService();
-            var accessGroup = accessGroupService.GetAccessGroupById(nAccessIdn);
+
+            var accessGroup = _accessGroupService.GetAccessGroup(nAccessIdn);
 
 
             var accessGroupEx = new BSSDK.BSAccessGroupEx
@@ -479,8 +504,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             //int numOfSchedule = 1;  //support upto 128
 
-            var timezoneService = new TimeZoneService();
-            var timezone = timezoneService.GetTimeZoneById(nTimeZone);
+            
+            var timezone = _timeZoneService.TimeZones(nTimeZone);
 
             if (timezone != null)
             {
@@ -627,7 +652,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         new IntPtr(logRecord.ToInt32() + logTotalCount * Marshal.SizeOf(typeof(BSSDK.BSLogRecordEx)));
                     if (logTotalCount == 0)
                     {
-                        var lastConnectedTime = _supremaDeviceService.GetLastConnectedTime(DeviceInfo.DeviceId);
+                        var lastConnectedTime = _deviceService.GetLastConnectedTime(DeviceInfo.DeviceId)?.Data??DateTime.MinValue;
                         var logData = _supremaLogService.GetLastLogsOfDevice(DeviceInfo.Code).Result;
 
                         if (lastConnectedTime.DayOfYear < DateTime.Now.DayOfYear)
@@ -851,13 +876,13 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         DateTimeTicks = (uint)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         DeviceCode = DeviceInfo.Code,
-                        EventLog = SupremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
+                        EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.eventType).ToString()
                         },
                         Reserved = record.reserved1,
                         TnaEvent = record.tnaEvent,
-                        SubEvent = SupremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup
+                        SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.subEvent).ToString()
                         },
@@ -875,62 +900,62 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     switch (record.subEvent)
                     {
                         case 0x3A:
-                            receivedLog.MatchingType = MatchingTypes.Finger;
+                            receivedLog.MatchingType = _matchingTypes.Finger;
                             break;
                         case 0x3B:
                             //User has been verified by(Finger + PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x3D:
-                            receivedLog.MatchingType = MatchingTypes.Face;
+                            receivedLog.MatchingType = _matchingTypes.Face;
                             break;
 
                         case 0x3E:
                             //User has been verified by(Face + PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2B:
                             //User has been verified by(ID + Finger)
-                            receivedLog.MatchingType = MatchingTypes.Finger;
+                            receivedLog.MatchingType = _matchingTypes.Finger;
                             break;
                         case 0x2C:
                             //User has been verified by (ID+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2D:
                             //User has been verified by (Card+Finger)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2E:
                             //User has been verified by (Card+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2F:
-                            receivedLog.MatchingType = MatchingTypes.Card;
+                            receivedLog.MatchingType = _matchingTypes.Card;
                             break;
                         case 0x30:
                             //User has been verified by (Card+Finger+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x31:
                             //User has been verified by (ID+Finger+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x32:
                             //User has been verified by (ID+Face)
-                            receivedLog.MatchingType = MatchingTypes.Face;
+                            receivedLog.MatchingType = _matchingTypes.Face;
                             break;
                         case 0x33:
                             //User has been verified by (Card+Face)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x34:
                             //User has been verified by (Card+Face+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x35:
                             //User has been verified by (FACE+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                     }
 
@@ -938,11 +963,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     {
                         if (record.eventType == 55 || record.eventType == 56 || record.eventType == 109 || record.eventType == 99)
                         {
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                         }
                         else
                         {
-                            receivedLog.MatchingType = MatchingTypes.UnIdentify;
+                            receivedLog.MatchingType = _matchingTypes.UnIdentify;
                         }
                     }
 
@@ -980,7 +1005,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         {
             foreach (var log in logList)
             {
-                if (log.EventLog.Code == LogEvents.Authorized.Code || log.EventLog.Code == LogEvents.IdentifySuccessFace.Code)
+                if (log.EventLog.Code == _logEvents.Authorized.Code || log.EventLog.Code == _logEvents.IdentifySuccessFace.Code)
                 {
                     GetImageOfFaceLog(log);
                 }
@@ -1112,9 +1137,9 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                         log.PicByte = imageBytes;
 
-                        var logService = new LogService();
+                     var listLog=new List<Log>{log};
                         //logService.InsertFaceLog(faceLog, ConnectionType);
-                        logService.UpdateLog(log);
+                        _logService.UpdateLog(listLog);
                     }
                 }
 
@@ -1176,7 +1201,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 var logCount = 0;
 
                 var nMaxLogPerTrial = 21845;
-                var logService = new LogService();
+            
 
                 do
                 {
@@ -1277,13 +1302,13 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         DateTimeTicks = (uint)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         DeviceCode = DeviceInfo.Code,
-                        EventLog = SupremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
+                        EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.eventType).ToString()
                         },
                         Reserved = record.reserved1,
                         TnaEvent = record.tnaEvent,
-                        SubEvent = SupremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup
+                        SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.subEvent).ToString()
                         },
@@ -1301,62 +1326,62 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     switch (record.subEvent)
                     {
                         case 0x3A:
-                            receivedLog.MatchingType = MatchingTypes.Finger;
+                            receivedLog.MatchingType = _matchingTypes.Finger;
                             break;
                         case 0x3B:
                             //User has been verified by(Finger + PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x3D:
-                            receivedLog.MatchingType = MatchingTypes.Face;
+                            receivedLog.MatchingType = _matchingTypes.Face;
                             break;
 
                         case 0x3E:
                             //User has been verified by(Face + PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2B:
                             //User has been verified by(ID + Finger)
-                            receivedLog.MatchingType = MatchingTypes.Finger;
+                            receivedLog.MatchingType = _matchingTypes.Finger;
                             break;
                         case 0x2C:
                             //User has been verified by (ID+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2D:
                             //User has been verified by (Card+Finger)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2E:
                             //User has been verified by (Card+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x2F:
-                            receivedLog.MatchingType = MatchingTypes.Card;
+                            receivedLog.MatchingType = _matchingTypes.Card;
                             break;
                         case 0x30:
                             //User has been verified by (Card+Finger+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x31:
                             //User has been verified by (ID+Finger+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x32:
                             //User has been verified by (ID+Face)
-                            receivedLog.MatchingType = MatchingTypes.Face;
+                            receivedLog.MatchingType = _matchingTypes.Face;
                             break;
                         case 0x33:
                             //User has been verified by (Card+Face)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x34:
                             //User has been verified by (Card+Face+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                         case 0x35:
                             //User has been verified by (FACE+PIN)
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                             break;
                     }
 
@@ -1364,11 +1389,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     {
                         if (record.eventType == 55 || record.eventType == 56 || record.eventType == 109 || record.eventType == 99)
                         {
-                            receivedLog.MatchingType = MatchingTypes.Unknown;
+                            receivedLog.MatchingType = _matchingTypes.Unknown;
                         }
                         else
                         {
-                            receivedLog.MatchingType = MatchingTypes.UnIdentify;
+                            receivedLog.MatchingType = _matchingTypes.UnIdentify;
                         }
                     }
 
@@ -1377,7 +1402,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
-                logService.AddLogBulk(allLogList);
+                _logService.AddLog(allLogList);
                 Logger.Log($"{logTotalCount} offline logs retrieved from device {logTotalCount}");
 
                 Marshal.FreeHGlobal(logRecord);
@@ -1408,7 +1433,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 (BSSysInfoConfig)Marshal.PtrToStructure(bsSysInfoConfig, typeof(BSSysInfoConfig));
             Marshal.FreeHGlobal(bsSysInfoConfig);
 
-            var existingDevice = _deviceService.GetDeviceBasicInfoWithCode(DeviceInfo.Code, DeviceBrands.SupremaCode);
+            var existingDevice = _deviceService.GetDevices(DeviceInfo.Code,brandId: _deviceBrands.Suprema.Code).FirstOrDefault();
 
             if (existingDevice is null)
             {
@@ -1426,9 +1451,9 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             DeviceInfo.MacAddress = Encoding.UTF8.GetString(bsSysInfoConfigObj.macAddr);
             DeviceInfo.FirmwareVersion = Encoding.UTF8.GetString(bsSysInfoConfigObj.firmwareVer);
             DeviceInfo.HardwareVersion = Encoding.UTF8.GetString(bsSysInfoConfigObj.boardVer);
-            DeviceInfo.Brand = DeviceBrands.Suprema;
+            DeviceInfo.Brand = _deviceBrands.Suprema;
 
-            return Convert.ToInt32(_deviceService.ModifyDeviceBasicInfoByID(DeviceInfo).Id);
+            return Convert.ToInt32(_deviceService.ModifyDevice(DeviceInfo).Id);
         }
 
         /// <summary>
@@ -1566,10 +1591,10 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         public override User GetUser(uint id)
         {
 
-             const int bsFstMaxFaceType = 5;
-             const int bsFstMaxFaceTemplate = 25;
-             const int bsFstFaceTemplateSize = 2000;
-             const int bsMaxImageSize = (100 * 1024);
+            const int bsFstMaxFaceType = 5;
+            const int bsFstMaxFaceTemplate = 25;
+            const int bsFstFaceTemplateSize = 2000;
+            const int bsMaxImageSize = (100 * 1024);
 
             var mStillCutData = new byte[bsFstMaxFaceType * bsMaxImageSize];
             var mFaceTemplate = new byte[bsFstMaxFaceType * bsFstFaceTemplateSize * bsFstMaxFaceTemplate];
@@ -1585,7 +1610,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 {
                     DeviceAccessSemaphore.WaitOne();
                     //result = BSSDK.BS_GetUserDBIbnfo(DeviceInfo.Handle, ref numOfUser, ref mNumOfTemplate);
-                     result = BSSDK.BS_GetUserFStationEx(DeviceInfo.Handle, id, userInfo, imageData, faceTemplate);
+                    result = BSSDK.BS_GetUserFStationEx(DeviceInfo.Handle, id, userInfo, imageData, faceTemplate);
                 }
             }
             catch (Exception)
@@ -1673,11 +1698,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     var tempFaceTemplate = new FaceTemplate
                     {
                         Id = i,
-                        UserId =  userHdr.ID,
+                        UserId = userHdr.ID,
                         Index = userHdr.numOfFaceType,
-                        FaceTemplateType = FaceTemplateTypes.SFACE,
+                        FaceTemplateType = _faceTemplateTypes.SFACE,
                         Template = mFaceTemplate,
-                        CheckSum = mFaceTemplate.Sum(x=>x),
+                        CheckSum = mFaceTemplate.Sum(x => x),
                         Size = mFaceTemplate.Length
                         //CreateAt = new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime) in mitoone dorost nabashe chon momkene baadan behesh face ezafe shode bashe
 
@@ -1736,11 +1761,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 DateTimeTicks = (uint)(DateTime.Now.Ticks / 100000),
                 DeviceId = DeviceInfo.DeviceId,
                 DeviceCode = DeviceInfo.Code,
-                EventLog = LogEvents.RemoveUserFromDevie,
+                EventLog = _logEvents.RemoveUserFromDevice,
                 TnaEvent = 0,
-                SubEvent = LogSubEvents.Normal,
+                SubEvent = _logSubEvents.Normal,
                 UserId = (int)userId,
-                MatchingType = MatchingTypes.Unknown
+                MatchingType = _matchingTypes.Unknown
             };
             _supremaLogService.AddLog(deleteLog);
 

@@ -16,16 +16,14 @@ namespace Biovation.Brands.Suprema.Commands
         /// All connected devices
         /// </summary>
         private readonly Dictionary<uint, Device> _onlineDevices;
-        private readonly TaskStatuses _taskStatuses;
 
 
 
         private uint DeviceId { get; }
 
-        public SupremaGetUsersOfDevice(uint deviceId, TaskStatuses taskStatuses, Dictionary<uint, Device> onlineDevices)
+        public SupremaGetUsersOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices)
         {
             DeviceId = deviceId;
-            _taskStatuses = taskStatuses;
             _onlineDevices = onlineDevices;
   
         }

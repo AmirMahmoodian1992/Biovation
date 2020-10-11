@@ -1,48 +1,48 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.CommonClasses.Interface;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.Suprema.Commands
 {
     /// <summary>
     /// کنترل کننده برای تمامی اتفاقات بر روی تمامی و انواع مختلف ساعت ها
     /// </summary>
-    /// <seealso cref="Command" />
     public class SupremaSyncTimeZone : ICommand
     {
-        private readonly DeviceService _deviceService = new DeviceService();
+     
+        private readonly TimeZoneService _timeZoneService;
 
         /// <summary>
-        /// All connected devices
+        /// All connected _onlineDevices
         /// </summary>
-        private Dictionary<uint, Device> Devices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public SupremaSyncTimeZone(Dictionary<uint, Device> devices)
+        public SupremaSyncTimeZone(Dictionary<uint, Device> onlineDevices,  TimeZoneService timeZoneService)
         {
-            Devices = devices;
+            _onlineDevices = onlineDevices;
+            _timeZoneService = timeZoneService;
         }
 
         /// <summary>
-        /// <En>Handles the received event on devices.</En>
+        /// <En>Handles the received event on _onlineDevices.</En>
         /// <Fa>درخواست دریافت شده را کنترل میکند.</Fa>
         /// </summary>
         public object Execute()
         {
-            var timeZoneService = new TimeZoneService();
 
-            var timeZones = timeZoneService.GetAllTimeZones();
+
+            var timeZones = _timeZoneService.GetTimeZones();
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
-            var offlineEventService = new OfflineEventService();
+            //var offlineEventService = new OfflineEventService();
 
             var tasksDevice = new List<Task>();
 
-            foreach (var device in Devices)
+            foreach (var device in _onlineDevices)
             {
                 tasksDevice.Add(Task.Run(() =>
                 {
@@ -56,17 +56,17 @@ namespace Biovation.Brands.Suprema.Commands
             {
                 #region manageOfflineDevices
 
-                var offlineCheckerDevices = _deviceService.GetAllDevicesBasicInfos();
+                //var offlineCheckerDevices = _deviceService.GetDevices();
 
-                foreach (var device in offlineCheckerDevices)
-                {
-                    offlineEventService.AddOfflineEvent(new OfflineEvent
-                    {
-                        Data = time.Id.ToString(),
-                        DeviceCode = device.Code,
-                        Type = OfflineEventType.TimeZoneChanged
-                    });
-                }
+                /* foreach (var device in offlineCheckerDevices)
+                 {
+                     offlineEventService.AddOfflineEvent(new OfflineEvent
+                     {
+                         Data = time.Id.ToString(),
+                         DeviceCode = device.Code,
+                         Type = OfflineEventType.TimeZoneChanged
+                     });
+                 }*/
 
                 #endregion
 
@@ -74,7 +74,7 @@ namespace Biovation.Brands.Suprema.Commands
 
                 var tasks = new List<Task>();
 
-                foreach (var device in Devices)
+                foreach (var device in _onlineDevices)
                 {
                     tasks.Add(Task.Run(() =>
                     {
@@ -82,12 +82,12 @@ namespace Biovation.Brands.Suprema.Commands
                         {
                             Logger.Log($"Timezone {time.Id} transferred to device {device.Value.GetDeviceInfo().DeviceId} successfully.");
 
-                            offlineEventService.DeleteOfflineEvent(new OfflineEvent
+                            /*offlineEventService.DeleteOfflineEvent(new OfflineEvent
                             {
                                 Data = time.Id.ToString(),
                                 DeviceCode = device.Value.GetDeviceInfo().Code,
                                 Type = OfflineEventType.TimeZoneChanged
-                            });
+                            });*/
                         }
 
                     }));
@@ -108,12 +108,12 @@ namespace Biovation.Brands.Suprema.Commands
 
         public string GetTitle()
         {
-            return "Sync all time zones with all devices command";
+            return "Sync all time zones with all _onlineDevices command";
         }
 
         public string GetDescription()
         {
-            return "Syncing all time zones with all devices command";
+            return "Syncing all time zones with all _onlineDevices command";
         }
     }
 }

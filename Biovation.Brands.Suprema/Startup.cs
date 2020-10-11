@@ -1,7 +1,9 @@
-﻿using System.Configuration;
-using App.Metrics;
+﻿using App.Metrics;
 using App.Metrics.Extensions.Configuration;
-using Biovation.Brands.Suprema.Service;
+using Biovation.Brands.Suprema.Commands;
+using Biovation.Brands.Suprema.Devices;
+using Biovation.Brands.Suprema.Manager;
+using Biovation.Brands.Suprema.Services;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -18,23 +20,20 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RestSharp;
 using Serilog;
+using System.Collections.Generic;
 using System.Reflection;
-using Biovation.Brands.Suprema.Commands;
-using Biovation.Brands.Suprema.Manager;
-using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.Suprema
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
+        private readonly Dictionary<int, string> _deviceTypes = new Dictionary<int, string>();
+
         public IConfiguration Configuration { get; }
         //biostartserver
-        public  int _mCount;
-        public bool _mUseFunctionLock;
-        public bool _mUseAutoResponse;
-        public bool _mUseLock;
-        public bool _mMatchingFail;
+
         //
 
 
@@ -64,7 +63,7 @@ namespace Biovation.Brands.Suprema
 
 
         // This method gets called by the runtime. Use this method to add services to the container.
- 
+
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -78,7 +77,7 @@ namespace Biovation.Brands.Suprema
             //services.AddMvcCore().AddMetricsCore();
             services.AddHealthChecks();
 
-           
+
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -86,8 +85,9 @@ namespace Biovation.Brands.Suprema
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
             ConfigureSupremaServices(services);
+            // services.AddHostedService<PingCollectorHostedService>();
+            //  services.AddHostedService<BroadcastMetricsHostedService>();
 
-           
         }
 
 
@@ -170,8 +170,11 @@ namespace Biovation.Brands.Suprema
                 endpoints.MapControllers();
             });
         }
+
+
         public void ConfigureConstantValues(IServiceCollection services)
         {
+
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
@@ -186,6 +189,28 @@ namespace Biovation.Brands.Suprema
             //serviceCollection.AddScoped<Lookups, Lookups>();
             //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
 
+
+            //Constant values
+            services.AddSingleton<LogEvents, LogEvents>();
+            services.AddSingleton<TaskTypes, TaskTypes>();
+            services.AddSingleton<LogSubEvents, LogSubEvents>();
+            services.AddSingleton<DeviceBrands, DeviceBrands>();
+            services.AddSingleton<TaskStatuses, TaskStatuses>();
+            services.AddSingleton<MatchingTypes, MatchingTypes>();
+            services.AddSingleton<TaskItemTypes, TaskItemTypes>();
+            services.AddSingleton<TaskPriorities, TaskPriorities>();
+            services.AddSingleton<FingerIndexNames, FingerIndexNames>();
+            services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
+            services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
+
+
+
+            serviceCollection.AddSingleton(restClient);
+
+            serviceCollection.AddScoped<LookupRepository, LookupRepository>();
+            serviceCollection.AddScoped<LookupService, LookupService>();
+            serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -251,33 +276,38 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 
+
+
         private void ConfigureSupremaServices(IServiceCollection services)
         {
+            services.AddSingleton(OnlineDevices);
 
+            services.AddSingleton(_deviceTypes);
             services.AddSingleton<BioStarServer, BioStarServer>();
-           
-
-           
-
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<SupremaCodeMappings, SupremaCodeMappings>();
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
-            services.AddSingleton<CommandFactory,CommandFactory>();
+
+            services.AddSingleton<CommandFactory, CommandFactory>();
+            services.AddSingleton<DeviceFactory, DeviceFactory>();
+            services.AddSingleton<FastSearchService, FastSearchService>();
+
+
 
             var serviceProvider = services.BuildServiceProvider();
             var supremaServer = serviceProvider.GetService<BioStarServer>();
             var supremaObject = new Suprema();
-           // var virdiServer = new BioStarServer(UcsApi, OnlineDevices);
-          
+            // var virdiServer = new BioStarServer(UcsApi, OnlineDevices);
+
 
             //services.AddSingleton(UcsApi);
             services.AddSingleton(supremaServer);
             services.AddSingleton(supremaObject);
             supremaServer.StartService();
-         
 
-            
+
+
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Biovation.Brands.Suprema.Commands
     /// <summary>
     /// کنترل کننده برای تمامی اتفاقات بر روی تمامی و انواع مختلف ساعت ها
     /// </summary>
-    /// <seealso cref="Command" />
     class SupremaGetAllLogsOfDevice : ICommand
     {
         /// <summary>
@@ -19,12 +18,15 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly BioStarServer _bioStarServer;
+
         private uint DeviceId { get; }
 
-        public SupremaGetAllLogsOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices)
+        public SupremaGetAllLogsOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices, BioStarServer bioStarServer)
         {
             DeviceId = deviceId;
             _onlineDevices = onlineDevices;
+            _bioStarServer = bioStarServer;
         }
 
         /// <summary>
@@ -36,8 +38,8 @@ namespace Biovation.Brands.Suprema.Commands
             if (_onlineDevices.ContainsKey(DeviceId))
             {
                 //_onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken());
-                BioStarServer.LogReaderQueue.Enqueue(new KeyValuePair<uint, Task>(DeviceId, new Task(() => _onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken()))));
-                BioStarServer.StartReadLogs();
+                _bioStarServer.LogReaderQueue.Enqueue(new KeyValuePair<uint, Task>(DeviceId, new Task(() => _onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken()))));
+                _bioStarServer.StartReadLogs();
                 return true;
             }
             else

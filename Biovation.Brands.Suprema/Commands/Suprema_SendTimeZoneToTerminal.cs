@@ -1,10 +1,9 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.Domain;
 using Biovation.CommonClasses.Interface;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.Service.Api.v1;
 using TimeZone = Biovation.Domain.TimeZone;
 
 
@@ -21,17 +20,14 @@ namespace Biovation.Brands.Suprema.Commands
         private int DeviceId { get; }
         private uint Code { get; }
         private int TimeZoneId { get; set; }
-       private TimeZone TimeZoneObj { get; }
+        private TimeZone TimeZoneObj { get; }
 
-        private readonly TimeZoneService _timeZoneService ;
-
-        public SupremaSendTimeZoneToTerminal(uint code, int timeZoneId,  TimeZoneService timeZoneService, Dictionary<uint, Device> onlineDevices)
+        public SupremaSendTimeZoneToTerminal(uint code, int timeZoneId, TimeZoneService timeZoneService, Dictionary<uint, Device> onlineDevices)
         {
             DeviceId = onlineDevices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
             TimeZoneId = timeZoneId;
-            _timeZoneService = timeZoneService;
             _onlineDevices = onlineDevices;
-            TimeZoneObj = _timeZoneService.TimeZones(timeZoneId);
+            TimeZoneObj = timeZoneService.TimeZones(timeZoneId);
             _onlineDevices = onlineDevices;
             Code = code;
         }

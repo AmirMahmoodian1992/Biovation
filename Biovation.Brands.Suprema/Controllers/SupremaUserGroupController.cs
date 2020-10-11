@@ -1,20 +1,28 @@
-﻿using Biovation.Brands.Suprema.Service;
-using Biovation.CommonClasses.Models;
+﻿using Biovation.Brands.Suprema.Services;
+using Biovation.CommonClasses;
+using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Web.Http;
-using Biovation.CommonClasses;
 
-namespace Biovation.Brands.Suprema.ApiControllers
+namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaUserGroupController : ApiController
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class SupremaUserGroupController : Controller
     {
+        private readonly FastSearchService _fastSearchService;
+
+        public SupremaUserGroupController(FastSearchService fastSearchService)
+        {
+            _fastSearchService = fastSearchService;
+        }
+
         [HttpPost]
         public ResultViewModel ModifyUserGroupMember([FromBody] List<UserGroupMember> member)
         {
             try
             {
-                FastSearchService.GetInstance().Initial();
+                _fastSearchService.Initial();
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)

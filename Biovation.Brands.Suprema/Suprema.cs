@@ -1,7 +1,4 @@
-﻿using Biovation.Brands.Suprema.Commands;
-using Biovation.Brands.Suprema.Service;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace Biovation.Brands.Suprema
 {
@@ -10,25 +7,30 @@ namespace Biovation.Brands.Suprema
     /// </summary>
     public class Suprema //: IBrands
     {
+        //private readonly BioStarServer _bioStarServer;
+        //private readonly FastSearchService _fastSearchService;
 
-        /// <summary>
-        /// <En>Starts Suprema specific server</En>
-        /// <Fa>سرور مخصوص به هر برند را استارت می کند</Fa>
-        /// </summary>
-        public void StartService()
-        {
-            BioStarServer.FactoryBioStarServer();
 
-            Task.Run(() => FastSearchService.GetInstance().Initial());
+        //public Suprema(BioStarServer bioStarServer, FastSearchService fastSearchService)
+        //{
+        //    _bioStarServer = bioStarServer;
+        //    _fastSearchService = fastSearchService;
+        //}
 
-        }
+        //public void StartService()
+        //{
+        //    //_bioStarServer.FactoryBioStarServer();
 
-        public void StopService()
-        {
-            BioStarServer.FactoryBioStarServer().StopService();
-        }
+        //    Task.Run(() => _fastSearchService.Initial());
 
-  
+        //}
+
+        //public void StopService()
+        //{
+        //    _bioStarServer.StopService();
+        //}
+
+
         /// <summary>
         /// <En>Returns the module brand name</En>
         /// <Fa>نام برند ساعت را بر می گرداند</Fa>
@@ -39,8 +41,12 @@ namespace Biovation.Brands.Suprema
             return "Suprema";
         }
 
-        public string GetBrandVersion() => Assembly.GetExecutingAssembly().GetName().Version.ToString();
-
-
+        public string GetBrandVersion()
+        {
+            var ret = Assembly.GetExecutingAssembly().GetName().Version;
+            if (ret != null)
+                return ret.ToString();
+            return "";
+        }
     }
 }

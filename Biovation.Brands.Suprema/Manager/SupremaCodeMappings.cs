@@ -36,7 +36,7 @@ namespace Biovation.Brands.Suprema.Manager
 
         public DeviceModel GetGenericDeviceModel(int supremaDeviceTypeId)
         {
-            var deviceModels = _commonDeviceService.GetDeviceModels(brandId: Convert.ToInt32(DeviceBrands.SupremaCode));
+            var deviceModels = _commonDeviceService.GetDeviceModels(brandId: DeviceBrands.SupremaCode);
             return deviceModels.FirstOrDefault(deviceModel => deviceModel.Brand.Code == DeviceBrands.SupremaCode && deviceModel.ManufactureCode == supremaDeviceTypeId);
         }
     }

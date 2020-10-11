@@ -1,12 +1,9 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Models;
+using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Interface;
+using Biovation.Domain;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -15,21 +12,21 @@ namespace Biovation.Brands.Suprema.Commands
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, Device> OnlineDevices { get; }
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
         private int DeviceId { get; }
         private uint Code { get; }
 
-        public SupremaUnlockDevice(uint code, Dictionary<uint, Device> devices)
+        public SupremaUnlockDevice(uint code, Dictionary<uint, Device> onlineDevices)
         {
             Code = code;
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
-            OnlineDevices = devices;
+            DeviceId = onlineDevices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
+            _onlineDevices = onlineDevices;
         }
 
         public object Execute()
         {
-            if (OnlineDevices.All(device => device.Key != Code))
+            if (_onlineDevices.All(device => device.Key != Code))
             {
                 Console.WriteLine($"[Suprema] : The device: {Code} is not connected.");
                 return new ResultViewModel { Validate = 0, Id = DeviceId };
@@ -37,12 +34,12 @@ namespace Biovation.Brands.Suprema.Commands
 
             try
             {
-                var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+                var device = _onlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.UnLockDevice();
                 if (result)
                 {
                     Console.WriteLine($"[Suprema] --> Terminal:{Code} UnLocked(Shutdown)");
-                    Console.WriteLine("   +ErrorCode :" + result);
+                    Console.WriteLine("   +ErrorCode :" + true);
                     Console.WriteLine("");
                 }
                 else

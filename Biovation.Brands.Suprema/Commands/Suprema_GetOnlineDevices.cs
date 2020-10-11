@@ -1,5 +1,4 @@
 ﻿using Biovation.Brands.Suprema.Devices;
-using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
@@ -15,7 +14,7 @@ namespace Biovation.Brands.Suprema.Commands
 
 
 
-        public SupremaGetOnlineDevices(Dictionary<uint, Device> onlineDevices )
+        public SupremaGetOnlineDevices(Dictionary<uint, Device> onlineDevices)
         {
             _onlineDevices = onlineDevices;
 
@@ -27,7 +26,7 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-           
+
 
             var deviceList = new List<int>();
 
@@ -36,9 +35,9 @@ namespace Biovation.Brands.Suprema.Commands
                 deviceList.Add(Convert.ToInt32(device.Value.GetDeviceInfo().DeviceId));
             }
 
-            var data = Newtonsoft.Json.JsonConvert.SerializeObject(deviceList);
+            Newtonsoft.Json.JsonConvert.SerializeObject(deviceList);
 
-           // Sender.Send(data);
+            // Sender.Send(data);
             //Sender.Disconnect();
 
             return true;

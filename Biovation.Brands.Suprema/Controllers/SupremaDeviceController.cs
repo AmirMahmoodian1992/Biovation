@@ -1,68 +1,48 @@
 ﻿using Biovation.Brands.Suprema.Commands;
+using Biovation.Brands.Suprema.Devices;
 using Biovation.Brands.Suprema.Model;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Http;
-using Biovation.CommonClasses.Models.ConstantValues;
-//using TaskItem = Biovation.CommonClasses.Models.TaskItem;
 
-namespace Biovation.Brands.Suprema.ApiControllers
+
+namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaDeviceController : ApiController
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class SupremaDeviceController : Controller
     {
-        /*
+        private readonly CommandFactory _commandFactory;
+        private readonly Dictionary<uint, Device> _onlineDevices;
+        private readonly AccessGroupService _accessGroupServices;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        // private readonly DeviceService _deviceService;
+        //private readonly UserService _userService;
 
-                private readonly LogService _logServices = new LogService();
-        */
-        private readonly AccessGroupService _accessGroupServices = new AccessGroupService();
-        private readonly DeviceService _deviceService = new DeviceService();
-        //private readonly TaskService _taskService = new TaskService();
-        private readonly UserService _userService = new UserService();
+        public SupremaDeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager)
+        {
+            _accessGroupServices = accessGroupServices;
+            _onlineDevices = onlineDevices;
+            _commandFactory = commandFactory;
+            _biovationConfigurationManager = biovationConfigurationManager;
+        }
 
         [HttpGet]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
-            var onlineDevices = BioStarServer.GetOnlineDevices();
-            /*
-            try
-            {
-                BioStarServer.DeviceConnectionSemaphore.WaitOne(10000);
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
-
-            var onlineDeviceModels = new List<DeviceBasicInfo>();
-
-            foreach (var onlineDevice in onlineDevices.Values)
-            {
-                onlineDeviceModels.Add(onlineDevice.GetDeviceInfo());
-            }
-
-            try
-            {
-                BioStarServer.DeviceConnectionSemaphore.Release();
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
-            */
-            return onlineDevices?.Select(onlineDevice => new DeviceBasicInfo(onlineDevice.Value.GetDeviceInfo())).ToList();
+            return _onlineDevices?.Select(onlineDevice => new DeviceBasicInfo(onlineDevice.Value.GetDeviceInfo())).ToList();
         }
 
         [HttpGet]
         public List<User> Users(int deviceId)
         {
-            var userObjects = CommandFactory.Factory(CommandType.GetUsersOfDevice, new List<object> { deviceId })
+            var userObjects = _commandFactory.Factory(CommandType.GetUsersOfDevice, new List<object> { deviceId })
                 .Execute();
 
             if (userObjects == null)
@@ -84,9 +64,9 @@ namespace Biovation.Brands.Suprema.ApiControllers
         public ResultViewModel DeleteUserFromDevice(uint code, [FromBody]Newtonsoft.Json.Linq.JArray userId, bool updateServerSideIdentification = false)
         {
             var result = new List<ResultViewModel>();
-            _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.SupremaCode);
+            // var deviceBasicInfo = _deviceService.GetDevices(code: code,brandId: DeviceBrands.SupremaCode)?.FirstOrDefault();
 
-            _userService.GetUser(123456789, false);
+            //_userService.GetUsers(123456789, false);
 
             //var task = new TaskInfo
             //{
@@ -103,11 +83,11 @@ namespace Biovation.Brands.Suprema.ApiControllers
             var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
             foreach (var id in userIds)
             {
-                var deleteUser = CommandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                var deleteUser = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
                     new List<object> { code, id });
                 var deleteresult = deleteUser.Execute();
                 //result.Add(new ResultViewModel { Id = id, Validate = (ResultViewModel)boolResult ? 1 : 0, Message = "" });
-                result.Add((ResultViewModel)deleteresult?? new ResultViewModel { Id = id, Validate =  0, Message = "" });
+                result.Add((ResultViewModel)deleteresult ?? new ResultViewModel { Id = id, Validate = 0, Message = "" });
 
                 //task.TaskItems.Add(new TaskItem
                 //{
@@ -147,7 +127,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
             var result = new List<ResultViewModel>();
             foreach (var userIdValue in userIds)
             {
-                var retrieveUserFromTerminalCommand = CommandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUserFromDevice,
                     new List<object> { code, userIdValue });
 
                 var intResult = (ResultViewModel<User>)retrieveUserFromTerminalCommand.Execute();
@@ -162,7 +142,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
         [HttpGet]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
-            var retrieveUserFromTerminalCommand = CommandFactory.Factory(CommandType.GetUsersOfDevice,
+            var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.GetUsersOfDevice,
                 new List<object> { code });
 
             var result = (ResultViewModel<List<User>>)retrieveUserFromTerminalCommand.Execute();
@@ -177,7 +157,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
             {
                 var startTimeTicks = startTime.Ticks;
                 var endTimeTicks = endTime.AddDays(1).Ticks;
-                var logObjects = CommandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod, new List<object> { deviceId, startTimeTicks, endTimeTicks }).Execute();
+                var logObjects = _commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod, new List<object> { deviceId, startTimeTicks, endTimeTicks }).Execute();
 
                 if (logObjects == null)
                 {
@@ -213,11 +193,11 @@ namespace Biovation.Brands.Suprema.ApiControllers
                         //var startTimeTicks = (fromDate.Value.Ticks) / 1000000000;
                         //var endTimeTicks = (toDate.Value.AddDays(1).Ticks) / 1000000000;
 
-                        CommandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod, new List<object> { code, startTimeTicks, endTimeTicks }).Execute();
+                        _commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod, new List<object> { code, startTimeTicks, endTimeTicks }).Execute();
                     }
                     else
                     {
-                        CommandFactory.Factory(CommandType.GetAllLogsOfDevice, new List<object> { code }).Execute();
+                        _commandFactory.Factory(CommandType.GetAllLogsOfDevice, new List<object> { code }).Execute();
                     }
 
                     //if (logObjects == null)
@@ -250,7 +230,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
         [HttpGet]
         public List<AccessGroup> GetDeviceAccessGroups(uint deviceId)
         {
-            var accessGroups = _accessGroupServices.GetAccessGroupsOfDevice(deviceId);
+            var accessGroups = _accessGroupServices.GetAccessGroups(deviceId: (int)deviceId);
             //var result = string.Empty;
 
             return accessGroups.ToList();
@@ -274,11 +254,11 @@ namespace Biovation.Brands.Suprema.ApiControllers
         //[HttpPost]
         //public SupremaDeviceModel ReportUsersToDatabase(SupremaDeviceModel data)
         //{
-        //    var users = CommandFactory.Factory(CommandFactory.GetUsersOfDevice, new List<object> { data.DeviceId })
+        //    var users = _commandFactory.Factory(_commandFactory.GetUsersOfDevice, new List<object> { data.DeviceId })
         //        .Execute();
 
 
-        //    var result = _userServices.ReportUsersToDatabase(data.nReaderIdn, (List<SupremaUserModel>)users, ConnectionType);
+        //    var result = __userServices.ReportUsersToDatabase(data.nReaderIdn, (List<SupremaUserModel>)users, ConnectionType);
 
         //    return result ? data : null;
         //}
@@ -288,7 +268,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
         {
             //try
             //{
-            //    _commonUserService.SyncUsersWithKasra(ConnectionType);
+            //    _common_userService.SyncUsersWithKasra(ConnectionType);
             //}
             //catch (Exception)
             //{
@@ -297,7 +277,7 @@ namespace Biovation.Brands.Suprema.ApiControllers
 
             try
             {
-                CommandFactory.Factory(CommandType.ForceUpdateForSpecificDevice, new List<object> { data.DeviceId }).Execute();
+                _commandFactory.Factory(CommandType.ForceUpdateForSpecificDevice, new List<object> { data.DeviceId }).Execute();
                 return true;
             }
 
@@ -312,9 +292,8 @@ namespace Biovation.Brands.Suprema.ApiControllers
         {
             //var accessGroups = _accessGroupServices.GetAccessGroupOfDevice(deviceId, ConnectionType);
             //var result = string.Empty;
-            var onlineDevices = BioStarServer.GetOnlineDevices();
 
-            if (onlineDevices is null || !onlineDevices.ContainsKey((uint)deviceId))
+            if (_onlineDevices is null || !_onlineDevices.ContainsKey((uint)deviceId))
             {
                 return -2569;
             }
@@ -326,9 +305,9 @@ namespace Biovation.Brands.Suprema.ApiControllers
             //    onlineDeviceModels.Add(onlineDevice.GetDeviceInfo());
             //}
 
-            var device = onlineDevices[(uint)deviceId];
+            var device = _onlineDevices[(uint)deviceId];
 
-            var res = BSSDK.BS_StartRequest(device.GetDeviceInfo().Handle, device.GetDeviceInfo().DeviceTypeId, ConfigurationManager.SupremaDevicesConnectionPort);
+            var res = BSSDK.BS_StartRequest(device.GetDeviceInfo().Handle, device.GetDeviceInfo().DeviceTypeId, _biovationConfigurationManager.SupremaDevicesConnectionPort);
 
             return res;
         }

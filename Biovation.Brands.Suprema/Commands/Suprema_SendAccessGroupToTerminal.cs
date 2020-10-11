@@ -16,21 +16,19 @@ namespace Biovation.Brands.Suprema.Commands
         private readonly Dictionary<uint, Device> _onlineDevices;
 
 
-        private int DeviceId { get; }
+       // private int DeviceId { get; }
         private uint Code { get; }
         private int AccessGroupId { get; set; }
         private AccessGroup AccessGroupObj { get; }
 
-        private readonly AccessGroupService _accessGroupService;
-
-        public SupremaSendAccessGroupToTerminal(uint code, int accessGroupId, Dictionary<uint, Device> onlineDevices)
+        public SupremaSendAccessGroupToTerminal(uint code, int accessGroupId, Dictionary<uint, Device> onlineDevices, AccessGroupService accessGroupService)
         {
             Code = code;
             AccessGroupId = accessGroupId;
             _onlineDevices = onlineDevices;
-            AccessGroupObj = _accessGroupService.GetAccessGroup(accessGroupId);
+            AccessGroupObj = accessGroupService.GetAccessGroup(accessGroupId);
             _onlineDevices = onlineDevices;
-            DeviceId = onlineDevices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
+           // DeviceId = onlineDevices.FirstOrDefault(dev => dev.Key == code).Value.GetDeviceInfo().DeviceId;
         }
 
         public object Execute()

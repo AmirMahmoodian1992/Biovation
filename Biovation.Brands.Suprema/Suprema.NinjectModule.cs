@@ -1,5 +1,5 @@
 ﻿using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
+using Biovation.CommonClasses.Interface;/*
 using Ninject.Modules;
 
 namespace Biovation.Brands.Suprema
@@ -11,4 +11,4 @@ namespace Biovation.Brands.Suprema
             Bind<IBrands>().To<Suprema>();
         }
     }
-}
+}*/
