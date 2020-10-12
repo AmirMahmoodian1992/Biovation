@@ -1,9 +1,0 @@
-C:\Project\biovationcore\DataAccessLayerCore\bin\Debug\netcoreapp3.1\DataAccessLayerCore.deps.json
-C:\Project\biovationcore\DataAccessLayerCore\bin\Debug\netcoreapp3.1\DataAccessLayerCore.dll
-C:\Project\biovationcore\DataAccessLayerCore\bin\Debug\netcoreapp3.1\DataAccessLayerCore.pdb
-C:\Project\biovationcore\DataAccessLayerCore\obj\Debug\netcoreapp3.1\DataAccessLayerCore.csprojAssemblyReference.cache
-C:\Project\biovationcore\DataAccessLayerCore\obj\Debug\netcoreapp3.1\DataAccessLayerCore.csproj.CoreCompileInputs.cache
-C:\Project\biovationcore\DataAccessLayerCore\obj\Debug\netcoreapp3.1\DataAccessLayerCore.AssemblyInfoInputs.cache
-C:\Project\biovationcore\DataAccessLayerCore\obj\Debug\netcoreapp3.1\DataAccessLayerCore.AssemblyInfo.cs
-C:\Project\biovationcore\DataAccessLayerCore\obj\Debug\netcoreapp3.1\DataAccessLayerCore.dll
-C:\Project\biovationcore\DataAccessLayerCore\obj\Debug\netcoreapp3.1\DataAccessLayerCore.pdb
