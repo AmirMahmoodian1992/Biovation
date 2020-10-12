@@ -99,6 +99,10 @@ namespace Biovation.Server.Controllers.v2
                         foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
                         {
                             restRequest.AddJsonBody(user);
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         }
                     });
@@ -167,6 +171,10 @@ namespace Biovation.Server.Controllers.v2
                                 Method.GET);
                         restRequest.AddParameter("code", deviceBasic.Code);
                         restRequest.AddParameter("userId", id);
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
                     }
                 }
@@ -236,7 +244,10 @@ namespace Biovation.Server.Controllers.v2
                         var restRequest =
                             new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
                         restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
-
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         _restClient.ExecuteAsync(restRequest);
                     }
                 }
@@ -309,7 +320,10 @@ namespace Biovation.Server.Controllers.v2
                                         var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
                                         restRequest.AddQueryParameter("code", device.Code.ToString());
                                         restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
-
+                                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                        {
+                                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                        }
                                         _restClient.ExecuteAsync(restRequest);
                                     }
                                 }
@@ -435,7 +449,10 @@ namespace Biovation.Server.Controllers.v2
                 var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
                 restRequest.AddQueryParameter("userId", id.ToString());
                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
             });
@@ -578,7 +595,10 @@ namespace Biovation.Server.Controllers.v2
                                         restRequest.AddQueryParameter("userId", $"[{userId}]");
                                         restRequest.AddQueryParameter("updateServerSideIdentification",
                                             bool.TrueString);
-
+                                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                        {
+                                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                        }
                                         var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                         if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
@@ -603,6 +623,10 @@ namespace Biovation.Server.Controllers.v2
                                         restRequest.AddQueryParameter("updateServerSideIdentification",
                                             bool.TrueString);
                                         restRequest.AddJsonBody(listOfUserId);
+                                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                        {
+                                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                        }
 
                                         var restResult = await _restClient.ExecuteAsync(restRequest);
 
@@ -663,6 +687,10 @@ namespace Biovation.Server.Controllers.v2
 
                         var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
                         restRequest.AddQueryParameter("userGroupId", grpIds);
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
 
                         var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
