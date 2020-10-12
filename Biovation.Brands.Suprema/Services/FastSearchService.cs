@@ -14,11 +14,11 @@ namespace Biovation.Brands.Suprema.Services
     public class FastSearchService
     {
         private Dictionary<int, FastSearch> _templates;
-        private readonly AccessGroupService _accessGroupService ;
+        private readonly AccessGroupService _accessGroupService;
         //private readonly FingerTemplateService _templateService = new FingerTemplateService();
         private readonly Semaphore _initSemaphore = new Semaphore(1, 1);
-     
-        private FastSearchService(AccessGroupService accessGroupService)
+
+        public FastSearchService(AccessGroupService accessGroupService)
         {
             _accessGroupService = accessGroupService;
             _templates = new Dictionary<int, FastSearch>();

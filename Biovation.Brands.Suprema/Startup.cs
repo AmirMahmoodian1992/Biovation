@@ -22,6 +22,7 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 namespace Biovation.Brands.Suprema
 {
@@ -152,18 +153,23 @@ namespace Biovation.Brands.Suprema
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthorization();
+
+            loggerFactory.AddSerilog();
+            app.UseSerilogRequestLogging();
+
+            app.UseHealthChecks("/biovation/api/health");
 
             app.UseEndpoints(endpoints =>
             {

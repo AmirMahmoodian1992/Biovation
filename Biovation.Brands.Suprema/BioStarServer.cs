@@ -120,8 +120,7 @@ namespace Biovation.Brands.Suprema
 
             Logger.Log(" BioStar Server Started!");
 
-            StartService();
-
+            //StartService();
         }
 
 
