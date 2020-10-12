@@ -52,7 +52,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
+                    var devices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {

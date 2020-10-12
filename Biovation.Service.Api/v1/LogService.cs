@@ -190,5 +190,29 @@ namespace Biovation.Service.Api.v1
                return bytes;
            });
         }
+
+
+        public Task<bool> SaveLogsInFile(List<Log> logs, string brandName, uint deviceCode)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var path = $"AttLog\\{brandName}\\{DateTime.Now:yyyy-MM-dd-HH-mm-ss}({deviceCode})";
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+
+                    File.WriteAllLines($"{path}\\Log.Txt", logs.Select(s => s.ToString()));
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return false;
+                }
+            });
+        }
     }
 }
