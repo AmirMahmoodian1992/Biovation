@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
-    [Route("Biovation/Api/[controller]/[action]")]
+     [Route("Biovation/Api/[controller]/[action]")]
     public class SupremaDeviceController : Controller
     {
         private readonly CommandFactory _commandFactory;
@@ -50,14 +50,16 @@ namespace Biovation.Brands.Suprema.Controllers
                 return null;
             }
 
-            var users = new List<User>();
+            //var users = new List<User>();
+            var result = (ResultViewModel<List<User>>) userObjects;
 
-            foreach (var userObject in (IEnumerable<User>)userObjects)
-            {
-                users.Add(userObject);
-            }
+            //foreach (var userObject in (IEnumerable<User>)userObjects)
+            //{
+            //    users.Add(userObject);
+            //}
 
-            return users;
+           // return users;
+           return result.Data;
         }
 
         [HttpPost]

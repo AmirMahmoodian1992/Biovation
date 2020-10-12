@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Services
-{
+{   
     public class SupremaLogService
     {
         private readonly LogService _logService;

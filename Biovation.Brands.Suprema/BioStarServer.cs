@@ -999,7 +999,7 @@ namespace Biovation.Brands.Suprema
             //        dev =>
             //            dev.Value.GetDeviceInfo().DeviceId == deviceId && dev.Value.GetDeviceInfo().Handle == handle);
 
-            var device = _deviceService.GetDevices(deviceId, brandId: Convert.ToInt32(DeviceBrands.SupremaCode).ToString()).FirstOrDefault();
+            var device = _deviceService.GetDevices(code:deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
 
 
             if (device != null)
