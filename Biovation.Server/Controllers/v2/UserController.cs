@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq.Extensions;
 using Newtonsoft.Json;
@@ -34,13 +35,19 @@ namespace Biovation.Server.Controllers.v2
             _restClient = restClient;
             _accessGroupService = accessGroupService;
         }
+
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineId = default, int from = default,
+        //[Authorize(Policy = Policies.User)]
+        //[Authorize(Policy = "OverrideTest")]
+        [Authorize]
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run( () => _userService.GetUsers(onlineId, from, size, getTemplatesData, userId, filterText, type,
+            //int userIdClaim = int.Parse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == "Id").Value);
+            var user = (User)HttpContext.Items["User"];
+            return Task.Run( () => _userService.GetUsers(user.Id, from, size, getTemplatesData, userId, filterText, type,
                 withPicture, isAdmin, pageNumber, pageSize));
         }
 

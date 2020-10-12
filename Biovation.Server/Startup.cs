@@ -27,6 +27,14 @@ using App.Metrics.Extensions.Configuration;
 using Biovation.Domain;
 using Biovation.Server.HostedServices;
 using Log = Serilog.Log;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System;
+using Biovation.Server.Model;
+using Microsoft.AspNetCore.Authorization;
+using Biovation.Server.Middleware;
+using Microsoft.AspNetCore.Http;
 
 namespace Biovation.Server
 {
@@ -77,6 +85,8 @@ namespace Biovation.Server
                 //config.Conventions.Add(new VersionByNamespaceConvention());
                 config.ApiVersionReader = new UrlSegmentApiVersionReader();
                 config.ApiVersionSelector = new CurrentImplementationApiVersionSelector(config);
+                config.RegisterMiddleware = false;
+                //config.ReportApiVersions = true;
             });
 
             services.AddSwaggerGen(options =>
@@ -112,6 +122,63 @@ namespace Biovation.Server
                 config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
             });
 
+
+            // services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            //.AddJwtBearer(options =>
+            //{
+            //    options.RequireHttpsMetadata = false;
+            //    options.SaveToken = true;
+            //    options.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuer = true,
+            //        ValidateAudience = true,
+            //        ValidateLifetime = true,
+            //        ValidateIssuerSigningKey = true,
+            //        ValidIssuer = BiovationConfiguration.JwtIssuer(), 
+            //        ValidAudience = BiovationConfiguration.JwtAudience(),
+            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(BiovationConfiguration.JwtKey())),
+            //        ClockSkew = TimeSpan.Zero
+            //    };
+
+            //});
+
+            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            //.AddJwtBearer(options =>
+            //{
+            //    options.TokenValidationParameters = new TokenValidationParameters
+            //    {
+            //        ValidateIssuer = true,
+            //        ValidateAudience = true,
+            //        ValidateLifetime = false,
+            //        ValidateIssuerSigningKey = true,
+            //        ValidIssuer = BiovationConfiguration.JwtIssuer(),
+            //        ValidAudience = BiovationConfiguration.JwtAudience(),
+            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(BiovationConfiguration.JwtKey()))
+            //    };
+            //});
+            services.AddMvc();
+
+            //services.AddAuthorization(options =>
+            //{
+            //    //options.AddPolicy("OverrideTest", policy => policy.Requirements.Add(new OverrideTestRequirement(200)));
+            //    var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(
+            //     JwtBearerDefaults.AuthenticationScheme);
+
+            //    defaultAuthorizationPolicyBuilder =
+            //        defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser();
+
+            //    options.DefaultPolicy = defaultAuthorizationPolicyBuilder.Build();
+            //});
+
+            services.AddSingleton<IAuthorizationHandler, OverrideTestAuthorizationHandler>();
+
+            //services.AddAuthorization(config =>
+            //{
+            //    config.AddPolicy(Policies.Admin, Policies.AdminPolicy());
+            //    config.AddPolicy(Policies.User, Policies.UserPolicy());
+            //});
+
+
             services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
 
             services.AddSingleton(BiovationConfiguration);
@@ -127,8 +194,11 @@ namespace Biovation.Server
             services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
             services.AddScoped<RecurringTasksManager, RecurringTasksManager>();
 
-            services.AddHostedService<TaskMangerHostedService>();
-            services.AddHostedService<ServicesHealthCheckHostedService>();
+            //services.AddHostedService<TaskMangerHostedService>();
+            //services.AddHostedService<ServicesHealthCheckHostedService>();
+            services.AddCors();
+            //services.AddSingleton<object, object>();
+            //services.AddSingleton<RequestDelegate, RequestDelegate>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
@@ -174,7 +244,7 @@ namespace Biovation.Server
             //services.AddScoped<UserCardRepository, UserCardRepository>();
             //services.AddScoped<UserGroupRepository, UserGroupRepository>();
             //services.AddScoped<UserRepository, UserRepository>();
-            services.AddScoped<UserRepository, UserRepository>();
+            services.AddSingleton<UserRepository, UserRepository>();
             services.AddScoped<DeviceRepository, DeviceRepository>();
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
@@ -230,7 +300,7 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
             services.AddScoped<Service.Api.v2.LogService, Service.Api.v2.LogService>();
             services.AddScoped<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
-            services.AddScoped<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
             services.AddScoped<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
             services.AddScoped<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
             services.AddScoped<Service.Api.v2.BlackListService, Service.Api.v2.BlackListService>();
@@ -243,6 +313,7 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
             services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
+            services.AddSingleton<BiovationConfigurationManager, BiovationConfigurationManager>();
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
@@ -349,9 +420,13 @@ namespace Biovation.Server
 
             //app.UseHttpsRedirection();
 
-            app.UseRouting();
 
-            app.UseAuthorization();
+            //app.UseAuthorization();
+            //app.UseAuthentication();
+            app.UseApiVersioning();
+            app.UseMiddleware<JwtMiddleware>();
+
+            app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
@@ -370,6 +445,8 @@ namespace Biovation.Server
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Biovation API");
             });
 
+
+            
 
             //app.MapWhen(context =>
             //{

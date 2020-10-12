@@ -15,6 +15,21 @@ namespace Biovation.CommonClasses.Manager
             //_settingService = settingService;
         }
 
+        public string JwtIssuer()
+        {
+            return Configuration.GetSection("Jwt")["Issuer"];
+        }
+        
+        public string JwtAudience()
+        {
+            return Configuration.GetSection("Jwt")["Audience"];
+        }
+        
+        public string JwtKey()
+        {
+            return Configuration.GetSection("Jwt")["Key"];
+        }
+        
         public string ConnectionStringProviderName()
         {
             return Configuration.GetSection("ConnectionStrings")["ProviderName"];
