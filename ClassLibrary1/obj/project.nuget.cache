@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "3rdDP/YV8GOXgO1Ccl3OLK5fhVtB9MHZ/oDg2kGc96gi2E63YTRdRzbS45KWR1KrmQCo21WSwvoK07zduLqyJQ==",
+  "success": true,
+  "projectFilePath": "C:\\Project\\biovationcore\\ClassLibrary1\\ClassLibrary1.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\MHeydari\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\MHeydari\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

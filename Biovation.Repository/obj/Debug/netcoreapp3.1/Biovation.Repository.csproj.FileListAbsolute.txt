@@ -1,0 +1,16 @@
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.csprojAssemblyReference.cache
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.csproj.CoreCompileInputs.cache
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.AssemblyInfoInputs.cache
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.AssemblyInfo.cs
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.Repository.deps.json
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.Repository.dll
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.Repository.pdb
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.CommonClasses.dll
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.Domain.dll
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\DataAccessLayerCore.dll
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.CommonClasses.pdb
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\Biovation.Domain.pdb
+C:\Project\biovationcore\Biovation.Repository\bin\Debug\netcoreapp3.1\DataAccessLayerCore.pdb
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.csproj.CopyComplete
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.dll
+C:\Project\biovationcore\Biovation.Repository\obj\Debug\netcoreapp3.1\Biovation.Repository.pdb

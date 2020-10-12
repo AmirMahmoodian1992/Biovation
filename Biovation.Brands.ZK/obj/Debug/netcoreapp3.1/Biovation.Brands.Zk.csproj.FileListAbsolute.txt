@@ -1,0 +1,14 @@
+C:\Project\biovationcore\Biovation.Brands.Zk\bin\Debug\netcoreapp3.1\Properties\launchSettings.json
+C:\Project\biovationcore\Biovation.Brands.Zk\bin\Debug\netcoreapp3.1\Biovation.Brands.Zk.exe
+C:\Project\biovationcore\Biovation.Brands.Zk\obj\Debug\netcoreapp3.1\Biovation.Brands.Zk.csprojAssemblyReference.cache
+C:\Project\biovationcore\Biovation.Brands.Zk\obj\Debug\netcoreapp3.1\Biovation.Brands.Zk.AssemblyInfoInputs.cache
+C:\Project\biovationcore\Biovation.Brands.Zk\obj\Debug\netcoreapp3.1\Biovation.Brands.Zk.AssemblyInfo.cs
+C:\Project\biovationcore\Biovation.Brands.Zk\obj\Debug\netcoreapp3.1\Biovation.Brands.Zk.RazorTargetAssemblyInfo.cache
+C:\Project\biovationcore\Biovation.Brands.Zk\bin\Debug\netcoreapp3.1\MoreLinq.dll
+C:\Project\biovationcore\Biovation.Brands.Zk\obj\Debug\netcoreapp3.1\Biovation.Brands.Zk.csproj.CopyComplete
+C:\Project\biovationcore\Biovation.Brands.Zk\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
+C:\Project\biovationcore\Biovation.Brands.Zk\bin\Debug\netcoreapp3.1\Ninject.dll
+C:\Project\biovationcore\Biovation.Brands.ZK\bin\Debug\netcoreapp3.1\appsettings.Development.json
+C:\Project\biovationcore\Biovation.Brands.ZK\bin\Debug\netcoreapp3.1\appsettings.json
+C:\Project\biovationcore\Biovation.Brands.ZK\obj\Debug\netcoreapp3.1\staticwebassets\Biovation.Brands.ZK.StaticWebAssets.Manifest.cache
+C:\Project\biovationcore\Biovation.Brands.ZK\obj\Debug\netcoreapp3.1\staticwebassets\Biovation.Brands.ZK.StaticWebAssets.xml
