@@ -1433,7 +1433,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 (BSSysInfoConfig)Marshal.PtrToStructure(bsSysInfoConfig, typeof(BSSysInfoConfig));
             Marshal.FreeHGlobal(bsSysInfoConfig);
 
-            var existingDevice = _deviceService.GetDevices(DeviceInfo.Code,brandId: _deviceBrands.Suprema.Code).FirstOrDefault();
+            var existingDevice = _deviceService.GetDevices(code:DeviceInfo.Code,brandId: _deviceBrands.Suprema.Code).FirstOrDefault();
 
             if (existingDevice is null)
             {

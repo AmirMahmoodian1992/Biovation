@@ -597,7 +597,7 @@ namespace Biovation.Brands.Suprema
         /// <returns></returns>
         public int DisconnectedProcMethod(int handle, uint deviceId, int deviceType, int connectionType, int functionType, string ipAddress)
         {
-            var deviceModel = _deviceService.GetDevices((int)deviceId).FirstOrDefault();
+            var deviceModel = _deviceService.GetDevices(code:deviceId).FirstOrDefault();
 
             lock (_onlineDevices)
             {
@@ -750,7 +750,7 @@ namespace Biovation.Brands.Suprema
 
             var receivedLog = new SupremaLog();
 
-            var device = _deviceService.GetDevices(deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+            var device = _deviceService.GetDevices(code:deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
 
             lock (_logObject)
             {
