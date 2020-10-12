@@ -1,36 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Web.Http;
-using Biovation.CommonClasses.Models;
-using Biovation.CommonClasses.Models.ConstantValues;
-using Biovation.CommonClasses.Service;
+using Biovation.Brands.ZK.Manager;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace Biovation.Brands.ZK.ApiControllers
+namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZKTimeZoneController : ApiController
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class ZkTimeZoneController : Controller
     {
-        private readonly DeviceService _deviceService = new DeviceService();
-        private readonly TaskService _taskService = new TaskService();
-        private readonly UserService _userService = new UserService();
+        private readonly DeviceService _deviceService;
+        private readonly TaskService _taskService;
+        private readonly UserService _userService;
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskManager _taskManager;
+        private readonly DeviceBrands _deviceBrands;
+
+        public ZkTimeZoneController(DeviceService deviceService, TaskService taskService, UserService userService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        {
+            _deviceService = deviceService;
+            _taskService = taskService;
+            _userService = userService;
+            _taskTypes = taskTypes;
+            _taskPriorities = taskPriorities;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskManager = taskManager;
+            _deviceBrands = deviceBrands;
+        }
 
         [HttpPost]
-        public Task<ResultViewModel> SendTimeZoneToAllDevices([FromBody]int timeZoneId)
+        public Task<ResultViewModel> SendTimeZoneToAllDevices([FromBody] int timeZoneId)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var devices = _deviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.ZkTecoCode);
-                    var creatorUser = _userService.GetUser(123456789, false);
+                    var devices = _deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode);
+                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = TaskTypes.SendTimeZoneToTerminal,
-                        Priority = TaskPriorities.Medium,
-                        DeviceBrand = DeviceBrands.ZkTeco,
+                        TaskType = _taskTypes.SendTimeZoneToTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.ZkTeco,
                         TaskItems = new List<TaskItem>()
                     };
 
@@ -38,10 +60,9 @@ namespace Biovation.Brands.ZK.ApiControllers
                     {
                         task.TaskItems.Add(new TaskItem
                         {
-                            Status = TaskStatuses.Queued,
-                            TaskItemType = TaskItemTypes.SendTimeZoneToTerminal,
-                            Priority = TaskPriorities.Medium,
-                            DueDate = DateTime.Today,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                            Priority = _taskPriorities.Medium,
                             DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { timeZoneId }),
                             IsParallelRestricted = true,
@@ -49,8 +70,8 @@ namespace Biovation.Brands.ZK.ApiControllers
                             OrderIndex = 1
                         });
                     }
-                    _taskService.InsertTask(task).Wait();
-                    ZKTecoServer.ProcessQueue();
+                    _taskService.InsertTask(task);
+                    _taskManager.ProcessQueue();
 
 
                     return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
@@ -74,35 +95,34 @@ namespace Biovation.Brands.ZK.ApiControllers
                 {
                     try
                     {
-                        var device = _deviceService.GetDeviceBasicInfoWithCode(code, DeviceBrands.ZkTecoCode);
+                        var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
 
-                        var creatorUser = _userService.GetUser(123456789, false);
+                        var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                         var task = new TaskInfo
                         {
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
-                            TaskType = TaskTypes.SendTimeZoneToTerminal,
-                            Priority = TaskPriorities.Medium,
-                            DeviceBrand = DeviceBrands.ZkTeco,
+                            TaskType = _taskTypes.SendTimeZoneToTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = _deviceBrands.ZkTeco,
                             TaskItems = new List<TaskItem>()
                         };
 
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = TaskStatuses.Queued,
-                                TaskItemType = TaskItemTypes.SendTimeZoneToTerminal,
-                                Priority = TaskPriorities.Medium,
-                                DueDate = DateTime.Today,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { timeZoneId }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { timeZoneId }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
 
-                                OrderIndex = 1
-                            });
-                            _taskService.InsertTask(task).Wait();
-                            ZKTecoServer.ProcessQueue();
-                            return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
+                            OrderIndex = 1
+                        });
+                        _taskService.InsertTask(task);
+                        _taskManager.ProcessQueue();
+                        return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
                     }
                     catch (Exception exception)
                     {
