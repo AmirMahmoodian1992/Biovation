@@ -4,6 +4,7 @@ using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Shahab.Devices;
 using Biovation.Brands.Shahab.HostedServices;
+using Biovation.Brands.Shahab.Middleware;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -221,6 +222,7 @@ namespace Biovation.Brands.Shahab
             app.UseRouting();
 
             app.UseAuthorization();
+            app.UseMiddleware<JwtMiddleware>();
 
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();

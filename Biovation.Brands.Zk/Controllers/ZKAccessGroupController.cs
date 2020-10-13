@@ -39,6 +39,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody]int accessGroupId)
         {
             return Task.Run(() =>
@@ -87,6 +88,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> SendAccessGroupToDevice(int accessGroupId, uint code)
         {
             return Task.Run(() =>

@@ -6,6 +6,7 @@ using Biovation.Brands.PW.Command;
 using Biovation.Brands.PW.Devices;
 using Biovation.Brands.PW.HostedServices;
 using Biovation.Brands.PW.Manager;
+using Biovation.Brands.PW.Middleware;
 using Biovation.Brands.PW.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
@@ -230,7 +231,7 @@ namespace Biovation.Brands.PW
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseMiddleware<JwtMiddleware>();
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
 

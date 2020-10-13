@@ -43,6 +43,7 @@ namespace Biovation.Brands.Suprema.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public User Users(int id)
         {
             var user = _userService.GetUsers(userId: id)?.FirstOrDefault();
@@ -50,6 +51,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public List<AccessGroup> GetUserAccessGroups(int userId)
         {
             var accessGroups = _accessGroupService.GetAccessGroups(userId: userId);
@@ -57,6 +59,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyUser([FromBody]User user)
         {
             try
@@ -72,6 +75,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> SendUserToDevice(uint code, string userId)
         {
             return Task.Run(() =>
@@ -105,6 +109,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody]User user)
         {
             var accessGroups = _accessGroupService.GetAccessGroups(userId: user.Id);

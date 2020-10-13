@@ -49,6 +49,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> EnrollFromTerminal([FromBody] uint deviceId)
         {
             return Task.Run(() =>
@@ -101,6 +102,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyUser([FromBody] User user)
         {
             try
@@ -116,6 +118,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
@@ -174,6 +177,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
             var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
@@ -199,6 +203,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ResultViewModel DeleteUserFromTerminal(uint code, int userId)
         {
             var deleteUserFromTerminalCommand = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
@@ -210,6 +215,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public List<ResultViewModel> DeleteUserFromAllTerminal(int[] ids)
         {
             var onlineDevice = _virdiServer.GetOnlineDevices();
@@ -228,6 +234,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
         {
             return Task.Run(() =>

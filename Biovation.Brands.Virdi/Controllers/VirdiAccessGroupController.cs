@@ -46,6 +46,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody] int accessGroupId)
         {
             return Task.Run(() =>
@@ -109,6 +110,7 @@ namespace Biovation.Brands.Virdi.Controllers
            }*/
 
         [HttpGet]
+        [Authorize]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, uint code)
         {
             var sendAccessGroupCommand = _commandFactory.Factory(CommandType.SendAccessGroupToDevice,
@@ -120,6 +122,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyAccessGroup(string accessGroup)
         {
             try

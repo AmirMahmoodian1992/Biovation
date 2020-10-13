@@ -23,6 +23,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public List<AccessGroup> AccessGroups()
         {
             var accessGroups = _accessGroupServices.GetAccessGroups();
@@ -30,6 +31,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, uint code)
         {
             var sendAccessGroupCommand = _commandFactory.Factory(CommandType.SendAccessGroupToDevice,
@@ -41,6 +43,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyAccessGroup(string accessGroup)
         {
             try

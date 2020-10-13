@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using App.Metrics;
 using Biovation.CommonClasses.Manager;
+using Microsoft.AspNetCore.Authorization;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 using TaskItem = Biovation.Domain.TaskItem;
 
@@ -57,6 +58,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -89,6 +91,7 @@ namespace Biovation.Brands.Virdi.Controllers
        */
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> RetrieveLogs([FromBody] uint code)
         {
             return Task.Run(() =>
@@ -159,6 +162,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
             return Task.Run(() =>
@@ -317,6 +321,7 @@ namespace Biovation.Brands.Virdi.Controllers
         */
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> LockDevice([FromBody] uint code)
         {
             return Task.Run(() =>
@@ -365,6 +370,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> UnlockDevice([FromBody] uint code)
         {
             return Task.Run(() =>
@@ -414,6 +420,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
 
@@ -534,6 +541,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
         */
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
             return Task.Run(() =>
@@ -589,6 +597,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
 
@@ -665,6 +674,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
         */
         [HttpGet]
+        [Authorize]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
             //this action return list of user so for task based this we need to syncron web and change return type for task manager statustask update
@@ -711,6 +721,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public Task<bool> OpenDoorTerminal(uint code)
         {
             return Task.Run(() =>
@@ -914,6 +925,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>

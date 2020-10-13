@@ -39,6 +39,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<List<ResultViewModel>> SendBlackLisDevice(List<BlackList> blackLists)
         {
 

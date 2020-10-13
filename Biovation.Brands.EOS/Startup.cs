@@ -5,6 +5,7 @@ using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.EOS.Devices;
 using Biovation.Brands.EOS.HostedServices;
 using Biovation.Brands.EOS.Manager;
+using Biovation.Brands.EOS.Middleware;
 using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
@@ -227,7 +228,7 @@ namespace Biovation.Brands.EOS
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseMiddleware<JwtMiddleware>();
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
 

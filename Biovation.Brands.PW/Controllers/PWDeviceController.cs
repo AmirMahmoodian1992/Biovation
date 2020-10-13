@@ -7,6 +7,7 @@ using Biovation.Brands.PW.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -45,6 +46,7 @@ namespace Biovation.Brands.PW.Controllers
 
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -64,6 +66,7 @@ namespace Biovation.Brands.PW.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             if (device.Active)
@@ -80,6 +83,7 @@ namespace Biovation.Brands.PW.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code)
         {
 
@@ -136,6 +140,7 @@ namespace Biovation.Brands.PW.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
         {
             var resultList = new Dictionary<uint, bool>();

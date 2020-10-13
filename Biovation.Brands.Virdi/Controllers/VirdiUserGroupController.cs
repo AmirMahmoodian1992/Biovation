@@ -17,6 +17,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyUserGroupMember([FromBody] List<UserGroupMember> member)
         {
             try

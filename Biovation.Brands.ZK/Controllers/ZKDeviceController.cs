@@ -9,6 +9,7 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -50,6 +51,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -67,6 +69,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             var dbDevice = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
@@ -155,6 +158,7 @@ namespace Biovation.Brands.ZK.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
             try
@@ -184,6 +188,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
             return Task.Run(() =>
@@ -268,6 +273,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] JArray userId)
         {
             return Task.Run(() =>
@@ -324,6 +330,7 @@ namespace Biovation.Brands.ZK.Controllers
                 });
         }
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
@@ -377,6 +384,7 @@ namespace Biovation.Brands.ZK.Controllers
             });
         }
         [HttpGet]
+        [Authorize]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
             /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
@@ -430,6 +438,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Dictionary<string, string> GetAdditionalData(uint code)
         {
             var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
@@ -441,6 +450,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
         {
             var resultList = new Dictionary<uint, bool>();
