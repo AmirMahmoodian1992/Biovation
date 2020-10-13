@@ -38,6 +38,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> ClearLog(uint code, DateTime? fromDate, DateTime? toDate)
         {
             return Task.Run(() =>

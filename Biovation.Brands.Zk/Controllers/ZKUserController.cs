@@ -44,6 +44,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId)
         {
             return Task.Run(() =>
@@ -104,6 +105,7 @@ namespace Biovation.Brands.ZK.Controllers
 
         }
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> SendUserToAllDevices([FromBody] User user)
         {
             return Task.Run(() =>
@@ -156,6 +158,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<List<ResultViewModel>> DeleteUserFromAllTerminal(int[] ids)
         {
             return Task.Run(() =>

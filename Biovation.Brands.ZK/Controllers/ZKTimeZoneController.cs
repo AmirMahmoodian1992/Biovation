@@ -38,6 +38,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> SendTimeZoneToAllDevices([FromBody] int timeZoneId)
         {
             return Task.Run(() =>
@@ -89,6 +90,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> SendTimeZoneToDevice(int timeZoneId, uint code)
         {
             return Task.Run(() =>
