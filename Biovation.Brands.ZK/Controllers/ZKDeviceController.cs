@@ -211,18 +211,18 @@ namespace Biovation.Brands.ZK.Controllers
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.ZkTeco,
                             };
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = devices.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-
-                            });
+                            if (devices != null)
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = devices.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1,
+                                });
                             _taskService.InsertTask(task);
                             _taskManager.ProcessQueue();
                             return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
