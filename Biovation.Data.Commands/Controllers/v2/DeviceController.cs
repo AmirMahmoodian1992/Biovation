@@ -29,6 +29,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
       
         [HttpPost]
+        [Authorize]
         [Route("DeviceModel")]
 
         public Task<ResultViewModel> AddDeviceModel([FromBody]DeviceModel deviceModel)
@@ -38,6 +39,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevice(uint id)
         {
             return Task.Run(() => _deviceRepository.DeleteDevice(id));
@@ -45,6 +47,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
             return Task.Run(() => _deviceRepository.DeleteDevices(ids));
@@ -52,6 +55,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
+        [Authorize]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device = default)
         {
             return Task.Run(() => _deviceRepository.ModifyDeviceBasicInfo(device));
@@ -59,6 +63,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("NetworkConnectionLog")]
+        [Authorize]
         public Task<ResultViewModel> AddNetworkConnectionLog([FromBody]DeviceBasicInfo device)
         {
             return Task.Run(() => _deviceRepository.AddNetworkConnectionLog(device));

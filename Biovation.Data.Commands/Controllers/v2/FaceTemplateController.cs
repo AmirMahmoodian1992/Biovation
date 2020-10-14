@@ -21,6 +21,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("ModifyFaceTemplate")]
+        [Authorize]
+
         public Task<ResultViewModel> ModifyFaceTemplate([FromBody]FaceTemplate faceTemplate)
         {
             return Task.Run(() => _faceTemplateRepository.ModifyFaceTemplate(faceTemplate));
@@ -28,6 +30,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("DeleteFaceTemplate")]
+        [Authorize]
+
         public Task<ResultViewModel> DeleteFaceTemplate(long userId = 0, int index = 0)
         {
             return Task.Run(() => _faceTemplateRepository.DeleteFaceTemplate(userId, index));

@@ -1,5 +1,6 @@
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
+using Biovation.Repository.Sql.v2;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
-using Biovation.Repository.Sql.v2;
+using Biovation.Data.Commands.Middleware;
 
 namespace Biovation.Data.Commands
 {
@@ -92,6 +93,9 @@ namespace Biovation.Data.Commands
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
 
 
+            // services.AddScoped<UserService, UserService>();
+
+
 
             //integration
             services.AddScoped<Biovation.Repository.MessageBus.LogMessageBusRepository, Biovation.Repository.MessageBus.LogMessageBusRepository>();
@@ -111,8 +115,8 @@ namespace Biovation.Data.Commands
 
             app.UseRouting();
 
-            //app.UseAuthorization();
-
+            // app.UseAuthorization();
+            app.UseMiddleware<JwtMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

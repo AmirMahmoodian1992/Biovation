@@ -21,12 +21,16 @@ namespace Biovation.Data.Commands.Controllers.v2
         //todo:add user
         [HttpPost]
         [Route("AddUser")]
+        [Authorize]
+
         public Task<ResultViewModel> AddUser([FromBody] User user)
         {
             return Task.Run(() => _userRepository.AddUser(user));
         }
 
         [HttpPut]
+        [Authorize]
+
         public Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
             return Task.Run(() => _userRepository.ModifyUser(user));
@@ -34,8 +38,10 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteUser(int id = default)
         {
+            var user = (User)HttpContext.Items["User"];
             return Task.Run(() => _userRepository.DeleteUser(id));
         }
 
@@ -43,6 +49,8 @@ namespace Biovation.Data.Commands.Controllers.v2
         //batch delete
         [HttpPost]
         [Route("/DeleteUsers")]
+        [Authorize]
+
         public Task<ResultViewModel> DeleteUsers([FromBody]List<int> ids = default)
         {
             return Task.Run(() => _userRepository.DeleteUsers(ids));
@@ -50,6 +58,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPatch]
         [Route("Password/{id}")]
+        [Authorize]
+
         public Task<ResultViewModel> ModifyPassword(int id = default, string password = default)
         {
             return Task.Run(() => _userRepository.ModifyPassword(id, password));
@@ -57,6 +67,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("/UserGroupsOfUser")]
+        [Authorize]
+
         public Task<ResultViewModel> DeleteUserGroupsOfUser(int userId, int userTypeId = 1)
         {
             return Task.Run(() => _userRepository.DeleteUserGroupsOfUser(userId, userTypeId));
@@ -64,6 +76,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("/UserGroupOfUser")]
+        [Authorize]
+
         public Task<ResultViewModel> DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1)
         {
             return Task.Run(() => _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId));

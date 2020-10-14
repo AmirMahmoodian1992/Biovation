@@ -18,6 +18,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("ModifySetting")]
+        [Authorize]
+
         public Task<ResultViewModel> ModifySetting(string value, string key)
         {
             return Task.Run(() => _settingRepository.ModifySetting(value, key));
