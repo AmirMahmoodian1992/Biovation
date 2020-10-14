@@ -77,8 +77,7 @@ namespace Biovation.Server.Controllers.v2
             //);
             var token = new JwtSecurityToken(
                 claims: claims,
-                 //expires: DateTime.Now.AddMinutes(1130),
-                 expires: DateTime.Now.AddMonths(2),
+                 expires: DateTime.Now.AddMinutes(1130),
                 signingCredentials: credentials
             );
 
