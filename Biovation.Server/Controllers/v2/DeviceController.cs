@@ -85,6 +85,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevice(uint id = default)
         {
             var token = (string) HttpContext.Items["Token"];
