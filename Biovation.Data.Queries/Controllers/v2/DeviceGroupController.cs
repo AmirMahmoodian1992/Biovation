@@ -21,6 +21,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("GetDeviceGroups")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int deviceGroupId, long userId,
             int pageNumber = default, int pageSize = default)
         {
@@ -29,6 +31,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("GetAccessControlDeviceGroup")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id,
             int pageNumber = default, int pageSize = default)
         {
@@ -38,6 +42,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("GetDeviceGroupsByAccessGroup")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroupsByAccessGroup(int accessGroupId,
             int pageNumber = default, int pageSize = default)
         {

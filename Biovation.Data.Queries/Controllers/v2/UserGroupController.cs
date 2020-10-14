@@ -20,6 +20,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("UsersGroup")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, long adminUserId = default, int pageNumber = default,
             int pageSize = default)
         {
@@ -28,6 +30,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("AccessControlUserGroup/{id}")]
+        [Authorize]
+
         public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default)
         {
             return Task.Run(() => _userGroupRepository.GetAccessControlUserGroup(id));
@@ -35,6 +39,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("SyncUserGroupMember")]
+        [Authorize]
+
         public Task<ResultViewModel> SyncUserGroupMember(string lstUser,int id, int adminUserId, int deviceGroupId)
         {
             return Task.Run(() => _userGroupRepository.SyncUserGroupMember(lstUser,id,adminUserId,deviceGroupId));

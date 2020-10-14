@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
 using Biovation.Repository.Sql.v2;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -20,6 +21,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = 0, int groupId = 0,
             uint code = 0, int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default,
             int pageSize = default)
@@ -30,6 +32,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = 0, int adminUserId = 0)
         {
             return Task.Run(() => _deviceRepository.GetDevice(id, adminUserId));
@@ -37,6 +40,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("DeviceModels/{id?}")]
+        [Authorize]
         public Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels(long id = 0, string brandId = default,
             string name = default, int pageNumber = default, int pageSize = default)
         {
@@ -45,6 +49,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("BioAuthModeWithDeviceId")]
+        [Authorize]
         public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int deviceId, int authMode)
         {
             return Task.Run(() => _deviceRepository.GetBioAuthModeWithDeviceId(deviceId, authMode));
@@ -52,6 +57,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("LastConnectedTime")]
+        [Authorize]
         public Task<ResultViewModel<DateTime>> GetLastConnectedTime(uint deviceId)
         {
             return Task.Run(() => _deviceRepository.GetLastConnectedTime(deviceId));
@@ -59,6 +65,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("DeviceBrands")]
+        [Authorize]
         public Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default)
         {
@@ -67,6 +74,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("GetAuthorizedUsersOfDevice")]
+        [Authorize]
         public Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int deviceId)
         {
             return Task.Run(() => _deviceRepository.GetAuthorizedUsersOfDevice(deviceId));

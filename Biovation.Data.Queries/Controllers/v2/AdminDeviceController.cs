@@ -24,12 +24,16 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("AdminDeviceGroupsByUserId/{personId}")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int personId, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize));
         }
         [HttpGet]
         [Route("AdminDevicesByUserId/{personId}")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<AdminDevice>>> GetAdminDevicesByUserId(int personId, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize));

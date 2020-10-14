@@ -27,6 +27,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         }*/
 
         [HttpGet]
+        [Authorize]
+
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = "", string order = "", long onlineUserId = default, bool? successTransfer = default)
         {
 

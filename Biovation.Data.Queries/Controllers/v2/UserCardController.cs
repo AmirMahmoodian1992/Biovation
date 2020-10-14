@@ -19,6 +19,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId, bool isActive, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize));
@@ -27,6 +29,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("UserByCardNumber")]
+        [Authorize]
+
         public Task<ResultViewModel<User>> FindUserByCardNumber(string cardNumber)
         {
             return Task.Run(() => _userCardRepository.FindUserByCardNumber(cardNumber));
