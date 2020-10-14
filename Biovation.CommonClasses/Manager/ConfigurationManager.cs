@@ -19,17 +19,24 @@ namespace Biovation.CommonClasses.Manager
         {
             return Configuration.GetSection("Jwt")["Issuer"];
         }
-        
+
         public string JwtAudience()
         {
             return Configuration.GetSection("Jwt")["Audience"];
         }
-        
+
         public string JwtKey()
         {
-            return Configuration.GetSection("Jwt")["Key"];
+            return "ThisismySecretKey";
+            //return Configuration.GetSection("Jwt")["Key"];
+
         }
-        
+
+        public string DefaultToken()
+        {
+            return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q";
+        }
+
         public string ConnectionStringProviderName()
         {
             return Configuration.GetSection("ConnectionStrings")["ProviderName"];
@@ -405,7 +412,7 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public  string KafkaServerAddress
+        public string KafkaServerAddress
         {
             get
             {
