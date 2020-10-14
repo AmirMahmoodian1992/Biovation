@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
@@ -27,6 +28,7 @@ namespace Biovation.Server.Controllers.v2
         private readonly AccessGroupService _accessGroupService;
 
         private readonly RestClient _restClient;
+        private readonly User _user;
 
         public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, RestClient restClient)
         {
@@ -35,6 +37,7 @@ namespace Biovation.Server.Controllers.v2
             _userGroupService = userGroupService;
             _restClient = restClient;
             _accessGroupService = accessGroupService;
+            _user = HttpContext.GetUser();
         }
 
         [HttpGet]
@@ -45,9 +48,7 @@ namespace Biovation.Server.Controllers.v2
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            //int userIdClaim = int.Parse(HttpContext.User.Claims.FirstOrDefault(c => c.Type == "Id").Value);
-            var user = (User)HttpContext.Items["User"];
-            return Task.Run( () => _userService.GetUsers(user.Id, from, size, getTemplatesData, userId, filterText, type,
+            return Task.Run( () => _userService.GetUsers(_user.Id, from, size, getTemplatesData, userId, filterText, type,
                 withPicture, isAdmin, pageNumber, pageSize));
         }
 

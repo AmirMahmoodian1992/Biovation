@@ -28,6 +28,7 @@ using Serilog;
 using System.Reflection;
 using Biovation.Server.HostedServices;
 using Log = Serilog.Log;
+using Biovation.Servers;
 
 namespace Biovation.Server
 {
@@ -116,60 +117,10 @@ namespace Biovation.Server
             });
 
 
-            // services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            //.AddJwtBearer(options =>
-            //{
-            //    options.RequireHttpsMetadata = false;
-            //    options.SaveToken = true;
-            //    options.TokenValidationParameters = new TokenValidationParameters
-            //    {
-            //        ValidateIssuer = true,
-            //        ValidateAudience = true,
-            //        ValidateLifetime = true,
-            //        ValidateIssuerSigningKey = true,
-            //        ValidIssuer = BiovationConfiguration.JwtIssuer(), 
-            //        ValidAudience = BiovationConfiguration.JwtAudience(),
-            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(BiovationConfiguration.JwtKey())),
-            //        ClockSkew = TimeSpan.Zero
-            //    };
-
-            //});
-
-            //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            //.AddJwtBearer(options =>
-            //{
-            //    options.TokenValidationParameters = new TokenValidationParameters
-            //    {
-            //        ValidateIssuer = true,
-            //        ValidateAudience = true,
-            //        ValidateLifetime = false,
-            //        ValidateIssuerSigningKey = true,
-            //        ValidIssuer = BiovationConfiguration.JwtIssuer(),
-            //        ValidAudience = BiovationConfiguration.JwtAudience(),
-            //        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(BiovationConfiguration.JwtKey()))
-            //    };
-            //});
+            
             services.AddMvc();
-
-            //services.AddAuthorization(options =>
-            //{
-            //    //options.AddPolicy("OverrideTest", policy => policy.Requirements.Add(new OverrideTestRequirement(200)));
-            //    var defaultAuthorizationPolicyBuilder = new AuthorizationPolicyBuilder(
-            //     JwtBearerDefaults.AuthenticationScheme);
-
-            //    defaultAuthorizationPolicyBuilder =
-            //        defaultAuthorizationPolicyBuilder.RequireAuthenticatedUser();
-
-            //    options.DefaultPolicy = defaultAuthorizationPolicyBuilder.Build();
-            //});
-
-            services.AddSingleton<IAuthorizationHandler, OverrideTestAuthorizationHandler>();
-
-            //services.AddAuthorization(config =>
-            //{
-            //    config.AddPolicy(Policies.Admin, Policies.AdminPolicy());
-            //    config.AddPolicy(Policies.User, Policies.UserPolicy());
-            //});
+            
+            //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
 
 
             services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
@@ -189,7 +140,6 @@ namespace Biovation.Server
 
             services.AddHostedService<TaskMangerHostedService>();
             services.AddHostedService<ServicesHealthCheckHostedService>();
-            services.AddCors();
             //services.AddSingleton<object, object>();
             //services.AddSingleton<RequestDelegate, RequestDelegate>();
         }
@@ -307,10 +257,15 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddSingleton<BiovationConfigurationManager, BiovationConfigurationManager>();
+            services.AddSingleton<TokenGenerator, TokenGenerator>();
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
         {
+            var user = new User { Id = 0 };
+            var _tokenGenerator = new TokenGenerator(BiovationConfiguration);
+            _tokenGenerator.GenerateJWTServiceToken(user);
+
             var serviceCollection = new ServiceCollection();
             var connectionInfo = new DatabaseConnectionInfo
             {

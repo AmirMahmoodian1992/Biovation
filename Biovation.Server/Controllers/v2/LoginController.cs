@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Biovation.Servers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,13 +26,15 @@ namespace Biovation.Server.Controllers.v2
 
         private readonly UserService _userService;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        
-            
+        private readonly TokenGenerator _generateToken;
 
-        public LoginController(UserService userService, BiovationConfigurationManager biovationConfigurationManager)
+
+
+        public LoginController(UserService userService, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator generateToken)
         {
             _biovationConfigurationManager = biovationConfigurationManager;
             _userService = userService;
+            _generateToken = generateToken;
         }
 
 
@@ -44,7 +47,7 @@ namespace Biovation.Server.Controllers.v2
             var user = _userService.GetUsers(userId:id).Data.Data.FirstOrDefault();
             if (user != null)
             {
-                var tokenString = GenerateJWTToken(user);
+                var tokenString = _generateToken.GenerateJWTLoginToken(user);
                 response = Ok(new
                 {
                     token = tokenString,
@@ -56,40 +59,7 @@ namespace Biovation.Server.Controllers.v2
 
 
 
-        string GenerateJWTToken(User userInfo)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_biovationConfigurationManager.JwtKey()));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, userInfo.FirstName),
-                new Claim("Id", userInfo.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
-
-            //var token = new JwtSecurityToken(
-            //    issuer: _biovationConfigurationManager.JwtIssuer(),
-            //    audience: _biovationConfigurationManager.JwtAudience(),
-            //    claims: claims,
-            //    expires: DateTime.Now.AddMinutes(30),
-            //    signingCredentials: credentials
-            //);
-            var token = new JwtSecurityToken(
-                claims: claims,
-                 expires: DateTime.Now.AddMinutes(1130),
-                signingCredentials: credentials
-            );
-
-
-            //var token = new JwtSecurityToken(_biovationConfigurationManager.JwtIssuer(),
-            //  _biovationConfigurationManager.JwtAudience(),
-            //  null,
-            //  expires: DateTime.Now.AddMinutes(12000),
-            //  signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+     
 
     }
 }

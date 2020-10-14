@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Attribute\" />
+    <Folder Include="Handler\" />
   </ItemGroup>
 
 </Project>

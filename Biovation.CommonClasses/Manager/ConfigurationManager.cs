@@ -8,6 +8,8 @@ namespace Biovation.CommonClasses.Manager
     {
         //private readonly SettingService _settingService;
         public IConfiguration Configuration { get; set; }
+        private string LoginKey { get; } = "BiovationLoginKey";
+        private string ServiceKey { get; } = "BiovationServiceKey";
 
         public BiovationConfigurationManager(IConfiguration configuration/*, SettingService settingService*/)
         {
@@ -25,12 +27,21 @@ namespace Biovation.CommonClasses.Manager
             return Configuration.GetSection("Jwt")["Audience"];
         }
 
-        public string JwtKey()
-        {
-            return "ThisismySecretKey";
-            //return Configuration.GetSection("Jwt")["Key"];
+        //public string JwtKey()
+        //{
+        //    return "ThisismySecretKey";
+        //    //return Configuration.GetSection("Jwt")["Key"];
 
+        //}
+        public string JwtLoginKey()
+        {
+            return LoginKey;
         }
+        public string JwtServiceKey()
+        {
+            return ServiceKey;
+        }
+
 
         public string DefaultToken()
         {
@@ -82,6 +93,19 @@ namespace Biovation.CommonClasses.Manager
             return Configuration["DataQueriesPort"] ?? Configuration.GetSection("AppSettings")["DataQueriesPort"];
         }
 
+        private string Tokenvalue { get; set; }
+        public string ServiceToken
+        {
+
+            get => Tokenvalue;
+            set
+            {
+                if (Tokenvalue is null)
+                {
+                    Tokenvalue = value;
+                }
+            }
+        }
 
 
 
