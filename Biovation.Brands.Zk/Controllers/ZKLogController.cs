@@ -56,22 +56,23 @@ namespace Biovation.Brands.ZK.Controllers
                         DeviceBrand = _deviceBrands.ZkTeco,
                         TaskItems = new List<TaskItem>()
                     };
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.ClearLog,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new
+                    if (device != null)
+                        task.TaskItems.Add(new TaskItem
                         {
-                            fromDate,
-                            toDate
-                        }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.ClearLog,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new
+                            {
+                                fromDate,
+                                toDate
+                            }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
 
-                        OrderIndex = 1
-                    });
+                            OrderIndex = 1
+                        });
 
 
                     _taskService.InsertTask(task);
