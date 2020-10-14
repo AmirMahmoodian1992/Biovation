@@ -7,6 +7,7 @@ namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class FingerTemplateController : Controller
     {
         private readonly FingerTemplateService _fingerTemplateService;

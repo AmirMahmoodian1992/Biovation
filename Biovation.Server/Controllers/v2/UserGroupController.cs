@@ -15,6 +15,7 @@ namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class UserGroupController : Controller
     {
         private readonly RestClient _restClient;
@@ -234,6 +235,10 @@ namespace Biovation.Server.Controllers.v2
                             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Id));
                             /*var deletionResult =*/
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -256,6 +261,10 @@ namespace Biovation.Server.Controllers.v2
                             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Id)));
                             /*var additionResult =*/
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -309,6 +318,10 @@ namespace Biovation.Server.Controllers.v2
                                 new RestRequest(
                                     $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
                                     Method.POST);
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                         }
                     });
@@ -351,6 +364,10 @@ namespace Biovation.Server.Controllers.v2
                                     new RestRequest(
                                         $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                         Method.POST);
+                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                {
+                                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                }
                                 _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                             }
                         }

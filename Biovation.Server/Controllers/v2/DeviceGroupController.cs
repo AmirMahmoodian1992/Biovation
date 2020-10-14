@@ -14,6 +14,7 @@ namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class DeviceGroupController : Controller
     {
         private readonly DeviceService _deviceService;
@@ -135,6 +136,10 @@ namespace Biovation.Server.Controllers.v2
                                 deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                                 deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Id));
                                 /*var deletionResult =*/
+                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                {
+                                    deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                }
                                 await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
                             });
                         }
@@ -162,6 +167,10 @@ namespace Biovation.Server.Controllers.v2
                                 sendUserRestRequest.AddQueryParameter("userId",
                                     JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
                                 /*var additionResult =*/
+                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                {
+                                    sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                }
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
                             });
                         }

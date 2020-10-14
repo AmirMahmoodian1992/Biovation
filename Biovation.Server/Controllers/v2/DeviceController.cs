@@ -7,6 +7,7 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -45,6 +46,7 @@ namespace Biovation.Server.Controllers.v2
 
         //TODO loaded brand
         [HttpGet]
+        [Authorize]
         public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int PageSize = default)
         { ;
@@ -75,6 +77,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
         {
 
@@ -92,6 +95,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("OfflineLogs/{ids}")]
+        [Authorize]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
             return Task.Run(async () =>
@@ -118,7 +122,10 @@ namespace Biovation.Server.Controllers.v2
                         restRequest.AddQueryParameter("code", device.Code.ToString());
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
-
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         if (requestResult.StatusCode == HttpStatusCode.OK)
                         {
@@ -161,6 +168,10 @@ namespace Biovation.Server.Controllers.v2
                 foreach (var deviceBrand in deviceBrands)
                 {
                     var restRequest = new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    {
+                        restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    }
                     var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK)
@@ -179,6 +190,7 @@ namespace Biovation.Server.Controllers.v2
         ///// <returns></returns>
         [HttpPut]
         [Route("UserFromDevice/{id}")]
+        [Authorize]
         public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
         {
             return Task.Run( () =>
@@ -186,6 +198,10 @@ namespace Biovation.Server.Controllers.v2
                 var device = _deviceService.GetDevice(id).Data;
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddJsonBody(userId);
@@ -210,6 +226,10 @@ namespace Biovation.Server.Controllers.v2
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
 
                 var result = await restAwaiter;
@@ -235,6 +255,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("UserFromDevice/{id}/{userId}")]
+        [Authorize]
         public Task<ResultViewModel> UsersFromDevice(int id = default, int userId = default)
         {
             return Task.Run( () =>
@@ -248,13 +269,17 @@ namespace Biovation.Server.Controllers.v2
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 restRequest.AddJsonBody(userId);
-
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
             });
         }
 
         [HttpPut]
         [Route("SendUsersToDevice/{id}")]
+        [Authorize]
         public Task<ResultViewModel> SendUsersToDevice(int id = default)
         {
             return Task.Run( () =>
@@ -270,7 +295,10 @@ namespace Biovation.Server.Controllers.v2
 
                     var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
                     restRequest.AddJsonBody(device);
-
+                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    {
+                        restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    }
                     var result =  _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     return new ResultViewModel { Validate = result.Result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = id };
@@ -285,6 +313,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("DeviceInfo/{id}")]
+        [AllowAnonymous]
         public Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo(int id = default)
         {
             return Task.Run( () =>
@@ -293,6 +322,10 @@ namespace Biovation.Server.Controllers.v2
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 var result =  _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
 
                 return new ResultViewModel<Dictionary<string, string>>()
