@@ -5,9 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-//using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Http;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens; //using Biovation.Service.Api.v2;
 
 namespace Biovation.Data.Commands.Middleware
 {
@@ -20,7 +19,7 @@ namespace Biovation.Data.Commands.Middleware
         {
             _next = next;
             _biovationConfigurationManager = biovationConfigurationManager;
-   
+            //_userService = userService;
         }
         public async Task Invoke(HttpContext context)
         {
@@ -38,7 +37,8 @@ namespace Biovation.Data.Commands.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes( _biovationConfigurationManager.JwtKey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtKey());
+
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -55,9 +55,10 @@ namespace Biovation.Data.Commands.Middleware
                 {
                     Id = userId
                 };
-                // attach user to context on successful jwt validation
-                // context.Items[""] = _userService.GetUsers(userId:userId).Data.Data.FirstOrDefault();
+                context.Items["Token"] = token;
                 context.Items["User"] = user;
+                // attach user to context on successful jwt validation
+                //  context.Items["User"] = _userService.GetUsers(userId:userId).Data.Data.FirstOrDefault();
             }
             catch
             {

@@ -87,9 +87,9 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/User", Method.PUT);
             restRequest.AddJsonBody(user);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken();
             restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel DeleteUser(int id = default, string token = default)
