@@ -37,9 +37,11 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
         {
-            return Task.Run(() => _deviceService.GetDevice(id, adminUserId));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _deviceService.GetDevice(id, adminUserId,token));
         }
 
 
@@ -47,7 +49,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int PageSize = default)
-        {
+        { ;
             var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId.ToString(), name, modelId, typeId, pageNumber, PageSize));
             return result;
         }
@@ -85,8 +87,8 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteDevice(uint id = default)
         {
-
-           return Task.Run(() => _deviceService.DeleteDevice(id));
+            var token = (string) HttpContext.Items["Token"];
+           return Task.Run(() => _deviceService.DeleteDevice(id,token));
         }
 
         [HttpGet]

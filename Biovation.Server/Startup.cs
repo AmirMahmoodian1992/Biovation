@@ -1,14 +1,18 @@
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
-using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
+using Biovation.Server.Middleware;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -22,19 +26,8 @@ using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
-using App.Metrics;
-using App.Metrics.Extensions.Configuration;
-using Biovation.Domain;
 using Biovation.Server.HostedServices;
 using Log = Serilog.Log;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System;
-using Biovation.Server.Model;
-using Microsoft.AspNetCore.Authorization;
-using Biovation.Server.Middleware;
-using Microsoft.AspNetCore.Http;
 
 namespace Biovation.Server
 {
@@ -194,8 +187,8 @@ namespace Biovation.Server
             services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
             services.AddScoped<RecurringTasksManager, RecurringTasksManager>();
 
-            //services.AddHostedService<TaskMangerHostedService>();
-            //services.AddHostedService<ServicesHealthCheckHostedService>();
+            services.AddHostedService<TaskMangerHostedService>();
+            services.AddHostedService<ServicesHealthCheckHostedService>();
             services.AddCors();
             //services.AddSingleton<object, object>();
             //services.AddSingleton<RequestDelegate, RequestDelegate>();
@@ -446,7 +439,7 @@ namespace Biovation.Server
             });
 
 
-            
+
 
             //app.MapWhen(context =>
             //{

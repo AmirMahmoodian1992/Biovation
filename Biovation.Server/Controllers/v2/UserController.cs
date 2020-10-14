@@ -18,6 +18,7 @@ namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly UserService _userService;
@@ -39,7 +40,6 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         //[Authorize(Policy = Policies.User)]
         //[Authorize(Policy = "OverrideTest")]
-        [Authorize]
         public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,

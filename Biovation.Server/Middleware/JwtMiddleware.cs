@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Service.Api.v2;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Middleware
 {
@@ -55,7 +52,8 @@ namespace Biovation.Server.Middleware
                 var userId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
 
                 // attach user to context on successful jwt validation
-                context.Items["User"] = _userService.GetUsers(userId:userId).Data.Data.FirstOrDefault();
+                context.Items["User"] = _userService.GetUsers(userId: userId)?.Data.Data.FirstOrDefault();
+                context.Items["Token"] = token;
             }
             catch
             {
