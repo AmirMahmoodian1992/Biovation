@@ -15,7 +15,7 @@ namespace Biovation.Data.Queries.Middleware
         private readonly RequestDelegate _next;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         //private readonly UserService _userService;
-        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager/*, UserService userService*/)
+        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager)
         {
             _next = next;
             _biovationConfigurationManager = biovationConfigurationManager;
