@@ -24,6 +24,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> InsertTask([FromBody]TaskInfo task)
         {
             return Task.Run(() =>
@@ -40,6 +41,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPut]
+        [Authorize]
         public Task<ResultViewModel> UpdateTaskStatus([FromBody]TaskItem taskItem)
         {
             //return Task.Run(() => _taskRepository.UpdateTaskStatus(taskItem));

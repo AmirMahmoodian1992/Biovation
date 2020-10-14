@@ -28,6 +28,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPut]
+        [Authorize]
         public Task<ResultViewModel> ModifyTimeZone([FromBody]TimeZone timeZone)
         {
             return Task.Run(() => _timeZoneRepository.ModifyTimeZone(timeZone));

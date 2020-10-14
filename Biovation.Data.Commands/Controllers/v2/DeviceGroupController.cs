@@ -18,7 +18,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         //TODO:Add DeviceGroup
-        [HttpPost]
+        //[HttpPost]
         /*public Task<ResultViewModel> AddDeviceGroup([FromBody]DeviceGroup deviceGroup = default)
          {
 

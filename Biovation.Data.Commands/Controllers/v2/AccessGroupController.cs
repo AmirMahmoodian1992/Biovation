@@ -28,6 +28,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         /// <returns></returns>
         /// 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> AddAccessGroup([FromBody] AccessGroup accessGroup = default)
         {
             return Task.Run(() => _accessGroupRepository.AddAccessGroup(accessGroup));
@@ -37,6 +38,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("AccessGroup")]
+        [Authorize]
         public Task<ResultViewModel> ModifyAccessGroup([FromBody]AccessGroup accessGroup)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroup(accessGroup));
@@ -45,6 +47,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("AccessGroupUserGroup")]
+        [Authorize]
         public Task<ResultViewModel> ModifyAccessGroupUserGroup(string xmlUserGroup, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupUserGroup(xmlUserGroup, accessGroupId));
@@ -53,6 +56,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("AccessGroupAdminUsers")]
+        [Authorize]
         public Task<ResultViewModel> ModifyAccessGroupAdminUsers(string xmlAdminUsers, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupAdminUsers(xmlAdminUsers, accessGroupId));
@@ -61,6 +65,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("AccessGroupDeviceGroup")]
+        [Authorize]
         public Task<ResultViewModel> ModifyAccessGroupDeviceGroup(string xmlDeviceGroup, int accessGroupId)
         {
             return Task.Run(() => _accessGroupRepository.ModifyAccessGroupDeviceGroup(xmlDeviceGroup, accessGroupId));
@@ -69,6 +74,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteAccessGroup(int id)
         {
             return Task.Run(() => _accessGroupRepository.DeleteAccessGroup(id));

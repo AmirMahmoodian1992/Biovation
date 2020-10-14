@@ -16,11 +16,11 @@ namespace Biovation.Data.Commands.Middleware
         private readonly RequestDelegate _next;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         //private readonly UserService _userService;
-        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager/*, UserService userService*/)
+        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager)
         {
             _next = next;
             _biovationConfigurationManager = biovationConfigurationManager;
-         //    _userService = userService;
+   
         }
         public async Task Invoke(HttpContext context)
         {

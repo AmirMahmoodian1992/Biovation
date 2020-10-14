@@ -23,6 +23,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
             return Task.Run(() => _deviceRepository.AddDevice(device));
