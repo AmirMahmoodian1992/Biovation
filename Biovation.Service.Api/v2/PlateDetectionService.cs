@@ -23,20 +23,20 @@ namespace Biovation.Service.Api.v2
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
             int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, string token = default)
         {
             return _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
-                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize);
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel AddLicensePlate(LicensePlate licensePlate)
+        public ResultViewModel AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
-            return _plateDetectionRepository.AddLicensePlate(licensePlate);
+            return _plateDetectionRepository.AddLicensePlate(licensePlate, token);
         }
 
-        public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log)
+        public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
-            return _plateDetectionRepository.AddPlateDetectionLog(log);
+            return _plateDetectionRepository.AddPlateDetectionLog(log, token);
         }
 
 

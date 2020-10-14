@@ -13,59 +13,59 @@ namespace Biovation.Service.Api.v2
         }
 
         public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default, int adminUserId = default,
-            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
+            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
             return _accessGroupRepository.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize, nestingDepthLevel);
+                pageNumber, pageSize, nestingDepthLevel, token);
         }
 
-        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = 4)
+        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = 4, string token = default)
         {
-            return _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel);
+            return _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel, token);
         }
 
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDeviceOfAccessGroup(int accessGroupId = default,
-            int pageNumber = default, int pageSize = default)
+            int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize);
+            return _accessGroupRepository.GetDeviceOfAccessGroup(accessGroupId, pageNumber, pageSize, token);
         }
 
         public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>
             GetServerSideIdentificationCacheOfAccessGroup(int accessGroupId = default, string brandCode = default, long userId = default,
-                int pageNumber = default, int pageSize = default)
+                int pageNumber = default, int pageSize = default, string token = default)
         {
             return _accessGroupRepository.GetServerSideIdentificationCacheOfAccessGroup(accessGroupId, brandCode,
-                userId, pageNumber, pageSize);
+                userId, pageNumber, pageSize, token);
         }
 
 
-        public ResultViewModel AddAccessGroup(AccessGroup accessGroup = default)
+        public ResultViewModel AddAccessGroup(AccessGroup accessGroup = default, string token = default)
         {
-            return _accessGroupRepository.AddAccessGroup(accessGroup);
+            return _accessGroupRepository.AddAccessGroup(accessGroup, token);
         }
 
-        public ResultViewModel ModifyAccessGroup(AccessGroup accessGroup = default)
+        public ResultViewModel ModifyAccessGroup(AccessGroup accessGroup = default, string token = default)
         {
-            return _accessGroupRepository.ModifyAccessGroup(accessGroup);
+            return _accessGroupRepository.ModifyAccessGroup(accessGroup, token);
         }
 
-        public ResultViewModel ModifyAccessGroupAdminUsers(string xmlAdminUsers = default, int accessGroupId = default)
+        public ResultViewModel ModifyAccessGroupAdminUsers(string xmlAdminUsers = default, int accessGroupId = default, string token = default)
         {
-            return _accessGroupRepository.ModifyAccessGroupAdminUsers(xmlAdminUsers, accessGroupId);
+            return _accessGroupRepository.ModifyAccessGroupAdminUsers(xmlAdminUsers, accessGroupId, token);
         }
 
-        public ResultViewModel ModifyAccessGroupDeviceGroup(string xmlDeviceGroup = default, int accessGroupId = default)
+        public ResultViewModel ModifyAccessGroupDeviceGroup(string xmlDeviceGroup = default, int accessGroupId = default, string token = default)
         {
-            return _accessGroupRepository.ModifyAccessGroupDeviceGroup(xmlDeviceGroup, accessGroupId);
+            return _accessGroupRepository.ModifyAccessGroupDeviceGroup(xmlDeviceGroup, accessGroupId, token);
         }
 
-        public ResultViewModel ModifyAccessGroupUserGroup(string xmlUserGroup = default, int accessGroupId = default)
+        public ResultViewModel ModifyAccessGroupUserGroup(string xmlUserGroup = default, int accessGroupId = default, string token = default)
         {
-            return _accessGroupRepository.ModifyAccessGroupUserGroup(xmlUserGroup, accessGroupId);
+            return _accessGroupRepository.ModifyAccessGroupUserGroup(xmlUserGroup, accessGroupId, token);
         }
-        public ResultViewModel DeleteAccessGroup(int id = default)
+        public ResultViewModel DeleteAccessGroup(int id = default, string token = default)
         {
-            return _accessGroupRepository.DeleteAccessGroup(id);
+            return _accessGroupRepository.DeleteAccessGroup(id, token);
         }
 
 

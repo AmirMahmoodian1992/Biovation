@@ -29,7 +29,7 @@ namespace Biovation.Service.Api.v2
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = default,
             List<string> excludedTaskStatusCodes = default, int pageNumber = default,
-            int pageSize = default, int taskItemId = default)
+            int pageSize = default, int taskItemId = default, string token = default)
         {
             var taskStatusCodesString = string.Empty;
             if (taskStatusCodes != null)
@@ -58,12 +58,12 @@ namespace Biovation.Service.Api.v2
             }
 
             return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodesString,
-                excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId);
+                excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token);
         }
 
-        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default)
+        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default, string token = default)
         {
-            return _taskRepository.GetTaskItem(taskItemId);
+            return _taskRepository.GetTaskItem(taskItemId, token);
         }
 
         /* public ResultViewModel InsertTask(TaskInfo task)

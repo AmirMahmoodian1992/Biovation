@@ -13,24 +13,24 @@ namespace Biovation.Service.Api.v2
             _timeZoneRepository = timeZoneRepository;
         }
 
-        public ResultViewModel<TimeZone> TimeZones(int id = default)
+        public ResultViewModel<TimeZone> TimeZones(int id = default, string token = default)
         {
-            return _timeZoneRepository.TimeZones(id);
+            return _timeZoneRepository.TimeZones(id, token);
         }
 
-        public ResultViewModel<List<TimeZone>> GetTimeZones()
+        public ResultViewModel<List<TimeZone>> GetTimeZones(string token = default)
         {
-            return _timeZoneRepository.GetTimeZones();
+            return _timeZoneRepository.GetTimeZones(token);
         }
 
-        public ResultViewModel ModifyTimeZone(TimeZone timeZone)
+        public ResultViewModel ModifyTimeZone(TimeZone timeZone, string token = default)
         {
-            return _timeZoneRepository.ModifyTimeZone(timeZone);
+            return _timeZoneRepository.ModifyTimeZone(timeZone, token);
         }
 
-        public ResultViewModel DeleteTimeZone(int id)
+        public ResultViewModel DeleteTimeZone(int id, string token = default)
         {
-            return _timeZoneRepository.DeleteTimeZone(id);
+            return _timeZoneRepository.DeleteTimeZone(id, token);
         }
 
     }

@@ -18,38 +18,38 @@ namespace Biovation.Service.Api.v2
 
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default,
             int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, string token = default)
         {
-            return _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer:successTransfer);
+            return _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer: successTransfer);
         }
 
-        public Task<ResultViewModel> AddLog(Log log)
+        public Task<ResultViewModel> AddLog(Log log, string token = default)
         {
             return Task.Run(() => _logRepository.AddLog(log));
         }
-        public Task<ResultViewModel> AddLog(List<Log> logs)
+        public Task<ResultViewModel> AddLog(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.AddLog(logs));
+            return Task.Run(() => _logRepository.AddLog(logs,token));
         }
 
-        public Task<ResultViewModel> UpdateLog(List<Log> logs)
+        public Task<ResultViewModel> UpdateLog(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.UpdateLog(logs));
+            return Task.Run(() => _logRepository.UpdateLog(logs,token));
         }
 
-        public Task<ResultViewModel> AddLogImage(Log log)
+        public Task<ResultViewModel> AddLogImage(Log log, string token = default)
         {
-            return Task.Run(() => _logRepository.AddLogImage(log));
+            return Task.Run(() => _logRepository.AddLogImage(log,token));
         }
 
-        public Task<ResultViewModel> UpdateLog(Log log)
+        public Task<ResultViewModel> UpdateLog(Log log, string token = default)
         {
-            return Task.Run(() => _logRepository.UpdateLog(log));
+            return Task.Run(() => _logRepository.UpdateLog(log,token));
         }
 
-        public Task<List<Log>> CheckLogInsertion(List<Log> logs)
+        public Task<List<Log>> CheckLogInsertion(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.CheckLogInsertion(logs));
+            return Task.Run(() => _logRepository.CheckLogInsertion(logs,token));
         }
 
     }
