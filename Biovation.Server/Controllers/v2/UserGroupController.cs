@@ -226,13 +226,13 @@ namespace Biovation.Server.Controllers.v2
                                 ? existingAuthorizedUsersOfDevicesToDelete[deviceKey]
                                     .ExceptBy(newAuthorizedUsersOfDevicesToDelete[deviceKey], member => member.UserId)
                                 : existingAuthorizedUsersOfDevicesToDelete[deviceKey]).Select(user =>
-                                new User { Id = user.UserId, UserName = user.UserName });
+                                new User { Code = user.UserCode, UserName = user.UserName });
 
                             var deleteUserRestRequest =
                                 new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
                                     Method.POST);
                             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                            deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Id));
+                            deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Code));
                             /*var deletionResult =*/
                             await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
@@ -249,12 +249,12 @@ namespace Biovation.Server.Controllers.v2
                                 ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
                                     .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
                                 : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
-                                new User { Id = user.UserId, UserName = user.UserName });
+                                new User { Code = user.UserCode, UserName = user.UserName });
 
                             var sendUserRestRequest =
                                 new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
                             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                            sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Id)));
+                            sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
                             /*var additionResult =*/
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
 
@@ -341,9 +341,9 @@ namespace Biovation.Server.Controllers.v2
                     var deviceBrands = _deviceService.GetDeviceBrands().Data;
                     var userGroup = _userGroupService.UsersGroup(userGroupId: groupId)?.Data?.Data.FirstOrDefault();
                     if (userGroup != null)
-                        foreach (var unused in userGroup.Users)
+                        foreach (var userGroupMember in userGroup.Users)
                         {
-                            //var user = _userService.GetUser(userGroupMember.UserId);
+                            var user = _userService.GetUsers(userId:userGroupMember.UserCode);
 
                             foreach (var deviceBrand in deviceBrands)
                             {
@@ -351,6 +351,7 @@ namespace Biovation.Server.Controllers.v2
                                     new RestRequest(
                                         $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                         Method.POST);
+                                restRequest.AddJsonBody(user);
                                 _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                             }
                         }

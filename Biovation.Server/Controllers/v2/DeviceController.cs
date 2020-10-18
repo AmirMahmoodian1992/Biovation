@@ -213,14 +213,14 @@ namespace Biovation.Server.Controllers.v2
                 var users = await userAwaiter;
 
                 var lstResult = (from r in result.Data?.Data
-                    join u in users on r.Id equals u.Id
+                    join u in users on r.Code equals u.Code
                         into ps
                     from u in ps.DefaultIfEmpty()
                     select new User
                     {
                         Type = u == null ? 0 : 1,
                         IsActive = r.IsActive,
-                        Id = r.Id,
+                        Code = r.Code,
                         FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
                         StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
                         EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)

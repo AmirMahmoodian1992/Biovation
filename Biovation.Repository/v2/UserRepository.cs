@@ -55,6 +55,8 @@ namespace Biovation.Repository.Sql.v2
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", user.Id),
+                new SqlParameter("@UserCode", user.Code),
+                new SqlParameter("@UniqueId", user.UniqueId),
                 new SqlParameter("@FName", user.FirstName),
                 new SqlParameter("@LName", user.SurName),
                 new SqlParameter("@Password", user.Password),
@@ -80,7 +82,7 @@ namespace Biovation.Repository.Sql.v2
         /// </summary>
         /// <returns></returns>
 
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, long userCode =default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() =>
             {
@@ -91,6 +93,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@size", size),
                     new SqlParameter("@getTemplatesData", getTemplatesData),
                     new SqlParameter("@userId", userId),
+                    new SqlParameter("@UserCode", userCode),
                     new SqlParameter("@WithPicture", withPicture),
                     new SqlParameter("@FilterText", filterText),
                     new SqlParameter("@Type", type),

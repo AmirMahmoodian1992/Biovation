@@ -81,7 +81,7 @@ namespace Biovation.Server.Controllers.v2
                              Parallel.For(0, existingAuthorizedUsersOfAddedDevice.Count, index =>
                              {
                                  var element = existingAuthorizedUsersOfDeletedDevice.ElementAt(index);
-                                 var authorizedUsers = element.Value.DistinctBy(user => user.Id).ToList();
+                                 var authorizedUsers = element.Value.DistinctBy(user => user.Code).ToList();
                                  lock (existingAuthorizedUsersOfDeletedDevice)
                                      existingAuthorizedUsersOfDeletedDevice[element.Key] = authorizedUsers;
                              })
@@ -101,7 +101,7 @@ namespace Biovation.Server.Controllers.v2
                             Parallel.For(0, existingAuthorizedUsersOfAddedDevice.Count, index =>
                             {
                                 var element = existingAuthorizedUsersOfAddedDevice.ElementAt(index);
-                                var authorizedUsers = element.Value.DistinctBy(user => user.Id).ToList();
+                                var authorizedUsers = element.Value.DistinctBy(user => user.Code).ToList();
                                 lock (existingAuthorizedUsersOfAddedDevice)
                                     existingAuthorizedUsersOfAddedDevice[element.Key] = authorizedUsers;
                             })
@@ -125,7 +125,7 @@ namespace Biovation.Server.Controllers.v2
                                 var usersToDelete = newAuthorizedUsersOfDevice?.Count > 0
                                     ? existingAuthorizedUsersOfDeletedDevice[deviceId].ExceptBy(
                                         newAuthorizedUsersOfDevice,
-                                        user => user.Id)
+                                        user => user.Code)
                                     : existingAuthorizedUsersOfDeletedDevice[deviceId];
 
                                 var deleteUserRestRequest =
@@ -133,7 +133,7 @@ namespace Biovation.Server.Controllers.v2
                                         $"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
                                         Method.POST);
                                 deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                                deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Id));
+                                deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Code));
                                 /*var deletionResult =*/
                                 await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
                             });
@@ -152,7 +152,7 @@ namespace Biovation.Server.Controllers.v2
                                 var usersToAdd = existingAuthorizedUsersOfDeletedDevice.ContainsKey(deviceId) &&
                                                      existingAuthorizedUsersOfDeletedDevice[deviceId]?.Count > 0
                                         ? newAuthorizedUsersOfDevice.ExceptBy(
-                                            existingAuthorizedUsersOfAddedDevice[deviceId], user => user.Id)
+                                            existingAuthorizedUsersOfAddedDevice[deviceId], user => user.Code)
                                         : newAuthorizedUsersOfDevice;
 
                                 var sendUserRestRequest =
@@ -160,7 +160,7 @@ namespace Biovation.Server.Controllers.v2
                                             Method.GET);
                                 sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                                 sendUserRestRequest.AddQueryParameter("userId",
-                                    JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
+                                    JsonConvert.SerializeObject(usersToAdd.Select(user => user.Code)));
                                 /*var additionResult =*/
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
                             });
