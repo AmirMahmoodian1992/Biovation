@@ -43,10 +43,10 @@ namespace Biovation.CommonClasses.Manager
         }
 
 
-        public string DefaultToken()
-        {
-            return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q";
-        }
+        //public string DefaultToken
+        //{
+        //    return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q";
+        //}
 
         public string ConnectionStringProviderName()
         {
@@ -93,19 +93,6 @@ namespace Biovation.CommonClasses.Manager
             return Configuration["DataQueriesPort"] ?? Configuration.GetSection("AppSettings")["DataQueriesPort"];
         }
 
-        private string Tokenvalue { get; set; }
-        public string ServiceToken
-        {
-
-            get => Tokenvalue;
-            set
-            {
-                if (Tokenvalue is null)
-                {
-                    Tokenvalue = value;
-                }
-            }
-        }
 
 
 
@@ -160,6 +147,8 @@ namespace Biovation.CommonClasses.Manager
                 }
             }
         }
+
+        public string DefaultToken { get; set; }
 
         public static int BiovationWebServerPort
         {

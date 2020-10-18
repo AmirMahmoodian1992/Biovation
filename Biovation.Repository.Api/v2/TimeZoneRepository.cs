@@ -19,7 +19,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/TimeZone/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<TimeZone>>(restRequest);
             return requestResult.Result.Data;
@@ -28,7 +28,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<List<TimeZone>> GetTimeZones(string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/TimeZone", Method.GET);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<TimeZone>>>(restRequest);
             return requestResult.Result.Data;
@@ -38,7 +38,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/TimeZone", Method.PUT);
             restRequest.AddJsonBody(timeZone);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -46,7 +46,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel DeleteTimeZone(int id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/TimeZone/{id}", Method.DELETE);
-            restRequest.AddUrlSegment("id", id.ToString()); token ??= _biovationConfigurationManager.DefaultToken();
+            restRequest.AddUrlSegment("id", id.ToString()); token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;

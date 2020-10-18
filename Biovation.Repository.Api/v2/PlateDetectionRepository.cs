@@ -40,7 +40,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("successTransfer", successTransfer.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<PlateDetectionLog>>>(restRequest);
             return requestResult.Result.Data;
@@ -50,7 +50,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/PlateDetection/LicensePlate", Method.POST);
             restRequest.AddJsonBody(licensePlate);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -61,7 +61,7 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest("Commands/v2/PlateDetection/PlateDetectionLog", Method.POST);
             restRequest.AddJsonBody(log);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return requestResult.Result.Data;
         }

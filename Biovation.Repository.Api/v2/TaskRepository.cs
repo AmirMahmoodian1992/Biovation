@@ -29,7 +29,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("taskItemId", taskItemId.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<TaskInfo>>>(restRequest);
             return requestResult.Result.Data;
@@ -39,7 +39,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/task/{taskItemId}", Method.GET);
             restRequest.AddUrlSegment("taskItemId", taskItemId.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<TaskItem>>(restRequest);
             return requestResult.Result.Data;

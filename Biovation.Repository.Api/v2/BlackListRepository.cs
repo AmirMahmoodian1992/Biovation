@@ -30,7 +30,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("isDeleted", isDeleted.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<BlackList>>>(restRequest);
             return requestResult.Result.Data;
@@ -40,7 +40,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/BlackList", Method.POST);
             restRequest.AddJsonBody(blackList);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
@@ -48,7 +48,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/BlackList/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
@@ -56,7 +56,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/BlackList/DeleteBlackLists", Method.DELETE);
             restRequest.AddJsonBody(ids);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
@@ -64,7 +64,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/BlackList", Method.PUT);
             restRequest.AddJsonBody(blackList);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }

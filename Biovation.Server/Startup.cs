@@ -264,7 +264,7 @@ namespace Biovation.Server
         {
             var user = new User { Id = 0 };
             var _tokenGenerator = new TokenGenerator(BiovationConfiguration);
-            _tokenGenerator.GenerateJWTServiceToken(user);
+            _tokenGenerator.GenerateDefaultToken(user);
 
             var serviceCollection = new ServiceCollection();
             var connectionInfo = new DatabaseConnectionInfo

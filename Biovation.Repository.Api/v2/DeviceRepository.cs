@@ -52,7 +52,7 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest("Queries/v2/Device/{id}", Method.GET);
             if (id != 0) restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest);
             return requestResult.Result.Data;
@@ -66,7 +66,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceModel>>>(restRequest);
             return requestResult.Result.Data;
@@ -77,7 +77,7 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest("Queries/v2/Device/GetBioAuthModeWithDeviceId", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("authMode", authMode.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<AuthModeMap>>(restRequest);
             return requestResult.Result.Data;
@@ -87,7 +87,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/Device/LastConnectedTime", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<DateTime>>(restRequest);
             return requestResult.Result.Data;
@@ -110,7 +110,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/Device", Method.POST);
             restRequest.AddJsonBody(device);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -120,7 +120,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/Device/DeviceModel", Method.POST);
             restRequest.AddJsonBody(deviceModel);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -129,7 +129,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel DeleteDevice(uint id, string token=default)
         {
             var restRequest = new RestRequest("Commands/v2/Device/{id}", Method.DELETE);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddUrlSegment("id", id.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -140,7 +140,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/Device/DeleteDevices", Method.POST);
             restRequest.AddJsonBody(ids);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -149,7 +149,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel ModifyDevice(DeviceBasicInfo device,string token =default)
         {
             var restRequest = new RestRequest("Commands/v2/Device", Method.PUT);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddJsonBody(device);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -160,7 +160,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/Device/NetworkConnectionLog", Method.POST);
             restRequest.AddJsonBody(device);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -170,7 +170,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest($"Queries/v2/Device/AuthorizedUsersOfDevice/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
             return requestResult.Result.Data;

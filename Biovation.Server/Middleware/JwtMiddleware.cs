@@ -1,4 +1,5 @@
 ﻿using Biovation.CommonClasses.Manager;
+using Biovation.Servers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -15,11 +16,13 @@ namespace Biovation.Server.Middleware
         private readonly RequestDelegate _next;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly UserService _userService;
-        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager, UserService userService)
+        private readonly TokenGenerator _generateToken;
+        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager, UserService userService, TokenGenerator generateToken)
         {
             _next = next;
             _biovationConfigurationManager = biovationConfigurationManager;
             _userService = userService;
+            _generateToken = generateToken;
         }
         public async Task Invoke(HttpContext context)
         {
@@ -52,8 +55,10 @@ namespace Biovation.Server.Middleware
                 var userId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
 
                 // attach user to context on successful jwt validation
-                context.Items["User"] = _userService.GetUsers(userId: userId)?.Data.Data.FirstOrDefault();
-                context.Items["Token"] = token;
+                var user = _userService.GetUsers(userId: userId)?.Data.Data.FirstOrDefault();
+                context.Items["User"] = user;
+                _biovationConfigurationManager.DefaultToken = _generateToken.GenerateDefaultToken(user);
+                //context.Items["Token"] = token;
             }
             catch
             {

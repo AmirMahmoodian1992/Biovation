@@ -22,7 +22,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddUrlSegment("personId", personId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
 
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
@@ -35,7 +35,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddUrlSegment("personId", personId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDevice>>>(restRequest);
             return requestResult.Result.Data;
@@ -45,7 +45,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/AdminDevice", Method.PUT);
             restRequest.AddJsonBody(adminDevice);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }

@@ -30,7 +30,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/UserCard/UserByCardNumber", Method.GET);
             restRequest.AddQueryParameter("cardNumber", cardNumber);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<User>>(restRequest);
             return requestResult.Result.Data;
@@ -39,7 +39,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/UserCard", Method.PUT);
             restRequest.AddJsonBody(card);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
@@ -48,7 +48,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/UserCard/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;

@@ -33,7 +33,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("where", @where ?? string.Empty);
             restRequest.AddQueryParameter("order", order ?? string.Empty);
             restRequest.AddQueryParameter("onlineUserId", onlineUserId.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Log>>>(restRequest);
             return requestResult.Result.Data;
@@ -46,7 +46,7 @@ namespace Biovation.Repository.Api.v2
 
                 var restRequest = new RestRequest("Commands/v2/Log/AddLog", Method.POST);
                 restRequest.AddJsonBody(log);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return requestResult.Data;
@@ -71,7 +71,7 @@ namespace Biovation.Repository.Api.v2
             {
                 var restRequest = new RestRequest("Commands/v2/Log/AddLogBulk", Method.POST);
                 restRequest.AddJsonBody(logs);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return requestResult.Data;
@@ -85,7 +85,7 @@ namespace Biovation.Repository.Api.v2
 
                 var restRequest = new RestRequest("Commands/v2/Log/UpdateLog", Method.PUT);
                 restRequest.AddJsonBody(logs);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return requestResult.Data;
@@ -98,7 +98,7 @@ namespace Biovation.Repository.Api.v2
 
                 var restRequest = new RestRequest("Commands/v2/Log/AddLogImage", Method.PATCH);
                 restRequest.AddJsonBody(log);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return requestResult.Data;
@@ -112,7 +112,7 @@ namespace Biovation.Repository.Api.v2
 
                 var restRequest = new RestRequest("Commands/v2/Log/UpdateLog", Method.PUT);
                 restRequest.AddJsonBody(log);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return requestResult.Data;
@@ -126,7 +126,7 @@ namespace Biovation.Repository.Api.v2
 
                 var restRequest = new RestRequest("Commands/v2/Log/CheckLogInsertion", Method.PUT);
                 restRequest.AddJsonBody(logs);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = await _restClient.ExecuteAsync<List<Log>>(restRequest);
                 return requestResult.Data;

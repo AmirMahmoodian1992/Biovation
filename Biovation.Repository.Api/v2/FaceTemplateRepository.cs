@@ -24,7 +24,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("index", index.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<FaceTemplate>>>(restRequest);
             return requestResult.Result.Data;
@@ -35,7 +35,7 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest("Commands/v2/FaceTemplate/ModifyFaceTemplate", Method.PUT);
             restRequest.AddJsonBody(faceTemplate);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return requestResult.Result.Data;
         }
@@ -45,7 +45,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("index", index.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            token ??= _biovationConfigurationManager.DefaultToken();
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return requestResult.Result.Data;
         }

@@ -48,7 +48,7 @@ namespace Biovation.Servers
             );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        public string GenerateJWTServiceToken(User userInfo)
+        public string GenerateDefaultToken(User userInfo)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_biovationConfigurationManager.JwtServiceKey()));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);

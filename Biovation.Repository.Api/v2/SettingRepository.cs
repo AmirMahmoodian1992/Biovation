@@ -26,7 +26,7 @@ namespace Biovation.Repository.Api.v2
             {
                 var restRequest = new RestRequest("Queries/v2/Setting/GetSettings", Method.GET);
                 restRequest.AddQueryParameter("key", key);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<Setting>>>(restRequest);
                 return requestResult.Result.Data;
@@ -39,7 +39,7 @@ namespace Biovation.Repository.Api.v2
             {
                 var restRequest = new RestRequest("Queries/v2/Setting/GetSetting", Method.GET);
                 restRequest.AddQueryParameter("key", key);
-                token ??= _biovationConfigurationManager.DefaultToken();
+                token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 var requestResult = _restClient.ExecuteAsync<ResultViewModel<string>>(restRequest);
                 return requestResult.Result.Data;
