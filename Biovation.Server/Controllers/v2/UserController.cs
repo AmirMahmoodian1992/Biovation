@@ -146,7 +146,7 @@ namespace Biovation.Server.Controllers.v2
 
         //if deviceId == 0 then send ids to all of device
         [HttpPut]
-        [Route("UsersToDevice/{deviceId}")]
+        [Route("UsersToDevices")]
         public Task<ResultViewModel> SendUsersToDevice([FromBody] int[] ids, [FromBody] int[] deviceIds = default)
         {
             try
@@ -787,7 +787,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Route("UserToDevice/{id}")]
         [Authorize]
-        public Task<ResultViewModel> SendUsersToDevice(int id = default)
+        public Task<ResultViewModel> SendUserToDevice(int id = default)
         {
             return Task.Run(async () =>
             {

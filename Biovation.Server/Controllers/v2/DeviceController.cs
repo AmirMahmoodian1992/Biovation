@@ -330,10 +330,7 @@ namespace Biovation.Server.Controllers.v2
                 }
             });
         }
-        [HttpPost]
-        [Route("UserToDevice/{id}")]
-        [Authorize]
-
+ 
 
         [HttpGet]
         [Route("DeviceInfo/{id}")]
@@ -360,8 +357,6 @@ namespace Biovation.Server.Controllers.v2
                 };
             });
         }
-
-
 
 
         [HttpGet]
