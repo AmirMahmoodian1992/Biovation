@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
@@ -24,6 +25,7 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserService _userService;
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
+        private readonly User _user;
 
 
         public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation)
@@ -32,6 +34,8 @@ namespace Biovation.Server.Controllers.v2
             _userService = userService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
             _systemInformation = systemInformation;
+            _user = HttpContext.GetUser();
+
         }
 
 
@@ -39,20 +43,20 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
+        public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.GetDevice(id, adminUserId,token));
+            return Task.Run(() => _deviceService.GetDevice(id, _user.Id,token));
         }
 
 
         //TODO loaded brand
         [HttpGet]
         [Authorize]
-        public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
+        public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int PageSize = default)
         { ;
-            var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId.ToString(), name, modelId, typeId, pageNumber, PageSize));
+            var result = Task.Run(() => _deviceService.GetDevices(_user.Id, groupId, code, brandId.ToString(), name, modelId, typeId, pageNumber, PageSize));
             return result;
         }
 
