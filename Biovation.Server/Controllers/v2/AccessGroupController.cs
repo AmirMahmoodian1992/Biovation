@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -21,19 +22,22 @@ namespace Biovation.Server.Controllers.v2
         private readonly RestClient _restClient;
         private readonly AccessGroupService _accessGroupService;
         private readonly DeviceService _deviceService;
+        private readonly User _user;
 
         public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService)
         {
             _restClient = restClient;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
+            _user = HttpContext.GetUser();
+
 
         }
 
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int adminUserId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId, pageNumber, pageSize)
+            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, (int) _user.Id, userGroupId, id, deviceId, deviceGroupId, pageNumber, pageSize)
             );
         }
 

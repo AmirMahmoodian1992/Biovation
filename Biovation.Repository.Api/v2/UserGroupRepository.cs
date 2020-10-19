@@ -19,7 +19,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/UserGroup/UsersGroup", Method.GET);
             restRequest.AddQueryParameter("id", userGroupId.ToString());
-            restRequest.AddQueryParameter("adminUserId", userId.ToString());
+            //restRequest.AddQueryParameter("adminUserId", userId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<UserGroup>>>(restRequest);

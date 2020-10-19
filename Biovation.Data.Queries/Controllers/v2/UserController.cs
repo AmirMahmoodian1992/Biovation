@@ -3,6 +3,7 @@ using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -11,18 +12,20 @@ namespace Biovation.Data.Queries.Controllers.v2
     public class UserController : Controller
     {
         private readonly UserRepository _userRepository;
+        private readonly User _user;
 
         public UserController(UserRepository userRepository)
         {
             _userRepository = userRepository;
+            _user = HttpContext.GetUser();
         }
         [HttpGet]
         [Route("Users")]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsers(long onlineId = default, int from = default, int size = default, bool getTemplatesData = default, long userId = default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default, int size = default, bool getTemplatesData = default, long userId = default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int pageSize = default)
         {
 
-            return Task.Run(() => _userRepository.GetUsersByFilter(onlineId, from, size, getTemplatesData, userId, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
+            return Task.Run(() => _userRepository.GetUsersByFilter(_user.Id, from, size, getTemplatesData, userId, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
         }
 
         [HttpGet]

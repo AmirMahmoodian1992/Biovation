@@ -32,7 +32,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("where", @where ?? string.Empty);
             restRequest.AddQueryParameter("order", order ?? string.Empty);
-            restRequest.AddQueryParameter("onlineUserId", onlineUserId.ToString());
+           // restRequest.AddQueryParameter("onlineUserId", onlineUserId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Log>>>(restRequest);
