@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
 using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -12,20 +13,22 @@ namespace Biovation.Data.Queries.Controllers.v2
     {
 
         private readonly UserGroupRepository _userGroupRepository;
+        private readonly User _user;
 
         public UserGroupController(UserGroupRepository userGroupRepository)
         {
             _userGroupRepository = userGroupRepository;
+            _user = HttpContext.GetUser();
         }
 
         [HttpGet]
         [Route("UsersGroup")]
         [Authorize]
 
-        public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, long adminUserId = default, int pageNumber = default,
+        public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _userGroupRepository.GetUserGroups(id, adminUserId, accessGroupId, userId,pageNumber,pageSize));
+            return Task.Run(() => _userGroupRepository.GetUserGroups(id,_user.Id , accessGroupId, userId,pageNumber,pageSize));
         }
 
         [HttpGet]
@@ -41,9 +44,9 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Route("SyncUserGroupMember")]
         [Authorize]
 
-        public Task<ResultViewModel> SyncUserGroupMember(string lstUser,int id, int adminUserId, int deviceGroupId)
+        public Task<ResultViewModel> SyncUserGroupMember(string lstUser,int id, int deviceGroupId)
         {
-            return Task.Run(() => _userGroupRepository.SyncUserGroupMember(lstUser,id,adminUserId,deviceGroupId));
+            return Task.Run(() => _userGroupRepository.SyncUserGroupMember(lstUser,id,(int) _user.Id,deviceGroupId));
         }
     }
 }
