@@ -36,9 +36,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup(long userId, int userGroupId)
+        public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup(int id, long userId)
         {
-            return Task.Run(() => _userGroupService.UsersGroup(userId, userGroupId));
+            return Task.Run(() => _userGroupService.UsersGroup(userId, id));
         }
 
         [HttpPost]

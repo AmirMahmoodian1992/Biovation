@@ -20,50 +20,50 @@ namespace Biovation.Server.Controllers.v1
     public class LogController : Controller
     {
         private readonly UserService _userService;
-        private readonly LogService _commonLogService;
+        private readonly LogService _logService;
         private readonly DeviceService _commonDeviceService;
         private readonly RestClient _restClient;
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient)
         {
             _userService = userService;
-            _commonLogService = logService;
+            _logService = logService;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
             _commonDeviceService = deviceService;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = restClient;
         }
 
         [HttpGet]
         [Route("Logs")]
         public Task<List<Log>> Logs()
         {
-            return _commonLogService.Logs();
+            return _logService.Logs();
         }
 
         [HttpGet]
         [Route("Logs")]
         public Task<List<Log>> LogsWithDate(DateTime fromDate, DateTime toDate)
         {
-            return _commonLogService.Logs(fromDate: fromDate, toDate: toDate);
+            return _logService.Logs(fromDate: fromDate, toDate: toDate);
         }
 
         [HttpPost]
         [Route("SelectSearchedOfflineLogs")]
         public Task<List<Log>> SelectSearchedOfflineLogs([FromBody] DeviceTraffic dTraffic)
         {
-            return _commonLogService.SelectSearchedOfflineLogs(dTraffic);
+            return _logService.SelectSearchedOfflineLogs(dTraffic);
         }
 
         [HttpPost]
         [Route("SelectSearchedOfflineLogsWithPaging")]
         public Task<List<Log>> SelectSearchedOfflineLogsWithPaging([FromBody] DeviceTraffic dTraffic)
         {
-            //return _commonLogService.SelectSearchedOfflineLogs(dTraffic);
-            return _commonLogService.SelectSearchedOfflineLogsWithPaging(dTraffic);
+            //return _logService.SelectSearchedOfflineLogs(dTraffic);
+            return _logService.SelectSearchedOfflineLogsWithPaging(dTraffic);
         }
 
         [HttpPost]
@@ -151,14 +151,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("OfflineLogsOfDevice")]
         public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
         {
-            return _commonLogService.Logs(deviceId: (int)deviceId);
+            return _logService.Logs(deviceId: (int)deviceId);
         }
 
         [HttpGet]
         [Route("OfflineLogsOfDevice")]
         public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime fromDate, DateTime toDate)
         {
-            return _commonLogService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate);
+            return _logService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate);
         }
 
         [HttpGet]
@@ -169,7 +169,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var result = await _commonLogService.GetImage(id);
+                    var result = await _logService.GetImage(id);
                     return result;
                 }
                 catch (Exception)
@@ -183,14 +183,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("LogsOfUser")]
         public Task<List<Log>> LogsOfUser(int userId)
         {
-            return _commonLogService.Logs(userId: userId);
+            return _logService.Logs(userId: userId);
         }
 
         [HttpGet]
         [Route("LogsOfUser")]
         public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime fromDate, DateTime toDate)
         {
-            return _commonLogService.Logs(userId: userId, fromDate: fromDate, toDate: toDate);
+            return _logService.Logs(userId: userId, fromDate: fromDate, toDate: toDate);
         }
 
         [HttpPost]
@@ -204,9 +204,9 @@ namespace Biovation.Server.Controllers.v1
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = false;
-                    var logs = await _commonLogService.SelectSearchedOfflineLogs(obj);
+                    var logs = await _logService.SelectSearchedOfflineLogs(obj);
                     //var logs = logsAwaiter.Where(w => !w.SuccessTransfer).ToList();
-                    await Task.Run(() => { _commonLogService.TransferLogBulk(logs); });
+                    await Task.Run(() => { _logService.TransferLogBulk(logs); });
                     return new ResultViewModel { Validate = 1, Code = logs.Count, Message = logs.Count.ToString() };
                 }
                 catch (Exception exception)
@@ -228,9 +228,9 @@ namespace Biovation.Server.Controllers.v1
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = null;
-                    var logs = await _commonLogService.SelectSearchedOfflineLogs(obj);
+                    var logs = await _logService.SelectSearchedOfflineLogs(obj);
                     //var logs = logsAwaiter.ToList();
-                    await Task.Run(() => { _commonLogService.TransferLogBulk(logs); });
+                    await Task.Run(() => { _logService.TransferLogBulk(logs); });
 
                     return new ResultViewModel { Validate = 1, Message = logs.Count.ToString() };
                 }

@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using RestSharp;
 
 namespace Biovation.Server.Controllers.v2
@@ -14,65 +20,99 @@ namespace Biovation.Server.Controllers.v2
     [Authorize]
     public class LogController : Controller
     {
+
         private readonly UserService _userService;
         private readonly LogService _logService;
-        private readonly DeviceService _commonDeviceService;
+        private readonly DeviceService _deviceService;
         private readonly RestClient _restClient;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TaskTypes taskTypes, TaskPriorities taskPriorities)
         {
             _userService = userService;
             _logService = logService;
-            _commonDeviceService = deviceService;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _deviceService = deviceService;
+            _restClient = restClient;
+            _taskTypes = taskTypes;
+            _taskPriorities = taskPriorities;
         }
 
         //we should consider the without parameter input version of log
         // and handle searchOfflineLogs with paging or not with  [FromBody]DeviceTraffic dTraffic
+
+
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<Domain.Log>>> Logs(int id = default, int deviceId = default,
-            int userId = default,bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
-            int pageSize = default)
+        public Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default,
+                        int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
+                        int pageSize = default)
         {
-            return Task.Run(() => _logService.Logs(id,deviceId,userId,successTransfer,fromDate,toDate,pageNumber,pageSize));
+            return Task.Run(() => _logService.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize));
+        }
+
+        [HttpGet]
+        [Route("Image")]
+        public Task<byte[]> GetImage(long id)
+        {
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    var result = await _logService.GetImage(id);
+                    return result;
+                }
+                catch (Exception)
+                {
+                    return new byte[0];
+                }
+            });
         }
 
         [HttpDelete]
-        [Route("{deviceId?}")]
-        public Task<IActionResult> ClearLogOfDevice(int deviceId = default, string fromDate = default, string toDate = default)
+        public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
-            throw null;
-        }
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
+                    var result = new List<ResultViewModel>();
+                    for (var i = 0; i < deviceId.Length; i++)
+                    {
+                        var device = _deviceService.GetDevice(deviceId[i]).Data;
+                        if (device == null)
+                        {
+                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
+                            result.Add(new ResultViewModel
+                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
+                            continue;
+                        }
 
+                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                        restRequest.AddQueryParameter("code", device.Code.ToString());
+                        restRequest.AddQueryParameter("fromDate", fromDate);
+                        restRequest.AddQueryParameter("toDate", toDate);
 
-        //batch delete
-        [HttpPost]
-        [Route("ClearLogsOfDevices")]
-        public Task<IActionResult> ClearLogOfDevice([FromBody]List<int> deviceIds = default, string fromDate = default, string toDate = default)
-        {
-            throw null;
-        }
+                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-        [HttpGet]
-        [Route("LogsOfDevice/{deviceId}")]
-        public Task<IActionResult> LogsOfDevice(int deviceId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
-        {
-            throw null;
-        }
+                        //var address = _localBioAddress +
+                        //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
+                        //var data = _restCall.CallRestAsync(address, null, null, "POST");
+                        //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
+                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
+                        restResult.Data.Id = deviceId[i];
+                        result.Add(restResult.Data);
+                    }
 
-
-        [HttpGet]
-        [Route("Image/{id?}")]
-        public Task<IActionResult> GetImage(long id = default)
-        {
-            throw null;
-        }
-
-        [HttpGet]
-        [Route("LogsOfUser{userId}")]
-        public Task<IActionResult> LogsOfUser(int userId = default, DateTime? fromDate = null, DateTime? toDate = null, bool offline = default)
-        {
-            throw null;
+                    return result;
+                }
+                catch (Exception)
+                {
+                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
+                }
+            });
         }
 
 
@@ -86,9 +126,10 @@ namespace Biovation.Server.Controllers.v2
         //convert offline logs
         [HttpPost]
         [Route("OfflineLogs")]
-        public Task<IActionResult> TransmitOfflineLogs(long userId = default, string dTraffic = default , bool resendLogs = default)
+        public Task<ResultViewModel> TransmitOfflineLogs(long userId = default, string dTraffic = default, bool resendLogs = default)
         {
             throw null;
         }
-    }
+
+}
 }

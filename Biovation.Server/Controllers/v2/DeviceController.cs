@@ -75,6 +75,24 @@ namespace Biovation.Server.Controllers.v2
 
 
 
+        [HttpPut]
+        [Route("ModifyDeviceInfo")]
+        public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
+        {
+            return Task.Run(async () =>
+            {
+                var result = _deviceService.ModifyDevice(device);
+                if (result.Validate != 1) return result;
+
+                device = _deviceService.GetDevice(id: device.DeviceId).Data;
+
+                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
+                restRequest.AddJsonBody(device);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                return result;
+            });
+        }
 
         [HttpPost]
         [Authorize]
@@ -188,7 +206,7 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="deviceId"></param>
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("UserFromDevice/{id}")]
         [Authorize]
         public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
@@ -215,7 +233,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-        [HttpPut]
+        [HttpPost]
         [Route("UsersListFromDevice/{id}")]
         public Task<List<User>> RetrieveUsersOfDevice(int id = default)
         {
@@ -256,7 +274,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpDelete]
         [Route("UserFromDevice/{id}/{userId}")]
         [Authorize]
-        public Task<ResultViewModel> UsersFromDevice(int id = default, int userId = default)
+        public Task<ResultViewModel> RemoveUserFromDevice(int id = default, int userId = default)
         {
             return Task.Run( () =>
             {
@@ -277,8 +295,8 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-        [HttpPut]
-        [Route("SendUsersToDevice/{id}")]
+        [HttpPost]
+        [Route("UserToDevice/{id}")]
         [Authorize]
         public Task<ResultViewModel> SendUsersToDevice(int id = default)
         {
@@ -310,6 +328,10 @@ namespace Biovation.Server.Controllers.v2
                 }
             });
         }
+        [HttpPost]
+        [Route("UserToDevice/{id}")]
+        [Authorize]
+
 
         [HttpGet]
         [Route("DeviceInfo/{id}")]

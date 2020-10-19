@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.Constants;
@@ -21,6 +22,25 @@ namespace Biovation.Server.Controllers.v2
             _taskService = taskService;
             _taskStatuses = taskStatuses;
         }
+
+        [HttpGet]
+        //public Task<List<TaskInfo>> Tasks(int taskId = default, string brandCode = default,
+        //    int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
+        //    string excludedTaskStatusCodes = default, int pageNumber = default,
+        //    int pageSize = default, int taskItemId = default)
+        //{
+        //    return _taskService.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+        //        excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
+        //}
+
+
+        [HttpGet]
+        [Route("TaskItems")]
+        public Task<ResultViewModel<TaskItem>> TaskItems(int taskItemId = default)
+        {
+            return Task.Run(() => _taskService.GetTaskItem(taskItemId));
+        }
+
 
         [HttpPatch]
         public Task<ResultViewModel> TaskExecutionStatus(int taskItemId = default, string taskStatusId = default)
