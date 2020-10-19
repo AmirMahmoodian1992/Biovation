@@ -20,7 +20,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/AccessGroup/", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
-            restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
+            //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());

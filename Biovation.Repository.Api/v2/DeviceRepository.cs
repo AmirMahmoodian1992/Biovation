@@ -31,7 +31,7 @@ namespace Biovation.Repository.Api.v2
             string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default)
         {
             var restRequest = new RestRequest("Queries/v2/Device", Method.GET);
-            restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
+            //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             restRequest.AddQueryParameter("groupId", groupId.ToString());
             restRequest.AddQueryParameter("code", code.ToString());
             restRequest.AddQueryParameter("brandId", brandId);
@@ -51,7 +51,7 @@ namespace Biovation.Repository.Api.v2
 
             var restRequest = new RestRequest("Queries/v2/Device/{id}", Method.GET);
             if (id != 0) restRequest.AddUrlSegment("id", id.ToString());
-            restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
+            //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest);
