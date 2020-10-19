@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,13 @@ namespace Biovation.Server.Controllers.v1
         //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();
         private readonly UserCardService _userCard;
         private readonly RestClient _restClient;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public UserCardController(UserCardService userCard, RestClient restClient)
+        public UserCardController(UserCardService userCard, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
         {
             _userCard = userCard;
             _restClient = restClient;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
         [HttpPost]
         [Route("ModifyUserCard")]
@@ -50,6 +53,7 @@ namespace Biovation.Server.Controllers.v1
                     $"/{brandName}/VirdiDevice/ReadCardNum",
                     Method.GET);
             resultRequest.AddParameter("deviceId", deviceId);
+            resultRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
             return _restClient.ExecuteAsync<int>(resultRequest).Result.Data;
         }
     }

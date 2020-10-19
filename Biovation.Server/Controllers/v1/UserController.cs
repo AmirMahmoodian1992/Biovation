@@ -24,16 +24,18 @@ namespace Biovation.Server.Controllers.v1
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
         private readonly AccessGroupService _accessGroupService;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         private readonly RestClient _restClient;
 
-        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService)
+        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfigurationManager)
         {
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
             _accessGroupService = accessGroupService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
         [HttpGet]
         [Route("GetUsersByFilter")]
@@ -159,7 +161,7 @@ namespace Biovation.Server.Controllers.v1
                             //_communicationManager.CallRest($"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", "Post", null, $"{JsonConvert.SerializeObject(user)}");
                             var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
                             restRequest.AddJsonBody(user);
-
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         }
                     });
@@ -237,6 +239,7 @@ namespace Biovation.Server.Controllers.v1
                             Method.GET);
                     restRequest.AddParameter("code", deviceBasic.Code);
                     restRequest.AddParameter("userId", userId);
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                     result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
                 }
 
@@ -281,7 +284,7 @@ namespace Biovation.Server.Controllers.v1
                                 new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                     Method.POST);
                             restRequest.AddJsonBody(user);
-
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
                         }
@@ -355,6 +358,7 @@ namespace Biovation.Server.Controllers.v1
                             new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
                         restRequest.AddJsonBody(usersToSync);
 
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         _restClient.ExecuteAsync(restRequest);
                     }
                 }
@@ -428,6 +432,7 @@ namespace Biovation.Server.Controllers.v1
                                         restRequest.AddQueryParameter("code", device.Code.ToString());
                                         restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
 
+                                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                                         _restClient.ExecuteAsync(restRequest);
                                     }
                                 }
@@ -554,6 +559,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
 
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
             });
         }
@@ -731,7 +737,7 @@ namespace Biovation.Server.Controllers.v1
                                     restRequest.AddQueryParameter("code", device.Code.ToString());
                                     restRequest.AddQueryParameter("userId", $"[{userId}]");
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
-
+                                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                                     var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
@@ -752,7 +758,7 @@ namespace Biovation.Server.Controllers.v1
                                     restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
                                     restRequest.AddJsonBody(listOfUserId);
-
+                                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                                     var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
@@ -845,7 +851,7 @@ namespace Biovation.Server.Controllers.v1
                                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
                             if (userIds != null)
                                 restRequest.AddJsonBody(userIds);
-
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             lock (results)
                             {
@@ -874,6 +880,7 @@ namespace Biovation.Server.Controllers.v1
                         if (userIds != null)
                             restRequest.AddJsonBody(userIds);
 
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {

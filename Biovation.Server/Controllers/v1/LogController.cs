@@ -2,6 +2,7 @@
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Servers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -26,8 +27,10 @@ namespace Biovation.Server.Controllers.v1
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
+        private readonly TokenGenerator _tokenGenerator;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient, TokenGenerator tokenGenerator)
         {
             _userService = userService;
             _logService = logService;
@@ -35,6 +38,7 @@ namespace Biovation.Server.Controllers.v1
             _taskPriorities = taskPriorities;
             _commonDeviceService = deviceService;
             _restClient = restClient;
+            _tokenGenerator = tokenGenerator;
         }
 
         [HttpGet]
@@ -89,7 +93,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddJsonBody(device.Code);
                 restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
-
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //_communicationManager.CallRest(
                 //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
@@ -132,8 +136,8 @@ namespace Biovation.Server.Controllers.v1
                 }
 
                 restRequest.AddQueryParameter("code", device.Code.ToString());
-                    
 
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
                 //        _communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Post", null,
@@ -201,12 +205,13 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId).FirstOrDefault());
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = false;
-                    var logs = await _logService.SelectSearchedOfflineLogs(obj);
+                    var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
                     //var logs = logsAwaiter.Where(w => !w.SuccessTransfer).ToList();
-                    await Task.Run(() => { _logService.TransferLogBulk(logs); });
+                    await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
                     return new ResultViewModel { Validate = 1, Code = logs.Count, Message = logs.Count.ToString() };
                 }
                 catch (Exception exception)
@@ -225,12 +230,13 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId).FirstOrDefault());
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = null;
-                    var logs = await _logService.SelectSearchedOfflineLogs(obj);
+                    var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
                     //var logs = logsAwaiter.ToList();
-                    await Task.Run(() => { _logService.TransferLogBulk(logs); });
+                    await Task.Run(() => { _logService.TransferLogBulk(logs,token); });
 
                     return new ResultViewModel { Validate = 1, Message = logs.Count.ToString() };
                 }
@@ -268,6 +274,7 @@ namespace Biovation.Server.Controllers.v1
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
 
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         //var address = _localBioAddress +

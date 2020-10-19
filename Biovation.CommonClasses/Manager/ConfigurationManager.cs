@@ -148,7 +148,8 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public string DefaultToken { get; set; }
+        public string DefaultToken { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q"; 
+        public string SecondDefaultToken { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q"; 
 
         public static int BiovationWebServerPort
         {

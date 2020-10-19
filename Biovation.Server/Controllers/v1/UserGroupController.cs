@@ -22,13 +22,15 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService)
+        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, BiovationConfigurationManager biovationConfigurationManager)
         {
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         //[HttpPost]
@@ -371,6 +373,7 @@ namespace Biovation.Server.Controllers.v1
                             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Id));
                             /*var deletionResult =*/
+                            deleteUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -393,6 +396,7 @@ namespace Biovation.Server.Controllers.v1
                             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Id)));
                             /*var additionResult =*/
+                            sendUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -434,6 +438,7 @@ namespace Biovation.Server.Controllers.v1
                                 $"{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
                                 Method.POST);
                         restRequest.AddJsonBody(JsonConvert.SerializeObject(member));
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                     }
                 });
@@ -538,6 +543,7 @@ namespace Biovation.Server.Controllers.v1
                                     $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                     Method.POST);
                             restRequest.AddJsonBody(JsonConvert.SerializeObject(user));
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                         }
                     }

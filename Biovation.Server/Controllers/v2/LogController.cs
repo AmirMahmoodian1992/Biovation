@@ -8,6 +8,7 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Servers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -28,9 +29,9 @@ namespace Biovation.Server.Controllers.v2
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
+        private readonly TokenGenerator _tokenGenerator;
 
-
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TaskTypes taskTypes, TaskPriorities taskPriorities)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TaskTypes taskTypes, TaskPriorities taskPriorities, TokenGenerator tokenGenerator)
         {
             _userService = userService;
             _logService = logService;
@@ -38,6 +39,7 @@ namespace Biovation.Server.Controllers.v2
             _restClient = restClient;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
+            _tokenGenerator = tokenGenerator;
         }
 
         //we should consider the without parameter input version of log
@@ -126,9 +128,27 @@ namespace Biovation.Server.Controllers.v2
         //convert offline logs
         [HttpPost]
         [Route("OfflineLogs")]
-        public Task<ResultViewModel> TransmitOfflineLogs(long userId = default, string dTraffic = default, bool resendLogs = default)
+        public Task<ResultViewModel> TransmitOfflineLogs(long userId = default, string logFilter = default, bool resendLogs = default)
         {
-            throw null;
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId).Data.Data.FirstOrDefault());
+                    var obj = JsonConvert.DeserializeObject<DeviceTraffic>(logFilter);
+                    obj.OnlineUserId = userId;
+                    obj.State = false;
+                    var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
+                    //var logs = logsAwaiter.Where(w => !w.SuccessTransfer).ToList();
+                    await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
+                    return new ResultViewModel { Validate = 1, Code = logs.Count, Message = logs.Count.ToString() };
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception.Message);
+                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+                }
+            });
         }
 
 }

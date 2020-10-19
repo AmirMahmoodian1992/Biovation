@@ -1,4 +1,5 @@
 ﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
@@ -13,11 +14,13 @@ namespace Biovation.Server.Controllers.v1
     {
         private readonly SystemInfo _systemInfo;
         private readonly RestClient _restClient;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public SystemInfoController(RestClient restClient, SystemInfo systemInfo)
+        public SystemInfoController(RestClient restClient, SystemInfo systemInfo, BiovationConfigurationManager biovationConfigurationManager)
         {
             _systemInfo = systemInfo;
             _restClient = restClient;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         [HttpGet]
@@ -47,6 +50,7 @@ namespace Biovation.Server.Controllers.v1
                     try
                     {
                         var restRequest = new RestRequest($"{moduleInfo.Name}/{moduleInfo.Name}Service/Restart", Method.POST);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         await _restClient.ExecuteAsync(restRequest);
 
                         Logger.Log($"Module : {moduleInfo.Name} Restart");
