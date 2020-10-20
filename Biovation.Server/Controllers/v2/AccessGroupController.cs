@@ -156,7 +156,7 @@ namespace Biovation.Server.Controllers.v2
                 try
                 {
 
-                    var deviceBrands = _deviceService.GetDeviceBrands().Data;
+                    var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
                     var accessGroup = _accessGroupService.GetAccessGroup(id: accessGroupId).Data;
                     if (accessGroup == null)
                     {
@@ -181,7 +181,7 @@ namespace Biovation.Server.Controllers.v2
 
                         foreach (var device in deviceGroup.Devices)
                         {
-                            var deviceBrand = deviceBrands.FirstOrDefault(devBrand => devBrand.Code == device.Brand.Code);
+                            var deviceBrand = deviceBrands?.FirstOrDefault(devBrand => devBrand.Code == device.Brand.Code);
                             //var parameters = new List<object> { $"accessGroupId={accessGroupId}", $"code={device.Code}" };
                             //_communicationManager.CallRest(
                             //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice", "Get", parameters, null);
