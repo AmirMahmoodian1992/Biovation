@@ -47,7 +47,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@IsAdmin", user.IsAdmin),
             };
 
-            return _repository.ToResultList<ResultViewModel>("InsertUser", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("ModifyUser", parameters).Data.FirstOrDefault();
         }
 
         public ResultViewModel ModifyUser(User user)
@@ -102,6 +102,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@PageSize",pageSize)
 
                 };
+
                 return _repository.ToResultList<PagingResult<User>>("SelectUsersByFilter", parameters, fetchCompositions: true,
                     compositionDepthLevel: 5).FetchFromResultList();
             });

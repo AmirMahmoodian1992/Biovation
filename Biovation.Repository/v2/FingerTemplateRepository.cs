@@ -39,7 +39,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@UpdateBy", fingerTemplate.UpdateBy)
             };
 
-            return _repository.ToResultList<ResultViewModel>("InsertFingerTemplate", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("ModifyFingerTemplate", parameters).Data.FirstOrDefault();
         }
 
         public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate)

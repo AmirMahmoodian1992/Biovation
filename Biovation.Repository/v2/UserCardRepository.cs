@@ -41,7 +41,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@CardNum", userCard.CardNum),
                 new SqlParameter("@DataCheck", userCard.DataCheck),
             };
-            return _repository.ToResultList<ResultViewModel>("InsertUserCard", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("ModifyUserCard", parameters).Data.FirstOrDefault();
         }
         /// <summary>
         /// <En>Get the device info from database.</En>
