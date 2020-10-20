@@ -22,6 +22,7 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using Biovation.Brands.Suprema.Middleware;
 using Microsoft.Extensions.Logging;
 
 namespace Biovation.Brands.Suprema
@@ -79,6 +80,7 @@ namespace Biovation.Brands.Suprema
             services.AddHealthChecks();
 
 
+            
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -88,6 +90,7 @@ namespace Biovation.Brands.Suprema
             ConfigureSupremaServices(services);
             // services.AddHostedService<PingCollectorHostedService>();
             //  services.AddHostedService<BroadcastMetricsHostedService>();
+
 
         }
 
@@ -171,6 +174,7 @@ namespace Biovation.Brands.Suprema
 
             app.UseHealthChecks("/biovation/api/health");
 
+            app.UseMiddleware<JwtMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

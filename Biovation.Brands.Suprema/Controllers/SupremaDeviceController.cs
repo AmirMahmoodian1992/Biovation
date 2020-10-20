@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace Biovation.Brands.Suprema.Controllers
@@ -34,14 +35,17 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             return _onlineDevices?.Select(onlineDevice => new DeviceBasicInfo(onlineDevice.Value.GetDeviceInfo())).ToList();
         }
 
         [HttpGet]
+        [Authorize]
         public List<User> Users(int deviceId)
         {
+            var user = (User)HttpContext.Items["User"];
             var userObjects = _commandFactory.Factory(CommandType.GetUsersOfDevice, new List<object> { deviceId })
                 .Execute();
 
@@ -63,6 +67,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel DeleteUserFromDevice(uint code, [FromBody]Newtonsoft.Json.Linq.JArray userId, bool updateServerSideIdentification = false)
         {
             var result = new List<ResultViewModel>();
@@ -123,6 +128,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public List<ResultViewModel> RetrieveUserFromDevice(uint code, List<int> userIds)
         {
             //var userIds = JsonConvert.DeserializeObject<int[]>(userId);
@@ -142,6 +148,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
             var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.GetUsersOfDevice,
@@ -153,6 +160,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public List<SupremaLog> Logs(int deviceId, DateTime startTime, DateTime endTime)
         {
             try
@@ -182,6 +190,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
             return Task.Run(() =>
@@ -230,6 +239,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public List<AccessGroup> GetDeviceAccessGroups(uint deviceId)
         {
             var accessGroups = _accessGroupServices.GetAccessGroups(deviceId: (int)deviceId);
@@ -239,6 +249,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Dictionary<int, string> GetTypes()
         {
             var types = new Dictionary<int, string>
@@ -266,6 +277,7 @@ namespace Biovation.Brands.Suprema.Controllers
         //}
 
         [HttpPost]
+        [Authorize]
         public bool SyncDevice(SupremaDeviceModel data)
         {
             //try
@@ -290,6 +302,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public int StartRequest(int deviceId)
         {
             //var accessGroups = _accessGroupServices.GetAccessGroupOfDevice(deviceId, ConnectionType);

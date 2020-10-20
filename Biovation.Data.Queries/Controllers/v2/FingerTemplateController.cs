@@ -25,6 +25,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("TemplateCount")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
             return Task.Run(() => _fingerTemplateRepository.GetFingerTemplatesCount());
@@ -32,6 +34,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
 
         [HttpGet]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex, Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size, pageNumber, pageSize));
@@ -39,6 +43,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("FingerTemplateTypes/brandId")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId, int pageNumber = default,
         int pageSize = default)
         {
@@ -47,6 +53,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("FingerTemplatesCountByFingerTemplateType")]
+        [Authorize]
+
         public Task<ResultViewModel<int>> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
         {
             return Task.Run(() => _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType));

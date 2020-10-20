@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using Biovation.CommonClasses.Extension;
 using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -11,11 +12,13 @@ namespace Biovation.Data.Queries.Controllers.v2
     {
 
         private readonly LogRepository _logRepository;
+        private readonly User _user;
 
 
         public LogController(LogRepository logRepository)
         {
             _logRepository = logRepository;
+            _user = HttpContext.GetUser();
         }
 
         //we should consider the without parameter input version of log
@@ -27,10 +30,12 @@ namespace Biovation.Data.Queries.Controllers.v2
         }*/
 
         [HttpGet]
-        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = "", string order = "", long onlineUserId = default, bool? successTransfer = default)
+        [Authorize]
+
+        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = "", string order = "", bool? successTransfer = default)
         {
 
-            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, onlineUserId, successTransfer).Result;
+            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, _user.Id, successTransfer).Result;
             var result = new PagingResult<Log>
             {
                 Data = logResult,

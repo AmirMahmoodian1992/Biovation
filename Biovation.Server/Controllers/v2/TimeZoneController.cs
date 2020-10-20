@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
@@ -9,6 +10,7 @@ namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class TimeZoneController : Controller
     {
         //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
@@ -70,6 +72,10 @@ namespace Biovation.Server.Controllers.v2
                         Method.GET);
                 restRequest.AddParameter("code", device.Code);
                 restRequest.AddParameter("timeZoneId", timeZone);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                 return new ResultViewModel {Validate = 1};
             });

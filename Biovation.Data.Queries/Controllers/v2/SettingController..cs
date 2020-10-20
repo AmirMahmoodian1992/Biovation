@@ -19,6 +19,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("GetSettings")]
+        [Authorize]
+
         public Task<ResultViewModel<List<Setting>>> GetSettings(string key = default)
         {
             return Task.Run(() => _settingRepository.GetSettings(key));
@@ -27,6 +29,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("GetSetting")]
+        [Authorize]
+
         public Task<ResultViewModel<string>> GetSetting(string key)
         {
             return Task.Run(() => _settingRepository.GetSetting(key));

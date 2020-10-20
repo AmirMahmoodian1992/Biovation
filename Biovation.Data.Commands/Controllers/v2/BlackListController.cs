@@ -17,6 +17,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             _blackListRepository = blackListRepository;
         }
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> CreateBlackList([FromBody]BlackList blackList)
         {
             return Task.Run(() => _blackListRepository.CreateBlackList(blackList));
@@ -24,6 +25,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteBlackList(int id)
         {
             return Task.Run(() => _blackListRepository.DeleteBlackList(id));
@@ -31,6 +33,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("    ")]
+        [Authorize]
         public Task<ResultViewModel> DeleteBlackLists([FromBody] List<uint> ids = default)
         {
             return Task.Run(() => _blackListRepository.DeleteBlackLists(ids));
@@ -38,6 +41,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
+        [Authorize]
         public Task<ResultViewModel> ChangeBlackList([FromBody]BlackList blackList)
         {
             return Task.Run(() => _blackListRepository.ChangeBlackList(blackList));

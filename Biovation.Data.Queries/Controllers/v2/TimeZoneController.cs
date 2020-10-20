@@ -20,12 +20,16 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
+        [Authorize]
+
         public Task<ResultViewModel<TimeZone>> TimeZones(int id = default)
         {
             return Task.Run(() => _timeZoneRepository.GetTimeZone(id));
         }
 
         [HttpGet]
+        [Authorize]
+
         public Task<ResultViewModel<List<TimeZone>>> GetTimeZones()
         {
             return Task.Run(() => _timeZoneRepository.GetTimeZones());

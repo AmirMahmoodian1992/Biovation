@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
 
@@ -8,9 +9,11 @@ namespace Biovation.Repository.Api.v2
     public class PlateDetectionRepository
     {
         private readonly RestClient _restClient;
-        public PlateDetectionRepository(RestClient restClient)
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        public PlateDetectionRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
         {
             _restClient = restClient;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
@@ -23,7 +26,7 @@ namespace Biovation.Repository.Api.v2
         }
         public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/PlateDetection/PlateDetectionLog", Method.GET);
             restRequest.AddQueryParameter("logId", logId.ToString());
@@ -37,23 +40,29 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("successTransfer", successTransfer.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<PlateDetectionLog>>>(restRequest);
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel AddLicensePlate(LicensePlate licensePlate)
+        public ResultViewModel AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/PlateDetection/LicensePlate", Method.POST);
             restRequest.AddJsonBody(licensePlate);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log)
+        public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/PlateDetection/PlateDetectionLog", Method.POST);
             restRequest.AddJsonBody(log);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             return requestResult.Result.Data;
         }
     }

@@ -23,6 +23,7 @@ using System.Text;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Virdi.HostedServices;
+using Biovation.Brands.Virdi.Middleware;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using UCSAPICOMLib;
@@ -294,7 +295,7 @@ namespace Biovation.Brands.Virdi
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseMiddleware<JwtMiddleware>();
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
             

@@ -18,12 +18,13 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         //TODO:Add DeviceGroup
-        [HttpPost]
+        //[HttpPost]
         /*public Task<ResultViewModel> AddDeviceGroup([FromBody]DeviceGroup deviceGroup = default)
          {
 
          }*/
         [HttpPut]
+        [Authorize]
         public Task<ResultViewModel> ModifyDeviceGroup([FromBody]DeviceGroup deviceGroup)
         {
             return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroup(deviceGroup));
@@ -32,12 +33,14 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("ModifyDeviceGroupMember")]
+        [Authorize]
         public Task<ResultViewModel> ModifyDeviceGroupMember(string node, int groupId)
         {
             return Task.Run(() => _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId));
         }
 
         [HttpDelete]
+        [Authorize]
         [Route("{id}")]     
         public Task<ResultViewModel> DeleteDeviceGroup(int id)
         {
@@ -45,6 +48,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpDelete]
+        [Authorize]
         [Route("DeleteDeviceGroupMember/{id}")]
         public Task<ResultViewModel> DeleteDeviceGroupMember(uint id)
         {

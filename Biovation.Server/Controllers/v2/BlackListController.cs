@@ -12,6 +12,7 @@ namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class BlackListController : Controller
     {
 
@@ -59,7 +60,10 @@ namespace Biovation.Server.Controllers.v2
                                     new RestRequest($"/{brandName}/{brandName}BlackList/SendBlackLisDevice",
                                         Method.POST);
                                 restRequest.AddJsonBody(list);
-
+                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                {
+                                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                }
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                                 //result.Add(restResult.Data);
@@ -121,7 +125,10 @@ namespace Biovation.Server.Controllers.v2
                             var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
-
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }
@@ -167,7 +174,10 @@ namespace Biovation.Server.Controllers.v2
                             var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
-
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }

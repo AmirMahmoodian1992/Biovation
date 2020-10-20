@@ -1,17 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.ZK.Command;
+﻿using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
 using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Controllers
 {
@@ -20,7 +22,6 @@ namespace Biovation.Brands.ZK.Controllers
     {
         private readonly DeviceService _deviceService;
         private readonly AccessGroupService _accessGroupService;
-        private readonly UserService _userService;
         private readonly TaskService _taskService;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
@@ -32,11 +33,10 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly CommandFactory _commandFactory;
         private readonly ZkTecoServer _zkTecoServer;
 
-        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, UserService userService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, Constants.DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer)
+        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer)
         {
             _deviceService = deviceService;
             _accessGroupService = accessGroupService;
-            _userService = userService;
             _taskService = taskService;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
@@ -50,6 +50,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -67,13 +68,15 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             var dbDevice = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
             device.DeviceId = dbDevice.DeviceId;
             device.TimeSync = dbDevice.TimeSync;
             device.DeviceLockPassword = dbDevice.DeviceLockPassword;
-            var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+            //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+            var creatorUser = HttpContext.GetUser();
 
             if (device.Active)
             {
@@ -95,7 +98,7 @@ namespace Biovation.Brands.ZK.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.UnlockDevice,
                             Priority = _taskPriorities.Medium,
-                            
+
                             DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(device.DeviceId),
                             IsParallelRestricted = true,
@@ -133,7 +136,7 @@ namespace Biovation.Brands.ZK.Controllers
                         Status = _taskStatuses.Queued,
                         TaskItemType = _taskItemTypes.LockDevice,
                         Priority = _taskPriorities.Medium,
-                        
+
                         DeviceId = device.DeviceId,
                         Data = JsonConvert.SerializeObject(device.DeviceId),
                         IsParallelRestricted = true,
@@ -155,6 +158,7 @@ namespace Biovation.Brands.ZK.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
             try
@@ -184,14 +188,17 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                    var devices = _deviceService.GetDevices(code:code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
                     try
                     {
@@ -206,18 +213,18 @@ namespace Biovation.Brands.ZK.Controllers
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.ZkTeco,
                             };
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = devices.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-
-                            });
+                            if (devices != null)
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = devices.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1,
+                                });
                             _taskService.InsertTask(task);
                             _taskManager.ProcessQueue();
                             return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
@@ -240,7 +247,7 @@ namespace Biovation.Brands.ZK.Controllers
                                 Status = _taskStatuses.Queued,
                                 TaskItemType = _taskItemTypes.GetLogs,
                                 Priority = _taskPriorities.Medium,
-                                
+
                                 DeviceId = devices.DeviceId,
                                 Data = JsonConvert.SerializeObject(devices.DeviceId),
                                 IsParallelRestricted = true,
@@ -268,71 +275,75 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] JArray userId)
         {
             return Task.Run(() =>
+            {
+                try
                 {
-                    var result = new List<ResultViewModel>();
-                    try
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+                    var task = new TaskInfo
                     {
-                        var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                        var task = new TaskInfo
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        TaskType = _taskTypes.RetrieveUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    var deviceId = devices.DeviceId;
+
+                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+
+                    foreach (var numericUserId in userIds)
+                    {
+
+                        task.TaskItems.Add(new TaskItem
                         {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            DeviceBrand = _deviceBrands.ZkTeco,
-                            TaskType = _taskTypes.RetrieveUserFromTerminal,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
                             Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>()
-                        };
-                        var devices = _deviceService.GetDevices(code:code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-                        var deviceId = devices.DeviceId;
 
-                        var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                            DeviceId = deviceId,
+                            Data = JsonConvert.SerializeObject(new { userId = numericUserId }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
 
-                        foreach (var numericUserId in userIds)
-                        {
+                        });
 
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
-                                Priority = _taskPriorities.Medium,
-                                
-                                DeviceId = deviceId,
-                                Data = JsonConvert.SerializeObject(new { userId = numericUserId }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
+                    }
 
-                            });
+                    _taskService.InsertTask(task);
+                    _taskManager.ProcessQueue();
 
-                        }
-
-                        _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
-
-                        return new List<ResultViewModel>
+                    return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retriving users queued"}};
-                    }
+                }
 
-                    catch (Exception exception)
-                    {
-                        return new List<ResultViewModel>
+                catch (Exception exception)
+                {
+                    return new List<ResultViewModel>
                             {new ResultViewModel { Validate = 0, Message = exception.ToString() }};
-                    }
-                });
+                }
+            });
         }
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                    var devices = _deviceService.GetDevices(code:code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-                    var deviceId = devices.DeviceId;
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -352,7 +363,7 @@ namespace Biovation.Brands.ZK.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                             Priority = _taskPriorities.Medium,
-                            
+
                             DeviceId = devices.DeviceId,
                             Data = JsonConvert.SerializeObject(new { userId = id }),
                             IsParallelRestricted = true,
@@ -377,6 +388,7 @@ namespace Biovation.Brands.ZK.Controllers
             });
         }
         [HttpGet]
+        [Authorize]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
             /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
@@ -386,10 +398,11 @@ namespace Biovation.Brands.ZK.Controllers
             var resultViewModel = new ResultViewModel<List<User>> { Validate = 1, Data = result };
             return resultViewModel;
         }*/
-            var result = new ResultViewModel<List<User>>();
             try
             {
-                var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+
                 var task = new TaskInfo
                 {
                     CreatedAt = DateTimeOffset.Now,
@@ -399,7 +412,7 @@ namespace Biovation.Brands.ZK.Controllers
                     Priority = _taskPriorities.Medium,
                     TaskItems = new List<TaskItem>()
                 };
-                var devices = _deviceService.GetDevices(code:code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                 var deviceId = devices.DeviceId;
 
                 task.TaskItems.Add(new TaskItem
@@ -407,7 +420,7 @@ namespace Biovation.Brands.ZK.Controllers
                     Status = _taskStatuses.Queued,
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
-                    
+
                     DeviceId = deviceId,
                     Data = JsonConvert.SerializeObject(new { deviceId }),
                     IsParallelRestricted = true,
@@ -417,8 +430,8 @@ namespace Biovation.Brands.ZK.Controllers
                 });
                 //_taskService.InsertTask(task);
                 // ZKTecoServer.ProcessQueue();
-                result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                   new List<object> { task.TaskItems.FirstOrDefault().DeviceId, task.TaskItems.FirstOrDefault().Id }).Execute();
+                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
+                    new List<object> { task.TaskItems.FirstOrDefault().DeviceId, task.TaskItems.FirstOrDefault().Id }).Execute();
                 return result;
             }
             catch (Exception exception)
@@ -430,6 +443,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Dictionary<string, string> GetAdditionalData(uint code)
         {
             var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
@@ -441,6 +455,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
         {
             var resultList = new Dictionary<uint, bool>();

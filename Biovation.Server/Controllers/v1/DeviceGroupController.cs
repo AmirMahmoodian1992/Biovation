@@ -19,14 +19,15 @@ namespace Biovation.Server.Controllers.v1
     {
         private readonly DeviceService _deviceService;
         private readonly DeviceGroupService _deviceGroupService;
-
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly RestClient _restClient;
 
-        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService)
+        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient)
         {
             _deviceService = deviceService;
             _deviceGroupService = deviceGroupService;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _biovationConfigurationManager = biovationConfigurationManager;
+            _restClient = restClient;
         }
 
         [HttpGet]
@@ -130,6 +131,8 @@ namespace Biovation.Server.Controllers.v1
                                 deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                                 deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Id));
                                 /*var deletionResult =*/
+
+                                deleteUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                                 await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
                             });
                         }
@@ -157,6 +160,7 @@ namespace Biovation.Server.Controllers.v1
                                 sendUserRestRequest.AddQueryParameter("userId",
                                     JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
                                 /*var additionResult =*/
+                                sendUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
                             });
                         }

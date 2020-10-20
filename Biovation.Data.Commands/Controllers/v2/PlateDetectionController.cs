@@ -21,6 +21,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("LicensePlate")]
+        [Authorize]
+
         public Task<ResultViewModel> AddLicensePlate([FromBody]LicensePlate licensePlate = default)
         {
             return Task.Run(() => _plateDetectionRepository.AddLicensePlate(licensePlate));
@@ -28,6 +30,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("PlateDetectionLog")]
+        [Authorize]
+
         public Task<ResultViewModel> AddPlateDetectionLog([FromBody]PlateDetectionLog log)
         {
             return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));

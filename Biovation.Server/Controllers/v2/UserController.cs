@@ -6,17 +6,21 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq.Extensions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 
 namespace Biovation.Server.Controllers.v2
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Authorize]
     public class UserController : Controller
     {
         private readonly UserService _userService;
@@ -25,6 +29,7 @@ namespace Biovation.Server.Controllers.v2
         private readonly AccessGroupService _accessGroupService;
 
         private readonly RestClient _restClient;
+        private readonly User _user;
 
         public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, RestClient restClient)
         {
@@ -33,15 +38,19 @@ namespace Biovation.Server.Controllers.v2
             _userGroupService = userGroupService;
             _restClient = restClient;
             _accessGroupService = accessGroupService;
+            _user = HttpContext.GetUser();
         }
+
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineId = default, int from = default,
+        //[Authorize(Policy = Policies.User)]
+        //[Authorize(Policy = "OverrideTest")]
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run( () => _userService.GetUsers(onlineId, from, size, getTemplatesData, userId, filterText, type,
-                withPicture, isAdmin, pageNumber, pageSize));
+            return Task.Run(() => _userService.GetUsers(_user.Id, from, size, getTemplatesData, userId, filterText, type,
+               withPicture, isAdmin, pageNumber, pageSize));
         }
 
 
@@ -92,6 +101,10 @@ namespace Biovation.Server.Controllers.v2
                         foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
                         {
                             restRequest.AddJsonBody(user);
+                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            {
+                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                            }
                             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         }
                     });
@@ -109,9 +122,16 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUser(int id = default)
+        public Task<ResultViewModel> DeleteUser(int id = default) {
+
+            return Task.Run(() => _userService.DeleteUser(id));
+        }
+            
+        [HttpPost]
+        [Route("DeleteUsers")]
+        public Task<ResultViewModel> DeleteUsers([FromBody] List<int> ids = default)
         {
-            return Task.Run(()=> _userService.DeleteUser(id));
+            return Task.Run(() => _userService.DeleteUsers(ids));
         }
 
 
@@ -126,8 +146,8 @@ namespace Biovation.Server.Controllers.v2
 
         //if deviceId == 0 then send ids to all of device
         [HttpPut]
-        [Route("UsersToDevice/{deviceId}")]
-        public Task<ResultViewModel> SendUsersToDevice([FromBody]int[] ids, [FromBody]int[] deviceIds = default)
+        [Route("UsersToDevices")]
+        public Task<ResultViewModel> SendUsersToDevice([FromBody] int[] ids, [FromBody] int[] deviceIds = default)
         {
             try
             {
@@ -140,8 +160,8 @@ namespace Biovation.Server.Controllers.v2
                 if (deviceIds == null)
                     return Task.Run(() =>
                         result.Any(e => e.Success == false)
-                            ? new ResultViewModel {Validate = 0, Message = ""}
-                            : new ResultViewModel {Validate = 1, Message = "Failed to send all of them"});
+                            ? new ResultViewModel { Validate = 0, Message = "" }
+                            : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
                 foreach (var device in deviceIds)
                 {
                     foreach (var id in ids)
@@ -151,7 +171,7 @@ namespace Biovation.Server.Controllers.v2
                         {
                             var msg = "DeviceId " + device + " does not exist.";
                             Logger.Log(msg);
-                            return Task.Run(() => new ResultViewModel {Validate = 0, Message = msg});
+                            return Task.Run(() => new ResultViewModel { Validate = 0, Message = msg });
                         }
 
                         var restRequest =
@@ -160,11 +180,15 @@ namespace Biovation.Server.Controllers.v2
                                 Method.GET);
                         restRequest.AddParameter("code", deviceBasic.Code);
                         restRequest.AddParameter("userId", id);
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
                     }
                 }
 
-                return Task.Run(() => result.Any(e=>e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } :  new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
+                return Task.Run(() => result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
             }
             catch (Exception exception)
             {
@@ -185,7 +209,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("AdminUserOfAccessGroup")]
         public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
         {
-            return Task.Run( () => _userService.GetAdminUserOfAccessGroup(id,accessGroupId));
+            return Task.Run(() => _userService.GetAdminUserOfAccessGroup(id, accessGroupId));
         }
 
         ///// <param name="updateUsers">لیست افرادی که تغییر کرده و در گروه بایویی هم حضور دارند و باید به دستگاههای جدید ارسال شوند</param>
@@ -215,7 +239,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-        
+
         private Task<ResultViewModel> Sync(long[] usersToSync = default, string updateUsers = default)
         {
             return Task.Run(() =>
@@ -229,14 +253,17 @@ namespace Biovation.Server.Controllers.v2
                         var restRequest =
                             new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
                         restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
-
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         _restClient.ExecuteAsync(restRequest);
                     }
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception, "Delete User From Device");
-                    return new ResultViewModel(){Success = false};
+                    return new ResultViewModel() { Success = false };
                 }
 
                 if (updateUsers != null && string.IsNullOrEmpty(updateUsers.Replace("<Root/>", "")))
@@ -302,7 +329,10 @@ namespace Biovation.Server.Controllers.v2
                                         var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
                                         restRequest.AddQueryParameter("code", device.Code.ToString());
                                         restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
-
+                                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                        {
+                                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                        }
                                         _restClient.ExecuteAsync(restRequest);
                                     }
                                 }
@@ -413,7 +443,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("FaceTemplate/{id}")]
-        public Task<ResultViewModel> EnrollFaceTemplate(int id =default, int deviceId = default)
+        public Task<ResultViewModel> EnrollFaceTemplate(int id = default, int deviceId = default)
         {
             return Task.Run(async () =>
             {
@@ -428,7 +458,10 @@ namespace Biovation.Server.Controllers.v2
                 var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
                 restRequest.AddQueryParameter("userId", id.ToString());
                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
             });
@@ -436,7 +469,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPatch]
         [Route("UserGroupsOfUsers")]
-        public Task<List<ResultViewModel>> UpdateUserGroupsOfUser([FromBody]string usersGroupIds = default, bool sendUsersToDevice = default)
+        public Task<List<ResultViewModel>> UpdateUserGroupsOfUser([FromBody] string usersGroupIds = default, bool sendUsersToDevice = default)
         {
             return Task.Run(() =>
             {
@@ -476,7 +509,7 @@ namespace Biovation.Server.Controllers.v2
                         if (result.Validate != 1)
                         {
                             resultList.Add(new ResultViewModel
-                                {Id = userId, Validate = 0, Message = $"Cannot update user groups of user {userId}"});
+                            { Id = userId, Validate = 0, Message = $"Cannot update user groups of user {userId}" });
                             Logger.Log($"Cannot update user groups of user {userId}");
 
                             foreach (var userGroup in userGroupsOfUser)
@@ -510,7 +543,9 @@ namespace Biovation.Server.Controllers.v2
                         Logger.Log($"User groups of user {userId} updated successfully");
                         resultList.Add(new ResultViewModel
                         {
-                            Id = userId, Validate = 1, Message = $"User groups of user {userId} updated successfully"
+                            Id = userId,
+                            Validate = 1,
+                            Message = $"User groups of user {userId} updated successfully"
                         });
 
 
@@ -571,7 +606,10 @@ namespace Biovation.Server.Controllers.v2
                                         restRequest.AddQueryParameter("userId", $"[{userId}]");
                                         restRequest.AddQueryParameter("updateServerSideIdentification",
                                             bool.TrueString);
-
+                                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                        {
+                                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                        }
                                         var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                         if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
@@ -588,7 +626,7 @@ namespace Biovation.Server.Controllers.v2
                                     {
                                         var deviceBrand = deviceBrands.First(devBrand =>
                                             devBrand.Code == deviceToDelete.Brand.Code);
-                                        var listOfUserId = new List<int> {userId};
+                                        var listOfUserId = new List<int> { userId };
                                         var restRequest = new RestRequest(
                                             $"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice",
                                             Method.POST);
@@ -596,6 +634,10 @@ namespace Biovation.Server.Controllers.v2
                                         restRequest.AddQueryParameter("updateServerSideIdentification",
                                             bool.TrueString);
                                         restRequest.AddJsonBody(listOfUserId);
+                                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                        {
+                                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                        }
 
                                         var restResult = await _restClient.ExecuteAsync(restRequest);
 
@@ -636,7 +678,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPatch]
         [Route("UpdateUserGroupsMember")]
-        private Task<ResultViewModel> UpdateUserGroupMember(long[] userIds, [FromBody]List<UserGroupMember> lstToAdd)
+        private Task<ResultViewModel> UpdateUserGroupMember(long[] userIds, [FromBody] List<UserGroupMember> lstToAdd)
         {
             return Task.Run(() =>
             {
@@ -656,6 +698,10 @@ namespace Biovation.Server.Controllers.v2
 
                         var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
                         restRequest.AddQueryParameter("userGroupId", grpIds);
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
 
                         var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
@@ -675,15 +721,138 @@ namespace Biovation.Server.Controllers.v2
                         _userGroupService.AddUserGroup(userMember);
                     }
 
-                    return new ResultViewModel() {Success = true};
+                    return new ResultViewModel() { Success = true };
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception, "Error on Get User Group Member");
-                    return new ResultViewModel() {Success = true};
+                    return new ResultViewModel() { Success = true };
                 }
             });
         }
+
+
+        [HttpDelete]
+        [Route("UserFromDevice/{id}/{userId}")]
+        [Authorize]
+        public Task<ResultViewModel> RemoveUserFromDevice(int id = default, int userId = default)
+        {
+            return Task.Run(() =>
+            {
+                var restRequest = new RestRequest("Biovation/api/v2/Device/UserFromDevice/{id}/{userId}", Method.DELETE);
+                restRequest.AddUrlSegment("id", id);
+                restRequest.AddUrlSegment("userId", userId);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
+                return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+            });
+        }
+
+        [HttpPost]
+        [Route("UserFromDevice/{id}")]
+        [Authorize]
+        public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody] JArray userId = default)
+        {
+            return Task.Run(() =>
+            {
+                var restRequest = new RestRequest("Biovation/api/v2/Device/UserFromDevice/{id}", Method.POST);
+                restRequest.AddUrlSegment("id", id);
+                restRequest.AddJsonBody(userId);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
+                return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+            });
+        }
+
+        [HttpPost]
+        [Route("UsersListFromDevice/{id}")]
+        public Task<List<User>> RetrieveUsersOfDevice(int id = default)
+        {
+            return Task.Run(async () =>
+            {
+                var restRequest = new RestRequest("Biovation/api/v2/Device/UsersListFromDevice/{id}", Method.POST);
+                restRequest.AddUrlSegment("id", id);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
+                return _restClient.ExecuteAsync<List<User>>(restRequest).Result.Data;
+            });
+        }
+
+        [HttpPost]
+        [Route("UserToDevice/{id}")]
+        [Authorize]
+        public Task<ResultViewModel> SendUserToDevice(int id = default)
+        {
+            return Task.Run(async () =>
+            {
+                var restRequest = new RestRequest("Biovation/api/v2/Device/UserToDevice/{id}", Method.POST);
+                restRequest.AddUrlSegment("id", id);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
+                return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+            });
+        }
+
+        [HttpPost]
+        [Route("UserToAllDevice")]
+        [Authorize]
+        public Task<List<ResultViewModel>> SendUsersToAllDevice([FromBody] String ids = default)
+        {
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    var userIds = JsonConvert.DeserializeObject<int[]>(ids);
+                    var deviceBrands = _deviceService.GetDeviceBrands().Data;
+                    var length = userIds.Length;
+                    var result = new List<ResultViewModel>();
+                    for (var i = 0; i < length; i++)
+                    {
+                        var user = _userService.GetUsers(userId: userIds[i]).Data.Data.FirstOrDefault();
+                        if (user == null)
+                        {
+                            Logger.Log($"User {userIds[i]} not exists.");
+                            result.Add(new ResultViewModel
+                            { Validate = 0, Message = $"User {userIds[i]} not exists.", Id = userIds[i] });
+                        }
+
+                        foreach (var deviceBrand in deviceBrands)
+                        {
+                            //var restResult = _communicationManager.CallRest(
+                            //            $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", "Post", null, $"{JsonConvert.SerializeObject(user)}");
+
+                            var restRequest =
+                                new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                    Method.POST);
+                            restRequest.AddJsonBody(user);
+
+                            var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
+                        }
+
+                        //result.Add(new ResultViewModel { Validate = 1, Id = userIds[i] });
+                    }
+
+                    return result;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new List<ResultViewModel>
+                        {new ResultViewModel {Validate = 0, Message = "SendUserToDevice Failed.", Id = 0}};
+                }
+            });
+        }
+
+
     }
 
     public class ParamViewModel

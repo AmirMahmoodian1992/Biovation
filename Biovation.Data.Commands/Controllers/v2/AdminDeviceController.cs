@@ -22,6 +22,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPut]
+        [Authorize]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
         {
             try

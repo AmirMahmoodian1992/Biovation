@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.PW.Devices;
 using Biovation.Brands.PW.Manager;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -16,7 +18,6 @@ namespace Biovation.Brands.PW.Controllers
     {
         private readonly PwServer _pwServer;
         private readonly TaskService _taskService;
-        private readonly UserService _userService;
         private readonly TaskManager _taskManager;
         private readonly DeviceService _deviceService;
 
@@ -28,10 +29,9 @@ namespace Biovation.Brands.PW.Controllers
 
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public PwDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskManager taskManager)
+        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskManager taskManager)
         {
             _taskService = taskService;
-            _userService = userService;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _pwServer = pwServer;
@@ -45,6 +45,7 @@ namespace Biovation.Brands.PW.Controllers
 
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -64,6 +65,7 @@ namespace Biovation.Brands.PW.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             if (device.Active)
@@ -80,6 +82,7 @@ namespace Biovation.Brands.PW.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code)
         {
 
@@ -93,7 +96,8 @@ namespace Biovation.Brands.PW.Controllers
                     if (device != null)
                     {
                         var deviceId = device.DeviceId;
-                        var creatorUser = _userService.GetUsers(123456789)?.FirstOrDefault();
+                        //var creatorUser = _userService.GetUsers(123456789)?.FirstOrDefault();
+                        var creatorUser = HttpContext.GetUser();
 
                         var task = new TaskInfo
                         {
@@ -136,6 +140,7 @@ namespace Biovation.Brands.PW.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
         {
             var resultList = new Dictionary<uint, bool>();

@@ -1,6 +1,7 @@
 ﻿using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -20,7 +21,6 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
-        private readonly UserService _userService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
@@ -31,10 +31,9 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiUserController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiUserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
-            _userService = userService;
             _deviceService = deviceService;
             _virdiServer = virdiServer;
             _callbacks = callbacks;
@@ -49,6 +48,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> EnrollFromTerminal([FromBody] uint deviceId)
         {
             return Task.Run(() =>
@@ -57,8 +57,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var devices = _deviceService.GetDevice(id: deviceId);
 
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
                     var task = new TaskInfo
                     {
@@ -101,6 +101,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyUser([FromBody] User user)
         {
             try
@@ -116,6 +117,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
@@ -127,7 +129,9 @@ namespace Biovation.Brands.Virdi.Controllers
                     var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -174,6 +178,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
             var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
@@ -199,6 +204,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public ResultViewModel DeleteUserFromTerminal(uint code, int userId)
         {
             var deleteUserFromTerminalCommand = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
@@ -210,6 +216,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public List<ResultViewModel> DeleteUserFromAllTerminal(int[] ids)
         {
             var onlineDevice = _virdiServer.GetOnlineDevices();
@@ -228,13 +235,16 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,

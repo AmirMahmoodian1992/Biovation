@@ -1,4 +1,5 @@
 ﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +20,14 @@ namespace Biovation.Server.Controllers.v1
         private readonly RestClient _restClient;
         private readonly AccessGroupService _accessGroupService;
         private readonly DeviceService _deviceService;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService)
+        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, BiovationConfigurationManager biovationConfigurationManager)
         {
             _restClient = restClient;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
-
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         [HttpGet, Route("AccessGroups")]
@@ -102,6 +104,7 @@ namespace Biovation.Server.Controllers.v1
                     $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
                     Method.POST)))
                 {
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                     _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 }
             });
@@ -148,6 +151,7 @@ namespace Biovation.Server.Controllers.v1
                         Method.GET);
                 restRequest.AddParameter("code", device.Code);
                 restRequest.AddParameter("accessGroupId", accessGroupId);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
             return resultList;
@@ -164,6 +168,7 @@ namespace Biovation.Server.Controllers.v1
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("accessGroupId", accessGroupId);
+            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
@@ -206,6 +211,7 @@ namespace Biovation.Server.Controllers.v1
                                 Method.GET);
                         restRequest.AddParameter("code", device.Code);
                         restRequest.AddParameter("accessGroupId", accessGroupId);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         foreach (var userGroup in accessGroup.UserGroup)
@@ -227,6 +233,7 @@ namespace Biovation.Server.Controllers.v1
                                     Method.GET);
                             restRequest.AddParameter("code", device.Code);
                             restRequest.AddParameter("userId", userids);
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             //}
                         }

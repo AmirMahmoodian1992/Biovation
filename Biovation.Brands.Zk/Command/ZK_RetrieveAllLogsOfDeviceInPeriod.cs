@@ -1,14 +1,14 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -55,38 +55,6 @@ namespace Biovation.Brands.ZK.Command
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.ReadOfflineLogInPeriod(new object(), StartDate, EndDate);
                 return result;
-
-                //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => device.ReadOfflineLogInPeriod(new object(), StartDate, EndDate)));
-
-                //ZKTecoServer.StartReadLogs();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                //var task = new TaskInfo
-                //{
-                //    CreatedAt = DateTimeOffset.Now,
-                //    CreatedBy = creatorUser,
-                //    TaskType = TaskTypes.GetLogsInPeriod,
-                //    Priority = _taskPriorities.Medium,
-                //    TaskItems = new List<TaskItem>(),
-                //    DeviceBrand = DeviceBrands.ZkTeco,
-
-                //};
-                //task.TaskItems.Add(new TaskItem
-                //{
-                //    Status = TaskStatuses.Queued,
-                //    TaskItemType = TaskItemTypes.GetLogsInPeriod,
-                //    Priority = _taskPriorities.Medium,
-                //    DueDate = DateTimeOffset.Now,
-                //    DeviceId = DeviceId,
-                //    Data = JsonConvert.SerializeObject(new { fromDate = StartDate, toDate = EndDate }),
-                //    IsParallelRestricted = true,
-                //    IsScheduled = false,
-                //    OrderIndex = 1,
-
-                //});
-                //_taskService.InsertTask(task);
-                //ZKTecoServer.ProcessQueue();
-                //return new ResultViewModel { Id = device.GetDeviceInfo().Code, Message = $@"تخلیه دستگاه {device.GetDeviceInfo().Code} شروع شد", Code=Convert.ToInt64(TaskStatuses.Queued.Code) };
             }
             catch (Exception exception)
             {

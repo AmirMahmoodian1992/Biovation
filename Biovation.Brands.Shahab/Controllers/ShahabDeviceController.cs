@@ -6,6 +6,7 @@ using Biovation.Brands.Shahab.Devices;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.Shahab.Controllers
@@ -24,6 +25,7 @@ namespace Biovation.Brands.Shahab.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -41,6 +43,7 @@ namespace Biovation.Brands.Shahab.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             var dbDevice = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.ShahabCode)?.FirstOrDefault();

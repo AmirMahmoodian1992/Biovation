@@ -1,9 +1,12 @@
 ﻿using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
+using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,8 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using App.Metrics;
-using Biovation.CommonClasses.Manager;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 using TaskItem = Biovation.Domain.TaskItem;
 
@@ -26,7 +27,6 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
-        private readonly UserService _userService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
@@ -38,12 +38,11 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
 
-        public VirdiDeviceController(TaskService taskService, UserService userService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
+        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
         {
             _callbacks = callbacks;
             _virdiServer = virdiServer;
             _taskService = taskService;
-            _userService = userService;
             _deviceService = deviceService;
             _commandFactory = commandFactory;
             _taskManager = taskManager;
@@ -57,6 +56,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -89,6 +89,7 @@ namespace Biovation.Brands.Virdi.Controllers
        */
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> RetrieveLogs([FromBody] uint code)
         {
             return Task.Run(() =>
@@ -99,7 +100,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 //int deviceId = devices.FirstOrDefault(dev => dev.Code == code).DeviceId;
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
                     var task = new TaskInfo
                     {
@@ -159,6 +161,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
             return Task.Run(() =>
@@ -167,7 +170,9 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     try
                     {
                         if (fromDate.HasValue && toDate.HasValue)
@@ -317,6 +322,7 @@ namespace Biovation.Brands.Virdi.Controllers
         */
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> LockDevice([FromBody] uint code)
         {
             return Task.Run(() =>
@@ -325,7 +331,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
 
                     var task = new TaskInfo
@@ -365,6 +372,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> UnlockDevice([FromBody] uint code)
         {
             return Task.Run(() =>
@@ -373,7 +381,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
                     var task = new TaskInfo
                     {
@@ -414,11 +423,14 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
 
             var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-            var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+            //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+            var creatorUser = HttpContext.GetUser();
+
             if (device.Active)
             {
                 return Task.Run(() =>
@@ -534,13 +546,16 @@ namespace Biovation.Brands.Virdi.Controllers
         }
         */
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -589,6 +604,7 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
 
@@ -596,7 +612,9 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -665,13 +683,16 @@ namespace Biovation.Brands.Virdi.Controllers
 
         */
         [HttpGet]
+        [Authorize]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
             //this action return list of user so for task based this we need to syncron web and change return type for task manager statustask update
 
             try
             {
-                var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+
                 var task = new TaskInfo
                 {
                     CreatedAt = DateTimeOffset.Now,
@@ -711,6 +732,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public Task<bool> OpenDoorTerminal(uint code)
         {
             return Task.Run(() =>
@@ -719,7 +741,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
                     var task = new TaskInfo
                     {
@@ -782,7 +805,8 @@ namespace Biovation.Brands.Virdi.Controllers
         //    return Task.Run(async () =>
         //    {
         //        var devices = _deviceService.GetDeviceBasicInfoWithCode((uint)deviceCode, DeviceBrands.VirdiCode);
-        //        var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+        ////        var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+        //        var creatorUser = HttpContext.GetUser();
         //        if (!Request.Content.IsMimeMultipartContent())
         //            throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
 
@@ -914,6 +938,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
@@ -922,7 +947,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
                     /*var task = new TaskInfo
                     {

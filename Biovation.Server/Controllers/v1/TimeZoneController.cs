@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
@@ -13,12 +14,14 @@ namespace Biovation.Server.Controllers.v1
         private readonly TimeZoneService _timeZoneService;
         private readonly DeviceService _deviceService;
         private readonly RestClient _restClient;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient)
+        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
         {
             _deviceService = deviceService;
             _timeZoneService = timeZoneService;
             _restClient = restClient;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         [HttpGet]
@@ -62,6 +65,7 @@ namespace Biovation.Server.Controllers.v1
                     new RestRequest(
                         $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}TimeZone/SendTimeZoneToAllDevices",
                         Method.POST);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 resultList.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
             }
 
@@ -79,6 +83,7 @@ namespace Biovation.Server.Controllers.v1
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("timeZoneId", timeZoneId);
+            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
             _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }

@@ -13,29 +13,29 @@ namespace Biovation.Service.Api.v2
         }
 
         public ResultViewModel<PagingResult<UserCard>> GetCardsByFilter(long userId = default, bool isActive = default,
-            int pageNumber = default, int pageSize = default)
+            int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize);
+            return _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<User> FindUserByCardNumber(string cardNumber = default)
+        public ResultViewModel<User> FindUserByCardNumber(string cardNumber = default, string token = default)
         {
-            return _userCardRepository.FindUserByCardNumber(cardNumber);
+            return _userCardRepository.FindUserByCardNumber(cardNumber, token);
         }
 
-        public ResultViewModel ModifyUserCard(UserCard card = default)
+        public ResultViewModel ModifyUserCard(UserCard card = default, string token = default)
         {
-            return _userCardRepository.ModifyUserCard(card);
+            return _userCardRepository.ModifyUserCard(card, token);
         }
 
-        public ResultViewModel DeleteUserCard(int id = default)
+        public ResultViewModel DeleteUserCard(int id = default, string token = default)
         {
-            return _userCardRepository.DeleteUserCard(id);
+            return _userCardRepository.DeleteUserCard(id, token);
         }
 
-        public int ReadCardNumber(string brandName = default, int deviceId = default)
+        public int ReadCardNumber(string brandName = default, int deviceId = default, string token = default)
         {
-            return _userCardRepository.ReadCardNumber(brandName, deviceId);
+            return _userCardRepository.ReadCardNumber(brandName, deviceId, token);
         }
 
 

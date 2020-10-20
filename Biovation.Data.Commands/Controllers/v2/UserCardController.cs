@@ -19,6 +19,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpGet]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId, bool isactive, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _userCardRepository.GetCardsByFilter(userId, isactive, pageNumber, pageSize));
@@ -27,12 +29,16 @@ namespace Biovation.Data.Commands.Controllers.v2
         
         
         [HttpPost]
-         public Task<ResultViewModel> AddUserCard([FromBody]UserCard card = default)
+        [Authorize]
+
+        public Task<ResultViewModel> AddUserCard([FromBody]UserCard card = default)
          {
              return Task.Run(() => _userCardRepository.AddUserCard(card));
          }
 
         [HttpPut]
+        [Authorize]
+
         public Task<ResultViewModel> ModifyUserCard([FromBody]UserCard card = default)
         {
             return Task.Run(() => _userCardRepository.ModifyUserCard(card));
@@ -40,6 +46,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
+
         public Task<ResultViewModel> DeleteUserCard(int id = default)
         {
             return Task.Run(() => _userCardRepository.DeleteUserCard(id));

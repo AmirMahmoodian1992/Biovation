@@ -4,9 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -22,31 +24,39 @@ namespace Biovation.Server.Controllers.v2
         private readonly DeviceService _deviceService;
         private readonly UserService _userService;
         private readonly RestClient _restClient;
+        private readonly SystemInfo _systemInformation;
+        private readonly User _user;
 
 
-        public DeviceController(DeviceService deviceService, UserService userService)
+        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation)
         {
-             _deviceService = deviceService;
+            _deviceService = deviceService;
             _userService = userService;
             _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _systemInformation = systemInformation;
+            _user = HttpContext.GetUser();
+
         }
 
 
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
+        [Authorize]
+        public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default)
         {
-            return Task.Run(() => _deviceService.GetDevice(id, adminUserId));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _deviceService.GetDevice(id, _user.Id,token));
         }
 
 
         //TODO loaded brand
         [HttpGet]
-        public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
+        [Authorize]
+        public  Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int PageSize = default)
-        {
-            var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId.ToString(), name, modelId, typeId, pageNumber, PageSize));
+        { ;
+            var result = Task.Run(() => _deviceService.GetDevices(_user.Id, groupId, code, brandId.ToString(), name, modelId, typeId, pageNumber, PageSize));
             return result;
         }
 
@@ -71,8 +81,27 @@ namespace Biovation.Server.Controllers.v2
 
 
 
+        [HttpPut]
+        [Route("ModifyDeviceInfo")]
+        public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
+        {
+            return Task.Run(async () =>
+            {
+                var result = _deviceService.ModifyDevice(device);
+                if (result.Validate != 1) return result;
+
+                device = _deviceService.GetDevice(id: device.DeviceId).Data;
+
+                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
+                restRequest.AddJsonBody(device);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                return result;
+            });
+        }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> AddDevice([FromBody]DeviceBasicInfo device = default)
         {
 
@@ -81,14 +110,16 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevice(uint id = default)
         {
-
-           return Task.Run(() => _deviceService.DeleteDevice(id));
+            var token = (string) HttpContext.Items["Token"];
+           return Task.Run(() => _deviceService.DeleteDevice(id,token));
         }
 
         [HttpGet]
         [Route("OfflineLogs/{ids}")]
+        [Authorize]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
             return Task.Run(async () =>
@@ -115,7 +146,10 @@ namespace Biovation.Server.Controllers.v2
                         restRequest.AddQueryParameter("code", device.Code.ToString());
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
-
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        {
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        }
                         var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         if (requestResult.StatusCode == HttpStatusCode.OK)
                         {
@@ -158,6 +192,10 @@ namespace Biovation.Server.Controllers.v2
                 foreach (var deviceBrand in deviceBrands)
                 {
                     var restRequest = new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    {
+                        restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    }
                     var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK)
@@ -174,8 +212,9 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="deviceId"></param>
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
-        [HttpPut]
+        [HttpPost]
         [Route("UserFromDevice/{id}")]
+        [Authorize]
         public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
         {
             return Task.Run( () =>
@@ -183,6 +222,10 @@ namespace Biovation.Server.Controllers.v2
                 var device = _deviceService.GetDevice(id).Data;
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddJsonBody(userId);
@@ -196,7 +239,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-        [HttpPut]
+        [HttpPost]
         [Route("UsersListFromDevice/{id}")]
         public Task<List<User>> RetrieveUsersOfDevice(int id = default)
         {
@@ -207,6 +250,10 @@ namespace Biovation.Server.Controllers.v2
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
 
                 var result = await restAwaiter;
@@ -232,7 +279,8 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("UserFromDevice/{id}/{userId}")]
-        public Task<ResultViewModel> UsersFromDevice(int id = default, int userId = default)
+        [Authorize]
+        public Task<ResultViewModel> RemoveUserFromDevice(int id = default, int userId = default)
         {
             return Task.Run( () =>
             {
@@ -245,13 +293,17 @@ namespace Biovation.Server.Controllers.v2
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 restRequest.AddJsonBody(userId);
-
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
             });
         }
 
-        [HttpPut]
-        [Route("SendUsersToDevice/{id}")]
+        [HttpPost]
+        [Route("UserToDevice/{id}")]
+        [Authorize]
         public Task<ResultViewModel> SendUsersToDevice(int id = default)
         {
             return Task.Run( () =>
@@ -267,7 +319,10 @@ namespace Biovation.Server.Controllers.v2
 
                     var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
                     restRequest.AddJsonBody(device);
-
+                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    {
+                        restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    }
                     var result =  _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     return new ResultViewModel { Validate = result.Result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = id };
@@ -279,9 +334,11 @@ namespace Biovation.Server.Controllers.v2
                 }
             });
         }
+ 
 
         [HttpGet]
         [Route("DeviceInfo/{id}")]
+        [AllowAnonymous]
         public Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo(int id = default)
         {
             return Task.Run( () =>
@@ -290,6 +347,10 @@ namespace Biovation.Server.Controllers.v2
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
                 var result =  _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
 
                 return new ResultViewModel<Dictionary<string, string>>()
@@ -302,6 +363,20 @@ namespace Biovation.Server.Controllers.v2
         }
 
 
+        [HttpGet]
+        [Route("DeviceModels")]
+        public Task<List<DeviceModel>> DeviceModels(int brandCode = default, bool loadedBrandsOnly = true)
+        {
+            return Task.Run(() =>
+            {
+                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode)?.Data.Data;
+                if (!loadedBrandsOnly) return deviceModels;
+
+                return deviceModels.Where(dm => _systemInformation.Services.Any(db =>
+                    string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
+            });
+        }
+
         ////TODO check it wtf?
         //[HttpPost]
         //[Route("DevicesDataToDevice/{id}")]
@@ -311,56 +386,56 @@ namespace Biovation.Server.Controllers.v2
         //}
 
 
-        ////TODO make compatible with .net core
-        ////[HttpPost]
-        ////[Route("UpgradeFirmware")]
-        ////public Task<ResultViewModel> UpgradeFirmware(int deviceId)
-        ////{
-        ////    return Task.Run(async () =>
-        ////    {
-        ////        if (!Request.Content.IsMimeMultipartContent())
-        ////            return new ResultViewModel { Validate = 0, Code = 415, Message = "UnsupportedMediaType" };
+        //TODO make compatible with.net core
+        //[HttpPost]
+        //[Route("UpgradeFirmware")]
+        //public Task<ResultViewModel> UpgradeFirmware(int deviceId)
+        //{
+        //    return Task.Run(async () =>
+        //    {
+        //        if (!Request.Content.IsMimeMultipartContent())
+        //            return new ResultViewModel { Validate = 0, Code = 415, Message = "UnsupportedMediaType" };
 
-        ////        try
-        ////        {
-        ////            var device = _deviceService.GetDeviceInfo(deviceId);
+        //        try
+        //        {
+        //            var device = _deviceService.GetDeviceInfo(deviceId);
 
-        ////            if (device is null)
-        ////                return new ResultViewModel
-        ////                { Validate = 0, Code = 400, Id = deviceId, Message = "Wrong device id provided" };
+        //            if (device is null)
+        //                return new ResultViewModel
+        //                { Validate = 0, Code = 400, Id = deviceId, Message = "Wrong device id provided" };
 
-        ////            var multipartMemory = await Request.Content.ReadAsMultipartAsync();
+        //            var multipartMemory = await Request.Content.ReadAsMultipartAsync();
 
-        ////            foreach (var multipartContent in multipartMemory.Contents)
-        ////            {
-        ////                try
-        ////                {
-        ////                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/UpgradeFirmware", Method.POST, DataFormat.Json);
-        ////                    restRequest.AddHeader("Content-Type", "multipart/form-data");
-        ////                    restRequest.AddQueryParameter("deviceCode", device.Code.ToString());
-        ////                    restRequest.AddFile(multipartContent.Headers.ContentDisposition.Name.Trim('\"'),
-        ////                        multipartContent.ReadAsByteArrayAsync().Result,
-        ////                        multipartContent.Headers.ContentDisposition.FileName.Trim('\"'),
-        ////                        multipartContent.Headers.ContentType.MediaType);
-        ////                    var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-        ////                    if (!result.IsSuccessful || result.Data.Validate == 0)
-        ////                        return result.Data;
-        ////                }
-        ////                catch (Exception exception)
-        ////                {
-        ////                    Logger.Log(exception, logType: LogType.Debug);
-        ////                }
-        ////            }
-        ////        }
-        ////        catch (Exception exception)
-        ////        {
-        ////            Logger.Log(exception, logType: LogType.Debug);
-        ////            throw;
-        ////        }
+        //            foreach (var multipartContent in multipartMemory.Contents)
+        //            {
+        //                try
+        //                {
+        //                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/UpgradeFirmware", Method.POST, DataFormat.Json);
+        //                    restRequest.AddHeader("Content-Type", "multipart/form-data");
+        //                    restRequest.AddQueryParameter("deviceCode", device.Code.ToString());
+        //                    restRequest.AddFile(multipartContent.Headers.ContentDisposition.Name.Trim('\"'),
+        //                        multipartContent.ReadAsByteArrayAsync().Result,
+        //                        multipartContent.Headers.ContentDisposition.FileName.Trim('\"'),
+        //                        multipartContent.Headers.ContentType.MediaType);
+        //                    var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+        //                    if (!result.IsSuccessful || result.Data.Validate == 0)
+        //                        return result.Data;
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    Logger.Log(exception, logType: LogType.Debug);
+        //                }
+        //            }
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception, logType: LogType.Debug);
+        //            throw;
+        //        }
 
-        ////        return new ResultViewModel { Validate = 1, Code = 200, Id = deviceId, Message = "Files uploaded and upgrading firmware started." };
-        ////    });
-        ////}
+        //        return new ResultViewModel { Validate = 1, Code = 200, Id = deviceId, Message = "Files uploaded and upgrading firmware started." };
+        //    });
+        //}
 
 
     }

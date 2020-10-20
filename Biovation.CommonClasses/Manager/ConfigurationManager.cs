@@ -8,12 +8,45 @@ namespace Biovation.CommonClasses.Manager
     {
         //private readonly SettingService _settingService;
         public IConfiguration Configuration { get; set; }
+        private string LoginKey { get; } = "BiovationLoginKey";
+        private string ServiceKey { get; } = "BiovationServiceKey";
 
         public BiovationConfigurationManager(IConfiguration configuration/*, SettingService settingService*/)
         {
             Configuration = configuration;
             //_settingService = settingService;
         }
+
+        public string JwtIssuer()
+        {
+            return Configuration.GetSection("Jwt")["Issuer"];
+        }
+
+        public string JwtAudience()
+        {
+            return Configuration.GetSection("Jwt")["Audience"];
+        }
+
+        //public string JwtKey()
+        //{
+        //    return "ThisismySecretKey";
+        //    //return Configuration.GetSection("Jwt")["Key"];
+
+        //}
+        public string JwtLoginKey()
+        {
+            return LoginKey;
+        }
+        public string JwtServiceKey()
+        {
+            return ServiceKey;
+        }
+
+
+        //public string DefaultToken
+        //{
+        //    return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q";
+        //}
 
         public string ConnectionStringProviderName()
         {
@@ -114,6 +147,9 @@ namespace Biovation.CommonClasses.Manager
                 }
             }
         }
+
+        public string DefaultToken { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q"; 
+        public string SecondDefaultToken { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q"; 
 
         public static int BiovationWebServerPort
         {
@@ -390,7 +426,7 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public  string KafkaServerAddress
+        public string KafkaServerAddress
         {
             get
             {

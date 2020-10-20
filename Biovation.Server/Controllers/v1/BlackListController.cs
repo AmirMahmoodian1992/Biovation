@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
@@ -15,11 +16,13 @@ namespace Biovation.Server.Controllers.v1
     {
         private readonly RestClient _restClient;
         private readonly BlackListService _blackListService;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public BlackListController(RestClient restClient, BlackListService blackListService)
+        public BlackListController(RestClient restClient, BlackListService blackListService, BiovationConfigurationManager biovationConfigurationManager)
         {
             _restClient = restClient;
             _blackListService = blackListService;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         [HttpPost]
@@ -58,7 +61,7 @@ namespace Biovation.Server.Controllers.v1
                                     new RestRequest($"/{brandName}/{brandName}BlackList/SendBlackLisDevice",
                                         Method.POST);
                                 restRequest.AddJsonBody(list);
-
+                                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                                 var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                                 //result.Add(restResult.Data);
@@ -117,7 +120,7 @@ namespace Biovation.Server.Controllers.v1
                     var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
                         Method.POST);
                     restRequest.AddJsonBody(successBlackList);
-
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                     var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                 }
@@ -157,7 +160,7 @@ namespace Biovation.Server.Controllers.v1
                             var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
-
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                             var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }

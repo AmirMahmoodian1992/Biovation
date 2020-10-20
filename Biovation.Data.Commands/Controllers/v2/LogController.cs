@@ -24,6 +24,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("AddLog")]
+        [Authorize]
         public Task<ResultViewModel> AddLog([FromBody]Log log)
         {
             var logInsertionResult = _logRepository.AddLog(log);
@@ -37,6 +38,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Route("AddLogBulk")]
+        [Authorize]
+
         public Task<ResultViewModel> AddLog([FromBody]List<Log> logs)
         {
             return Task.Run(async () =>
@@ -65,6 +68,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("UpdateLog")]
+        [Authorize]
+
         public Task<ResultViewModel> UpdateLog([FromBody]List<Log> logs)
         {
             return Task.Run(async () =>
@@ -90,6 +95,8 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
         [HttpPatch]
         [Route("AddLogImage")]
+        [Authorize]
+
         public Task<ResultViewModel> AddLogImage([FromBody]Log log)
         {
             return Task.Run(async () => await _logRepository.AddLogImage(log));
@@ -98,6 +105,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("UpdateLog")]
+        [Authorize]
+
         public Task<ResultViewModel> UpdateLog([FromBody]Log log)
         {
             return Task.Run(async () => await _logRepository.UpdateLog(log));
@@ -105,6 +114,8 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Route("CheckLogInsertion")]
+        [Authorize]
+
         public Task<List<Log>> CheckLogInsertion([FromBody]List<Log> logs)
         {
             return Task.Run(async () => await _logRepository.CheckLogInsertion(logs));

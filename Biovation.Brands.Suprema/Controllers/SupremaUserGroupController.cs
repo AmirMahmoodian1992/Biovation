@@ -18,6 +18,7 @@ namespace Biovation.Brands.Suprema.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyUserGroupMember([FromBody] List<UserGroupMember> member)
         {
             try

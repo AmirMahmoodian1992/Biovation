@@ -4,6 +4,7 @@ using Biovation.Brands.EOS.Devices;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.EOS.Controllers
@@ -23,6 +24,7 @@ namespace Biovation.Brands.EOS.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();
@@ -40,6 +42,7 @@ namespace Biovation.Brands.EOS.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public ResultViewModel ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             if (device.Active)

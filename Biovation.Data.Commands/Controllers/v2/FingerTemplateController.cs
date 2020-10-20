@@ -18,12 +18,14 @@ namespace Biovation.Data.Commands.Controllers.v2
 
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> AddFingerTemplate([FromBody]FingerTemplate fingerTemplate)
         {
             return Task.Run(() => _fingerTemplateRepository.AddFingerTemplate(fingerTemplate));
         }
 
         [HttpPatch]
+        [Authorize]
         public Task<ResultViewModel> ModifyFingerTemplate([FromBody]FingerTemplate fingerTemplate)
         {
             return Task.Run(() => _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate));
@@ -31,6 +33,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpDelete]
         [Route("{userId}")]
+        [Authorize]
         public Task<ResultViewModel> DeleteFingerTemplate(int userId, int fingerIndex)
         {
             return Task.Run(() => _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex));

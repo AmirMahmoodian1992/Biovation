@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
 using RestSharp;
 
 namespace Biovation.Repository.Api.v2
@@ -6,15 +7,17 @@ namespace Biovation.Repository.Api.v2
     public class TaskRepository
     {
         private readonly RestClient _restClient;
-        public TaskRepository(RestClient restClient)
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        public TaskRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
         {
             _restClient = restClient;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             string excludedTaskStatusCodes = default, int pageNumber = default,
-            int pageSize = default, int taskItemId = default)
+            int pageSize = default, int taskItemId = default, string token =default)
         {
             var restRequest = new RestRequest("Queries/v2/task", Method.GET);
             restRequest.AddQueryParameter("taskId", taskId.ToString());
@@ -26,14 +29,18 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("taskItemId", taskItemId.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<TaskInfo>>>(restRequest);
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default)
+        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/task/{taskItemId}", Method.GET);
             restRequest.AddUrlSegment("taskItemId", taskItemId.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<TaskItem>>(restRequest);
             return requestResult.Result.Data;
         }

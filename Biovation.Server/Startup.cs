@@ -1,14 +1,18 @@
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
-using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
+using Biovation.Server.Middleware;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -22,11 +26,9 @@ using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
-using App.Metrics;
-using App.Metrics.Extensions.Configuration;
-using Biovation.Domain;
 using Biovation.Server.HostedServices;
 using Log = Serilog.Log;
+using Biovation.Servers;
 
 namespace Biovation.Server
 {
@@ -77,6 +79,8 @@ namespace Biovation.Server
                 //config.Conventions.Add(new VersionByNamespaceConvention());
                 config.ApiVersionReader = new UrlSegmentApiVersionReader();
                 config.ApiVersionSelector = new CurrentImplementationApiVersionSelector(config);
+                config.RegisterMiddleware = false;
+                //config.ReportApiVersions = true;
             });
 
             services.AddSwaggerGen(options =>
@@ -112,6 +116,13 @@ namespace Biovation.Server
                 config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
             });
 
+
+            
+            services.AddMvc();
+            
+            //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
+
+
             services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
 
             services.AddSingleton(BiovationConfiguration);
@@ -129,6 +140,8 @@ namespace Biovation.Server
 
             services.AddHostedService<TaskMangerHostedService>();
             services.AddHostedService<ServicesHealthCheckHostedService>();
+            //services.AddSingleton<object, object>();
+            //services.AddSingleton<RequestDelegate, RequestDelegate>();
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
@@ -174,7 +187,7 @@ namespace Biovation.Server
             //services.AddScoped<UserCardRepository, UserCardRepository>();
             //services.AddScoped<UserGroupRepository, UserGroupRepository>();
             //services.AddScoped<UserRepository, UserRepository>();
-            services.AddScoped<UserRepository, UserRepository>();
+            services.AddSingleton<UserRepository, UserRepository>();
             services.AddScoped<DeviceRepository, DeviceRepository>();
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
@@ -230,7 +243,7 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
             services.AddScoped<Service.Api.v2.LogService, Service.Api.v2.LogService>();
             services.AddScoped<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
-            services.AddScoped<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
             services.AddScoped<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
             services.AddScoped<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
             services.AddScoped<Service.Api.v2.BlackListService, Service.Api.v2.BlackListService>();
@@ -243,10 +256,16 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
             services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
+            services.AddSingleton<BiovationConfigurationManager, BiovationConfigurationManager>();
+            services.AddSingleton<TokenGenerator, TokenGenerator>();
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
         {
+            var user = new User { Id = 0 };
+            var _tokenGenerator = new TokenGenerator(BiovationConfiguration);
+            _tokenGenerator.GenerateToken(user);
+
             var serviceCollection = new ServiceCollection();
             var connectionInfo = new DatabaseConnectionInfo
             {
@@ -349,9 +368,13 @@ namespace Biovation.Server
 
             //app.UseHttpsRedirection();
 
-            app.UseRouting();
 
-            app.UseAuthorization();
+            //app.UseAuthorization();
+            //app.UseAuthentication();
+            app.UseApiVersioning();
+            app.UseMiddleware<JwtMiddleware>();
+
+            app.UseRouting();
 
             app.UseEndpoints(endpoints =>
             {
@@ -369,6 +392,8 @@ namespace Biovation.Server
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Biovation API");
             });
+
+
 
 
             //app.MapWhen(context =>

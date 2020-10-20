@@ -1,11 +1,13 @@
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.ZK.Command;
+using Biovation.Brands.ZK.Devices;
 using Biovation.Brands.ZK.Manager;
+using Biovation.Brands.ZK.Middleware;
+using Biovation.Brands.ZK.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
-using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
@@ -22,8 +24,6 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
-using Biovation.Brands.ZK.Devices;
-using Biovation.Brands.ZK.Service;
 
 namespace Biovation.Brands.ZK
 {
@@ -220,7 +220,7 @@ namespace Biovation.Brands.ZK
         private void ConfigureZkServices(IServiceCollection services)
         {
             services.AddSingleton(OnlineDevices);
-            
+
             services.AddSingleton<ZkCodeMappings, ZkCodeMappings>();
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
@@ -248,7 +248,7 @@ namespace Biovation.Brands.ZK
             app.UseRouting();
 
             app.UseAuthorization();
-
+            app.UseMiddleware<JwtMiddleware>();
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
 

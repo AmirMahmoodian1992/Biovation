@@ -1,4 +1,5 @@
 ﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -24,14 +25,16 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly SystemInfo _systemInformation;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation)
+        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager)
         {
             _lookups = lookups;
             _restClient = restClient;
             _userService = userService;
             _deviceService = deviceService;
             _systemInformation = systemInformation;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         //[HttpGet]
@@ -122,7 +125,7 @@ namespace Biovation.Server.Controllers.v1
                         restRequest.AddQueryParameter("code", device.Code.ToString());
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
-
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         if (requestResult.StatusCode == HttpStatusCode.OK)
                         {
@@ -226,6 +229,7 @@ namespace Biovation.Server.Controllers.v1
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return result;
@@ -255,6 +259,7 @@ namespace Biovation.Server.Controllers.v1
                     {
                         var restRequest = new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteDevices", Method.POST);
                         restRequest.AddJsonBody(deviceIds);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         await _restClient.ExecuteAsync<Dictionary<uint, bool>>(restRequest);
                     }
                     catch (Exception)
@@ -316,6 +321,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddJsonBody(userId);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 var result = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -343,6 +349,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddJsonBody(userId);
 
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 if (requestResult.StatusCode == HttpStatusCode.OK)
                     result.Add(requestResult.Data);
                 //}
@@ -363,6 +370,7 @@ namespace Biovation.Server.Controllers.v1
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
 
                 var result = await restAwaiter;
@@ -403,7 +411,7 @@ namespace Biovation.Server.Controllers.v1
 
                     var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
                     restRequest.AddJsonBody(device);
-
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                     var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     return new ResultViewModel { Validate = result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = deviceId };
@@ -426,6 +434,7 @@ namespace Biovation.Server.Controllers.v1
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                 var result = await _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
 
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new Dictionary<string, string>();
@@ -452,7 +461,7 @@ namespace Biovation.Server.Controllers.v1
                             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
                         if (deviceIds != null)
                             restRequest.AddJsonBody(deviceIds);
-
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
                         var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {

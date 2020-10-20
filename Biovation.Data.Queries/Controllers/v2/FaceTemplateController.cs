@@ -20,6 +20,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<FaceTemplate>>> FaceTemplates(string fingerTemplateTypeCode = default, long userId = 0, int index = 0, int pageNumber = default,
             int pageSize = default)
         {

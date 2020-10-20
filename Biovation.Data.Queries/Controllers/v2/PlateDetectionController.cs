@@ -21,6 +21,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("LicensePlate")]
+        [Authorize]
+
         public Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
         {
             return Task.Run(() => _plateDetectionRepository.GetLicensePlate(licensePlate, entityId));
@@ -28,6 +30,8 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Route("PlateDetectionLog")]
+        [Authorize]
+
         public Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
        int pageSize = default)
         {
