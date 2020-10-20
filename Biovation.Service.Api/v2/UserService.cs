@@ -14,7 +14,7 @@ namespace Biovation.Service.Api.v2
         }
 
         public ResultViewModel<PagingResult<User>> GetUsers(long onlineId = default, int from = default,
-            int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
+            int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
         {

@@ -9,7 +9,6 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq.Extensions;
 using Newtonsoft.Json;
@@ -45,11 +44,11 @@ namespace Biovation.Server.Controllers.v2
         //[Authorize(Policy = Policies.User)]
         //[Authorize(Policy = "OverrideTest")]
         public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
-            int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
+            int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _userService.GetUsers(_user.Id, from, size, getTemplatesData, userId, filterText, type,
+            return Task.Run(() => _userService.GetUsers(_user.Id, from, size, getTemplatesData, userId, code, filterText, type,
                withPicture, isAdmin, pageNumber, pageSize));
         }
 
@@ -97,7 +96,10 @@ namespace Biovation.Server.Controllers.v2
 
                     await Task.Run(() =>
                     {
-                        var deviceBrands = _deviceService.GetDeviceBrands().Data;
+                        var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
+                        if (deviceBrands is null)
+                            return;
+                        
                         foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
                         {
                             restRequest.AddJsonBody(user);
@@ -122,11 +124,12 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUser(int id = default) {
+        public Task<ResultViewModel> DeleteUser(int id = default)
+        {
 
             return Task.Run(() => _userService.DeleteUser(id));
         }
-            
+
         [HttpPost]
         [Route("DeleteUsers")]
         public Task<ResultViewModel> DeleteUsers([FromBody] List<int> ids = default)
@@ -244,7 +247,10 @@ namespace Biovation.Server.Controllers.v2
         {
             return Task.Run(() =>
             {
-                var deviceBrands = _deviceService.GetDeviceBrands().Data;
+                var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
+                if (deviceBrands is null)
+                    return new ResultViewModel{Success = false, Validate = 0, Code = 400, Message = "Could not load device brands"};
+                
                 try
                 {
                     foreach (var deviceBrand in deviceBrands)
@@ -447,7 +453,7 @@ namespace Biovation.Server.Controllers.v2
         {
             return Task.Run(async () =>
             {
-                var user = _userService.GetUsers(userId: id, withPicture: false);
+                var user = _userService.GetUsers(userId: id);
                 if (user is null)
                     return new ResultViewModel { Validate = 0, Id = id, Message = "Wrong user id is provided." };
 
@@ -479,7 +485,7 @@ namespace Biovation.Server.Controllers.v2
                     //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
                     var userGroupIdList = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(usersGroupIds ?? string.Empty);
 
-                    var deviceBrands = _deviceService.GetDeviceBrands().Data;
+                    var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
 
                     foreach (var userId in userGroupIdList.Keys)
                     {
@@ -598,6 +604,9 @@ namespace Biovation.Server.Controllers.v2
 
                                     foreach (var device in devicesToAdd)
                                     {
+                                        if (deviceBrands is null)
+                                            continue;
+                                        
                                         var deviceBrand = deviceBrands.First(devBrand =>
                                             devBrand.Code == device.Brand.Code);
                                         var restRequest = new RestRequest(
@@ -624,6 +633,9 @@ namespace Biovation.Server.Controllers.v2
 
                                     foreach (var deviceToDelete in devicesToDelete)
                                     {
+                                        if (deviceBrands is null)
+                                            continue; 
+                                        
                                         var deviceBrand = deviceBrands.First(devBrand =>
                                             devBrand.Code == deviceToDelete.Brand.Code);
                                         var listOfUserId = new List<int> { userId };
@@ -753,9 +765,9 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Route("UserFromDevice/{id}")]
         [Authorize]
-        public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody] JArray userId = default)
+        public Task<ResultViewModel> RetrieveUserDevice(int id = default, [FromBody]JArray userId = default)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var restRequest = new RestRequest("Biovation/api/v2/Device/UserFromDevice/{id}", Method.POST);
                 restRequest.AddUrlSegment("id", id);
@@ -764,7 +776,7 @@ namespace Biovation.Server.Controllers.v2
                 {
                     restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
                 }
-                return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+                return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
             });
         }
 
@@ -780,7 +792,7 @@ namespace Biovation.Server.Controllers.v2
                 {
                     restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
                 }
-                return _restClient.ExecuteAsync<List<User>>(restRequest).Result.Data;
+                return (await _restClient.ExecuteAsync<List<User>>(restRequest)).Data;
             });
         }
 
@@ -797,21 +809,21 @@ namespace Biovation.Server.Controllers.v2
                 {
                     restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
                 }
-                return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+                return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
             });
         }
 
         [HttpPost]
         [Route("UserToAllDevice")]
         [Authorize]
-        public Task<List<ResultViewModel>> SendUsersToAllDevice([FromBody] String ids = default)
+        public Task<List<ResultViewModel>> SendUsersToAllDevice([FromBody] string ids = default)
         {
             return Task.Run(async () =>
             {
                 try
                 {
                     var userIds = JsonConvert.DeserializeObject<int[]>(ids);
-                    var deviceBrands = _deviceService.GetDeviceBrands().Data;
+                    var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
                     var length = userIds.Length;
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < length; i++)
@@ -824,6 +836,7 @@ namespace Biovation.Server.Controllers.v2
                             { Validate = 0, Message = $"User {userIds[i]} not exists.", Id = userIds[i] });
                         }
 
+                        if (deviceBrands == null) continue;
                         foreach (var deviceBrand in deviceBrands)
                         {
                             //var restResult = _communicationManager.CallRest(
@@ -835,7 +848,11 @@ namespace Biovation.Server.Controllers.v2
                             restRequest.AddJsonBody(user);
 
                             var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                            result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
+                            result.Add(new ResultViewModel
+                            {
+                                Validate = restResult.Data?.Validate ?? 0, Id = userIds[i],
+                                Message = deviceBrand.Name
+                            });
                         }
 
                         //result.Add(new ResultViewModel { Validate = 1, Id = userIds[i] });
