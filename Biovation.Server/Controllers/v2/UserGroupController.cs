@@ -356,7 +356,7 @@ namespace Biovation.Server.Controllers.v2
                     if (userGroup != null)
                         foreach (var userGroupMember in userGroup.Users)
                         {
-                            var user = _userService.GetUsers(userId:userGroupMember.UserCode);
+                            var user = _userService.GetUsers(userId: userGroupMember.UserCode);
 
                             foreach (var deviceBrand in deviceBrands)
                             {

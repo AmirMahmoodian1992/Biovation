@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -82,7 +82,7 @@ namespace Biovation.Repository.Sql.v2
         /// </summary>
         /// <returns></returns>
 
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, long userCode =default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, long userCode = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() =>
             {
@@ -199,7 +199,7 @@ namespace Biovation.Repository.Sql.v2
             return result;
         }
 
-        public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(long userId,int nestingDepthLevel = 4)
+        public Task<ResultViewModel<List<DeviceBasicInfo>>> GetAuthorizedDevicesOfUser(long userId, int nestingDepthLevel = 4)
         {
             return Task.Run(() =>
             {
