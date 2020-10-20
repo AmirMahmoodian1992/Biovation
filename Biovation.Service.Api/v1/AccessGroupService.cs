@@ -14,10 +14,10 @@ namespace Biovation.Service.Api.v1
         }
 
         public List<AccessGroup> GetAccessGroups(long userId = default, int adminUserId = default,
-            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
         {
             return _accessGroupRepository.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize)?.Data?.Data ?? new List<AccessGroup>();
+                pageNumber, pageSize, nestingDepthLevel)?.Data?.Data ?? new List<AccessGroup>();
         }
 
         public AccessGroup GetAccessGroup(int id = default, int nestingDepthLevel = 5)

@@ -18,12 +18,12 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             _accessGroupRepository = accessGroupRepository;
         }
-        
+
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
         {
             return Task.Run(() => _accessGroupRepository.AccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
-                 pageNumber, pageSize));
+                 pageNumber, pageSize, nestingDepthLevel));
         }
 
         [HttpGet]

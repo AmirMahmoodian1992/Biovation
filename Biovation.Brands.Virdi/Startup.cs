@@ -9,9 +9,6 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
-using DataAccessLayerCore;
-using DataAccessLayerCore.Domain;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -97,24 +94,9 @@ namespace Biovation.Brands.Virdi
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
-
-            services.AddSingleton(connectionInfo);
-            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-
             var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
-            services.AddSingleton<GenericRepository, GenericRepository>();
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
             services.AddSingleton<BlackListService, BlackListService>();
@@ -152,38 +134,20 @@ namespace Biovation.Brands.Virdi
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
-
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var serviceCollection = new ServiceCollection();
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
-
             var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
-            serviceCollection.AddSingleton(connectionInfo);
-            serviceCollection.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
-            serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
             serviceCollection.AddScoped<LookupRepository, LookupRepository>();
             serviceCollection.AddScoped<LookupService, LookupService>();
             serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
             
-            //serviceCollection.AddScoped<Lookups, Lookups>();
-            //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
-
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -201,6 +165,14 @@ namespace Biovation.Brands.Virdi
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
 
+
+            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
+
+            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
+            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
+            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+
             var lookups = new Lookups
             {
                 TaskStatuses = taskStatusesQuery.Result,
@@ -215,14 +187,6 @@ namespace Biovation.Brands.Virdi
                 LogEvents = logEventsQuery.Result,
                 MatchingTypes = matchingTypeQuery.Result
             };
-
-            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
-
-            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
-            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
-            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
-            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
-
 
             var genericCodeMappings = new GenericCodeMappings
             {
@@ -274,6 +238,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
+            services.AddSingleton<Callbacks, Callbacks>();
 
             var serviceProvider = services.BuildServiceProvider();
 
@@ -281,12 +246,12 @@ namespace Biovation.Brands.Virdi
             var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
             //var virdiCodeMappings = new VirdiCodeMappings(serviceProvider.GetService<GenericCodeMappings>());
 
-            var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
-                , serviceProvider.GetService<AccessGroupService>(), serviceProvider.GetService<FingerTemplateService>(), serviceProvider.GetService<LogService>(), serviceProvider.GetService<BlackListService>()
-                , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
-                , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
-                , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
-
+            //var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
+            //    , serviceProvider.GetService<AccessGroupService>(), serviceProvider.GetService<FingerTemplateService>(), serviceProvider.GetService<LogService>(), serviceProvider.GetService<BlackListService>()
+            //    , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
+            //    , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
+            //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
+            var virdiCallBacks = serviceProvider.GetService<Callbacks>();
 
             services.AddSingleton(UcsApi);
             services.AddSingleton(UcBioApi);

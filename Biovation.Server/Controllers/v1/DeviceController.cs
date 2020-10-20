@@ -46,13 +46,13 @@ namespace Biovation.Server.Controllers.v1
         public Task<List<DeviceBasicInfo>> DevicesByFilter(long adminUserId = 0, int deviceGroupId = 0, uint code = 0, int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(adminUserId: adminUserId, deviceGroupId: deviceGroupId, code: code,
-                brandId: brandId, deviceName: deviceName, deviceModelId: deviceModelId));
+                brandId: brandId.ToString(), deviceName: deviceName, deviceModelId: deviceModelId));
         }
         [HttpGet]
         [Route("Devices")]
         public Task<List<DeviceBasicInfo>> DevicesFilter(long userId, string deviceName = default, int deviceModelId = default, int deviceTypeId = default)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, deviceModelId: deviceModelId, brandId: deviceTypeId, adminUserId: userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, deviceModelId: deviceModelId, brandId: deviceTypeId.ToString(), adminUserId: userId));
         }
 
         ////ToDo: Check and fix route duplicate
@@ -187,7 +187,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode is null ? 0 : Convert.ToInt32(brandCode));
+                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode ?? 0.ToString());
                 if (!loadedBrandsOnly) return deviceModels;
 
                 return deviceModels.Where(dm => _systemInformation.Services.Any(db =>
@@ -201,7 +201,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: int.Parse(brandCode ?? string.Empty), deviceName: name);
+                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode ?? string.Empty, deviceName: name);
                 if (!loadedBrandsOnly) return deviceModels;
                 var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);

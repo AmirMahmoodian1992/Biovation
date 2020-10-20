@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
@@ -26,8 +27,8 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@brandId", brandCode),
                 new SqlParameter("@deviceId", deviceId),
                 new SqlParameter("@taskTypeCode", taskTypeCode),
-                new SqlParameter("@taskStatusCodes", taskStatusCodes),
-                new SqlParameter("@excludedTaskStatusCodes", excludedTaskStatusCodes)
+                new SqlParameter("@taskStatusCodes", string.IsNullOrWhiteSpace(taskStatusCodes) ? null : taskStatusCodes),
+                new SqlParameter("@excludedTaskStatusCodes", string.IsNullOrWhiteSpace(excludedTaskStatusCodes) ? null : excludedTaskStatusCodes)
             };
 
             return _repository.ToResultList<TaskInfo>("SelectTasks", parameters, fetchCompositions: true, compositionDepthLevel: 3).Data;
@@ -62,18 +63,19 @@ namespace Biovation.Repository.Sql.v2
                     item.IsParallelRestricted
                 }));*/
             var taskItemsData = JsonConvert.SerializeObject(task.TaskItems);
-              
+
 
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@taskTypeCode", task.TaskType?.Code),
                 new SqlParameter("@priorityLevelCode", task.Priority?.Code),
                 new SqlParameter("@createdBy", task.CreatedBy?.Id),
-                new SqlParameter("@createdAt", task.CreatedAt),
+                new SqlParameter("@createdAt", task.CreatedAt == default ? DateTime.Now : task.CreatedAt.DateTime),
                 new SqlParameter("@updatedBy", task.UpdatedBy),
-                new SqlParameter("@updatedAt", task.UpdatedAt),
+                new SqlParameter("@updatedAt", task.UpdatedAt == default ? (object) null : task.UpdatedAt.DateTime),
                 new SqlParameter("@schedulingPattern", task.SchedulingPattern),
                 new SqlParameter("@deviceBrandId", task.DeviceBrand.Code),
+                new SqlParameter("@dueDate", task.DueDate),
                 new SqlParameter("@json", taskItemsData)
             };
 
@@ -82,7 +84,7 @@ namespace Biovation.Repository.Sql.v2
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {
-   
+
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", taskItem.Id),

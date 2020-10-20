@@ -65,7 +65,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
                 {
-                    var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                     onlineDevice.Value.Name = device.Name;
                     onlineDevice.Value.DeviceId = device.DeviceId;
                 }
@@ -94,7 +94,7 @@ namespace Biovation.Brands.Virdi.Controllers
             return Task.Run(() =>
             {
 
-                var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                 var deviceId = devices.DeviceId;
                 //int deviceId = devices.FirstOrDefault(dev => dev.Code == code).DeviceId;
                 try
@@ -128,7 +128,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     else
                     {
-                        var virdiDevices = _deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
+                        var virdiDevices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
                         foreach (var device in virdiDevices)
                         {
                             task.TaskItems.Add(new TaskItem
@@ -165,7 +165,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     try
@@ -200,7 +200,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             else
                             {
                                 var virdiDevices =
-                                             _deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
+                                             _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
                                 foreach (var device in virdiDevices)
                                 {
                                     task.TaskItems.Add(new TaskItem
@@ -249,7 +249,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             else
                             {
                                 var virdiDevices =
-                                     _deviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
+                                     _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
                                 foreach (var device in virdiDevices)
                                 {
                                     task.TaskItems.Add(new TaskItem
@@ -290,7 +290,7 @@ namespace Biovation.Brands.Virdi.Controllers
         [HttpGet]
         public ResultViewModel ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            var devices =_deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+            var devices =_deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
             var deviceId = devices.DeviceId;
             try
             {
@@ -323,7 +323,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 
@@ -371,7 +371,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 
@@ -417,7 +417,7 @@ namespace Biovation.Brands.Virdi.Controllers
         public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
 
-            var devices = _deviceService.GetDevices(code: device.Code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+            var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
             var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
             if (device.Active)
             {
@@ -609,7 +609,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     };
                     //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
                     //int[] userIds =new[] {Convert.ToInt32(userId)};
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
                     foreach (var id in userIds)
                     {
@@ -683,7 +683,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                 var deviceId = devices.DeviceId;
                 task.TaskItems.Add(new TaskItem
                 {
@@ -717,7 +717,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 
@@ -920,7 +920,7 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 try
                 {
-                    var device = _deviceService.GetDevices(code: code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
                     var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 

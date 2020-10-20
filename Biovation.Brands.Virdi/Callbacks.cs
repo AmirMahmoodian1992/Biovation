@@ -450,7 +450,7 @@ namespace Biovation.Brands.Virdi
             lock (_loadFingerTemplateLock)
             {
                 Logger.Log("Fast search initialization started.");
-                var devices = _commonDeviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
+                var devices = _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
                 var accessGroups = _accessGroupService.GetAccessGroups();
                 var devicesWithAccessGroup = accessGroups.SelectMany(accessGroup =>
                     accessGroup.DeviceGroup.SelectMany(deviceGroup => deviceGroup.Devices)).ToList();
@@ -824,7 +824,7 @@ namespace Biovation.Brands.Virdi
 
         private void TerminalConnectedCallback(int terminalId, string terminalIp)
         {
-            var existDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+            var existDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
             Task.Run(async () =>
                 {
@@ -1733,7 +1733,7 @@ namespace Biovation.Brands.Virdi
 
             Task.Run(async () =>
             {
-                var device = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
+                var device = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.VirdiCode)[0];
                 var connectionStatus = new ConnectionStatus
                 {
                     DeviceId = device.DeviceId,
@@ -1793,7 +1793,7 @@ namespace Biovation.Brands.Virdi
                 _onlineDevices[(uint)terminalId].FirmwareVersion = version;
             }
 
-            var deviceModels = _commonDeviceService.GetDeviceModels(brandId: int.Parse(DeviceBrands.VirdiCode));
+            var deviceModels = _commonDeviceService.GetDeviceModels(brandId: DeviceBrands.VirdiCode);
             var acModelNumCharacterIndex = version.IndexOf("AC", StringComparison.Ordinal);
 
             if (acModelNumCharacterIndex > 0)
@@ -1801,7 +1801,7 @@ namespace Biovation.Brands.Virdi
                 var deviceModel = deviceModels.FirstOrDefault(model => string.Equals(model.Name, version.Substring(acModelNumCharacterIndex, 6)));
                 if (deviceModel != null)
                 {
-                    var device = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
+                    var device = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.VirdiCode)[0];
                     device.ModelId = deviceModel.Id;
                     device.Model = deviceModel;
                     _commonDeviceService.ModifyDevice(device);
@@ -1813,7 +1813,7 @@ namespace Biovation.Brands.Virdi
                 var deviceModel = deviceModels.FirstOrDefault(model => model.Name.Contains("U-Bio"));
                 if (deviceModel != null)
                 {
-                    var device = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: int.Parse(DeviceBrands.VirdiCode))[0];
+                    var device = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.VirdiCode)[0];
                     device.ModelId = deviceModel.Id;
                     device.Model = deviceModel;
                     _commonDeviceService.ModifyDevice(device);
@@ -2226,7 +2226,7 @@ namespace Biovation.Brands.Virdi
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
                                     var devices =
-                                        _commonDeviceService.GetDevices(brandId: int.Parse(DeviceBrands.VirdiCode));
+                                        _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
 
                                     foreach (var device in devices)
                                     {
@@ -2289,7 +2289,7 @@ namespace Biovation.Brands.Virdi
         //    var info = new TerminalInfo();
         //    Thread.Sleep(500);
         //    WinApi.GetTerminalInfo((uint)terminalId, ref info);
-        //    var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
+        //    var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:DeviceBrands.VirdiCode)[0];
         //    DeviceBasicInfo device;
         //    if (existDevice != null)
         //    {
@@ -2433,7 +2433,7 @@ namespace Biovation.Brands.Virdi
             Thread.Sleep(500);
             WinApi.GetTerminalInfo((uint)terminalId, ref info);
 
-            //var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
+            //var existDevice = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:DeviceBrands.VirdiCode)[0];
             //DeviceBasicInfo device;
 
 
@@ -2560,7 +2560,7 @@ namespace Biovation.Brands.Virdi
                 Logger.Log(exception);
             }
 
-            //var deviceBasicInfo = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:int.Parse(DeviceBrands.VirdiCode))[0];
+            //var deviceBasicInfo = _commonDeviceService.GetDevices(code:(uint)terminalId, brandId:DeviceBrands.VirdiCode)[0];
 
             var log = new Log
             {

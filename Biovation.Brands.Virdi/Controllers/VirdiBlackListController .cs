@@ -61,7 +61,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     foreach (var blacklist in blackLists)
                     {
-                        var devices = _deviceService.GetDevices(code: blacklist.Device.Code, brandId: int.Parse(DeviceBrands.VirdiCode)).FirstOrDefault();
+                        var devices = _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                         if (devices is null)
                             continue;
 
