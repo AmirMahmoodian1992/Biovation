@@ -266,7 +266,7 @@
     <None Remove="Scripts\03.SPs\0176-Create SelectPlateDetectoionLogs-UP.sql" />
     <None Remove="Scripts\03.SPs\0177-Create SelectDeviceByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0178-Create SelectLicensePlateByFilter-UP.sql" />
-    <None Remove="Scripts\03.SPs\0179-Create SelectUserByFilter-UP.sql" />
+    <None Remove="Scripts\03.SPs\0179-Create SelecFingerTemplateByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0180-Create SelectDeviceModelByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0181-Create SelectDeviceBrandByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0182-Create SelectFaceTemplatesByFilter-UP.sql" />
@@ -276,12 +276,10 @@
     <None Remove="Scripts\03.SPs\0186-Create InsertAccessGroup-UP.sql" />
     <None Remove="Scripts\03.SPs\0187-Create SelectUserCardByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0188-Create SelectAdminDeviceGroupsByUserIdByPaging-UP.sql" />
-    <None Remove="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPagingr-UP sql" />
+    <None Remove="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPaging-UP.sql" />
     <None Remove="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <None Remove="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
-    <None Remove="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
-    <None Remove="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
-    <None Remove="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
+    <None Remove="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
     <None Remove="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
     <None Remove="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
@@ -568,7 +566,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0176-Create SelectPlateDetectoionLogs-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0177-Create SelectDeviceByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0178-Create SelectLicensePlateByFilter-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0179-Create SelectUserByFilter-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0179-Create SelecFingerTemplateByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0180-Create SelectDeviceModelByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0181-Create SelectDeviceBrandByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0182-Create SelectFaceTemplatesByFilter-UP.sql" />
@@ -578,12 +576,10 @@
     <EmbeddedResource Include="Scripts\03.SPs\0186-Create InsertAccessGroup-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0187-Create SelectUserCardByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0188-Create SelectAdminDeviceGroupsByUserIdByPaging-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPagingr-UP sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPaging-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0192-Create SelectFingerTemplateByFilter-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0194-Create InsertFingerTemplate-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0193-Create DeleteFingerTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
