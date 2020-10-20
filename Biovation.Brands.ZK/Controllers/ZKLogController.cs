@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.ZK.Manager;
+﻿using Biovation.Brands.ZK.Manager;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Controllers
 {
@@ -15,7 +16,6 @@ namespace Biovation.Brands.ZK.Controllers
     public class ZkLogController : Controller
     {
         private readonly TaskService _taskService;
-        private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
@@ -24,10 +24,9 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public ZkLogController(TaskService taskService, UserService userService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public ZkLogController(TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
         {
             _taskService = taskService;
-            _userService = userService;
             _deviceService = deviceService;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
@@ -46,7 +45,10 @@ namespace Biovation.Brands.ZK.Controllers
                 try
                 {
                     var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,

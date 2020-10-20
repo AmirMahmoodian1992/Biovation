@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -30,7 +31,7 @@ namespace Biovation.Server.Controllers.v1
         private readonly TokenGenerator _tokenGenerator;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient, TokenGenerator tokenGenerator)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
         {
             _userService = userService;
             _logService = logService;
@@ -39,6 +40,7 @@ namespace Biovation.Server.Controllers.v1
             _commonDeviceService = deviceService;
             _restClient = restClient;
             _tokenGenerator = tokenGenerator;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         [HttpGet]
@@ -76,7 +78,8 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
 
                 var task = new TaskInfo
                 {

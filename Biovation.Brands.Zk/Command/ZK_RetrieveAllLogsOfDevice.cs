@@ -41,37 +41,6 @@ namespace Biovation.Brands.ZK.Command
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                 var result = device.ReadOfflineLogInPeriod(new CancellationTokenSource().Token, default, default);
                 return result;
-
-                //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => device.ReadOfflineLogInPeriod(new object(), new DateTime(1990, 1 , 1).ToString(CultureInfo.InvariantCulture), DateTime.Now.ToString(CultureInfo.InvariantCulture))));
-                //ZKTecoServer.StartReadLogs();
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                //var task = new TaskInfo
-                //{
-                //    CreatedAt = DateTimeOffset.Now,
-                //    CreatedBy = creatorUser,
-                //    TaskType = TaskTypes.GetLogsInPeriod,
-                //    Priority = _taskPriorities.Medium,
-                //    TaskItems = new List<TaskItem>(),
-                //    DeviceBrand = DeviceBrands.ZkTeco,
-
-                //};
-                //task.TaskItems.Add(new TaskItem
-                //{
-                //    Status = TaskStatuses.Queued,
-                //    TaskItemType = TaskItemTypes.GetLogsInPeriod,
-                //    Priority = _taskPriorities.Medium,
-                //    DueDate = DateTimeOffset.Now,
-                //    DeviceId = DeviceId,
-                //    Data = JsonConvert.SerializeObject(new { fromDate = new DateTime(1990, 1, 1).ToString(CultureInfo.InvariantCulture), toDate = DateTime.Now.ToString(CultureInfo.InvariantCulture) }),
-                //    IsParallelRestricted = true,
-                //    IsScheduled = false,
-                //    OrderIndex = 1,
-
-                //});
-                //_taskService.InsertTask(task);
-                //ZKTecoServer.ProcessQueue();
-
-                //return new ResultViewModel { Id = device.GetDeviceInfo().Code, Validate = 1, Message = $@"تخلیه دستگاه {device.GetDeviceInfo().Code} شروع شد", Code = Convert.ToInt64(TaskStatuses.Queued.Code) };
             }
             catch (Exception exception)
             {

@@ -1,6 +1,7 @@
 ﻿using Biovation.Brands.Virdi.Command;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using DeviceBrands = Biovation.Constants.DeviceBrands;
 
@@ -20,7 +20,6 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly Callbacks _callbacks;
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
-        private readonly UserService _userService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
@@ -30,10 +29,9 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiAccessGroupController(TaskService taskService, UserService userService, DeviceService deviceService, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiAccessGroupController(TaskService taskService, DeviceService deviceService, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
-            _userService = userService;
             _deviceService = deviceService;
             _callbacks = callbacks;
             _commandFactory = commandFactory;
@@ -54,7 +52,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 try
                 {
                     var devices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,

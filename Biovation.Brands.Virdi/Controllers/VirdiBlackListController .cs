@@ -1,4 +1,5 @@
 ﻿using Biovation.Brands.Virdi.Manager;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -17,7 +18,6 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly DeviceBrands _deviceBrands;
         private readonly TaskService _taskService;
         private readonly TaskManager _taskManager;
-        private readonly UserService _userService;
         private readonly DeviceService _deviceService;
 
         private readonly TaskTypes _taskTypes;
@@ -25,10 +25,9 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiBlackListController(TaskService taskService, UserService userService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiBlackListController(TaskService taskService, DeviceService deviceService, DeviceBrands deviceBrands, TaskManager taskManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
-            _userService = userService;
             _deviceService = deviceService;
             _deviceBrands = deviceBrands;
             _taskManager = taskManager;
@@ -48,7 +47,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
