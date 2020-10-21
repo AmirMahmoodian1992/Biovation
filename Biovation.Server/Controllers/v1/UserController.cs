@@ -68,12 +68,14 @@ namespace Biovation.Server.Controllers.v1
                }
            });
         }
+
         [HttpGet]
         [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
             return _userService.GetAdminUser(userId, token: _kasraAdminToken);
         }
+
         [HttpGet]
         [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
@@ -95,6 +97,7 @@ namespace Biovation.Server.Controllers.v1
                 throw;
             }
         }
+
         [HttpGet]
         [Route("SearchUserFilter")]
         public List<User> SearchUser(string filterText, long userId)

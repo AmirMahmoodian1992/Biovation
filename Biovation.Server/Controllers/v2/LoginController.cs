@@ -1,19 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
 using Biovation.Servers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -51,7 +41,7 @@ namespace Biovation.Server.Controllers.v2
                 var tokenString = _generateToken.GenerateToken(user);
                 response = Ok(new
                 {
-                    token = tokenString,
+                    token = tokenString
                     //userDetails = user,
                 });
             }

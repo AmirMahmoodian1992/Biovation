@@ -1,14 +1,13 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -191,7 +190,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteDeviceGroup(int id = default)
+        public Task<ResultViewModel> DeleteDeviceGroup([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _deviceGroupService.DeleteDeviceGroup(id,token));
@@ -207,21 +206,11 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpDelete]
-        [Route("DeleteDeviceGroupsMember/{id}")]
-        public Task<ResultViewModel> DeleteDeviceGroup(uint id = default)
+        [Route("{id}/DeviceGroupsMembers")]
+        public Task<ResultViewModel> DeleteDeviceGroup([FromRoute] uint id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _deviceGroupService.DeleteDeviceGroupMember(id, token));
-        }
-
-
-
-        [HttpGet]
-        [Route("AccessControlDeviceGroup/{id}")]
-        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id = default, int pageNumber = default, int pageSize = default)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceGroupService.GetAccessControlDeviceGroup(id, pageNumber, pageSize,token));
         }
     }
 }

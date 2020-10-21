@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
 
@@ -54,10 +55,9 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public int ReadCardNumber(string brandName = default, int deviceId = default, string token = default)
+        public ResultViewModel<int> ReadCardNumber(int deviceId = default, string token = default)
         {
-            //TODO call virdi API
-            return 0;
+            throw new NotImplementedException();
         }
     }
 }

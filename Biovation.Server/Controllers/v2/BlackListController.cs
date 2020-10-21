@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -145,6 +144,7 @@ namespace Biovation.Server.Controllers.v2
 
             });
         }
+
         [HttpDelete]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteBlackList(int id)

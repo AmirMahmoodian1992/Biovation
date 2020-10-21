@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -13,8 +12,6 @@ namespace Biovation.Server.Controllers.v2
     [Authorize]
     public class AdminDeviceController : Controller
     {
-        //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
-
         private readonly AdminDeviceService _adminDeviceService;
 
         public AdminDeviceController(AdminDeviceService adminDeviceService)
@@ -22,16 +19,11 @@ namespace Biovation.Server.Controllers.v2
             _adminDeviceService = adminDeviceService;
         }
 
-        //public AdminDeviceController()
-        //{
-        //    //_communicationManager.SetServerAddress($"http://localhost:{ConfigurationManager.BiovationWebServerPort}");
-        //}
-
         [HttpGet]
-        [Route("{id}")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int id = default, int pageNumber = default, int pageSize = default)
+        [Route("{userId}")]
+        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int userId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceService.GetAdminDeviceGroupsByUserId(id, pageNumber, pageSize));
+            return Task.Run(() => _adminDeviceService.GetAdminDeviceGroupsByUserId(userId, pageNumber, pageSize));
         }
 
         [HttpPost]
