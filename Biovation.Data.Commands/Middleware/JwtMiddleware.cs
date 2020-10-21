@@ -38,7 +38,7 @@ namespace Biovation.Data.Commands.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtDefaultKey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginkey());
 
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {

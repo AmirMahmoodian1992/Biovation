@@ -33,13 +33,13 @@ namespace Biovation.CommonClasses.Manager
         //    //return Configuration.GetSection("Jwt")["Key"];
 
         //}
-        public string JwtLoginKey()
+        //public string JwtLoginKey()
+        //{
+        //    return LoginKey;
+        //}
+        public string JwtLoginkey()
         {
             return LoginKey;
-        }
-        public string JwtDefaultKey()
-        {
-            return ServiceKey;
         }
 
 

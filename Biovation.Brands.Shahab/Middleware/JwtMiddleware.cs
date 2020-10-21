@@ -39,7 +39,7 @@ namespace Biovation.Brands.Shahab.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtDefaultKey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginkey());
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

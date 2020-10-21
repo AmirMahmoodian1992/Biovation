@@ -40,7 +40,7 @@ namespace Biovation.Server.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtDefaultKey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginkey());
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -52,13 +52,14 @@ namespace Biovation.Server.Middleware
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var userCode = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
+                var userCode = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "userCode", StringComparison.InvariantCultureIgnoreCase)).Value);
+                var uniqueId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "uniqueId", StringComparison.InvariantCultureIgnoreCase)).Value);
 
                 // attach user to context on successful jwt validation
                 var user = _userService.GetUsers(code: userCode)?.Data.Data.FirstOrDefault();
                 //context.Items["User"] = user;
                 var _token = _generateToken.GenerateToken(user);
-                context.Request.Headers["Authorization"] = "Barear " +  _token;
+                context.Request.Headers["Authorization"] = _token;
                 context.Items["Token"] = _token;
             }
             catch
