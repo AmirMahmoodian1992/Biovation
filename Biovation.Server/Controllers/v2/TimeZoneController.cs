@@ -95,7 +95,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/SendTimeZoneToAllDevices")]
-        public Task<List<ResultViewModel>> SendTimeZoneToAllDevices(int id = default)
+        public Task<List<ResultViewModel>> SendTimeZoneToAllDevices([FromRoute]int id = default)
         {
             return Task.Run(() =>
             {
