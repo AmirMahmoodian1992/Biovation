@@ -9,7 +9,7 @@ namespace Biovation.CommonClasses.Manager
         //private readonly SettingService _settingService;
         public IConfiguration Configuration { get; set; }
         private string LoginKey { get; } = "BiovationLoginKey";
-        private string ServiceKey { get; } = "BiovationServiceKey";
+        private string ServiceKey { get; } = "BiovationServiceKey"; 
 
         public BiovationConfigurationManager(IConfiguration configuration/*, SettingService settingService*/)
         {

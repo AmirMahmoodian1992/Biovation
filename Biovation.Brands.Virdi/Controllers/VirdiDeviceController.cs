@@ -580,7 +580,7 @@ namespace Biovation.Brands.Virdi.Controllers
                                     TaskItemType = _taskItemTypes.SendUser,
                                     Priority = _taskPriorities.Medium,
                                     DeviceId = device.DeviceId,
-                                    Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserId }),
+                                    Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserCode }),
                                     IsParallelRestricted = true,
                                     IsScheduled = false,
                                     OrderIndex = 1,

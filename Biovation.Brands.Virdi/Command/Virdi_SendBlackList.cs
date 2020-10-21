@@ -38,9 +38,9 @@ namespace Biovation.Brands.Virdi.Command
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (int)data["UserId"];
             BlackListId = (int)data["BlackListId"];
-            UserObj = userService.GetUsers(UserId).FirstOrDefault();
+            UserObj = userService.GetUsers(code: UserId, withPicture: false).FirstOrDefault();
+            UserId = Convert.ToInt32(UserObj.Id);
 
             var blackList = blackListService.GetBlacklist(BlackListId, userId: UserId, deviceId: DeviceId, DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;

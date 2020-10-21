@@ -148,7 +148,7 @@ namespace Biovation.Brands.Virdi
         private readonly ISource<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateInternalSource;
         private const string DeviceConnectionStateTopicName = "BiovationDeviceConnectionStateEvent";
 
-        public void DeleteUserFromDeviceFastSearch(uint deviceCode, int userId)
+        public void DeleteUserFromDeviceFastSearch(uint deviceCode, int userCode)
         {
             lock (_fastSearchOfDevices)
             {
@@ -156,7 +156,7 @@ namespace Biovation.Brands.Virdi
                 {
                     lock (_fastSearchOfDevices)
                         if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
-                            _fastSearchOfDevices[(int)deviceCode].RemoveUser(userId);
+                            _fastSearchOfDevices[(int)deviceCode].RemoveUser(userCode);
                 }
                 catch (Exception exception)
                 {
@@ -165,13 +165,13 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public void AddUserToDeviceFastSearch(uint deviceCode, int userId)
+        public void AddUserToDeviceFastSearch(uint deviceCode, int userCode)
         {
             lock (_fastSearchOfDevices)
             {
                 try
                 {
-                    var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+                    var user = _commonUserService.GetUsers(code:userCode, withPicture: false).FirstOrDefault();
                     if (user != null)
                     {
                         var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
@@ -188,7 +188,7 @@ namespace Biovation.Brands.Virdi
                             }
 
                             var firTemplate = fpData.TextFIR;
-                            fastSearch?.AddFIR(firTemplate, userId);
+                            fastSearch?.AddFIR(firTemplate, userCode);
                             fpData.ClearFPData();
                         }
 
@@ -1195,8 +1195,8 @@ namespace Biovation.Brands.Virdi
                 var authErrorCode = hasAccess == 0 ? user != null ? (int)VirdiError.Permission : (int)VirdiError.InvalidUser : (int)VirdiError.None;
 
                 ServerAuthentication.SetAuthType(0, 0, 0, 0, 1, 0);
-                ServerAuthentication.SendAuthResultToTerminal(terminalId, (int)(user?.Id ?? -1), hasAccess, isVisitor,
-                    isAuthorized, txtEventTime, authErrorCode);
+                ServerAuthentication.SendAuthResultToTerminal(terminalId, (int)(user?.Code ?? -1), hasAccess, isVisitor,
+                   isAuthorized, txtEventTime, authErrorCode);
             });
         }
 
@@ -1478,7 +1478,7 @@ namespace Biovation.Brands.Virdi
                     dynamic matchedFpInfo = fastSearch.MatchedFpInfo;
                     int userId = matchedFpInfo.UserId;
 
-                    var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+                    var user = _commonUserService.GetUsers(code:userId, withPicture: false).FirstOrDefault();
 
                     var isVisitor = user.IsAdmin ? 0 : 1;
                     var blacklist = _blackListService.GetBlacklist(userId: (int)(user?.Id ?? -1), deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result;
@@ -1866,7 +1866,7 @@ namespace Biovation.Brands.Virdi
             // TerminalUserData.GetUserDataFromTerminal(0, terminalId, TerminalUserData.UserID);
             var user = new User
             {
-                Id = TerminalUserData.UserID,
+                Code = TerminalUserData.UserID,
                 AdminLevel = TerminalUserData.IsAdmin,
                 StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
                             ? DateTime.Parse("1970/01/01")
@@ -1882,7 +1882,9 @@ namespace Biovation.Brands.Virdi
                 IsActive = true,
                 ImageBytes = picture
             };
-
+            user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
+                ? 0
+                : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
             RetrieveUsers.Add(user);
             //int totalCount = TerminalUserData.TotalNumber;
             //int currentIndex = TerminalUserData.CurrentIndex;
@@ -1946,7 +1948,7 @@ namespace Biovation.Brands.Virdi
                 }
                 var user = new User
                 {
-                    Id = TerminalUserData.UserID,
+                    Code = TerminalUserData.UserID,
                     AdminLevel = TerminalUserData.IsAdmin,
                     StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
                            ? DateTime.Parse("1970/01/01")
@@ -1962,6 +1964,9 @@ namespace Biovation.Brands.Virdi
                     IsActive = true,
                     ImageBytes = picture
                 };
+                user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
+                   ? 0
+                   : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
 
                 //if (RetrieveUsers.All(retrievedUser => retrievedUser.Id != user.Id))
                 //{
@@ -1970,7 +1975,7 @@ namespace Biovation.Brands.Virdi
 
                 if (ModifyUserData)
                 {
-                    var existUser = _commonUserService.GetUsers(TerminalUserData.UserID).FirstOrDefault();
+                    var existUser = _commonUserService.GetUsers(code:TerminalUserData.UserID).FirstOrDefault();
                     if (existUser != null)
                     {
                         user = new User
@@ -2230,7 +2235,7 @@ namespace Biovation.Brands.Virdi
 
                                     foreach (var device in devices)
                                     {
-                                        AddUserToDeviceFastSearch(device.Code, (int)user.Id);
+                                        AddUserToDeviceFastSearch(device.Code, (int)user.Code);
                                     }
                                 }
 
@@ -2242,7 +2247,7 @@ namespace Biovation.Brands.Virdi
                                         {
                                             foreach (var device in deviceGroup.Devices)
                                             {
-                                                AddUserToDeviceFastSearch(device.Code, (int)user.Id);
+                                                AddUserToDeviceFastSearch(device.Code, (int)user.Code);
                                             }
                                         }
                                     }

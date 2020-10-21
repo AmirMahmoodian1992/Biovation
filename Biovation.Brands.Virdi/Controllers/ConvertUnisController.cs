@@ -89,7 +89,8 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     var biovationUser = new User
                     {
-                        Id = user.UserId,
+                        Id = 0,
+                        Code = user.UserId,
                         SurName = user.UserName,
                         UserName = user.UserName,
                         AdminLevel = 0,

@@ -16,10 +16,10 @@ namespace Biovation.Service.Api.v1
         public List<User> GetUsers(long userId = default, bool withPicture = default, long onlineUserId = default, int from = default,
             int size = default, bool getTemplatesData = default, string filterText = default,
             int type = default, bool isAdmin = default, int pageNumber = default,
-            int pageSize = default, string token = default)
+            int pageSize = default, string token = default, long code = default)
         {
             return _userRepository. GetUsers(from: from, size:size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type:type,
-                withPicture:withPicture, isAdmin:isAdmin, pageNumber:pageNumber, pageSize:pageSize, token:token)?.Data?.Data ?? new List<User>();
+                withPicture:withPicture, isAdmin:isAdmin, pageNumber:pageNumber, pageSize:pageSize, token:token, code:code)?.Data?.Data ?? new List<User>();
         }
 
         public List<User> GetAdminUser(long userId = 0, string token = default)

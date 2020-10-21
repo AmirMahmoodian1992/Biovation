@@ -193,7 +193,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     foreach (var deviceGroupMember in deviceGroup.Devices)
                     {
                         var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
-                            new List<object> { deviceGroupMember.Code, user.Id });
+                            new List<object> { deviceGroupMember.Code, user.Code });
 
                         addUserToTerminalCommand.Execute();
                     }

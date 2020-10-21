@@ -73,7 +73,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             TaskItemType = _taskItemTypes.SendBlackList,
                             Priority = _taskPriorities.Medium,
                             DeviceId = deviceId,
-                            Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Id }),
+                            Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Code }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1
