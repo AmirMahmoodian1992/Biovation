@@ -37,7 +37,7 @@ namespace Biovation.Brands.Virdi.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtServiceKey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtDefaultKey());
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

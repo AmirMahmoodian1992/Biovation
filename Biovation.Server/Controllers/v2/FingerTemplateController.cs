@@ -23,7 +23,8 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel<PagingResult<FingerTemplate>>> GetFingerTemplateByUserId(Lookup fingerTemplateType,int userId = default, int templateIndex = default, int from = 0, int size = 0, int pageNumber = default,
         int pageSize = default)
         {
-            return Task.Run( () => _fingerTemplateService.FingerTemplates(userId,templateIndex,fingerTemplateType,from,size,pageNumber,pageSize));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run( () => _fingerTemplateService.FingerTemplates(userId,templateIndex,fingerTemplateType,from,size,pageNumber,pageSize, token:token));
         }
 
         //[HttpPost]
@@ -36,20 +37,23 @@ namespace Biovation.Server.Controllers.v2
         [HttpPatch]
         public Task<ResultViewModel> ModifyUserFingerTemplate([FromBody]FingerTemplate fingerTemplate =default)
         {
-            return Task.Run(() => _fingerTemplateService.ModifyFingerTemplate(fingerTemplate));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _fingerTemplateService.ModifyFingerTemplate(fingerTemplate,token));
         }
 
         [HttpDelete]
         [Route("{userId}")]
         public Task<ResultViewModel> DeleteFingerTemplateByUserId(int userId = default, int templateIndex = default)
         {
-            return Task.Run(() => _fingerTemplateService.DeleteFingerTemplate(userId,templateIndex));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _fingerTemplateService.DeleteFingerTemplate(userId,templateIndex, token: token));
         }
 
         [HttpGet]
         [Route("TemplateCount")]
         public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run( () =>  _fingerTemplateService.GetTemplateCount());
         }
 
@@ -57,7 +61,8 @@ namespace Biovation.Server.Controllers.v2
         [Route("FingerTemplateTypes")]
         public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {
-            return Task.Run(() => _fingerTemplateService.GetFingerTemplateTypes(brandId));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _fingerTemplateService.GetFingerTemplateTypes(brandId, token));
         }
     }
 }

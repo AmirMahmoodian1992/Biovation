@@ -19,21 +19,21 @@ namespace Biovation.Server.Controllers.v2
         private readonly BlackListService _blackListService;
         private readonly RestClient _restClient;
 
-        public BlackListController(BlackListService blackListService)
+        public BlackListController(BlackListService blackListService, RestClient restClient)
         {
             _blackListService = blackListService;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = restClient;
         }
 
         [HttpPost]
         public Task<List<ResultViewModel>> CreateBlackList([FromBody]List<BlackList> blackLists)
         {
-
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
                 try
                 {
-                    var resultsBlackLists = blackLists.Select(blackList => _blackListService.CreateBlackList(blackList)).ToList();
+                    var resultsBlackLists = blackLists.Select(blackList => _blackListService.CreateBlackList(blackList,token)).ToList();
 
                     Task.Run(async () =>
                     {
@@ -42,7 +42,7 @@ namespace Biovation.Server.Controllers.v2
                         {
                             if (blackList.Validate == 1)
                             {
-                                successResult.Add((_blackListService.GetBlacklist(id: (int)blackList.Id)).Data.Data.Find(l => l.Id == blackList.Id));
+                                successResult.Add((_blackListService.GetBlacklist(id: (int)blackList.Id,token:token)).Data.Data.Find(l => l.Id == blackList.Id));
 
                             }
                         }
@@ -94,19 +94,21 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel<PagingResult<BlackList>>> GetBlackList(int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
         {
-            return Task.Run( () => _blackListService.GetBlacklist(id,userid,deviceId,startDate,endDate,isDeleted));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run( () => _blackListService.GetBlacklist(id,userid,deviceId,startDate,endDate,isDeleted,token:token));
         }
 
         [HttpPut]
         public Task<ResultViewModel> ChangeBlackList([FromBody] BlackList blackList)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
 
                 //var restRequest = new RestRequest($"Queries/v2/blackList", Method.PUT);
                 //restRequest.AddJsonBody("blackList", blackList.ToString() ?? string.Empty);
                 //var result = (_restClient.ExecuteAsync<ResultViewModel>(restRequest)).Result.Data;
-                var result = _blackListService.ChangeBlackList(blackList);
+                var result = _blackListService.ChangeBlackList(blackList, token: token);
 
                 Task.Run(async () =>
                 {
@@ -115,7 +117,7 @@ namespace Biovation.Server.Controllers.v2
                         var successBlackList = new List<BlackList>();
                         if (result.Validate == 1)
                         {
-                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id).Data.Data;
+                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id, token: token).Data.Data;
                         }
 
                         var brand = successBlackList?.FirstOrDefault()?.Device.Brand;
@@ -147,6 +149,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteBlackList(int id)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
 
@@ -154,7 +157,7 @@ namespace Biovation.Server.Controllers.v2
                 //restRequest.AddQueryParameter("id", id.ToString());
                 //var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var result = (requestResult.Result.Data);
-                var result = _blackListService.DeleteBlackList(id);
+                var result = _blackListService.DeleteBlackList(id, token: token);
 
 
                 Task.Run(async () =>
@@ -164,7 +167,7 @@ namespace Biovation.Server.Controllers.v2
                         var successBlackList = new List<BlackList>();
                         if (result.Validate == 1)
                         {
-                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id, isDeleted: true).Data.Data;
+                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id, isDeleted: true, token:token).Data.Data;
                         }
 
                         var brand = successBlackList?.FirstOrDefault()?.Device.Brand;

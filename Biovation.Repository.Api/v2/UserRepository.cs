@@ -15,13 +15,13 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<User>> GetUsers(long onlineId = default, int from = default,
+        public ResultViewModel<PagingResult<User>> GetUsers(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
-            restRequest.AddQueryParameter("onlineId", onlineId.ToString());
+            //restRequest.AddQueryParameter("onlineId", onlineId.ToString());
             restRequest.AddQueryParameter("from", from.ToString());
             restRequest.AddQueryParameter("size", size.ToString());
             restRequest.AddQueryParameter("getTemplatesData", getTemplatesData.ToString());
@@ -32,7 +32,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("isAdmin", isAdmin.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            var token = _biovationConfigurationManager.DefaultToken;
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
             return requestResult.Result.Data;

@@ -43,7 +43,8 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyAdminDevice([FromBody] JObject adminDevice = default)
         {
-            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDevice));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDevice,token));
         }
     }
 }

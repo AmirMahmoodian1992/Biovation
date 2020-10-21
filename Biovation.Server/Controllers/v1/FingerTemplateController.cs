@@ -1,4 +1,5 @@
 ﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +14,20 @@ namespace Biovation.Server.Controllers.v1
     public class FingerTemplateController : Controller
     {
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly string _kasraAdminToken;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public FingerTemplateController(FingerTemplateService fingerTemplateService)
+        public FingerTemplateController(FingerTemplateService fingerTemplateService, BiovationConfigurationManager biovationConfigurationManager)
         {
             _fingerTemplateService = fingerTemplateService;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
         public ResultViewModel ModifyUser(FingerTemplate fingerTemplate)
         {
             try
             {
-                return _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
+                return _fingerTemplateService.ModifyFingerTemplate(fingerTemplate, token: _kasraAdminToken);
             }
             catch (Exception exception)
             {

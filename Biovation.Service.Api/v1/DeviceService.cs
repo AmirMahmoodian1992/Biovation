@@ -25,73 +25,73 @@ namespace Biovation.Service.Api.v1
         //}
         public List<DeviceBasicInfo> GetDevices(long adminUserId = default,
             int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
-            int deviceModelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
+            int deviceModelId = default, int typeId = default, int pageNumber = default, int pageSize = default, string token = default)
         {
             return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
                 typeId, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceBasicInfo>();
         }
 
-        public DeviceBasicInfo GetDevice(long id = default, long adminUserId = default)
+        public DeviceBasicInfo GetDevice(long id = default, long adminUserId = default, string token = default)
         {
             return _deviceRepository.GetDevice(id, (int)adminUserId)?.Data ?? new DeviceBasicInfo();
         }
 
         public List<DeviceModel> GetDeviceModels(long id = default, string brandId = default,
-            string deviceName = null, int pageNumber = default, int pageSize = default)
+            string deviceName = null, int pageNumber = default, int pageSize = default, string token = default)
         {
             return _deviceRepository.GetDeviceModels(id, brandId, deviceName, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceModel>();
         }
 
-        public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode)
+        public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode, string token = default)
         {
             return _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode);
         }
 
-        public ResultViewModel<DateTime> GetLastConnectedTime(int id)
+        public ResultViewModel<DateTime> GetLastConnectedTime(int id, string token = default)
         {
             return _deviceRepository.GetLastConnectedTime((uint)id);
         }
 
         public List<Lookup> GetDeviceBrands(int code = default, string name = default,
-            int pageNumber = default, int pageSize = default)
+            int pageNumber = default, int pageSize = default, string token = default)
 
         {
-            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize)?.Data?.Data ?? new List<Lookup>();
+            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token)?.Data?.Data ?? new List<Lookup>();
         }
 
-        public ResultViewModel AddDevice(DeviceBasicInfo device = default)
+        public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)
         {
-            return _deviceRepository.AddDevice(device);
+            return _deviceRepository.AddDevice(device, token);
         }
 
-        public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default)
+        public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default, string token = default)
         {
-            return _deviceRepository.AddDeviceModel(deviceModel);
+            return _deviceRepository.AddDeviceModel(deviceModel, token);
         }
 
-        public ResultViewModel DeleteDevice(uint id)
+        public ResultViewModel DeleteDevice(uint id, string token = default)
         {
-            return _deviceRepository.DeleteDevice(id);
+            return _deviceRepository.DeleteDevice(id, token);
         }
 
-        public ResultViewModel DeleteDevices(List<uint> ids)
+        public ResultViewModel DeleteDevices(List<uint> ids, string token = default)
         {
-            return _deviceRepository.DeleteDevices(ids);
+            return _deviceRepository.DeleteDevices(ids, token);
         }
 
-        public ResultViewModel ModifyDevice(DeviceBasicInfo device)
+        public ResultViewModel ModifyDevice(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.ModifyDevice(device);
+            return _deviceRepository.ModifyDevice(device, token);
         }
 
-        public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device)
+        public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.AddNetworkConnectionLog(device);
+            return _deviceRepository.AddNetworkConnectionLog(device, token);
         }
 
-        public List<User> GetAuthorizedUsersOfDevice(int id)
+        public List<User> GetAuthorizedUsersOfDevice(int id, string token = default)
         {
-            return _deviceRepository.GetAuthorizedUsersOfDevice(id)?.Data?.Data ?? new List<User>();
+            return _deviceRepository.GetAuthorizedUsersOfDevice(id, token)?.Data?.Data ?? new List<User>();
         }
     }
 }

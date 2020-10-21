@@ -57,9 +57,9 @@ namespace Biovation.Server.Middleware
                 // attach user to context on successful jwt validation
                 var user = _userService.GetUsers(userId: userId)?.Data.Data.FirstOrDefault();
                 //context.Items["User"] = user;
-                var _token = "Barear " + _generateToken.GenerateToken(user);
-                context.Request.Headers["Authorization"] = _token;
-                //context.Items["Token"] = _token;
+                var _token = _generateToken.GenerateToken(user);
+                context.Request.Headers["Authorization"] = "Barear " +  _token;
+                context.Items["Token"] = _token;
             }
             catch
             {

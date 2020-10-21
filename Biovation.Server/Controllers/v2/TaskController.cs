@@ -38,18 +38,20 @@ namespace Biovation.Server.Controllers.v2
         [Route("TaskItems")]
         public Task<ResultViewModel<TaskItem>> TaskItems(int taskItemId = default)
         {
-            return Task.Run(() => _taskService.GetTaskItem(taskItemId));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _taskService.GetTaskItem(taskItemId,token));
         }
 
 
         [HttpPatch]
         public Task<ResultViewModel> TaskExecutionStatus(int taskItemId = default, string taskStatusId = default)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
                 try
                 {
-                    var taskItem = _taskService.GetTaskItem(taskItemId).Data;
+                    var taskItem = _taskService.GetTaskItem(taskItemId,token).Data;
                     if (taskItem is null)
                         return new ResultViewModel
                             { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };

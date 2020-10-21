@@ -29,7 +29,8 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel<TimeZone>> TimeZones(int id = default)
         {
-            return Task.Run( () =>  _timeZoneService.TimeZones(id));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run( () =>  _timeZoneService.TimeZones(id,token));
         }
 
         //TODO
@@ -44,13 +45,15 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteTimeZone(int id = default)
         {
-            return Task.Run(() => _timeZoneService.DeleteTimeZone(id));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _timeZoneService.DeleteTimeZone(id, token));
         }
 
         [HttpPut]
         public Task<ResultViewModel> ModifyTimeZone([FromBody]TimeZone timeZone = default)
         {
-            return Task.Run(() => _timeZoneService.ModifyTimeZone(timeZone));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _timeZoneService.ModifyTimeZone(timeZone, token));
         }
 
 
@@ -59,10 +62,11 @@ namespace Biovation.Server.Controllers.v2
         [Route("TimeZoneToAllDevices")]
         public Task<ResultViewModel> SendTimeZoneToAllDevices(int timeZone = default, int deviceId = default)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
 
-                var device = _deviceService.GetDevice(deviceId).Data;
+                var device = _deviceService.GetDevice(deviceId, token: token).Data;
                 //var parameters = new List<object> { $"code={device.Code}", $"timeZoneId={timeZoneId}" };
                 //_communicationManager.CallRest(
                 //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice", "Get", parameters);

@@ -13,39 +13,39 @@ namespace Biovation.Service.Api.v1
             _userGroupRepository = userGroupRepository;
         }
 
-        public List<UserGroup> UsersGroup(long userId = default, int userGroupId = default)
+        public List<UserGroup> UsersGroup(long userId = default, int userGroupId = default, string token = default)
         {
-            return _userGroupRepository.UsersGroup(userId, userGroupId)?.Data?.Data ?? new List<UserGroup>();
+            return _userGroupRepository.UsersGroup(userId, userGroupId, token)?.Data?.Data ?? new List<UserGroup>();
         }
 
 
-        public List<UserGroup> GetAccessControlUserGroup(int id = default)
+        public List<UserGroup> GetAccessControlUserGroup(int id = default, string token = default)
         {
-            return _userGroupRepository.GetAccessControlUserGroup(id)?.Data ?? new List<UserGroup>();
+            return _userGroupRepository.GetAccessControlUserGroup(id, token)?.Data ?? new List<UserGroup>();
         }
 
-        public ResultViewModel SyncUserGroupMember(string lstUser = default)
+        public ResultViewModel SyncUserGroupMember(string lstUser = default, string token = default)
         {
-            return _userGroupRepository.SyncUserGroupMember(lstUser);
+            return _userGroupRepository.SyncUserGroupMember(lstUser, token);
         }
 
-        public ResultViewModel AddUserGroup(UserGroupMember userGroupMember = default)
+        public ResultViewModel AddUserGroup(UserGroupMember userGroupMember = default, string token = default)
         {
-            return _userGroupRepository.AddUserGroup(userGroupMember);
+            return _userGroupRepository.AddUserGroup(userGroupMember, token);
         }
 
-        public ResultViewModel ModifyUserGroup(UserGroup userGroup = default)
+        public ResultViewModel ModifyUserGroup(UserGroup userGroup = default, string token = default)
         {
-            return _userGroupRepository.ModifyUserGroup(userGroup);
+            return _userGroupRepository.ModifyUserGroup(userGroup, token);
         }
 
-        public ResultViewModel DeleteUserGroups(int groupId = default)
+        public ResultViewModel DeleteUserGroups(int groupId = default, string token = default)
         {
-            return _userGroupRepository.DeleteUserGroups(groupId);
+            return _userGroupRepository.DeleteUserGroups(groupId, token);
         }
-        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId)
+        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
         {
-            return _userGroupRepository.ModifyUserGroupMember(member, userGroupId);
+            return _userGroupRepository.ModifyUserGroupMember(member, userGroupId, token);
         }
     }
 }

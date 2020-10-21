@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Extension;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -22,34 +21,33 @@ namespace Biovation.Server.Controllers.v2
         private readonly RestClient _restClient;
         private readonly AccessGroupService _accessGroupService;
         private readonly DeviceService _deviceService;
-        private readonly User _user;
 
         public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService)
         {
             _restClient = restClient;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
-            _user = HttpContext.GetUser();
-
-
         }
 
         [HttpGet]
         public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, (int) _user.Id, userGroupId, id, deviceId, deviceGroupId, pageNumber, pageSize)
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId, pageNumber, pageSize, token: token)
             );
         }
 
         [HttpPost]
         public Task<ResultViewModel> AddAccessGroup([FromBody] AccessGroup accessGroup)
         {
-            return Task.Run(() => _accessGroupService.AddAccessGroup(accessGroup));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _accessGroupService.AddAccessGroup(accessGroup, token));
         }
 
         [HttpPatch]
         public Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
 
             {
@@ -71,18 +69,18 @@ namespace Biovation.Server.Controllers.v2
                 else
                 {
 
-                    var deviceResult = _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id);
+                    var deviceResult = _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id, token);
                     if (deviceResult.Validate != 1)
                         result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                     else
                     {
 
-                        var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id);
+                        var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id, token);
                         if (adminUsersResult.Validate != 1)
                             result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                         else
                         {
-                            var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id);
+                            var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id, token);
 
                             result = userGroupResult;
                         }
@@ -137,27 +135,30 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 5)
         {
-            return Task.Run(() => _accessGroupService.GetAccessGroup(id, nestingDepthLevel));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _accessGroupService.GetAccessGroup(id, nestingDepthLevel, token: token));
         }
 
         [HttpDelete]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteAccessGroups(int id = default)
         {
-            return Task.Run(() => _accessGroupService.DeleteAccessGroup(id));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _accessGroupService.DeleteAccessGroup(id, token));
         }
 
         [HttpPost]
         [Route("AllUsersToAllDevicesInAccessGroup/{accessGroupId}")]
         public Task<ResultViewModel> SendAllUsersToAllDevicesInAccessGroup(int accessGroupId = default)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
                 try
                 {
 
                     var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
-                    var accessGroup = _accessGroupService.GetAccessGroup(id: accessGroupId).Data;
+                    var accessGroup = _accessGroupService.GetAccessGroup(id: accessGroupId, token: token).Data;
                     if (accessGroup == null)
                     {
                         Logger.Log("No such access group found.\n");
@@ -242,12 +243,11 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("AccessGroupToDevice/{accessGroupId}")]
-        public List<ResultViewModel> SendAccessGroupToDevice(int accessGroupId)
+        public ResultViewModel SendAccessGroupToDevice(int accessGroupId)
         {
-            var resultList = new List<ResultViewModel>();
+            var token = (string)HttpContext.Items["Token"];
 
-
-            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId: accessGroupId).Data.Data;
+            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId: accessGroupId, token: token).Data.Data;
 
             foreach (var device in devices)
             {
@@ -263,7 +263,7 @@ namespace Biovation.Server.Controllers.v2
                 }
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
-            return resultList;
+            return new ResultViewModel { Validate = 1 };
         }
     }
 }

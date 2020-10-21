@@ -29,6 +29,7 @@ namespace Biovation.Server.Controllers.v1
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly TokenGenerator _tokenGenerator;
+        private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
@@ -41,27 +42,28 @@ namespace Biovation.Server.Controllers.v1
             _restClient = restClient;
             _tokenGenerator = tokenGenerator;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
 
         [HttpGet]
         [Route("Logs")]
         public Task<List<Log>> Logs()
         {
-            return _logService.Logs();
+            return _logService.Logs(token: _kasraAdminToken);
         }
 
         [HttpGet]
         [Route("Logs")]
         public Task<List<Log>> LogsWithDate(DateTime fromDate, DateTime toDate)
         {
-            return _logService.Logs(fromDate: fromDate, toDate: toDate);
+            return _logService.Logs(fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
 
         [HttpPost]
         [Route("SelectSearchedOfflineLogs")]
         public Task<List<Log>> SelectSearchedOfflineLogs([FromBody] DeviceTraffic dTraffic)
         {
-            return _logService.SelectSearchedOfflineLogs(dTraffic);
+            return _logService.SelectSearchedOfflineLogs(dTraffic, token: _kasraAdminToken);
         }
 
         [HttpPost]
@@ -69,7 +71,7 @@ namespace Biovation.Server.Controllers.v1
         public Task<List<Log>> SelectSearchedOfflineLogsWithPaging([FromBody] DeviceTraffic dTraffic)
         {
             //return _logService.SelectSearchedOfflineLogs(dTraffic);
-            return _logService.SelectSearchedOfflineLogsWithPaging(dTraffic);
+            return _logService.SelectSearchedOfflineLogsWithPaging(dTraffic, token: _kasraAdminToken);
         }
 
         [HttpPost]
@@ -91,12 +93,12 @@ namespace Biovation.Server.Controllers.v1
 
                 };
 
-                var device = _commonDeviceService.GetDevice(deviceId);
+                var device = _commonDeviceService.GetDevice(deviceId, token: _kasraAdminToken);
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
                 restRequest.AddJsonBody(device.Code);
                 restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //_communicationManager.CallRest(
                 //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
@@ -111,7 +113,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _commonDeviceService.GetDevice(deviceId);
+                var device = _commonDeviceService.GetDevice(deviceId, token: _kasraAdminToken);
 
                 var restRequest =
                     new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod",
@@ -140,7 +142,7 @@ namespace Biovation.Server.Controllers.v1
 
                 restRequest.AddQueryParameter("code", device.Code.ToString());
 
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
                 //        _communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Post", null,
@@ -158,14 +160,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("OfflineLogsOfDevice")]
         public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
         {
-            return _logService.Logs(deviceId: (int)deviceId);
+            return _logService.Logs(deviceId: (int)deviceId, token: _kasraAdminToken);
         }
 
         [HttpGet]
         [Route("OfflineLogsOfDevice")]
         public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime fromDate, DateTime toDate)
         {
-            return _logService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate);
+            return _logService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
 
         [HttpGet]
@@ -190,14 +192,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("LogsOfUser")]
         public Task<List<Log>> LogsOfUser(int userId)
         {
-            return _logService.Logs(userId: userId);
+            return _logService.Logs(userId: userId, token: _kasraAdminToken);
         }
 
         [HttpGet]
         [Route("LogsOfUser")]
         public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime fromDate, DateTime toDate)
         {
-            return _logService.Logs(userId: userId, fromDate: fromDate, toDate: toDate);
+            return _logService.Logs(userId: userId, fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
 
         [HttpPost]
@@ -208,7 +210,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId).FirstOrDefault());
+                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken)?.FirstOrDefault());
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = false;
@@ -233,7 +235,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId).FirstOrDefault());
+                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken).FirstOrDefault());
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = null;
@@ -263,7 +265,7 @@ namespace Biovation.Server.Controllers.v1
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < deviceId.Length; i++)
                     {
-                        var device = _commonDeviceService.GetDevice(deviceId[i]);
+                        var device = _commonDeviceService.GetDevice(deviceId[i], token: _kasraAdminToken);
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -277,7 +279,7 @@ namespace Biovation.Server.Controllers.v1
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
 
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         //var address = _localBioAddress +

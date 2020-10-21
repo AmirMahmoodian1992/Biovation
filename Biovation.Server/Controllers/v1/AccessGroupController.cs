@@ -21,6 +21,7 @@ namespace Biovation.Server.Controllers.v1
         private readonly AccessGroupService _accessGroupService;
         private readonly DeviceService _deviceService;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly string _kasraAdminToken;
 
         public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, BiovationConfigurationManager biovationConfigurationManager)
         {
@@ -28,12 +29,13 @@ namespace Biovation.Server.Controllers.v1
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
 
         [HttpGet, Route("AccessGroups")]
         public List<AccessGroup> AccessGroups(long userId = 0)
         {
-            return _accessGroupService.GetAccessGroups(adminUserId: (int)userId);
+            return _accessGroupService.GetAccessGroups(adminUserId: (int)userId, token:_kasraAdminToken);
         }
 
         //[HttpGet, Route("GetAccessGroupsByFilter")]
@@ -47,14 +49,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("AccessGroup")]
         public AccessGroup AccessGroup(int id)
         {
-            return _accessGroupService.GetAccessGroup(id);
+            return _accessGroupService.GetAccessGroup(id, token: _kasraAdminToken);
         }
 
         [HttpGet, Route("GetAccessGroupsByFilter")]
         public List<AccessGroup> AccessGroupsByFilter(int id, int deviceGroupId, int userId)
         {
             return _accessGroupService.GetAccessGroups(id: id,
-                deviceGroupId: deviceGroupId, adminUserId: userId);
+                deviceGroupId: deviceGroupId, adminUserId: userId, token: _kasraAdminToken);
         }
 
         [HttpPost]
@@ -70,7 +72,7 @@ namespace Biovation.Server.Controllers.v1
             var xmlAdmins = JsonConvert.DeserializeXmlNode(xmlAdmin, "Root");
 
 
-            var saved = _accessGroupService.ModifyAccessGroup(JsonConvert.DeserializeObject<AccessGroup>(accessGroup));
+            var saved = _accessGroupService.ModifyAccessGroup(JsonConvert.DeserializeObject<AccessGroup>(accessGroup), token: _kasraAdminToken);
             ResultViewModel result;
 
             if (saved.Validate != 1)
@@ -78,18 +80,18 @@ namespace Biovation.Server.Controllers.v1
             else
             {
 
-                var deviceResult = _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id);
+                var deviceResult = _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id, token: _kasraAdminToken);
                 if (deviceResult.Validate != 1)
                     result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                 else
                 {
 
-                    var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id);
+                    var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id, token: _kasraAdminToken);
                     if (adminUsersResult.Validate != 1)
                         result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                     else
                     {
-                        var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id);
+                        var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id, token: _kasraAdminToken);
 
                         result = userGroupResult;
                     }
@@ -98,13 +100,13 @@ namespace Biovation.Server.Controllers.v1
 
             Task.Run(() =>
             {
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
 
                 foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
                     $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
                     Method.POST)))
                 {
-                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                     _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 }
             });
@@ -116,7 +118,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("DeleteAccessGroup")]
         public ResultViewModel DeleteAccessGroup(int id)
         {
-            return _accessGroupService.DeleteAccessGroup(id);
+            return _accessGroupService.DeleteAccessGroup(id, token: _kasraAdminToken);
         }
 
         //[HttpPost]
@@ -141,7 +143,7 @@ namespace Biovation.Server.Controllers.v1
             var resultList = new List<ResultViewModel>();
 
 
-            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId);
+            var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId, token: _kasraAdminToken);
 
             foreach (var device in devices)
             {
@@ -151,7 +153,7 @@ namespace Biovation.Server.Controllers.v1
                         Method.GET);
                 restRequest.AddParameter("code", device.Code);
                 restRequest.AddParameter("accessGroupId", accessGroupId);
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
             return resultList;
@@ -161,14 +163,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("SendAccessGroupToDevice")]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, int deviceId)
         {
-            var device = _deviceService.GetDevice(deviceId);
+            var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
             var restRequest =
                 new RestRequest(
                     $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("accessGroupId", accessGroupId);
-            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
@@ -179,8 +181,8 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                var deviceBrands = _deviceService.GetDeviceBrands();
-                var accessGroup = _accessGroupService.GetAccessGroup(accessGroupId);
+                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                var accessGroup = _accessGroupService.GetAccessGroup(accessGroupId, token: _kasraAdminToken);
                 if (accessGroup == null)
                 {
                     Logger.Log("No such access group found.\n");
@@ -211,7 +213,7 @@ namespace Biovation.Server.Controllers.v1
                                 Method.GET);
                         restRequest.AddParameter("code", device.Code);
                         restRequest.AddParameter("accessGroupId", accessGroupId);
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         foreach (var userGroup in accessGroup.UserGroup)
@@ -233,7 +235,7 @@ namespace Biovation.Server.Controllers.v1
                                     Method.GET);
                             restRequest.AddParameter("code", device.Code);
                             restRequest.AddParameter("userId", userids);
-                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                             //}
                         }

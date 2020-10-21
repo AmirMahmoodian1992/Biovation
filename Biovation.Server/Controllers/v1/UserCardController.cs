@@ -14,6 +14,7 @@ namespace Biovation.Server.Controllers.v1
         //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();
         private readonly UserCardService _userCard;
         private readonly RestClient _restClient;
+        private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         public UserCardController(UserCardService userCard, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
@@ -21,12 +22,13 @@ namespace Biovation.Server.Controllers.v1
             _userCard = userCard;
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
         [HttpPost]
         [Route("ModifyUserCard")]
         public ResultViewModel ModifyUserCard([FromBody]UserCard userCard)
         {
-            var res = _userCard.ModifyUserCard(userCard);
+            var res = _userCard.ModifyUserCard(userCard, token: _kasraAdminToken);
             return res;
         }
 
@@ -34,14 +36,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUserCard")]
         public List<UserCard> GetUserCard(int userId = 0)
         {
-            return _userCard.GetCardsByFilter(userId: userId);
+            return _userCard.GetCardsByFilter(userId: userId, token: _kasraAdminToken);
         }
 
         [HttpPost]
         [Route("DeleteUserCard")]
         public ResultViewModel DeleteUserCard(int id)
         {
-            return _userCard.DeleteUserCard(id);
+            return _userCard.DeleteUserCard(id, token: _kasraAdminToken);
         }
 
         [HttpGet]
@@ -53,7 +55,7 @@ namespace Biovation.Server.Controllers.v1
                     $"/{brandName}/VirdiDevice/ReadCardNum",
                     Method.GET);
             resultRequest.AddParameter("deviceId", deviceId);
-            resultRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+            resultRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
             return _restClient.ExecuteAsync<int>(resultRequest).Result.Data;
         }
     }

@@ -18,18 +18,18 @@ namespace Biovation.Service.Api.v1
             int type = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _userRepository.GetUsers(onlineUserId, from, size, getTemplatesData, userId, filterText, type,
-                withPicture, isAdmin, pageNumber, pageSize)?.Data?.Data ?? new List<User>();
+            return _userRepository. GetUsers(from, size, getTemplatesData, userId, filterText, type,
+                withPicture, isAdmin, pageNumber, pageSize, token)?.Data?.Data ?? new List<User>();
         }
 
-        public List<User> GetAdminUser(long userId = 0)
+        public List<User> GetAdminUser(long userId = 0, string token = default)
         {
-            return _userRepository.GetAdminUser(userId)?.Data?.Data ?? new List<User>();
+            return _userRepository.GetAdminUser(userId, token)?.Data?.Data ?? new List<User>();
         }
 
-        public List<User> GetAdminUserOfAccessGroup(long userId = default, int accessGroupId = default)
+        public List<User> GetAdminUserOfAccessGroup(long userId = default, int accessGroupId = default, string token = default)
         {
-            return _userRepository.GetAdminUserOfAccessGroup(userId, accessGroupId)?.Data ?? new List<User>();
+            return _userRepository.GetAdminUserOfAccessGroup(userId, accessGroupId, token)?.Data ?? new List<User>();
         }
 
         public int GetUsersCount()
@@ -37,39 +37,39 @@ namespace Biovation.Service.Api.v1
             return _userRepository.GetUsersCount()?.Data ?? default;
         }
 
-        public List<DeviceBasicInfo> GetAuthorizedDevicesOfUser(long userId)
+        public List<DeviceBasicInfo> GetAuthorizedDevicesOfUser(long userId, string token = default)
         {
-            return _userRepository.GetAuthorizedDevicesOfUser((int)userId)?.Data ?? new List<DeviceBasicInfo>();
+            return _userRepository.GetAuthorizedDevicesOfUser((int)userId, token)?.Data ?? new List<DeviceBasicInfo>();
         }
 
-        public ResultViewModel ModifyUser(User user = default)
+        public ResultViewModel ModifyUser(User user = default, string token = default)
         {
-            return _userRepository.ModifyUser(user);
+            return _userRepository.ModifyUser(user, token);
         }
 
-        public ResultViewModel DeleteUser(int id = default)
+        public ResultViewModel DeleteUser(int id = default, string token = default)
         {
-            return _userRepository.DeleteUser(id);
+            return _userRepository.DeleteUser(id, token);
         }
 
-        public ResultViewModel DeleteUsers(List<int> ids = default)
+        public ResultViewModel DeleteUsers(List<int> ids = default, string token = default)
         {
-            return _userRepository.DeleteUsers(ids);
+            return _userRepository.DeleteUsers(ids, token);
         }
 
-        public ResultViewModel DeleteUserGroupsOfUser(int userId = default, int userTypeId = 1)
+        public ResultViewModel DeleteUserGroupsOfUser(int userId = default, int userTypeId = 1, string token = default)
         {
-            return _userRepository.DeleteUserGroupsOfUser(userId, userTypeId);
+            return _userRepository.DeleteUserGroupsOfUser(userId, userTypeId, token);
         }
 
-        public ResultViewModel DeleteUserGroupOfUser(int userId = default, int userGroupId = default, int userTypeId = 1)
+        public ResultViewModel DeleteUserGroupOfUser(int userId = default, int userGroupId = default, int userTypeId = 1, string token = default)
         {
-            return _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId);
+            return _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId, token);
         }
 
-        public ResultViewModel ModifyPassword(int id = default, string password = default)
+        public ResultViewModel ModifyPassword(int id = default, string password = default, string token = default)
         {
-            return _userRepository.ModifyPassword(id, password);
+            return _userRepository.ModifyPassword(id, password, token);
         }
     }
 }

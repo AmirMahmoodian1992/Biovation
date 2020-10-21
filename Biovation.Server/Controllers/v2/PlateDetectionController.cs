@@ -18,7 +18,6 @@ namespace Biovation.Server.Controllers.v2
         public PlateDetectionController(PlateDetectionService plateDetectionService)
         {
             _plateDetectionService = plateDetectionService;
-            //_restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         [HttpPost]

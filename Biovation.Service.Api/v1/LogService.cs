@@ -43,14 +43,14 @@ namespace Biovation.Service.Api.v1
         }
 
         public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
-            DateTime? toDate = null, int pageNumber = default, int pageSize = default, bool successTransfer = default)
+            DateTime? toDate = null, int pageNumber = default, int pageSize = default, bool successTransfer = default, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer: successTransfer)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer: successTransfer, token: token)?.Data?.Data ?? new List<Log>());
         }
 
-        public Task<List<Log>> Logs(DeviceTraffic dTraffic)
+        public Task<List<Log>> Logs(DeviceTraffic dTraffic, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
         }
 
         public Task<List<Log>> SelectSearchedOfflineLogs(DeviceTraffic dTraffic, string token = default)
@@ -58,24 +58,24 @@ namespace Biovation.Service.Api.v1
             return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
         }
 
-        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic dTraffic)
+        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic dTraffic, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.OnlineUserId, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
         }
 
 
-        public Task<ResultViewModel> AddLog(Log log)
+        public Task<ResultViewModel> AddLog(Log log, string token = default)
         {
-            return Task.Run(() => _logRepository.AddLog(log));
+            return Task.Run(() => _logRepository.AddLog(log, token));
         }
 
-        public Task<ResultViewModel> AddLog(List<Log> logs)
+        public Task<ResultViewModel> AddLog(List<Log> logs, string token = default)
         {
             return Task.Run(async () =>
             {
                 try
                 {
-                    return await _logRepository.AddLog(logs);
+                    return await _logRepository.AddLog(logs, token);
                 }
                 catch (Exception)
                 {
@@ -166,19 +166,19 @@ namespace Biovation.Service.Api.v1
             });
         }
 
-        public Task<ResultViewModel> UpdateLog(List<Log> logs)
+        public Task<ResultViewModel> UpdateLog(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.UpdateLog(logs));
+            return Task.Run(() => _logRepository.UpdateLog(logs, token));
         }
 
-        public Task<ResultViewModel> AddLogImage(Log log)
+        public Task<ResultViewModel> AddLogImage(Log log, string token = default)
         {
-            return Task.Run(() => _logRepository.AddLogImage(log));
+            return Task.Run(() => _logRepository.AddLogImage(log, token));
         }
 
-        public Task<List<Log>> CheckLogInsertion(List<Log> logs)
+        public Task<List<Log>> CheckLogInsertion(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.CheckLogInsertion(logs));
+            return Task.Run(() => _logRepository.CheckLogInsertion(logs, token));
         }
 
         public Task<byte[]> GetImage(long id)

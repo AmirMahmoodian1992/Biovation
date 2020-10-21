@@ -39,16 +39,16 @@ namespace Biovation.Service.Api.v1
         public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             string excludedTaskStatusCodes = default, int pageNumber = default,
-            int pageSize = default, int taskItemId = default)
+            int pageSize = default, int taskItemId = default, string token = default)
         {
             return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                                      excludedTaskStatusCodes, pageNumber, pageSize,taskItemId)?.Data?.Data ?? new List<TaskInfo>());
+                                      excludedTaskStatusCodes, pageNumber, pageSize,taskItemId, token)?.Data?.Data ?? new List<TaskInfo>());
         }
 
         public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             List<string> excludedTaskStatusCodes = default, int pageNumber = default,
-            int pageSize = default,int taskItemId = default)
+            int pageSize = default,int taskItemId = default, string token = default)
         {
             return Task.Run(() =>
             {
@@ -66,13 +66,13 @@ namespace Biovation.Service.Api.v1
                 }
 
                 return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                           excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId)?.Data?.Data ?? new List<TaskInfo>();
+                           excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token)?.Data?.Data ?? new List<TaskInfo>();
             });
         }
 
-        public TaskItem GetTaskItem(int taskItemId = default)
+        public TaskItem GetTaskItem(int taskItemId = default, string token = default)
         {
-            return _taskRepository.GetTaskItem(taskItemId)?.Data ?? new TaskItem();
+            return _taskRepository.GetTaskItem(taskItemId, token)?.Data ?? new TaskItem();
         }
 
         /*public ResultViewModel InsertTask(TaskInfo task)
@@ -102,12 +102,12 @@ namespace Biovation.Service.Api.v1
 
             return taskInsertionResult;
         }*/
-        public ResultViewModel InsertTask(TaskInfo task)
+        public ResultViewModel InsertTask(TaskInfo task, string token = default)
         {
             return _taskRepository.InsertTask(task);
         }
 
-        public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
+        public ResultViewModel UpdateTaskStatus(TaskItem taskItem, string token = default)
         {
             return _taskRepository.UpdateTaskStatus(taskItem);
         }

@@ -25,6 +25,7 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly SystemInfo _systemInformation;
+        private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager)
@@ -35,6 +36,7 @@ namespace Biovation.Server.Controllers.v1
             _deviceService = deviceService;
             _systemInformation = systemInformation;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
 
         //[HttpGet]
@@ -49,13 +51,13 @@ namespace Biovation.Server.Controllers.v1
         public Task<List<DeviceBasicInfo>> DevicesByFilter(long adminUserId = 0, int deviceGroupId = 0, uint code = 0, int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0)
         {
             return Task.Run(() => _deviceService.GetDevices(adminUserId: adminUserId, deviceGroupId: deviceGroupId, code: code,
-                brandId: brandId.ToString(), deviceName: deviceName, deviceModelId: deviceModelId));
+                brandId: brandId.ToString(), deviceName: deviceName, deviceModelId: deviceModelId, token: _kasraAdminToken));
         }
         [HttpGet]
         [Route("Devices")]
         public Task<List<DeviceBasicInfo>> DevicesFilter(long userId, string deviceName = default, int deviceModelId = default, int deviceTypeId = default)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, deviceModelId: deviceModelId, brandId: deviceTypeId.ToString(), adminUserId: userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, deviceModelId: deviceModelId, brandId: deviceTypeId.ToString(), adminUserId: userId, token: _kasraAdminToken));
         }
 
         ////ToDo: Check and fix route duplicate
@@ -70,7 +72,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("Device")]
         public Task<DeviceBasicInfo> Device(int deviceId, int userId)
         {
-            return Task.Run(() => _deviceService.GetDevice(adminUserId: userId, id: deviceId));
+            return Task.Run(() => _deviceService.GetDevice(adminUserId: userId, id: deviceId, token: _kasraAdminToken));
         }
 
         [HttpGet]
@@ -82,7 +84,7 @@ namespace Biovation.Server.Controllers.v1
                 var devices = new List<DeviceBasicInfo>();
                 foreach (var deviceId in deviceIds)
                 {
-                    var device = _deviceService.GetDevice(id: deviceId);
+                    var device = _deviceService.GetDevice(id: deviceId, token: _kasraAdminToken);
                     if (device != null)
                         devices.Add(device);
                 }
@@ -95,7 +97,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesListByName")]
         public Task<List<DeviceBasicInfo>> DevicesListByName(string deviceName, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, adminUserId: userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceName: deviceName, adminUserId: userId, token: _kasraAdminToken));
         }
 
 
@@ -125,7 +127,7 @@ namespace Biovation.Server.Controllers.v1
                         restRequest.AddQueryParameter("code", device.Code.ToString());
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         if (requestResult.StatusCode == HttpStatusCode.OK)
                         {
@@ -152,28 +154,28 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesListByBrandId")]
         public Task<List<DeviceBasicInfo>> DevicesListByBrandId(string brandCode, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId));
+            return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId, token: _kasraAdminToken));
         }
 
         [HttpGet]
         [Route("DevicesListByModelId")]
         public Task<List<DeviceBasicInfo>> DevicesListByModelId(int modelId, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId));
+            return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId, token: _kasraAdminToken));
         }
 
         [HttpGet]
         [Route("DeviceByIdAndBrandId")]
         public Task<DeviceBasicInfo> DeviceByIdAndBrandId(int deviceId, string brandCode, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId).Find(d => d.DeviceId == deviceId));
+            return Task.Run(() => _deviceService.GetDevices(code: uint.Parse(brandCode), adminUserId: userId, token: _kasraAdminToken).Find(d => d.DeviceId == deviceId));
         }
 
         [HttpGet]
         [Route("DeviceByIdAndModelId")]
         public Task<DeviceBasicInfo> DeviceByIdAndModelId(int deviceId, int modelId, int userId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId).Find(d => d.DeviceId == deviceId));
+            return Task.Run(() => _deviceService.GetDevices(deviceModelId: modelId, adminUserId: userId, token: _kasraAdminToken).Find(d => d.DeviceId == deviceId));
         }
 
         [HttpGet]
@@ -190,7 +192,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode ?? 0.ToString());
+                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode ?? 0.ToString(), token: _kasraAdminToken);
                 if (!loadedBrandsOnly) return deviceModels;
 
                 return deviceModels.Where(dm => _systemInformation.Services.Any(db =>
@@ -204,7 +206,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(() =>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode ?? string.Empty, deviceName: name);
+                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode ?? string.Empty, deviceName: name, token: _kasraAdminToken);
                 if (!loadedBrandsOnly) return deviceModels;
                 var restRequest = new RestRequest("SystemInfo/LoadedBrand", Method.GET);
                 var requestResult = _restClient.Execute<ResultViewModel<SystemInfo>>(restRequest);
@@ -222,14 +224,14 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var result = _deviceService.ModifyDevice(device);
+                var result = _deviceService.ModifyDevice(device, token: _kasraAdminToken);
                 if (result.Validate != 1) return result;
 
-                device = _deviceService.GetDevice(id: device.DeviceId);
+                device = _deviceService.GetDevice(id: device.DeviceId, token: _kasraAdminToken);
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return result;
@@ -240,7 +242,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("RemoveDevice")]
         public Task<ResultViewModel> RemoveDevice(uint deviceId)
         {
-            return Task.Run(() => _deviceService.DeleteDevice(deviceId));
+            return Task.Run(() => _deviceService.DeleteDevice(deviceId, token: _kasraAdminToken));
         }
 
         [HttpPost]
@@ -252,14 +254,14 @@ namespace Biovation.Server.Controllers.v1
                 //var resultList = new Dictionary<uint, bool>();
                 var resultList = new List<ResultViewModel>();
 
-                var brands = _deviceService.GetDeviceBrands();
+                var brands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
                 foreach (var deviceBrand in brands)
                 {
                     try
                     {
                         var restRequest = new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteDevices", Method.POST);
                         restRequest.AddJsonBody(deviceIds);
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         await _restClient.ExecuteAsync<Dictionary<uint, bool>>(restRequest);
                     }
                     catch (Exception)
@@ -270,7 +272,7 @@ namespace Biovation.Server.Controllers.v1
 
                 foreach (var deviceId in deviceIds)
                 {
-                    var result = _deviceService.DeleteDevice(deviceId);
+                    var result = _deviceService.DeleteDevice(deviceId, token: _kasraAdminToken);
                     resultList.Add(result);
                     //resultList.Add(deviceId, result.Validate == 1);
                 }
@@ -315,13 +317,13 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDevice(deviceId);
+                var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddJsonBody(userId);
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 var result = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -339,7 +341,7 @@ namespace Biovation.Server.Controllers.v1
                     return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "No users selected." } };
 
                 //var users = JsonConvert.DeserializeObject<long[]>(userId.ToString());
-                var device = _deviceService.GetDevice(deviceId);
+                var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
 
                 //foreach (var user in users)
                 //{
@@ -349,7 +351,7 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddJsonBody(userId);
 
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 if (requestResult.StatusCode == HttpStatusCode.OK)
                     result.Add(requestResult.Data);
                 //}
@@ -365,12 +367,12 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDevice(deviceId);
-                var userAwaiter = _userService.GetUsers();
+                var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
+                var userAwaiter = _userService.GetUsers(token: _kasraAdminToken);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
 
                 var result = await restAwaiter;
@@ -402,7 +404,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var device = _deviceService.GetDevice(deviceId);
+                    var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
                     if (device == null)
                     {
                         Logger.Log($"DeviceId {deviceId} does not exist.");
@@ -411,7 +413,7 @@ namespace Biovation.Server.Controllers.v1
 
                     var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
                     restRequest.AddJsonBody(device);
-                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                     var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     return new ResultViewModel { Validate = result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = deviceId };
@@ -430,11 +432,11 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDevice(deviceId);
+                var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                 var result = await _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
 
                 return result.StatusCode == HttpStatusCode.OK ? result.Data : new Dictionary<string, string>();
@@ -448,7 +450,7 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(() =>
             {
                 var results = new List<ResultViewModel>();
-                var deviceBrands = _deviceService.GetDeviceBrands();
+                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
 
                 var tasks = new List<Task>();
                 foreach (var deviceBrand in deviceBrands)
@@ -461,7 +463,7 @@ namespace Biovation.Server.Controllers.v1
                             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
                         if (deviceIds != null)
                             restRequest.AddJsonBody(deviceIds);
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         lock (results)
                         {

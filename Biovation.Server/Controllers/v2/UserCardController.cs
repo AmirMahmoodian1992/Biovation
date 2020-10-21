@@ -29,7 +29,8 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyUserCard([FromBody]UserCard card = default)
         {
-            return Task.Run(()=> _userCard.ModifyUserCard(card));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(()=> _userCard.ModifyUserCard(card,token));
         }
 
         [HttpGet]
@@ -37,21 +38,30 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard(long userId, bool isActive,
         int pageNumber = default, int pageSize = default)
         {
-            return Task.Run (() =>  _userCard.GetCardsByFilter(userId, isActive, pageNumber, pageSize));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run (() =>  _userCard.GetCardsByFilter(userId, isActive, pageNumber, pageSize, token));
         }
 
         [HttpDelete]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteUserCard(int id = default)
         {
-            return Task.Run(() => _userCard.DeleteUserCard(id));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _userCard.DeleteUserCard(id, token));
         }
 
         [HttpGet]
         [Route("cardNumber/{deviceId}")]
-        public Task<int> ReadCardNumber(string brandName = default, int deviceId = default)
+        public Task<ResultViewModel<int>> ReadCardNumber(string brandName = default, int deviceId = default)
         {
-            return Task.Run( () =>  _userCard.ReadCardNumber(brandName,deviceId));
+            var token = (string)HttpContext.Items["Token"];
+           return Task.Run(() => {
+                return new ResultViewModel<int>
+                {
+                    Success = true,
+                    Data = _userCard.ReadCardNumber(brandName, deviceId, token)
+                };
+            });
         }
     }
 }

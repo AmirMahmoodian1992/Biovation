@@ -20,31 +20,31 @@ namespace Biovation.Service.Api.v1
 
         public List<FingerTemplate> FingerTemplates(int userId = default, int templateIndex = default,
             Lookup fingerTemplateType = default, int from = default, int size = default, int pageNumber = default,
-            int pageSize = default)
+            int pageSize = default, string token = default)
         {
             return _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size,
-                pageNumber, pageSize)?.Data?.Data ?? new List<FingerTemplate>();
+                pageNumber, pageSize, token)?.Data?.Data ?? new List<FingerTemplate>();
         }
 
-        public List<Lookup> GetFingerTemplateTypes(string brandId = default)
+        public List<Lookup> GetFingerTemplateTypes(string brandId = default, string token = default)
         {
-            return _fingerTemplateRepository.GetFingerTemplateTypes(brandId)?.Data?.Data ?? new List<Lookup>();
+            return _fingerTemplateRepository.GetFingerTemplateTypes(brandId, token)?.Data?.Data ?? new List<Lookup>();
 
         }
 
-        public int GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType)
+        public int GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType, string token = default)
         {
-            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType)?.Data ?? default;
+            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType, token)?.Data ?? default;
         }
 
-        public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate = default)
+        public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate = default, string token = default)
         {
-            return _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate);
+            return _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate, token);
         }
 
-        public ResultViewModel DeleteFingerTemplate(int userId = default, int fingerIndex = default)
+        public ResultViewModel DeleteFingerTemplate(int userId = default, int fingerIndex = default, string token = default)
         {
-            return _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex);
+            return _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex, token);
         }
     }
 }

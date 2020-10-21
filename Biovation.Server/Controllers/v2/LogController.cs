@@ -10,6 +10,7 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Servers;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
@@ -29,9 +30,8 @@ namespace Biovation.Server.Controllers.v2
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
-        private readonly TokenGenerator _tokenGenerator;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TaskTypes taskTypes, TaskPriorities taskPriorities, TokenGenerator tokenGenerator)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TaskTypes taskTypes, TaskPriorities taskPriorities)
         {
             _userService = userService;
             _logService = logService;
@@ -39,7 +39,6 @@ namespace Biovation.Server.Controllers.v2
             _restClient = restClient;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
-            _tokenGenerator = tokenGenerator;
         }
 
         //we should consider the without parameter input version of log
@@ -51,7 +50,8 @@ namespace Biovation.Server.Controllers.v2
                         int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
                         int pageSize = default)
         {
-            return Task.Run(() => _logService.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize));
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _logService.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize, token));
         }
 
         [HttpGet]
@@ -75,6 +75,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpDelete]
         public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () =>
             {
                 try
@@ -83,7 +84,7 @@ namespace Biovation.Server.Controllers.v2
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < deviceId.Length; i++)
                     {
-                        var device = _deviceService.GetDevice(deviceId[i]).Data;
+                        var device = _deviceService.GetDevice(deviceId[i],token:token).Data;
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -130,11 +131,11 @@ namespace Biovation.Server.Controllers.v2
         [Route("OfflineLogs")]
         public Task<ResultViewModel> TransmitOfflineLogs(long userId = default, string logFilter = default, bool resendLogs = default)
         {
+            var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () =>
             {
                 try
                 {
-                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId).Data.Data.FirstOrDefault());
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(logFilter);
                     obj.OnlineUserId = userId;
                     obj.State = false;

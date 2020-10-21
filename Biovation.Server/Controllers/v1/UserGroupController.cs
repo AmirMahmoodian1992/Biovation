@@ -22,15 +22,17 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
+        private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, BiovationConfigurationManager biovationConfigurationManager)
+        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient)
         {
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
-            _restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/Biovation/Api/").UseSerializer(() => new RestRequestJsonSerializer());
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _restClient = restClient;
         }
 
         //[HttpPost]
@@ -192,7 +194,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id).FirstOrDefault();
+                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id, token: _kasraAdminToken).FirstOrDefault();
                     if (existingUserGroup is null && userGroup.Id != 0)
                     {
                         return new ResultViewModel
@@ -235,7 +237,7 @@ namespace Biovation.Server.Controllers.v1
 
                     var computeExistingAddition = Task.Run(() => Parallel.ForEach(usersToAdd, user =>
                     {
-                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser(user.UserId);
+                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser(user.UserId, token: _kasraAdminToken);
                         if (!existingAuthorizedDevicesOfUserToAdd.ContainsKey(user.UserId))
                             existingAuthorizedDevicesOfUserToAdd.Add(user.UserId, new List<DeviceBasicInfo>());
 
@@ -250,7 +252,7 @@ namespace Biovation.Server.Controllers.v1
 
                     Task.WaitAll(computeExistingAddition, computeExistingDeletion);
 
-                    var result = _userGroupService.ModifyUserGroup(userGroup);
+                    var result = _userGroupService.ModifyUserGroup(userGroup, token: _kasraAdminToken);
                     if (result.Validate != 1) return result;
 
                     var computeNewDeletion = Task.Run(() => Parallel.ForEach(usersToDelete, user =>
@@ -260,7 +262,7 @@ namespace Biovation.Server.Controllers.v1
                                 ? existingAuthorizedDevicesOfUserToDelete[user.UserId]
                                 : new List<DeviceBasicInfo>();
 
-                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser(user.UserId);
+                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser(user.UserId, token: _kasraAdminToken);
 
                         var computeNewStateTask = Task.Run(() => Parallel.ForEach(authorizedDevicesOfUser, device =>
                         {
@@ -360,7 +362,7 @@ namespace Biovation.Server.Controllers.v1
                     {
                         await Task.Run(async () =>
                         {
-                            var device = _deviceService.GetDevice(deviceKey);
+                            var device = _deviceService.GetDevice(deviceKey, token: _kasraAdminToken);
                             var usersToDeleteFromDevice = (newAuthorizedUsersOfDevicesToDelete.ContainsKey(deviceKey) && newAuthorizedUsersOfDevicesToDelete[deviceKey]?.Count > 0
                                 ? existingAuthorizedUsersOfDevicesToDelete[deviceKey]
                                     .ExceptBy(newAuthorizedUsersOfDevicesToDelete[deviceKey], member => member.UserId)
@@ -373,7 +375,7 @@ namespace Biovation.Server.Controllers.v1
                             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Id));
                             /*var deletionResult =*/
-                            deleteUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                            deleteUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                             await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -384,7 +386,7 @@ namespace Biovation.Server.Controllers.v1
                     {
                         await Task.Run(async () =>
                         {
-                            var device = _deviceService.GetDevice(deviceKey);
+                            var device = _deviceService.GetDevice(deviceKey, token: _kasraAdminToken);
                             var usersToDeleteFromDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
                                 ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
                                     .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
@@ -396,7 +398,7 @@ namespace Biovation.Server.Controllers.v1
                             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Id)));
                             /*var additionResult =*/
-                            sendUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                            sendUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
 
                             //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
@@ -426,11 +428,11 @@ namespace Biovation.Server.Controllers.v1
                 //var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
                 //var node = xDocument.OuterXml;
 
-                var result = _userGroupService.ModifyUserGroupMember(member, member[0].GroupId);
+                var result = _userGroupService.ModifyUserGroupMember(member, member[0].GroupId, token: _kasraAdminToken);
 
                 Task.Run(() =>
                 {
-                    var deviceBrands = _deviceService.GetDeviceBrands();
+                    var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
                     foreach (var deviceBrand in deviceBrands)
                     {
                         var restRequest =
@@ -438,7 +440,7 @@ namespace Biovation.Server.Controllers.v1
                                 $"{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
                                 Method.POST);
                         restRequest.AddJsonBody(JsonConvert.SerializeObject(member));
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                     }
                 });
@@ -458,7 +460,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userGroupService.UsersGroup(userId);
+                return _userGroupService.UsersGroup(userId, token: _kasraAdminToken);
             }
             catch (Exception exception)
             {
@@ -473,7 +475,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userGroupService.UsersGroup(userGroupId: userGroupId).FirstOrDefault() ?? new UserGroup();
+                return _userGroupService.UsersGroup(userGroupId: userGroupId, token: _kasraAdminToken).FirstOrDefault() ?? new UserGroup();
             }
             catch (Exception exception)
             {
@@ -504,7 +506,7 @@ namespace Biovation.Server.Controllers.v1
                 var resultList = new List<ResultViewModel>();
                 foreach (var group in groupIds)
                 {
-                    var result = _userGroupService.DeleteUserGroups(group);
+                    var result = _userGroupService.DeleteUserGroups(group, token: _kasraAdminToken);
                     resultList.Add(new ResultViewModel { Validate = result.Validate, Message = result.Message, Id = group });
                 }
 
@@ -520,7 +522,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetAccessControlUserGroup")]
         public List<UserGroup> GetAccessControlUserGroup(int id)
         {
-            return _userGroupService.GetAccessControlUserGroup(id);
+            return _userGroupService.GetAccessControlUserGroup(id, token: _kasraAdminToken);
         }
 
         [HttpPost]
@@ -529,12 +531,12 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                var deviceBrands = _deviceService.GetDeviceBrands();
-                var userGroup = _userGroupService.UsersGroup(userGroupId: userGroupId).FirstOrDefault();
+                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                var userGroup = _userGroupService.UsersGroup(userGroupId: userGroupId, token: _kasraAdminToken).FirstOrDefault();
                 if (userGroup != null)
                     foreach (var userGroupMember in userGroup.Users)
                     {
-                        var user = _userService.GetUsers(userGroupMember.UserId).FirstOrDefault();
+                        var user = _userService.GetUsers(userGroupMember.UserId, token: _kasraAdminToken).FirstOrDefault();
 
                         foreach (var deviceBrand in deviceBrands)
                         {
@@ -543,7 +545,7 @@ namespace Biovation.Server.Controllers.v1
                                     $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                     Method.POST);
                             restRequest.AddJsonBody(JsonConvert.SerializeObject(user));
-                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                             _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
                         }
                     }
@@ -568,7 +570,7 @@ namespace Biovation.Server.Controllers.v1
                 var xml = $"{{Users: {lstUsers} }}";
 
                 var xmlObject = JsonConvert.DeserializeXmlNode(xml, "Root");
-                var firstStep = _userGroupService.SyncUserGroupMember(xmlObject.OuterXml);
+                var firstStep = _userGroupService.SyncUserGroupMember(xmlObject.OuterXml, token: _kasraAdminToken);
 
                 //if (firstStep.Validate == 1)
                 //{

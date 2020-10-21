@@ -14,6 +14,7 @@ namespace Biovation.Server.Controllers.v1
     {
         private readonly SystemInfo _systemInfo;
         private readonly RestClient _restClient;
+        private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         public SystemInfoController(RestClient restClient, SystemInfo systemInfo, BiovationConfigurationManager biovationConfigurationManager)
@@ -21,6 +22,7 @@ namespace Biovation.Server.Controllers.v1
             _systemInfo = systemInfo;
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
 
         [HttpGet]
@@ -50,7 +52,7 @@ namespace Biovation.Server.Controllers.v1
                     try
                     {
                         var restRequest = new RestRequest($"{moduleInfo.Name}/{moduleInfo.Name}Service/Restart", Method.POST);
-                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.SecondDefaultToken);
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         await _restClient.ExecuteAsync(restRequest);
 
                         Logger.Log($"Module : {moduleInfo.Name} Restart");
