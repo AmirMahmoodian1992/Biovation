@@ -60,7 +60,7 @@ namespace Biovation.Servers
             };
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: null,
+                expires: DateTime.Now.AddYears(1),
                 signingCredentials: credentials
             );
             return new JwtSecurityTokenHandler().WriteToken(token);

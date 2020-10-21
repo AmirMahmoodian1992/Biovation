@@ -44,11 +44,11 @@ namespace Biovation.Server.Controllers.v2
         public IActionResult Login(long id = default)
         {
             IActionResult response = Unauthorized();
-            var user = _userService.GetUsers(userId:id)?.Data?.Data?.FirstOrDefault();
+            var user = _userService.GetUsers(code:id)?.Data?.Data?.FirstOrDefault();
             if (user != null)
             {
-                var tokenString = _generateToken.GenerateJWTLoginToken(user);
-                //var tokenString = _generateToken.GenerateToken(user);
+                //var tokenString = _generateToken.GenerateJWTLoginToken(user);
+                var tokenString = _generateToken.GenerateToken(user);
                 response = Ok(new
                 {
                     token = tokenString,

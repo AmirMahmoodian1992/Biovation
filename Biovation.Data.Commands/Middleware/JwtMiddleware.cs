@@ -7,6 +7,7 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens; //using Biovation.Service.Api.v2;
+using Newtonsoft.Json;
 
 namespace Biovation.Data.Commands.Middleware
 {
@@ -50,11 +51,7 @@ namespace Biovation.Data.Commands.Middleware
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
-                var user = new User
-                {
-                    Id = userId
-                };
+                var user = JsonConvert.DeserializeObject<User>(jwtToken.Claims.First(x => string.Equals(x.Type, "User", StringComparison.InvariantCultureIgnoreCase)).Value);
                 context.Items["Token"] = token;
                 context.Items["User"] = user;
                 // attach user to context on successful jwt validation

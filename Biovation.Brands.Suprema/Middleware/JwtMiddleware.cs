@@ -1,7 +1,9 @@
 ﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -49,12 +51,8 @@ namespace Biovation.Brands.Suprema.Middleware
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
-
-                // attach user to context on successful jwt validation
-                var user = _userService.GetUsers(userId: userId).FirstOrDefault();
-                
-                context.Items["User"] = _userService.GetUsers(userId: userId).FirstOrDefault();
+                var user = JsonConvert.DeserializeObject<User>(jwtToken.Claims.First(x => string.Equals(x.Type, "User", StringComparison.InvariantCultureIgnoreCase)).Value);
+                context.Items["User"] = user;
             }
             catch
             {

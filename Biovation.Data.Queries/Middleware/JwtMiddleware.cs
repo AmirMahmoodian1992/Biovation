@@ -1,7 +1,9 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens; //using Biovation.Service.Api.v2;
+using Newtonsoft.Json;
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -46,22 +48,20 @@ namespace Biovation.Data.Queries.Middleware
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
-                    ClockSkew = TimeSpan.Zero
+                    //ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
-                var user = new User
-                {
-                    Id = userId
-                };
+                var user = JsonConvert.DeserializeObject<User>(jwtToken.Claims.First(x => string.Equals(x.Type, "User", StringComparison.InvariantCultureIgnoreCase)).Value);
+
                 context.Items["Token"] = token;
                 context.Items["User"] = user;
                 // attach user to context on successful jwt validation
                 //  context.Items["User"] = _userService.GetUsers(userId:userId).Data.Data.FirstOrDefault();
             }
-            catch
+            catch(Exception e)
             {
+                Logger.Log(e);
                 // do nothing if jwt validation fails
                 // user is not attached to context so request won't have access to secure routes
             }
