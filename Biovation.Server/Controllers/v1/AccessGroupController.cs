@@ -35,15 +35,8 @@ namespace Biovation.Server.Controllers.v1
         [HttpGet, Route("AccessGroups")]
         public List<AccessGroup> AccessGroups(long userId = 0)
         {
-            return _accessGroupService.GetAccessGroups(adminUserId: (int)userId, token:_kasraAdminToken);
+            return _accessGroupService.GetAccessGroups(adminUserId: (int)userId, token: _kasraAdminToken);
         }
-
-        //[HttpGet, Route("GetAccessGroupsByFilter")]
-        //public List<AccessGroup> GetAccessGroupsByFilter(int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int userId = 0)
-        //{
-        //    return _accessGroupService.GetAccessGroups(adminUserId: adminUserId, userGroupId: userGroupId, id: id,
-        //        deviceId: deviceId, userId: userId);
-        //}
 
         [HttpGet]
         [Route("AccessGroup")]
@@ -53,10 +46,10 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpGet, Route("GetAccessGroupsByFilter")]
-        public List<AccessGroup> AccessGroupsByFilter(int id, int deviceGroupId, int userId)
+        public List<AccessGroup> AccessGroupsByFilter(int id = default, int deviceGroupId = default, int userId = default, int adminUserId = default, int userGroupId = default, int deviceId = default)
         {
             return _accessGroupService.GetAccessGroups(id: id,
-                deviceGroupId: deviceGroupId, adminUserId: userId, token: _kasraAdminToken);
+                deviceGroupId: deviceGroupId, adminUserId: userId == default ? adminUserId : userId, deviceId: deviceId, userGroupId: userGroupId, token: _kasraAdminToken);
         }
 
         [HttpPost]

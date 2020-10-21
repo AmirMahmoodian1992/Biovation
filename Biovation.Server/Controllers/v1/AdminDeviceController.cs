@@ -11,8 +11,6 @@ namespace Biovation.Server.Controllers.v1
     [ApiVersion("1.0")]
     public class AdminDeviceController : Controller
     {
-        //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
-
         private readonly AdminDeviceService _adminDeviceService;
         private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;

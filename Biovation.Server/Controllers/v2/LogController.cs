@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Servers;
 using Biovation.Service.Api.v2;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
@@ -41,10 +36,6 @@ namespace Biovation.Server.Controllers.v2
             _taskPriorities = taskPriorities;
         }
 
-        //we should consider the without parameter input version of log
-        // and handle searchOfflineLogs with paging or not with  [FromBody]DeviceTraffic dTraffic
-
-
         [HttpGet]
         public Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default,
                         int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
@@ -55,8 +46,8 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("Image")]
-        public Task<byte[]> GetImage(long id)
+        [Route("{id}/Image")]
+        public Task<byte[]> GetImage([FromRoute] long id)
         {
             return Task.Run(async () =>
             {
@@ -71,53 +62,6 @@ namespace Biovation.Server.Controllers.v2
                 }
             });
         }
-
-        [HttpDelete]
-        public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
-            {
-                try
-                {
-                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
-                    var result = new List<ResultViewModel>();
-                    for (var i = 0; i < deviceId.Length; i++)
-                    {
-                        var device = _deviceService.GetDevice(deviceId[i],token:token).Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
-                            result.Add(new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
-                            continue;
-                        }
-
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
-
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                        //var address = _localBioAddress +
-                        //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
-                        //var data = _restCall.CallRestAsync(address, null, null, "POST");
-                        //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
-                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
-                        restResult.Data.Id = deviceId[i];
-                        result.Add(restResult.Data);
-                    }
-
-                    return result;
-                }
-                catch (Exception)
-                {
-                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
-                }
-            });
-        }
-
 
         /// <summary>
         /// 

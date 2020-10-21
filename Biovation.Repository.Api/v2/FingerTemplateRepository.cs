@@ -17,19 +17,18 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<PagingResult<UserTemplateCount>> GetTemplateCount(string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/FingerTemplate/TemplateCount", Method.GET);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<UserTemplateCount>>>(restRequest);
             return requestResult.Result.Data;
         }
 
         public ResultViewModel<PagingResult<FingerTemplate>> FingerTemplates(int userId, int templateIndex,
-            Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default,
-            int pageSize = default, string token = default)
+            string fingerTemplateType, int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/FingerTemplate", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("templateIndex", templateIndex.ToString());
-            restRequest.AddQueryParameter("from", from.ToString());
-            restRequest.AddQueryParameter("size", size.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;

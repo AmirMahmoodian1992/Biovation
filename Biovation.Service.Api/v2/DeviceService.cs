@@ -37,9 +37,9 @@ namespace Biovation.Service.Api.v2
         }
 
         public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = default, int brandId = default,
-            string deviceName = null, int pageNumber = default, int pageSize = default, string token = default)
+            string name = null, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), deviceName, pageNumber, pageSize, token);
+            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), name, pageNumber, pageSize, token);
         }
 
         public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode, string token)
