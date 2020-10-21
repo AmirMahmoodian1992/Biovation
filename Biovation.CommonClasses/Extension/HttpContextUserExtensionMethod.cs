@@ -9,7 +9,8 @@ namespace Biovation.CommonClasses.Extension
         {
             try
             {
-                return (User)context.Items["User"];
+                    return (User)context?.Items["User"];
+                
             }
             catch (System.Exception)
             {
