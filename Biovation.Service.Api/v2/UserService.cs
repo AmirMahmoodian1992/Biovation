@@ -18,7 +18,7 @@ namespace Biovation.Service.Api.v2
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _userRepository.GetUsers(from, size, getTemplatesData, userId, filterText, type,
+            return _userRepository.GetUsers(from, size, getTemplatesData, userId, code, filterText, type,
                 withPicture, isAdmin, pageNumber, pageSize, token);
         }
 

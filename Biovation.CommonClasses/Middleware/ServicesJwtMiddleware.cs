@@ -49,7 +49,6 @@ namespace Biovation.CommonClasses.Middleware
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var user = JsonConvert.DeserializeObject<User>(jwtToken.Claims.First(x => string.Equals(x.Type, "User", StringComparison.InvariantCultureIgnoreCase)).Value);
-
                 // attach user to context on successful jwt validation
                 context.Items["User"] = user;
             }
