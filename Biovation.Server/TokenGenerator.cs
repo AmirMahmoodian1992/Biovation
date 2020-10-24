@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Microsoft.IdentityModel.Tokens;
-using MoreLinq.Extensions;
 using Newtonsoft.Json;
 
 namespace Biovation.Servers
@@ -50,7 +45,7 @@ namespace Biovation.Servers
         }
         public string GenerateToken(User userInfo)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_biovationConfigurationManager.JwtLoginkey()));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_biovationConfigurationManager.JwtLoginKey()));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]

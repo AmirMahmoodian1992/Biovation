@@ -18,8 +18,8 @@ namespace Biovation.Service.Api.v1
             int type = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default, long code = default)
         {
-            return _userRepository. GetUsers(from: from, size:size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type:type,
-                withPicture:withPicture, isAdmin:isAdmin, pageNumber:pageNumber, pageSize:pageSize, token:token, code:code)?.Data?.Data ?? new List<User>();
+            return _userRepository. GetUsers(from: from, size:size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type: type,
+                withPicture: withPicture, isAdmin: isAdmin, pageNumber: pageNumber, pageSize: pageSize, token: token, code: code)?.Data?.Data ?? new List<User>();
         }
 
         public List<User> GetAdminUser(long userId = 0, string token = default)

@@ -39,7 +39,7 @@ namespace Biovation.Brands.ZK.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginkey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginKey());
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -51,7 +51,7 @@ namespace Biovation.Brands.ZK.Middleware
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                //var userId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "id", StringComparison.InvariantCultureIgnoreCase)).Value);
+                
                 var user = JsonConvert.DeserializeObject<User>(jwtToken.Claims.First(x => string.Equals(x.Type, "User", StringComparison.InvariantCultureIgnoreCase)).Value);
                 // attach user to context on successful jwt validation
                 context.Items["User"] =user;

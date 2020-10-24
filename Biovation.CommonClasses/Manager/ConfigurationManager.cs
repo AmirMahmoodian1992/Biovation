@@ -37,7 +37,7 @@ namespace Biovation.CommonClasses.Manager
         //{
         //    return LoginKey;
         //}
-        public string JwtLoginkey()
+        public string JwtLoginKey()
         {
             return LoginKey;
         }

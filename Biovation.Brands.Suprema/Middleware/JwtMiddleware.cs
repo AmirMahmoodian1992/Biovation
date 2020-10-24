@@ -39,7 +39,7 @@ namespace Biovation.Brands.Suprema.Middleware
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginkey());
+                var key = Encoding.ASCII.GetBytes(_biovationConfigurationManager.JwtLoginKey());
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,

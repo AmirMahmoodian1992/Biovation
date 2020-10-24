@@ -579,8 +579,7 @@ namespace Biovation.Brands.Virdi
                             Parallel.For(0, loopUpperBound, index =>
                             {
                                 var tempTemplates =
-                                    _fingerTemplateService.FingerTemplates(
-                                        fingerTemplateType:_fingerTemplateTypes.V400, from:index * groupSize, size:groupSize);
+                                    _fingerTemplateService.FingerTemplates(fingerTemplateType: FingerTemplateTypes.V400Code, pageNumber: index, pageSize: groupSize);
 
                                 lock (fingerTemplates)
                                     fingerTemplates.AddRange(tempTemplates);
@@ -950,8 +949,7 @@ namespace Biovation.Brands.Virdi
                     Parallel.For(0, loopUpperBound, index =>
                     {
                         var tempTemplates =
-                            _fingerTemplateService.FingerTemplates(
-                                fingerTemplateType: _fingerTemplateTypes.V400, from: index * groupSize, size: groupSize);
+                            _fingerTemplateService.FingerTemplates(fingerTemplateType: FingerTemplateTypes.V400Code, pageNumber: index, pageSize: groupSize);
 
                         lock (fingerTemplates)
                             fingerTemplates.AddRange(tempTemplates);
@@ -1748,12 +1746,12 @@ namespace Biovation.Brands.Virdi
                     //_communicationManager.CallRest("/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
                     //                 new List<object> { data });
 
-                   // var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                   // restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+                    // var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                    // restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
 
-                   // await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    // await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
                     //integration
-                   
+
                     var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
                     var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
                     {
@@ -1832,7 +1830,7 @@ namespace Biovation.Brands.Virdi
             {
                 return;
             }
-           
+
             var isoEncoding = Encoding.GetEncoding(28591);
             var windowsEncoding = Encoding.GetEncoding(1256);
 
@@ -1921,13 +1919,13 @@ namespace Biovation.Brands.Virdi
             {
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
-                
+
                 var userName = string.IsNullOrEmpty(TerminalUserData.UserName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(TerminalUserData.UserName));
                 var indexOfSpace = userName?.IndexOf(' ') ?? 0;
                 var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace) : null;
                 var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace) : userName;
 
-                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" } , { "Z", "ژ" } };
+                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" }, { "Z", "ژ" } };
                 if (userName != null)
                 {
                     userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
@@ -1936,7 +1934,7 @@ namespace Biovation.Brands.Virdi
 
                 }
                 byte[] picture = null;
-      
+
                 try
                 {
                     if (TerminalUserData.PictureDataLength > 0)
