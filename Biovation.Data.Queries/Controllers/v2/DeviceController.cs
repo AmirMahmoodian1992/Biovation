@@ -19,16 +19,17 @@ namespace Biovation.Data.Queries.Controllers.v2
         public DeviceController(DeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;
-            _user = HttpContext.GetUser();
+            //_user = HttpContext.GetUser();
         }
 
         [HttpGet]
-        [AllowAnonymous]
+        [Authorize]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices( int groupId = 0,
             uint code = 0, int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _deviceRepository.GetDevices(_user.Id, groupId, code, brandId, name, modelId,
+            var user = HttpContext.GetUser();
+            return Task.Run(() => _deviceRepository.GetDevices(user.Id, groupId, code, brandId, name, modelId,
                 deviceIoTypeId, pageNumber, pageSize));
         }
 

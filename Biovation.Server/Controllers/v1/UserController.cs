@@ -46,20 +46,20 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
-            return Task.Run(() => _userService.GetUsers(userId, withPicture, onlineUserId, from, size, getTemplatesData, filterText, type, isAdmin, token: token));
+            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            return Task.Run(() => _userService.GetUsers(userId, withPicture, from, size, getTemplatesData, filterText, type, isAdmin, token: token));
         }
 
         [HttpGet]
         [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
             return Task.Run(() =>
            {
                try
                {
-                   return _userService.GetUsers(onlineUserId: onlineUserId, from: from, size: size, getTemplatesData: getTemplatesData, token: token);
+                   return _userService.GetUsers(from: from, size: size, getTemplatesData: getTemplatesData, token: token);
                }
                catch (Exception exception)
                {
@@ -105,7 +105,7 @@ namespace Biovation.Server.Controllers.v1
             var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
-                return _userService.GetUsers(filterText: filterText, onlineUserId: userId, token: token);
+                return _userService.GetUsers(filterText: filterText, token: token);
             }
             catch (Exception)
             {
@@ -120,7 +120,7 @@ namespace Biovation.Server.Controllers.v1
             var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
-                return _userService.GetUsers(filterText: filterText, onlineUserId: userId, type: type, token: token);
+                return _userService.GetUsers(filterText: filterText, type: type, token: token);
             }
             catch (Exception)
             {

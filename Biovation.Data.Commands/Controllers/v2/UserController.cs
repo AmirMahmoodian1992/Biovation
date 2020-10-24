@@ -41,7 +41,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Authorize]
         public Task<ResultViewModel> DeleteUser(int id = default)
         {
-            var user = (User)HttpContext.Items["User"];
             return Task.Run(() => _userRepository.DeleteUser(id));
         }
 
