@@ -79,6 +79,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPut]
+        [Authorize]
         //[Route("ModifyDeviceInfo")]
         public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
@@ -219,6 +220,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/ClearLogs")]
+        [Authorize]
         public Task<ResultViewModel> ClearLogOfDevice(int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -253,6 +255,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("ClearLogsOfDevices")]
+        [Authorize]
         public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -300,6 +303,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -308,6 +312,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{Id}/cardNumber")]
+        [Authorize]
         public Task<ResultViewModel<int>> ReadCardNumber([FromRoute]int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -381,6 +386,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/FetchUsersList")]
+        [Authorize]
         public Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];

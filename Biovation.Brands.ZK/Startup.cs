@@ -114,6 +114,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
             services.AddSingleton<ZkLogService, ZkLogService>();
+            services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();

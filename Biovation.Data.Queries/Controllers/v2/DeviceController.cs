@@ -15,11 +15,9 @@ namespace Biovation.Data.Queries.Controllers.v2
     public class DeviceController : Controller
     {
         private readonly DeviceRepository _deviceRepository;
-        private readonly User _user;
         public DeviceController(DeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;
-            //_user = HttpContext.GetUser();
         }
 
         [HttpGet]
@@ -38,7 +36,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = 0)
         {
-            return Task.Run(() => _deviceRepository.GetDevice(id, (int) _user.Id));
+            var user = HttpContext.GetUser();
+            return Task.Run(() => _deviceRepository.GetDevice(id, (int) user.Id));
         }
 
         [HttpGet]
