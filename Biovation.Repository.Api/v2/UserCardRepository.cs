@@ -55,7 +55,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<int> ReadCardNumber(int deviceId = default, string token = default)
+        public ResultViewModel<int> ReadCardNumber(string brandName = default, int deviceId = default, string token = default)
         {
             throw new NotImplementedException();
         }

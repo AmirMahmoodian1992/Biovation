@@ -36,7 +36,7 @@ namespace Biovation.Service.Api.v1
 
         public int ReadCardNumber(string brandName = default, int deviceId = default, string token = default)
         {
-            return _userCardRepository.ReadCardNumber(brandName, deviceId, token);
+            return _userCardRepository.ReadCardNumber(brandName, deviceId, token).Data;
         }
     }
 }
