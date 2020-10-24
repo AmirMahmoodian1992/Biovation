@@ -19,10 +19,10 @@ namespace Biovation.Service.Api.v1
         }
 
         public List<FingerTemplate> FingerTemplates(int userId = default, int templateIndex = default,
-            Lookup fingerTemplateType = default, int from = default, int size = default, int pageNumber = default,
+            string fingerTemplateType = default, int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size,
+            return _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType,
                 pageNumber, pageSize, token)?.Data?.Data ?? new List<FingerTemplate>();
         }
 
