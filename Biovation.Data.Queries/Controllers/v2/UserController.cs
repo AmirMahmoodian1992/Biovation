@@ -12,7 +12,6 @@ namespace Biovation.Data.Queries.Controllers.v2
     public class UserController : Controller
     {
         private readonly UserRepository _userRepository;
-        private readonly User _user;
 
         public UserController(UserRepository userRepository)
         {
@@ -23,7 +22,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Authorize]
         public Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default, int size = default, bool getTemplatesData = default, long userId = default,int code =default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _userRepository.GetUsersByFilter(_user.Id, from, size, getTemplatesData, userId, code, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
+            var user = (User)HttpContext.Items["User"];
+            return Task.Run(() => _userRepository.GetUsersByFilter(user.Id, from, size, getTemplatesData, userId, code, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
         }
 
         [HttpGet]
