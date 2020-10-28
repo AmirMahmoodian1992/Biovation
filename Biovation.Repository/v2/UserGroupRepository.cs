@@ -66,7 +66,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
-            return _repository.ToResultList<PagingResult<UserGroup>>("SelectUserGroups", parameters, fetchCompositions: true,
+            return _repository.ToResultList<PagingResult<UserGroup>>("SelectUserGroupsByFilter", parameters, fetchCompositions: true,
                     compositionDepthLevel: 5).FetchFromResultList();
 
         }
