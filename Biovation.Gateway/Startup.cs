@@ -34,7 +34,7 @@ namespace Biovation.Gateway
             var builder = new ConfigurationBuilder()
                 .SetBasePath(environment.ContentRootPath)
                 .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", true)
+                .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", true, true)
                 .AddJsonFile("ocelot.json", false, true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();

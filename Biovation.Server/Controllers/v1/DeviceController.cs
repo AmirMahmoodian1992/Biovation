@@ -16,7 +16,8 @@ using System.Threading.Tasks;
 namespace Biovation.Server.Controllers.v1
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/v1/[controller]")]
     [ApiVersion("1.0")]
     public class DeviceController : Controller
     {
@@ -251,6 +252,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
+                //var deviceIds = JsonConvert.DeserializeObject<List<uint>>(inputDeviceIds.ToString());
                 //var resultList = new Dictionary<uint, bool>();
                 var resultList = new List<ResultViewModel>();
 

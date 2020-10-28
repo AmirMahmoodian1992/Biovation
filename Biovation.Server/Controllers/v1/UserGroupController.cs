@@ -30,8 +30,8 @@ namespace Biovation.Server.Controllers.v1
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
-            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
             _restClient = restClient;
         }
 
