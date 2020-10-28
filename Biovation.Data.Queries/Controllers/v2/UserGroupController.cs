@@ -11,14 +11,11 @@ namespace Biovation.Data.Queries.Controllers.v2
 
     public class UserGroupController : Controller
     {
-
         private readonly UserGroupRepository _userGroupRepository;
-        private readonly User _user;
 
         public UserGroupController(UserGroupRepository userGroupRepository)
         {
             _userGroupRepository = userGroupRepository;
-            _user = HttpContext.GetUser();
         }
 
         [HttpGet]
@@ -28,7 +25,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         public Task<ResultViewModel<PagingResult<UserGroup>>> UsersGroup(int id, long userId, int accessGroupId, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _userGroupRepository.GetUserGroups(id,_user.Id , accessGroupId, userId,pageNumber,pageSize));
+            return Task.Run(() => _userGroupRepository.GetUserGroups(id,HttpContext.GetUser().Id , accessGroupId, userId,pageNumber,pageSize));
         }
 
         [HttpGet]
@@ -46,7 +43,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         public Task<ResultViewModel> SyncUserGroupMember(string lstUser,int id, int deviceGroupId)
         {
-            return Task.Run(() => _userGroupRepository.SyncUserGroupMember(lstUser,id,(int) _user.Id,deviceGroupId));
+            return Task.Run(() => _userGroupRepository.SyncUserGroupMember(lstUser,id,(int) HttpContext.GetUser().Id,deviceGroupId));
         }
     }
 }

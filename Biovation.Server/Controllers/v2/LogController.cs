@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [Authorize]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class LogController : Controller
     {
 
@@ -96,5 +95,5 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-}
+    }
 }

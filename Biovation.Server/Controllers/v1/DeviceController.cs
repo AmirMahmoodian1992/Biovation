@@ -16,8 +16,8 @@ using System.Threading.Tasks;
 namespace Biovation.Server.Controllers.v1
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
+    [ApiVersion("1")]
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
     public class DeviceController : Controller
     {
         private readonly Lookups _lookups;

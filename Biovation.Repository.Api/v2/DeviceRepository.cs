@@ -28,7 +28,7 @@ namespace Biovation.Repository.Api.v2
 
         //}
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
-            string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default)
+            string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Device", Method.GET);
             //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
@@ -40,6 +40,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("deviceIoTypeId", deviceIoTypeId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token); 
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
 
             return requestResult.Result.Data;
@@ -47,8 +49,6 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<DeviceBasicInfo> GetDevice(long id = 0, int adminUserId = 0, string token = default)
         {
-
-
             var restRequest = new RestRequest("Queries/v2/Device/{id}", Method.GET);
             if (id != 0) restRequest.AddUrlSegment("id", id.ToString());
             //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
@@ -102,6 +102,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token); 
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
             return requestResult.Result.Data;
         }

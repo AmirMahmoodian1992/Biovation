@@ -16,8 +16,9 @@ using System.Threading.Tasks;
 namespace Biovation.Server.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
+    [ApiVersion("2")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/v2/[controller]")]
     public class DeviceController : Controller
     {
         private readonly DeviceService _deviceService;
@@ -40,7 +41,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id:int}")]
         [Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
         {
@@ -53,7 +54,8 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
-            var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId.ToString(), name, modelId, typeId, pageNumber, pageSize));
+            var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId.ToString(), name,
+                modelId, typeId, pageNumber, pageSize, HttpContext.Items["Token"].ToString()));
             return result;
         }
 
@@ -318,14 +320,14 @@ namespace Biovation.Server.Controllers.v2
         [Route("OnlineDevices")]
         public Task<List<DeviceBasicInfo>> OnlineDevices()
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
+            //var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() =>
             {
                 var resultList = new List<DeviceBasicInfo>();
-                var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
+                //var deviceBrands = _deviceService.GetDeviceBrands(token: token);
+                var deviceBrands = _systemInformation.Services;
 
-                if (deviceBrands == null) return resultList;
-                foreach (var deviceBrand in deviceBrands)
+                Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
                     var restRequest =
                         new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
@@ -335,11 +337,11 @@ namespace Biovation.Server.Controllers.v2
                             HttpContext.Request.Headers["Authorization"].FirstOrDefault());
                     }
 
-                    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK)
                         resultList.AddRange(result.Data);
-                }
+                });
 
                 return resultList;
             });
