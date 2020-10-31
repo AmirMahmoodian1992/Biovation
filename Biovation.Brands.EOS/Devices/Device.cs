@@ -29,19 +29,19 @@ namespace Biovation.Brands.EOS.Devices
         private int _counter;
         //private readonly LogService _commonLogService = new LogService();
 
-        private readonly EosServer _eosServer;
+       // private readonly EosServer _eosServer;
         private readonly EosLogService _eosLogService;
 
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
 
-        internal Device(DeviceBasicInfo deviceInfo, EosLogService eosLogService, EosServer eosServer, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
+        internal Device(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
         {
             _valid = true;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
-            _eosServer = eosServer;
+          //  _eosServer = eosServer;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosCodeMappings = eosCodeMappings;
@@ -159,7 +159,7 @@ namespace Biovation.Brands.EOS.Devices
                                             record = (ClockRecord)_clock.GetRecord();
                                         }
 
-                                        _eosServer.Count++;
+                                        //_eosServer.Count++;
                                     }
                                     catch (Exception ex)
                                     {

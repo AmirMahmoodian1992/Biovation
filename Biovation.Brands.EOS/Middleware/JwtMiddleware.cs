@@ -16,12 +16,12 @@ namespace Biovation.Brands.EOS.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        private readonly UserService _userService;
-        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager, UserService userService)
+        //private readonly UserService _userService;
+        public JwtMiddleware(RequestDelegate next, BiovationConfigurationManager biovationConfigurationManager/*, UserService userService*/)
         {
             _next = next;
             _biovationConfigurationManager = biovationConfigurationManager;
-            _userService = userService;
+          //  _userService = userService;
         }
         public async Task Invoke(HttpContext context)
         {

@@ -10,16 +10,16 @@ namespace Biovation.Brands.EOS.Devices
     /// </summary>
     public class DeviceFactory
     {
-        private readonly EosServer _eosServer;
+       // private readonly EosServer _eosServer;
         private readonly EosLogService _eosLogService;
 
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
 
-        public DeviceFactory(EosServer eosServer, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
+        public DeviceFactory(/*EosServer eosServer,*/ EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
         {
-            _eosServer = eosServer;
+           // _eosServer = eosServer;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
@@ -35,7 +35,7 @@ namespace Biovation.Brands.EOS.Devices
         /// <returns>Device object</returns>
         public Device Factory(DeviceBasicInfo device, string connectionType)
         {
-            return new Device(device, _eosLogService, _eosServer, _logEvents, _logSubEvents, _eosCodeMappings);
+            return new Device(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
         }
     }
 }
