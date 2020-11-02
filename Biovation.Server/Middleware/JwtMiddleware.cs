@@ -56,11 +56,11 @@ namespace Biovation.Server.Middleware
                 var uniqueId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "uniqueId", StringComparison.InvariantCultureIgnoreCase)).Value);
 
                 // attach user to context on successful jwt validation
-                var user = _userService.GetUsers(code: userCode)?.Data.Data.FirstOrDefault();
-                //context.Items["User"] = user;
-                var _token = _generateToken.GenerateToken(user);
-                context.Request.Headers["Authorization"] = _token;
-                context.Items["Token"] = _token;
+                var user = _userService.GetUsers(code: userCode)?.Data?.Data?.FirstOrDefault();
+                var generatedToken = _generateToken.GenerateToken(user);
+                context.Request.Headers["Authorization"] = generatedToken;
+                context.Items["Token"] = generatedToken;
+                context.Items["User"] = user;
             }
             catch
             {

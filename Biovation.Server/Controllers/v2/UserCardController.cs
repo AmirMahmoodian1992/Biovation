@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Authorize]
     [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class UserCardController : Controller
     {
         private readonly UserCardService _userCardService;

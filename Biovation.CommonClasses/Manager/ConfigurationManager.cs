@@ -184,6 +184,24 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
+        public bool UseHealthCheck
+        {
+            get
+            {
+                try
+                {
+                    return string.Equals(Configuration.GetSection("AppSettings")["UseHealthCheck"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return false;
+                }
+            }
+
+            set => Configuration.GetSection("AppSettings")["MigrateUp"] = value.ToString();
+        }
+
         public bool MigrateUp
         {
             get

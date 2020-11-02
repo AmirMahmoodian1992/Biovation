@@ -12,10 +12,10 @@ namespace Biovation.Service.Api.v2
             _deviceGroupRepository = deviceGroupRepository;
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroups(int deviceGroupId = default, long userId=default,
+        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroups(int deviceGroupId = default,
             int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceGroupRepository.GetDeviceGroups(deviceGroupId, userId, pageNumber, pageSize, token);
+            return _deviceGroupRepository.GetDeviceGroups(deviceGroupId, pageNumber, pageSize, token);
         }
 
         public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id =default,

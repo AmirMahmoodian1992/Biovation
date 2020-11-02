@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
 {
-    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class LoginController : Controller
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
@@ -17,8 +17,6 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserService _userService;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly TokenGenerator _generateToken;
-
-
 
         public LoginController(UserService userService, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator generateToken)
         {

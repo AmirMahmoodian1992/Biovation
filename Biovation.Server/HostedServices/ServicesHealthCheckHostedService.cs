@@ -1,4 +1,5 @@
-﻿using Biovation.Constants;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Constants;
 using Biovation.Domain;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -19,13 +20,15 @@ namespace Biovation.Server.HostedServices
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
         private readonly ILogger<ServicesHealthCheckHostedService> _logger;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger)
+        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager)
         {
             _logger = logger;
             _lookups = lookups;
             _restClient = restClient;
             _systemInformation = systemInformation;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -42,6 +45,9 @@ namespace Biovation.Server.HostedServices
         private void CheckServicesStatus(object state)
         {
             //var count = Interlocked.Increment(ref _executionCount);
+
+            if (!_biovationConfigurationManager.UseHealthCheck)
+                return;
 
             var deviceBrands = _lookups.DeviceBrands;
             Parallel.ForEach(deviceBrands, deviceBrand =>

@@ -13,9 +13,9 @@ namespace Biovation.Service.Api.v1
             _userGroupRepository = userGroupRepository;
         }
 
-        public List<UserGroup> UsersGroup(long userId = default, int userGroupId = default, string token = default)
+        public List<UserGroup> UsersGroup(int userGroupId = default, string token = default)
         {
-            return _userGroupRepository.UsersGroup(userId, userGroupId, token)?.Data?.Data ?? new List<UserGroup>();
+            return _userGroupRepository.UserGroups(userGroupId, token)?.Data?.Data ?? new List<UserGroup>();
         }
 
 
@@ -39,9 +39,9 @@ namespace Biovation.Service.Api.v1
             return _userGroupRepository.ModifyUserGroup(userGroup, token);
         }
 
-        public ResultViewModel DeleteUserGroups(int groupId = default, string token = default)
+        public ResultViewModel DeleteUserGroup(int groupId = default, string token = default)
         {
-            return _userGroupRepository.DeleteUserGroups(groupId, token);
+            return _userGroupRepository.DeleteUserGroup(groupId, token);
         }
         public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
         {

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +6,20 @@ using MoreLinq.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace Biovation.Server.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [Authorize]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class UserController : Controller
     {
         private readonly UserService _userService;
@@ -49,12 +50,17 @@ namespace Biovation.Server.Controllers.v2
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _userService.GetUsers(from, size, getTemplatesData, userId, code, filterText, type,
-               withPicture, isAdmin, pageNumber, pageSize, token));
+               withPicture, isAdmin, pageNumber, pageSize, HttpContext.Items["Token"].ToString()));
         }
 
 
+        [HttpGet]
+        [Route("{id:long}")]
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter([FromRoute] long id)
+        {
+            return Task.Run(() => _userService.GetUsers(userId: id, token: HttpContext.Items["Token"].ToString()));
+        }
         //[HttpPost]
         //public Task<IActionResult> AddUser([FromBody] User user)
         //{
@@ -251,14 +257,6 @@ namespace Biovation.Server.Controllers.v2
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _userService.ModifyPassword(id, password, token));
-        }
-
-        [HttpGet]
-        [Route("AdminUserOfAccessGroup")]
-        public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _userService.GetAdminUserOfAccessGroup(id, accessGroupId, token));
         }
 
         ///// <param name="updateUsers">لیست افرادی که تغییر کرده و در گروه بایویی هم حضور دارند و باید به دستگاههای جدید ارسال شوند</param>
@@ -543,7 +541,7 @@ namespace Biovation.Server.Controllers.v2
 
                         // for rolling back on problem occuring
                         var userExistingDevices = new List<DeviceBasicInfo>();
-                        var userGroupsOfUser = _userGroupService.UsersGroup(userId, token: token)?.Data?.Data;
+                        var userGroupsOfUser = _userGroupService.UserGroups(token: token)?.Data?.Data;
                         foreach (var userGroup in userGroupsOfUser)
                         {
                             var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id, token: token).Data.Data;
@@ -750,7 +748,7 @@ namespace Biovation.Server.Controllers.v2
                     var groupIds = new List<int>();
                     for (var i = 0; i < count; i++)
                     {
-                        var group = _userGroupService.UsersGroup(userIds[i], token: token)?.Data?.Data;
+                        var group = _userGroupService.UserGroups(token: token)?.Data?.Data;
                         groupIds.AddRange(group.Select(s => s.Id));
                     }
 

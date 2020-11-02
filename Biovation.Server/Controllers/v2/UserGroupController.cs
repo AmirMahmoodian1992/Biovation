@@ -12,9 +12,10 @@ using RestSharp;
 
 namespace Biovation.Server.Controllers.v2
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [Authorize]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class UserGroupController : Controller
     {
         private readonly RestClient _restClient;
@@ -32,11 +33,11 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id}")]
-        public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup(int id, long userId)
+        [Route("{id?}")]
+        public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _userGroupService.UsersGroup(userId, id, token));
+            return Task.Run(() => _userGroupService.UserGroups(id, token));
         }
 
         //[HttpPost]
@@ -57,7 +58,7 @@ namespace Biovation.Server.Controllers.v2
                         return new ResultViewModel
                         { Success = false, Validate = 0, Code = 404, Message = "Null user group is provided!" };
 
-                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.GetAccessControlUserGroup(userGroup.Id, token: token).Data.FirstOrDefault();
+                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.UserGroups(userGroup.Id, token: token)?.Data?.Data.FirstOrDefault();
                     if (existingUserGroup is null && userGroup.Id != 0)
                     {
                         return new ResultViewModel
@@ -285,10 +286,33 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUserGroups(int id = default)
+        public Task<ResultViewModel> DeleteUserGroup(int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _userGroupService.DeleteUserGroups(id, token));
+            return Task.Run(() => _userGroupService.DeleteUserGroup(id, HttpContext.Items["Token"].ToString()));
+        }
+
+        [HttpPost]
+        [Route("DeleteUserGroups")]
+        public Task<List<ResultViewModel>> DeleteUserGroups([FromBody] List<int> groupIds)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var resultList = new List<ResultViewModel>();
+                    foreach (var group in groupIds)
+                    {
+                        var result = _userGroupService.DeleteUserGroup(group, HttpContext.Items["Token"].ToString());
+                        resultList.Add(result);
+                    }
+
+                    return resultList;
+                }
+                catch (Exception exception)
+                {
+                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
+                }
+            });
         }
 
         //todo: re implement based on new signature
@@ -355,7 +379,7 @@ namespace Biovation.Server.Controllers.v2
                 try
                 {
                     var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
-                    var userGroup = _userGroupService.UsersGroup(userGroupId: id, token: token)?.Data?.Data.FirstOrDefault();
+                    var userGroup = _userGroupService.UserGroups(userGroupId: id, token: token)?.Data?.Data.FirstOrDefault();
                     if (userGroup is null || deviceBrands is null) return new ResultViewModel { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = id };
                     foreach (var userGroupMember in userGroup.Users)
                     {

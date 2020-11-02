@@ -6,10 +6,10 @@ using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.Controllers.v2
 {
-    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [Authorize]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class AdminDeviceController : Controller
     {
         private readonly AdminDeviceService _adminDeviceService;

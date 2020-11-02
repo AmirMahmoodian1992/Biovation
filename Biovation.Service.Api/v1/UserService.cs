@@ -27,11 +27,6 @@ namespace Biovation.Service.Api.v1
             return _userRepository.GetAdminUser(userId, token)?.Data?.Data ?? new List<User>();
         }
 
-        public List<User> GetAdminUserOfAccessGroup(long userId = default, int accessGroupId = default, string token = default)
-        {
-            return _userRepository.GetAdminUserOfAccessGroup(userId, accessGroupId, token)?.Data ?? new List<User>();
-        }
-
         public int GetUsersCount()
         {
             return _userRepository.GetUsersCount()?.Data ?? default;
