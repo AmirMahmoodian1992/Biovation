@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -31,10 +31,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroup(int id = default, long userId = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroup(int id = default, int pageNumber = default, int pageSize = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceGroupService.GetDeviceGroups(id, userId, pageNumber, pageSize,token));
+            return Task.Run(() => _deviceGroupService.GetDeviceGroups(id, pageNumber, pageSize, HttpContext.Items["Token"].ToString()));
         }
 
         //[HttpPost]
@@ -45,14 +44,14 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyDeviceGroup([FromBody] DeviceGroup deviceGroup = default)
+        public Task<ResultViewModel> ModifyDeviceGroup([FromBody] DeviceGroup deviceGroup)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () =>
             {
                 try
                 {
-                    var existingDeviceGroup = deviceGroup.Id == 0 ? null : _deviceGroupService.GetDeviceGroups(deviceGroup.Id, token: token).Data.Data.FirstOrDefault();
+                    var existingDeviceGroup = deviceGroup.Id == 0 ? null : _deviceGroupService.GetDeviceGroups(deviceGroup.Id, token: token)?.Data?.Data.FirstOrDefault();
                     if (existingDeviceGroup is null && deviceGroup.Id != 0)
                         return new ResultViewModel
                         {
@@ -74,7 +73,10 @@ namespace Biovation.Server.Controllers.v2
                         Task.Run(() => Parallel.ForEach(deletedDevices, device =>
                         {
                             var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token).Data.Data;
+                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token)?.Data?.Data;
+
+                            if (authorizedUsersOfDevice is null)
+                                return;
 
                             if (!existingAuthorizedUsersOfDeletedDevice.ContainsKey(device.DeviceId))
                                 existingAuthorizedUsersOfDeletedDevice.Add(device.DeviceId, new List<User>());
@@ -94,7 +96,10 @@ namespace Biovation.Server.Controllers.v2
                         Task.Run(() => Parallel.ForEach(addedDevices, device =>
                         {
                             var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token).Data.Data;
+                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token)?.Data?.Data;
+
+                            if (authorizedUsersOfDevice is null)
+                                return;
 
                             if (!existingAuthorizedUsersOfAddedDevice.ContainsKey(device.DeviceId))
                                 existingAuthorizedUsersOfAddedDevice.Add(device.DeviceId, new List<User>());
@@ -120,10 +125,10 @@ namespace Biovation.Server.Controllers.v2
                         {
                             await Task.Run(async () =>
                             {
-                                var device = _deviceService.GetDevice(deviceId, token:token).Data;
+                                var device = _deviceService.GetDevice(deviceId, token: token).Data;
 
                                 var newAuthorizedUsersOfDevice =
-                                    _deviceService.GetAuthorizedUsersOfDevice(deviceId, token).Data.Data;
+                                    _deviceService.GetAuthorizedUsersOfDevice(deviceId, token)?.Data?.Data;
 
                                 var usersToDelete = newAuthorizedUsersOfDevice?.Count > 0
                                     ? existingAuthorizedUsersOfDeletedDevice[deviceId].ExceptBy(
@@ -151,10 +156,10 @@ namespace Biovation.Server.Controllers.v2
                         {
                             await Task.Run(async () =>
                             {
-                                var device = _deviceService.GetDevice(deviceId, token:token).Data;
+                                var device = _deviceService.GetDevice(deviceId, token: token).Data;
 
                                 var newAuthorizedUsersOfDevice =
-                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId, token).Data.Data;
+                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId, token)?.Data?.Data;
 
                                 var usersToAdd = existingAuthorizedUsersOfDeletedDevice.ContainsKey(deviceId) &&
                                                      existingAuthorizedUsersOfDeletedDevice[deviceId]?.Count > 0
@@ -162,6 +167,9 @@ namespace Biovation.Server.Controllers.v2
                                             existingAuthorizedUsersOfAddedDevice[deviceId], user => user.Code)
                                         : newAuthorizedUsersOfDevice;
 
+                                if (usersToAdd is null)
+                                    return;
+                                
                                 var sendUserRestRequest =
                                         new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
                                             Method.GET);
@@ -194,17 +202,28 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> DeleteDeviceGroup([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceGroupService.DeleteDeviceGroup(id,token));
+            return Task.Run(() => _deviceGroupService.DeleteDeviceGroup(id, token));
         }
 
 
-        ////batch delete
-        //[HttpPost]
-        //[Route("DeleteDeviceGroups")]
-        //public Task<IActionResult> DeleteDeviceGroup([FromBody] int[] ids = default)
-        //{
-
-        //}
+        [HttpPost]
+        [Route("DeleteDeviceGroups")]
+        public Task<List<ResultViewModel>> DeleteDeviceGroups([FromBody] int[] ids)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    return ids.Select(id =>
+                            _deviceGroupService.DeleteDeviceGroup(id, HttpContext.Items["Token"].ToString()))
+                        .ToList();
+                }
+                catch (Exception e)
+                {
+                    return new List<ResultViewModel> { new ResultViewModel { Message = e.Message, Validate = 0 } };
+                }
+            });
+        }
 
         [HttpDelete]
         [Route("{id}/DeviceGroupsMembers")]
