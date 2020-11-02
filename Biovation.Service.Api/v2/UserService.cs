@@ -22,12 +22,6 @@ namespace Biovation.Service.Api.v2
                 withPicture, isAdmin, pageNumber, pageSize, token);
         }
 
-
-        public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default, string token = default)
-        {
-            return _userRepository.GetAdminUserOfAccessGroup(id, accessGroupId, token);
-        }
-
         public ResultViewModel<int> GetUsersCount(string token = default)
         {
             return _userRepository.GetUsersCount(token);

@@ -12,9 +12,10 @@ using System.Threading.Tasks;
 namespace Biovation.Server.Controllers.v2
 {
 
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [Authorize]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class AccessGroupController : Controller
     {
         private readonly RestClient _restClient;
@@ -35,9 +36,8 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId, pageNumber, pageSize, token: token)
-            );
+            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId,
+                pageNumber, pageSize, token: HttpContext.Items["Token"].ToString()));
         }
 
         [HttpPost]
@@ -150,6 +150,14 @@ namespace Biovation.Server.Controllers.v2
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _deviceGroupService.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token));
+        }
+
+        [HttpGet]
+        [Route("{id}/AdminUsers")]
+        public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
+        {
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _accessGroupService.GetAdminUserOfAccessGroup(id, accessGroupId, token));
         }
 
         [HttpDelete]

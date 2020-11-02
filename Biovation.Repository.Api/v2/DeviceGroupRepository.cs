@@ -15,12 +15,11 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroups(int? deviceGroupId, long userId,
+        public ResultViewModel<PagingResult<DeviceGroup>> GetDeviceGroups(int? deviceGroupId,
             int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/DeviceGroup/GetDeviceGroups", Method.GET);
             restRequest.AddQueryParameter("deviceGroupId", deviceGroupId.ToString());
-            restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
@@ -48,9 +47,10 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/DeviceGroup", Method.PUT);
             restRequest.AddJsonBody(deviceGroup);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            
             return requestResult.Result.Data;
         }
 

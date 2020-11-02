@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
 {
-
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("2.0")]
     [Authorize]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v2/[controller]")]
+    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class PlateDetectionController : Controller
     {
         private readonly PlateDetectionService _plateDetectionService;

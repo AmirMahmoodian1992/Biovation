@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System.Collections.Generic;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
 
@@ -14,13 +15,12 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default, int adminUserId = default,
+        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default,
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default,
             int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
-            var restRequest = new RestRequest("Queries/v2/AccessGroup/", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/AccessGroup", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
-            //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
@@ -55,6 +55,17 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
+            return requestResult.Result.Data;
+        }
+
+        public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default, string token = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
+            restRequest.AddQueryParameter("id", id.ToString());
+            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
             return requestResult.Result.Data;
         }
 

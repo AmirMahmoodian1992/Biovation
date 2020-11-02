@@ -10,15 +10,11 @@ namespace Biovation.Data.Queries.Controllers.v2
 
     public class LogController : Controller
     {
-
         private readonly LogRepository _logRepository;
-        private readonly User _user;
-
 
         public LogController(LogRepository logRepository)
         {
             _logRepository = logRepository;
-            _user = HttpContext.GetUser();
         }
 
         //we should consider the without parameter input version of log
@@ -35,7 +31,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = "", string order = "", bool? successTransfer = default)
         {
 
-            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, _user.Id, successTransfer).Result;
+            var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, HttpContext.GetUser().Id, successTransfer).Result;
             var result = new PagingResult<Log>
             {
                 Data = logResult,
@@ -47,7 +43,5 @@ namespace Biovation.Data.Queries.Controllers.v2
                 Data = result
             };
         }
-
-
     }
 }

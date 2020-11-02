@@ -13,12 +13,10 @@ namespace Biovation.Data.Queries.Controllers.v2
     public class AccessGroupController : Controller
     {
         private readonly AccessGroupRepository _accessGroupRepository;
-        private readonly User _user;
 
         public AccessGroupController(AccessGroupRepository accessGroupRepository)
         {
             _accessGroupRepository = accessGroupRepository;
-            _user = HttpContext.GetUser();
         }
 
         [HttpGet]
@@ -26,7 +24,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
         {
-            return Task.Run(() => _accessGroupRepository.AccessGroups(userId, (int)_user.Id, userGroupId, id, deviceId, deviceGroupId,
+            return Task.Run(() => _accessGroupRepository.AccessGroups(userId, (int)HttpContext.GetUser().Id, userGroupId, id, deviceId, deviceGroupId,
                  pageNumber, pageSize, nestingDepthLevel));
         }
 

@@ -11,15 +11,13 @@ namespace Biovation.Data.Queries.Controllers.v2
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     [Route("biovation/api/v2/[controller]")]
-    //[ApiVersion("1.0")]
+    //[ApiVersion("2.0")]
     public class DeviceController : Controller
     {
         private readonly DeviceRepository _deviceRepository;
-        private readonly User _user;
         public DeviceController(DeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;
-            //_user = HttpContext.GetUser();
         }
 
         [HttpGet]
@@ -28,8 +26,7 @@ namespace Biovation.Data.Queries.Controllers.v2
             uint code = 0, int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default,
             int pageSize = default)
         {
-            var user = HttpContext.GetUser();
-            return Task.Run(() => _deviceRepository.GetDevices(user.Id, groupId, code, brandId, name, modelId,
+            return Task.Run(() => _deviceRepository.GetDevices(HttpContext.GetUser().Id, groupId, code, brandId, name, modelId,
                 deviceIoTypeId, pageNumber, pageSize));
         }
 
@@ -38,7 +35,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = 0)
         {
-            return Task.Run(() => _deviceRepository.GetDevice(id, (int) _user.Id));
+            return Task.Run(() => _deviceRepository.GetDevice(id, (int)HttpContext.GetUser().Id));
         }
 
         [HttpGet]

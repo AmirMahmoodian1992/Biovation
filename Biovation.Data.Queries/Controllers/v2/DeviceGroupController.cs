@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
 using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -23,10 +24,10 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Route("GetDeviceGroups")]
         [Authorize]
 
-        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int deviceGroupId, long userId,
+        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int deviceGroupId,
             int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceGroupRepository.GetDeviceGroups(deviceGroupId, userId, pageNumber, pageSize));
+            return Task.Run(() => _deviceGroupRepository.GetDeviceGroups(deviceGroupId, HttpContext.GetUser().Id, pageNumber, pageSize));
         }
 
         [HttpGet]
