@@ -39,6 +39,18 @@
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/eos/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9030
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/dashboard/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
@@ -64,7 +76,7 @@
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/commands/{url}",
-      "UpstreamHttpMethod": [ "Post" ,"Patch","Delete","Put"],
+      "UpstreamHttpMethod": [ "Post", "Patch", "Delete", "Put" ],
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
