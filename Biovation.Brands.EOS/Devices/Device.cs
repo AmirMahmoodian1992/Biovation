@@ -81,7 +81,8 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool IsConnected()
         {
-            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
+            //var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
+            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 0, 1000, 500);
 
             _clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
             if (_clock.TestConnection())

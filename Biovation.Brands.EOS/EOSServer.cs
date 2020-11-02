@@ -168,7 +168,7 @@ namespace Biovation.Brands.EOS
         public void StartServer()
         {
             Logger.Log("EOS Server Started!");
-            foreach (var eosDevice in _eosDevices)
+             foreach (var eosDevice in _eosDevices)
             {
                 ConnectToDevice(eosDevice);
             }

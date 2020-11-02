@@ -7,7 +7,7 @@ using Biovation.Domain;
 
 namespace Biovation.Brands.EOS.Commands
 {
-    class EOSDeleteUserFromTerminal : ICommand
+    class EosDeleteUserFromTerminal : ICommand
     {
         // private Dictionary<uint, Device> _onlineDevices { get; }
         private readonly Dictionary<uint, Device> _onlineDevices;
@@ -16,7 +16,7 @@ namespace Biovation.Brands.EOS.Commands
         private uint UserId { get; }
 
         private readonly TaskStatuses _taskStatuses;
-        public EOSDeleteUserFromTerminal(uint deviceId, Dictionary<uint, Device> onlineDevices, uint userId, TaskStatuses taskStatuses)
+        public EosDeleteUserFromTerminal(uint deviceId, Dictionary<uint, Device> onlineDevices, uint userId, TaskStatuses taskStatuses)
         {
             DeviceId = deviceId;
             UserId = userId;

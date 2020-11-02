@@ -116,7 +116,7 @@ namespace Biovation.Brands.EOS.Commands
                         //delete one or multiple users of device
                         var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
-                        return new EOSDeleteUserFromTerminal(deviceCode, _onlineDevices, userIds,_taskStatuses);
+                        return new EosDeleteUserFromTerminal(deviceCode, _onlineDevices, userIds,_taskStatuses);
                     }
 
 
