@@ -16,13 +16,18 @@ namespace Biovation.Service.Api.v1
         public List<AccessGroup> GetAccessGroups(long userId = default, int adminUserId = default,
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
-            return _accessGroupRepository.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize, nestingDepthLevel)?.Data?.Data ?? new List<AccessGroup>();
+            return _accessGroupRepository.GetAccessGroups(userId, userGroupId: userGroupId, id: id, deviceId: deviceId, deviceGroupId: deviceGroupId,
+                pageNumber: pageNumber, pageSize: pageSize, nestingDepthLevel: nestingDepthLevel)?.Data?.Data ?? new List<AccessGroup>();
         }
 
         public AccessGroup GetAccessGroup(int id = default, int nestingDepthLevel = 5, string token = default)
         {
             return _accessGroupRepository.GetAccessGroup(id, nestingDepthLevel)?.Data ?? new AccessGroup();
+        }
+
+        public List<User> GetAdminUserOfAccessGroup(long userId = default, int accessGroupId = default, string token = default)
+        {
+            return _accessGroupRepository.GetAdminUserOfAccessGroup(userId, accessGroupId, token)?.Data ?? new List<User>();
         }
 
         public List<DeviceBasicInfo> GetDeviceOfAccessGroup(int accessGroupId = default,

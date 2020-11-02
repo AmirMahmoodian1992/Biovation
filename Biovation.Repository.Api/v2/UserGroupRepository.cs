@@ -15,9 +15,9 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<UserGroup>> UsersGroup(long userId, int userGroupId, string token = default)
+        public ResultViewModel<PagingResult<UserGroup>> UserGroups(int userGroupId, string token = default)
         {
-            var restRequest = new RestRequest("Queries/v2/UserGroup/UsersGroup", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/UserGroup", Method.GET);
             restRequest.AddQueryParameter("id", userGroupId.ToString());
             //restRequest.AddQueryParameter("adminUserId", userId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
@@ -64,7 +64,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             return requestResult.Result.Data;
         }
-        public ResultViewModel DeleteUserGroups(int groupId = default, string token = default)
+        public ResultViewModel DeleteUserGroup(int groupId = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/UserGroup/{groupId}", Method.DELETE);
             restRequest.AddQueryParameter("groupId", groupId.ToString());
