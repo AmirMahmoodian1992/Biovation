@@ -80,7 +80,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
-            return _userService.GetAdminUserOfAccessGroup(userId, accessGroupId, token: _kasraAdminToken);
+            return _accessGroupService.GetAdminUserOfAccessGroup(userId, accessGroupId, token: _kasraAdminToken);
         }
 
         [HttpGet]

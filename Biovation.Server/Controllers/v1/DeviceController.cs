@@ -252,7 +252,6 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                //var deviceIds = JsonConvert.DeserializeObject<List<uint>>(inputDeviceIds.ToString());
                 //var resultList = new Dictionary<uint, bool>();
                 var resultList = new List<ResultViewModel>();
 

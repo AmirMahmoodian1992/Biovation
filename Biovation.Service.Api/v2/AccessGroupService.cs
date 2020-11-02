@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v2
@@ -12,10 +13,10 @@ namespace Biovation.Service.Api.v2
             _accessGroupRepository = accessGroupRepository;
         }
 
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default, int adminUserId = default,
+        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default,
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
-            return _accessGroupRepository.GetAccessGroups(userId, adminUserId, userGroupId, id, deviceId, deviceGroupId,
+            return _accessGroupRepository.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId,
                 pageNumber, pageSize, nestingDepthLevel, token);
         }
 
@@ -38,6 +39,10 @@ namespace Biovation.Service.Api.v2
                 userId, pageNumber, pageSize, token);
         }
 
+        public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default, string token = default)
+        {
+            return _accessGroupRepository.GetAdminUserOfAccessGroup(id, accessGroupId, token);
+        }
 
         public ResultViewModel AddAccessGroup(AccessGroup accessGroup = default, string token = default)
         {

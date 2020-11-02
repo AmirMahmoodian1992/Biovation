@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Biovation.Servers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -21,22 +22,27 @@ namespace Biovation.Server.Controllers.v1
         private readonly DeviceGroupService _deviceGroupService;
         private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly TokenGenerator _tokenGenerator;
+        private readonly UserService _userService;
         private readonly RestClient _restClient;
 
-        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient)
+        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService)
         {
             _deviceService = deviceService;
             _deviceGroupService = deviceGroupService;
             _biovationConfigurationManager = biovationConfigurationManager;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
             _restClient = restClient;
+            _tokenGenerator = tokenGenerator;
+            _userService = userService;
         }
 
         [HttpGet]
         [Route("GetDeviceGroup")]
         public List<DeviceGroup> GetDeviceGroup(int? id, long userId)
         {
-            return id == null ? _deviceGroupService.GetDeviceGroups(userId: userId, token: _kasraAdminToken) : _deviceGroupService.GetDeviceGroups((int)id, userId, token: _kasraAdminToken);
+            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId).FirstOrDefault());
+            return id == null ? _deviceGroupService.GetDeviceGroups(token: token) : _deviceGroupService.GetDeviceGroups((int)id, token: token);
         }
 
         [HttpPost]
@@ -107,7 +113,7 @@ namespace Biovation.Server.Controllers.v1
 
                     Task.WaitAll(computeExistingAuthorizedUsersToDelete, computeExistingAuthorizedUsersToAdd);
 
-                    var result =  _deviceGroupService.ModifyDeviceGroup(deviceGroup, token: _kasraAdminToken);
+                    var result = _deviceGroupService.ModifyDeviceGroup(deviceGroup, token: _kasraAdminToken);
 
                     if (result.Validate == 1)
                     {

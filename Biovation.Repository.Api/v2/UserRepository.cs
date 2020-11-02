@@ -54,18 +54,6 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default, string token = default)
-        {
-
-            var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
-            restRequest.AddQueryParameter("id", id.ToString());
-            restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
-            token ??= _biovationConfigurationManager.DefaultToken;
-            restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
-            return requestResult.Result.Data;
-        }
-
         public ResultViewModel<int> GetUsersCount(string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/User/UsersCount", Method.GET);

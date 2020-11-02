@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Servers;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -22,10 +23,11 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
+        private readonly TokenGenerator _tokenGenerator;
         private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient)
+        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator)
         {
             _userService = userService;
             _deviceService = deviceService;
@@ -33,6 +35,7 @@ namespace Biovation.Server.Controllers.v1
             _biovationConfigurationManager = biovationConfigurationManager;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
             _restClient = restClient;
+            _tokenGenerator = tokenGenerator;
         }
 
         //[HttpPost]
@@ -460,7 +463,8 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userGroupService.UsersGroup(userId, token: _kasraAdminToken);
+                var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId)?.FirstOrDefault());
+                return _userGroupService.UsersGroup(token: token);
             }
             catch (Exception exception)
             {
@@ -475,7 +479,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userGroupService.UsersGroup(userGroupId: userGroupId, token: _kasraAdminToken).FirstOrDefault() ?? new UserGroup();
+                return _userGroupService.UsersGroup(userGroupId, _kasraAdminToken).FirstOrDefault() ?? new UserGroup();
             }
             catch (Exception exception)
             {
@@ -506,7 +510,7 @@ namespace Biovation.Server.Controllers.v1
                 var resultList = new List<ResultViewModel>();
                 foreach (var group in groupIds)
                 {
-                    var result = _userGroupService.DeleteUserGroups(group, token: _kasraAdminToken);
+                    var result = _userGroupService.DeleteUserGroup(group, token: _kasraAdminToken);
                     resultList.Add(new ResultViewModel { Validate = result.Validate, Message = result.Message, Id = group });
                 }
 
