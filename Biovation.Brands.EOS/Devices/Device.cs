@@ -4,7 +4,9 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using EosClocks;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Biovation.Constants;
@@ -339,8 +341,34 @@ namespace Biovation.Brands.EOS.Devices
         /// </summary>
         /// <param name="sUserId">شماره کاربر</param>
         /// <returns></returns>
-        public bool DeleteUser(uint sUserId)
+        public virtual bool DeleteUser(uint sUserId)
         {
+            _clock.ConnectToSensor();
+            var users = _clock.Sensor.GetUserIDList();
+            List<SensorUser> user = users;
+            var id = user.FirstOrDefault().UserId;
+            var administrationLevel = user.FirstOrDefault().AdministrationLevel;
+            var authenticationMode = user.FirstOrDefault().AuthenticationMode;
+            var duress = user.FirstOrDefault().Duress;
+            var securityLevel = user.FirstOrDefault().SecurityLevel;
+            var subId = user.FirstOrDefault().SubID;
+
+            var x = _clock.Sensor.GetUserTemplates(id);
+            foreach (var VARIABLE in x)
+            {
+                _clock.Sensor.DeleteTemplate(id, VARIABLE);
+               // MessageBox.Show("Delete Teplate ", "Error Delete", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
+
+            foreach (var VARIABLE in x)
+            {
+                _clock.Sensor.EnrollByTemplate(277, VARIABLE, EnrollOptions.Add_New);
+               // MessageBox.Show("Enroll Eroor", "Error Enroll", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
+
+            _clock.DisconnectFromSensor();
             return false;
         }
 

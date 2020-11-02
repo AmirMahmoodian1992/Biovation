@@ -8,6 +8,9 @@ namespace Biovation.Brands.EOS.Manager
 {
     public class EosCodeMappings
     {
+        private readonly List<GenericCodeMapping> _eosLogSubEventMappings;
+
+        private readonly List<GenericCodeMapping> _eosMatchingTypeMappings;
         public EosCodeMappings(GenericCodeMappings genericCodeMappings)
         {
             _eosLogSubEventMappings = genericCodeMappings.LogSubEventMappings.Where(
@@ -17,9 +20,7 @@ namespace Biovation.Brands.EOS.Manager
                 genericCode => genericCode.Brand.Code == DeviceBrands.EosCode).ToList();
         }
 
-        private readonly List<GenericCodeMapping> _eosLogSubEventMappings;
-
-        private readonly List<GenericCodeMapping> _eosMatchingTypeMappings;
+   
 
 
         public Lookup GetLogSubEventGenericLookup(string eosCode)
