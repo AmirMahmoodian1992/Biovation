@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.CommonClasses;
 
 namespace Biovation.Brands.EOS.Commands
 {
@@ -11,29 +12,30 @@ namespace Biovation.Brands.EOS.Commands
     {
         // private Dictionary<uint, Device> _onlineDevices { get; }
         private readonly Dictionary<uint, Device> _onlineDevices;
-        private uint DeviceId { get; }
+        private uint _deviceId { get; }
 
         private uint UserId { get; }
 
-        private readonly TaskStatuses _taskStatuses;
-        public EosDeleteUserFromTerminal(uint deviceId, Dictionary<uint, Device> onlineDevices, uint userId, TaskStatuses taskStatuses)
+       
+        public EosDeleteUserFromTerminal(uint deviceId, Dictionary<uint, Device> onlineDevices, uint userId)
         {
-            DeviceId = deviceId;
+            _deviceId = deviceId;
             UserId = userId;
-            _taskStatuses = taskStatuses;
             _onlineDevices = onlineDevices;
         }
 
         public object Execute()
         {
-            if (!_onlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
+            if (!_onlineDevices.ContainsKey(Convert.ToUInt32(_deviceId)))
             {
-                return null;
+                Logger.Log($"The device: {_deviceId} is not connected.");
+                return new ResultViewModel { Validate = 0, Id = _deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
+
             }
 
-            var successDeleteUser = _onlineDevices[DeviceId].DeleteUser(UserId);
-            if (successDeleteUser) return new ResultViewModel { Id = DeviceId, Message = "Successfully deleted", Validate = 1, Code = Convert.ToInt64(_taskStatuses.Done.Code) };
-            return new ResultViewModel { Id = DeviceId, Message = "UnSuccessfully deleted", Validate = 0, Code = Convert.ToInt64(_taskStatuses.Done.Code) };
+            var successDeleteUser = _onlineDevices[_deviceId].DeleteUser(UserId);
+            if (successDeleteUser) return new ResultViewModel { Id = _deviceId, Message = "Successfully deleted", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+            return new ResultViewModel { Id = _deviceId, Message = "UnSuccessfully deleted", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
         }
 
         public void Rollback()
@@ -48,7 +50,7 @@ namespace Biovation.Brands.EOS.Commands
 
         public string GetDescription()
         {
-            return $"[EOS]: Deleting user: {UserId} from device: {DeviceId}.";
+            return $"[EOS]: Deleting user: {UserId} from device: { _deviceId}.";
         }
     }
 }

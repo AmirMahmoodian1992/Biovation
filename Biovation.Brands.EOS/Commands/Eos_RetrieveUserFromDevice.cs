@@ -34,8 +34,9 @@ namespace Biovation.Brands.Eos.Commands
         private readonly AccessGroupService _commonAccessGroupService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly TaskStatuses _taskStatuses;
 
-        public EosRetrieveUserFromDevice(uint deviceId, uint userId, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, AccessGroupService commonAccessGroupService, FingerTemplateTypes fingerTemplateTypes,FaceTemplateTypes faceTemplateTypes)
+        public EosRetrieveUserFromDevice(uint deviceId, uint userId, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, AccessGroupService commonAccessGroupService, FingerTemplateTypes fingerTemplateTypes,FaceTemplateTypes faceTemplateTypes,TaskStatuses taskStatuses)
         {
             DeviceId = deviceId;
             _onlineDevices = onlineDevices;
@@ -49,12 +50,10 @@ namespace Biovation.Brands.Eos.Commands
             _faceTemplateTypes = faceTemplateTypes;
             UserId = userId;
             _deviceService = deviceService;
+            _taskStatuses = taskStatuses;
             //Code = _deviceService.GetDeviceBasicInfoByIdAndBrandId((int)DeviceId, DeviceBrands.EosCode)?.Code ?? 0;
 
         }
-
-
-
 
         public object Execute()
         {

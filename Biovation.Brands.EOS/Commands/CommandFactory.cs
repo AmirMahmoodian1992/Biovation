@@ -1,14 +1,11 @@
-﻿
-using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Biovation.Brands.EOS.Devices;
-using Biovation.Brands.EOS.Manager;
-using Biovation.Constants;
-using Biovation.Service.Api.v1;
 using Biovation.Brands.Eos.Commands;
+using Biovation.Brands.EOS.Devices;
+using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.EOS.Commands
 {
@@ -19,7 +16,7 @@ namespace Biovation.Brands.EOS.Commands
     {
         //private EventDispatcher _eventDispatcherObj;
         private readonly EosServer _eosServer;
-        
+
 
         //private readonly LogEvents _logEvents;
         //private readonly LogService _logService;
@@ -60,24 +57,24 @@ namespace Biovation.Brands.EOS.Commands
         //    UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
         //    AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager)
         //{
-        public CommandFactory(EosServer eosServer, 
+        public CommandFactory(EosServer eosServer,
             UserService userService, DeviceService deviceService,
-            UserCardService userCardService,  
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes/*, BiometricTemplateManager biometricTemplateManager,*/, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices,AdminDeviceService adminDeviceService)
+            UserCardService userCardService,
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes/*, BiometricTemplateManager biometricTemplateManager,*/, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService)
         {
             _eosServer = eosServer;
             //_logService = logService;
             _userService = userService;
-           // _taskService = taskService;
+            // _taskService = taskService;
             _deviceService = deviceService;
             _userCardService = userCardService;
-           // _blackListService = blackListService;
-           _adminDeviceService = adminDeviceService;
+            // _blackListService = blackListService;
+            _adminDeviceService = adminDeviceService;
             _accessGroupService = accessGroupService;
             _faceTemplateService = faceTemplateService;
             _timeZoneService = timeZoneService;
-           // _callbacks = callbacks;
-           // _logEvents = logEvents;
+            // _callbacks = callbacks;
+            // _logEvents = logEvents;
             //_logSubEvents = logSubEvents;
             //_matchingTypes = matchingTypes;
             _deviceBrands = deviceBrands;
@@ -89,7 +86,7 @@ namespace Biovation.Brands.EOS.Commands
             _onlineDevices = onlineDevices;
         }
 
-        public  ICommand Factory(int eventId, List<object> items)
+        public ICommand Factory(int eventId, List<object> items)
         {
             return Factory(new DataTransferModel { EventId = eventId, Items = items });
         }
@@ -107,30 +104,31 @@ namespace Biovation.Brands.EOS.Commands
         /// </summary>
         /// <param name="transferModelData">داده ی دریافتی از کلاینت، بانک، sdk و یا...</param>
         /// <returns></returns>
-        public  ICommand Factory(DataTransferModel transferModelData)
+        public ICommand Factory(DataTransferModel transferModelData)
         {
             switch (transferModelData.EventId)
             {
                 #region DatabaseRequests(NoResponces)
-                   case CommandType.DeleteUserFromTerminal:
+                case CommandType.DeleteUserFromTerminal:
                     {
-                        //delete one or multiple users of device
                         var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
-                        return new EosDeleteUserFromTerminal(deviceCode, _onlineDevices, userIds,_taskStatuses);
+                        return new EosDeleteUserFromTerminal(deviceCode, _onlineDevices, userIds);
                     }
                 case CommandType.SendUserToDevice:
                     {
-                        //delete one or multiple users of device
+
                         var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
-                        return new EosSendUserToDevice(deviceCode, userIds, _onlineDevices,_userService, _taskStatuses,_adminDeviceService);
+                        return new EosSendUserToDevice(deviceCode, userIds, _onlineDevices, _userService, _taskStatuses, _adminDeviceService);
                     }
+                case CommandType.GetUser:
+                    {
 
-
-                    
-
-
+                        var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
+                        var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
+                        return new EosRetrieveUserFromDevice(deviceCode, userIds, _deviceService, _onlineDevices, _userService, _userCardService, _fingerTemplateService, _faceTemplateService, _accessGroupService, _fingerTemplateTypes, _faceTemplateTypes, _taskStatuses);
+                    }
                 #endregion
 
                 #region WebClientRequests(WithResponse)
