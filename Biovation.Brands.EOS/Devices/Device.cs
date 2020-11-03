@@ -93,6 +93,7 @@ namespace Biovation.Brands.EOS.Devices
             if (_clock.TestConnection())
             {
                 Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
+           
                 return true;
             }
             while (true)
@@ -369,7 +370,7 @@ namespace Biovation.Brands.EOS.Devices
            
         }
 
-        public bool TransferUser(User nUserIdn)
+        public virtual bool TransferUser(User user)
         {
             return true;
         }

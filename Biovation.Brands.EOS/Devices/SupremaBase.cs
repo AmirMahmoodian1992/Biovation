@@ -1,4 +1,5 @@
-﻿using Biovation.Brands.EOS.Manager;
+﻿using System;
+using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 
 using Biovation.Constants;
@@ -342,79 +343,60 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
 
         public override bool DeleteUser(uint sUserId)
         {
-            //var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 0, 1000, 500);
 
-            //_clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
             if (_clock.TestConnection())
             {
                 try
                 {
                     _clock.ConnectToSensor();
-                    //var users = _clock.Sensor.GetUserIDList();
-                    //List<SensorUser> user = users;
-                    //var id = user.FirstOrDefault().UserId;
-                    //var administrationLevel = user.FirstOrDefault().AdministrationLevel;
-                    //var authenticationMode = user.FirstOrDefault().AuthenticationMode;
-                    //var duress = user.FirstOrDefault().Duress;
-                    //var securityLevel = user.FirstOrDefault().SecurityLevel;
-                    //var subId = user.FirstOrDefault().SubID;
 
-                    var x = _clock.Sensor.GetUserTemplates((int)sUserId);
-                    foreach (var VARIABLE in x)
+                    var userFingerTemplates = _clock.Sensor.GetUserTemplates((int)sUserId);
+                    foreach (var fingerTemplate in userFingerTemplates)
                     {
-                        _clock.Sensor.DeleteTemplate((int)sUserId, VARIABLE);
-                        // MessageBox.Show("Delete Teplate ", "Error Delete", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        _clock.Sensor.DeleteTemplate((int)sUserId, fingerTemplate);
 
                     }
 
-                    //foreach (var VARIABLE in x)
-                    //{
-                    //    _clock.Sensor.EnrollByTemplate(277, VARIABLE, EnrollOptions.Add_New);
-                    //   // MessageBox.Show("Enroll Eroor", "Error Enroll", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-                    //}
 
                     _clock.DisconnectFromSensor();
 
                     return true;
                 }
-            //Connection connection;
-            //if (SerialRadioButton.Checked)
-            //{
-            //    connection = ConnectionFactory.CreateSerialConnection(serialPortsCombobox.SelectedIndex + 1,
-            //        Convert.ToInt32(baudRateCombobox.Items[baudRateCombobox.SelectedIndex].ToString()),
-            //        (System.IO.Ports.Parity)(parityCombobox.SelectedIndex),
-            //        Convert.ToInt32(readTimeoutTextBox.Text),
-            //        Convert.ToInt32(writeTimeoutTextBox.Text),
-            //        Convert.ToInt32(waitBeforReadTextBox.Text));
-            //}
-            //else
-            //{
-            //    var device = _deviceservice
-            //    connection = ConnectionFactory.CreateTCPIPConnection(, 1001,
-            //        Convert.ToInt32(waitBeforReadTextBox.Text),
-            //        Convert.ToInt32(readTimeoutTextBox.Text),
-            //        Convert.ToInt32(writeTimeoutTextBox.Text));
-            //}
-
-                //_clock = new Clock(connection, (ProtocolType)protocolTypeCombobox.SelectedIndex,
-                //    Convert.ToInt32(addressNUP.Value), ProtocolType.Suprema);
-
-                ////ProtocolType.Suprema
-                //var clock = new Clock(connection, DeviceInfo.DeviceProtocolType,
-                //    DeviceInfo.TRT, DeviceInfo.SensorProtocolType);
-
                 catch
+                {
+                    return false;
+                }
+            }
+            return false;
+
+        }
+
+        public override bool TransferUser(User user)
+        {
+            try
             {
-                return false;
+                _clock.ConnectToSensor();
+                var fingerTemplates = user.FingerTemplates;
+                foreach (var fingerTemplate in fingerTemplates)
+                {
+
+                    _clock.Sensor.EnrollByTemplate((int)user.Id, fingerTemplate.Template, EnrollOptions.Add_New);
+                }
+
+            
+                return true;
+            }
+            catch (Exception ex)
+            {
+                var message = ex.Message;
+            }
+            finally
+            {
+                _clock.DisconnectFromSensor();
             }
 
-        }
             return false;
-           
+            }
         }
-
-
-}
-}
+    }
 

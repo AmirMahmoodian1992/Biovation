@@ -15,17 +15,14 @@ namespace Biovation.Brands.EOS.Controllers
     public class EosUserController : Controller
     {
         private readonly CommandFactory _commandFactory;
-       
-        //private readonly FastSearchService _fastSearchService;
-
+      
         private readonly UserService _userService;
         private readonly AccessGroupService _accessGroupService;
 
-        public EosUserController(UserService userService, AccessGroupService accessGroupService/*, FastSearchService fastSearchService*/, CommandFactory commandFactory)
+        public EosUserController(UserService userService, AccessGroupService accessGroupService, CommandFactory commandFactory)
         {
             _userService = userService;
             _accessGroupService = accessGroupService;
-          //  _fastSearchService = fastSearchService;
             _commandFactory = commandFactory;
         }
 
@@ -75,27 +72,23 @@ namespace Biovation.Brands.EOS.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        public Task<ResultViewModel> SendUserToDevice(uint code, string userId)
+       // [Authorize]
+      //  public Task<ResultViewModel> SendUserToDevice(uint code, string userId)
+        public Task<ResultViewModel> SendUserToDevice(uint code, int receivedUserId)
         {
             return Task.Run(() =>
             {
 
-                //var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var userIds = JsonConvert.DeserializeObject<long[]>(userId);
-                    //var listResult = new List<ResultViewModel>();
-                    foreach (var receivedUserId in userIds)
-                    {
-                        //var addUserToTerminalCommand = CommandFactory.Factory(CommandType.SendUserToDevice,
-                        //    new List<object> {code, receivedUserId});
-                        //var result = addUserToTerminalCommand.Execute();
-                        _commandFactory.Factory(CommandType.SendUserToDevice, new List<object> { code, receivedUserId })
+                   // var userIds = JsonConvert.DeserializeObject<uint[]>(userId);
+                   // foreach (var receivedUserId in userIds)
+                   // {
+                      _commandFactory.Factory(CommandType.SendUserToDevice, new List<object> { code, receivedUserId })
                             .Execute();
                         //listResult.Add(new ResultViewModel {Message = userId, Validate = Convert.ToInt32(result)});
 
-                    }
+                  //  }
 
                     return new ResultViewModel { Validate = 1 };
                 }

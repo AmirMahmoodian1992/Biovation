@@ -8,6 +8,7 @@ using Biovation.Brands.EOS.Devices;
 using Biovation.Brands.EOS.Manager;
 using Biovation.Constants;
 using Biovation.Service.Api.v1;
+using Biovation.Brands.Eos.Commands;
 
 namespace Biovation.Brands.EOS.Commands
 {
@@ -36,7 +37,7 @@ namespace Biovation.Brands.EOS.Commands
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
-        //private readonly AdminDeviceService _adminDeviceService;
+        private readonly AdminDeviceService _adminDeviceService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly FingerTemplateService _fingerTemplateService;
@@ -62,7 +63,7 @@ namespace Biovation.Brands.EOS.Commands
         public CommandFactory(EosServer eosServer, 
             UserService userService, DeviceService deviceService,
             UserCardService userCardService,  
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes/*, BiometricTemplateManager biometricTemplateManager,*/, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes/*, BiometricTemplateManager biometricTemplateManager,*/, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices,AdminDeviceService adminDeviceService)
         {
             _eosServer = eosServer;
             //_logService = logService;
@@ -71,7 +72,7 @@ namespace Biovation.Brands.EOS.Commands
             _deviceService = deviceService;
             _userCardService = userCardService;
            // _blackListService = blackListService;
-           // _adminDeviceService = adminDeviceService;
+           _adminDeviceService = adminDeviceService;
             _accessGroupService = accessGroupService;
             _faceTemplateService = faceTemplateService;
             _timeZoneService = timeZoneService;
@@ -118,12 +119,22 @@ namespace Biovation.Brands.EOS.Commands
                         var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
                         return new EosDeleteUserFromTerminal(deviceCode, _onlineDevices, userIds,_taskStatuses);
                     }
+                case CommandType.SendUserToDevice:
+                    {
+                        //delete one or multiple users of device
+                        var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
+                        var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
+                        return new EosSendUserToDevice(deviceCode, userIds, _onlineDevices,_userService, _taskStatuses,_adminDeviceService);
+                    }
+
+
+                    
 
 
                 #endregion
 
                 #region WebClientRequests(WithResponse)
-                
+
 
                 #endregion
 
