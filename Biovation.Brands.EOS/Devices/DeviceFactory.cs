@@ -1,4 +1,5 @@
-﻿using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.EOS.Devices.SupremaBase;
+using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -16,6 +17,9 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
+
+
+        public const int SupremaBase = 2002;
 
         public DeviceFactory(/*EosServer eosServer,*/ EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
         {
@@ -35,7 +39,23 @@ namespace Biovation.Brands.EOS.Devices
         /// <returns>Device object</returns>
         public Device Factory(DeviceBasicInfo device, string connectionType)
         {
-            return new Device(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
+
+            switch (device.ModelId)
+            {
+                //case BSSDK.BS_DEVICE_BIOMINI_CLIENT:
+                //    {
+                //        return new BiominiClient(device, clientConnection);
+                //    }
+                case SupremaBase:
+                    {
+                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
+                    }
+
+             
+                default:
+                    return new Device(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
+
+            }
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Biovation.Brands.EOS.Devices
     {
         protected CancellationToken Token;
         
-        private Clock _clock;
+        protected Clock _clock;
         private readonly DeviceBasicInfo _deviceInfo;
         //public Semaphore DeviceAccessSemaphore;
         private bool _valid;
@@ -77,6 +77,11 @@ namespace Biovation.Brands.EOS.Devices
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
 
+        }
+
+        internal User GetUser(uint userId)
+        {
+            throw new NotImplementedException();
         }
 
         private bool IsConnected()
@@ -344,33 +349,24 @@ namespace Biovation.Brands.EOS.Devices
         /// <returns></returns>
         public virtual bool DeleteUser(uint sUserId)
         {
-            _clock.ConnectToSensor();
-            var users = _clock.Sensor.GetUserIDList();
-            List<SensorUser> user = users;
-            var id = user.FirstOrDefault().UserId;
-            var administrationLevel = user.FirstOrDefault().AdministrationLevel;
-            var authenticationMode = user.FirstOrDefault().AuthenticationMode;
-            var duress = user.FirstOrDefault().Duress;
-            var securityLevel = user.FirstOrDefault().SecurityLevel;
-            var subId = user.FirstOrDefault().SubID;
+            try {
+                _clock.ConnectToSensor();
 
-            var x = _clock.Sensor.GetUserTemplates(id);
-            foreach (var VARIABLE in x)
-            {
-                _clock.Sensor.DeleteTemplate(id, VARIABLE);
-               // MessageBox.Show("Delete Teplate ", "Error Delete", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                var x = _clock.Sensor.GetUserTemplates((int)sUserId);
+                foreach (var VARIABLE in x)
+                {
+                    _clock.Sensor.DeleteTemplate((int)sUserId, VARIABLE);
 
+                }
+
+                _clock.DisconnectFromSensor();
+                return true;
             }
-
-            foreach (var VARIABLE in x)
-            {
-                _clock.Sensor.EnrollByTemplate(277, VARIABLE, EnrollOptions.Add_New);
-               // MessageBox.Show("Enroll Eroor", "Error Enroll", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
-            }
-
-            _clock.DisconnectFromSensor();
+            catch 
+            { 
             return false;
+            }
+           
         }
 
         public bool TransferUser(User nUserIdn)

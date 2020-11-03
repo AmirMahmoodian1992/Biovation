@@ -28,7 +28,7 @@ namespace Biovation.Brands.EOS
         private readonly DeviceFactory _deviceFactory;
 
         public int Count = 0;
-
+   
         public EosServer(LogService logService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, RestClient restClient, LogEvents logEvents, DeviceFactory deviceFactory)
         {
             _logService = logService;
