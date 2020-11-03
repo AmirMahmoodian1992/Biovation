@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App.Wpf" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.1.0" />
     <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
     <PackageReference Include="App.Metrics.Reporting.Http" Version="4.1.0" />
@@ -24,6 +28,7 @@
     <PackageReference Include="RestSharp" Version="106.11.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
   </ItemGroup>
 
   <ItemGroup>

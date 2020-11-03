@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.EOS.Commands;
@@ -68,6 +69,7 @@ namespace Biovation.Brands.EOS
                 }).AddMetrics();
 
             services.AddHealthChecks();
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
