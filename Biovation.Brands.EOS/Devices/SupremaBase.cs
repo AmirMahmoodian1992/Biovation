@@ -362,9 +362,14 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
 
                     return true;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    return false;
+                    var message = ex.Message;
+                    
+                }
+                finally
+                {
+                    _clock.DisconnectFromSensor();
                 }
             }
             return false;

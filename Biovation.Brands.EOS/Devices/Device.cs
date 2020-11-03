@@ -48,7 +48,7 @@ namespace Biovation.Brands.EOS.Devices
             _logSubEvents = logSubEvents;
             _eosCodeMappings = eosCodeMappings;
         }
-        public bool Connect()
+        public virtual bool Connect()
         {
             var isConnect = IsConnected();
             if (!isConnect) return false;
@@ -84,7 +84,7 @@ namespace Biovation.Brands.EOS.Devices
             throw new NotImplementedException();
         }
 
-        private bool IsConnected()
+        private  bool IsConnected()
         {
             //var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
             var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 0, 1000, 500);
@@ -109,7 +109,7 @@ namespace Biovation.Brands.EOS.Devices
             }
         }
 
-        public bool Disconnect()
+        public virtual bool Disconnect()
         {
             _valid = false;
             _clock?.Disconnect();
@@ -129,11 +129,7 @@ namespace Biovation.Brands.EOS.Devices
         /// </summary>
         /// <param name="userId">شماره کاربر</param>
         /// <returns></returns>
-        public bool TransferUser(int userId)
-        {
-            return true;
-        }
-
+      
         /// <summary>
         /// <En>Read all log data from device, since last disconnect.</En>
         /// <Fa>داده های اتفاقات در طول زمان قطعی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
