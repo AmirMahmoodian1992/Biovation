@@ -47,7 +47,7 @@ namespace Biovation.Server
                             //options.Filter = filter;
                             options.FlushInterval = TimeSpan.FromSeconds(20);
                         });
-                    }).UseSerilog().UseMetrics()
+                    }).UseSerilog().UseMetrics().UseWindowsService()
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();
