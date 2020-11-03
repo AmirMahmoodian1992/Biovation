@@ -15,22 +15,22 @@ namespace Biovation.Brands.EOS.Devices
     {
         private StFace _stFace;
         private readonly DeviceBasicInfo _deviceInfo;
-        private readonly EosLogService _eosLogService;
+        //private readonly EosLogService _eosLogService;
 
-        private readonly LogEvents _logEvents;
-        private readonly LogSubEvents _logSubEvents;
-        private readonly EosCodeMappings _eosCodeMappings;
-        private bool _valid;
+        //private readonly LogEvents _logEvents;
+        //private readonly LogSubEvents _logSubEvents;
+        //private readonly EosCodeMappings _eosCodeMappings;
+        //private bool _valid;
+
+        //private int _counter;
+
 
         internal HonvanBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
-            _valid = true;
             _deviceInfo = deviceInfo;
         }
 
 
-
-        private int _counter;
 
 
         public override bool Connect()
@@ -44,9 +44,9 @@ namespace Biovation.Brands.EOS.Devices
                 if (_deviceInfo.TimeSync)
                     _stFace.SetDateTime(DateTime.Now);
             }
-            catch (Exception exception)
+            catch (Exception)
             {
-                CommonClasses.Logger.Log(exception);
+                //CommonClasses.Logger.Log(exception);
                 Thread.Sleep(500);
                 try
                 {
@@ -87,11 +87,60 @@ namespace Biovation.Brands.EOS.Devices
 
         public override bool Disconnect()
         {
-            _valid = false;
+            //_valid = false;
             _stFace?.Disconnect();
             _stFace?.Dispose();
             return true;
         }
+
+        public override bool DeleteUser(uint sUserId)
+        {
+            if (_stFace.TestConnection())
+            {
+                try
+                {
+                    _stFace?.Connect();
+
+                   // var userFaceTemplates = _stFace.GetUserInfo((int)sUserId);
+                    //_stFace.DeleteUserFaceTemplate(userFaceTemplates.)
+                    return _stFace.DeleteUser((int) sUserId);
+
+                }
+                catch (Exception)
+                {
+                    //var message = ex.Message;
+
+                }
+            }
+            return false;
+        }
+
+        public override bool TransferUser(User user)
+        {
+            try
+            {
+                //var transferedUser = new StFaceUserInfo()
+                //{
+                //    UserName = user.UserName,
+                //    Id = user.Code,
+                //    CardNumber = user.IdentityCard?.Number,
+                //    Password = user.Password,
+                //    PersonalNumber = user.Id.ToString(),
+
+                //};
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+            return false;
+        }
+
+
+
+
         //public override void ReadOfflineLog(object token)
         //{
         //    var Object = new object();
