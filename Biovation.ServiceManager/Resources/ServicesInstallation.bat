@@ -1,17 +1,28 @@
 @ECHO OFF
 SET basePath=%~1
 SET installationMode=%~2
+SET selectedService=%~3
+SET instanceName=%~4
 IF "%basePath%"=="" SET basePath=%~dp0
 IF "%installationMode%"=="" SET installationMode="Release"
-ECHO %basePath%
+REM ECHO %basePath%
+
+IF "%selectedService%" NEQ "" GOTO %selectedService%
+IF "%instanceName%" NEQ "" (
+	ECHO A service name should be provided when you want to install an instance, please set the third property for the service name
+	GOTO EOF
+)
 
 :: Section 1: Biovation gateway service
+:GATEWAY
 ECHO ====================
 ECHO Installing Biovation Gateway Service
 ECHO ====================
 
-SET serviceName=Biovation.Gateway
-SET serviceDisplayName=Biovation Gateway
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Gateway$%instanceName%)			  ELSE (SET serviceName=Biovation.Gateway)
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Gateway (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Gateway)
+
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION GATEWAY MISSING
@@ -20,32 +31,40 @@ GOTO BIOVATION GATEWAY EXISTS
 
 :BIOVATION GATEWAY EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION GATEWAY MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The API gateway of Biovation system, handles the requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The API gateway of Biovation system, handles the requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 2: Biovation queries service
+:QUERIES
 ECHO ====================
 ECHO Installing Biovation Queries Service
 ECHO ====================
 
-SET serviceName=Biovation.Data.Queries
-SET serviceDisplayName=Biovation Queries
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Data.Queries$%instanceName%)		  ELSE (SET serviceName=Biovation.Data.Queries)	 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Queries (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Queries)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION QUERIES MISSING
@@ -54,32 +73,41 @@ GOTO BIOVATION QUERIES EXISTS
 
 :BIOVATION QUERIES EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION QUERIES MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The data manipulator controller of Biovation system, handles the data flow. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The data manipulator controller of Biovation system, handles the data flow. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 3: Biovation commands service
+:COMMANDS
 ECHO ====================
 ECHO Installing Biovation Commands Service
 ECHO ====================
 
-SET serviceName=Biovation.Data.Commands
-SET serviceDisplayName=Biovation Commands
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Data.Commands$%instanceName)		   ELSE (SET serviceName=Biovation.Data.Commands)  
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Commands (%instanceName%^^^)) ELSE	(SET serviceDisplayName=Biovation Commands)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION COMMANDS MISSING
@@ -88,32 +116,41 @@ GOTO BIOVATION COMMANDS EXISTS
 
 :BIOVATION COMMANDS EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION COMMANDS MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The fetch data controller of Biovation system, handles the data flow. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The fetch data controller of Biovation system, handles the data flow. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 4: Biovation server service
+:SERVER
 ECHO ====================
 ECHO Installing Biovation Server Service
 ECHO ====================
 
-SET serviceName=Biovation.Server
-SET serviceDisplayName=Biovation Server
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Server$%instanceName%)			 ELSE (SET serviceName=Biovation.Server)
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Server (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Server)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SERVER MISSING
@@ -122,32 +159,41 @@ GOTO BIOVATION SERVER EXISTS
 
 :BIOVATION SERVER EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION SERVER MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The main and the manager service of Biovation system, handles the requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The main and the manager service of Biovation system, handles the requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 5: Biovation EOS service
+:EOS
 ECHO ====================
 ECHO Installing Biovation EOS Service
 ECHO ====================
 
-SET serviceName=Biovation.Brands.EOS
-SET serviceDisplayName=Biovation EOS Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.EOS$%instanceName%)			  ELSE (SET serviceName=Biovation.Brands.EOS)		 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation EOS Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation EOS Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION EOS MISSING
@@ -156,32 +202,41 @@ GOTO BIOVATION EOS EXISTS
 
 :BIOVATION EOS EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION EOS MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The Elm-o-Sanat device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The Elm-o-Sanat device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 6: Biovation PW service
+:PW
 ECHO ====================
 ECHO Installing Biovation PW Service
 ECHO ====================
 
-SET serviceName=Biovation.Brands.PW
-SET serviceDisplayName=Biovation PW Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.PW$%instanceName%)				 ElSE (SET serviceName=Biovation.Brands.PW)		
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation PW Manager (%instanceName%^^^)) ElSE (SET serviceDisplayName=Biovation PW Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION PW MISSING
@@ -190,32 +245,41 @@ GOTO BIOVATION PW EXISTS
 
 :BIOVATION PW EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION PW MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The Processing World device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The Processing World device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 7: Biovation SHAHAB service
+:SHAHAB
 ECHO ====================
 ECHO Installing Biovation Shahab Service
 ECHO ====================
 
-SET serviceName=Biovation.Brands.Shahab
-SET serviceDisplayName=Biovation Shahab Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Shahab$%instanceName%)				 ELSE (SET serviceName=Biovation.Brands.Shahab)		
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Shahab Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Shahab Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SHAHAB MISSING
@@ -224,32 +288,41 @@ GOTO BIOVATION SHAHAB EXISTS
 
 :BIOVATION SHAHAB EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION SHAHAB MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The Shahab plate detector manager service of Biovation system, handles the plate detector core. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The Shahab plate detector manager service of Biovation system, handles the plate detector core. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 8: Biovation SUPREMA service
+:SUPREMA
 ECHO ====================
 ECHO Installing Biovation Suprema Service
 ECHO ====================
 
-SET serviceName=Biovation.Brands.Suprema
-SET serviceDisplayName=Biovation Suprema Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Suprema$%instanceName%)			  ELSE (SET serviceName=Biovation.Brands.Suprema)		 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Suprema Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Suprema Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SUPREMA MISSING
@@ -258,32 +331,41 @@ GOTO BIOVATION SUPREMA EXISTS
 
 :BIOVATION SUPREMA EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION SUPREMA MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The Suprema V1 device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The Suprema V1 device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 9: Biovation VIRDI service
+:VIRDI
 ECHO ====================
 ECHO Installing Biovation Virdi Service
 ECHO ====================
 
-SET serviceName=Biovation.Brands.Virdi
-SET serviceDisplayName=Biovation Virdi Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Virdi$%instanceName%)				ELSE (SET serviceName=Biovation.Brands.Virdi)			
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Virdi Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Virdi Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION VIRDI MISSING
@@ -292,32 +374,41 @@ GOTO BIOVATION VIRDI EXISTS
 
 :BIOVATION VIRDI EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION VIRDI MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The Virdi device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The Virdi device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
 :: Section 10: Biovation ZK service
+:ZK
 ECHO ====================
 ECHO Installing Biovation ZK Service
 ECHO ====================
 
-SET serviceName=Biovation.Brands.ZK
-SET serviceDisplayName=Biovation ZK Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.ZK$%instanceName%)				 ELSE (SET serviceName=Biovation.Brands.ZK)		
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation ZK Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation ZK Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION ZK MISSING
@@ -326,31 +417,41 @@ GOTO BIOVATION ZK EXISTS
 
 :BIOVATION ZK EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION ZK MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The ZK device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The ZK device manager service of Biovation system, handles the devices' requests. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
+
+IF "%selectedService%" NEQ "" GOTO EOF
 
 
-:: Section 10: Biovation ServiceManager service
+:: Section 11: Biovation ServiceManager service
+:MANAGER
 ECHO ====================
 ECHO Installing Biovation ServiceManager Service
 ECHO ====================
 
-SET serviceName=Biovation.ServiceManager
-SET serviceDisplayName=Biovation Service Manager
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.ServiceManager$%instanceName%)			  ELSE (SET serviceName=Biovation.ServiceManager)		 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Service Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Service Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SERVICE MANAGER MISSING
@@ -359,22 +460,29 @@ GOTO BIOVATION SERVICE MANAGER EXISTS
 
 :BIOVATION SERVICE MANAGER EXISTS
 
-for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
-  if /I "%%H" NEQ "STOPPED" (
-   ECHO Stopping 
-   SC stop "%serviceName%"
-  )
-)
+IF EXIST %binaryPath% (
+	for /F "tokens=3 delims=: " %%H in ('sc query "%serviceName%" ^| findstr "        STATE"') do (
+	  if /I "%%H" NEQ "STOPPED" (
+	   ECHO Stopping 
+	   SC stop "%serviceName%"
+	  )
+	)
 
-SC delete %serviceName%
+	SC delete %serviceName%)
 
 :BIOVATION SERVICE MANAGER MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%\%serviceName%\%serviceName%.exe
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
-SC create "%serviceName%" binPath= "%basePath%\%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe" DisplayName= "%serviceDisplayName%" start=auto
-SC description "%serviceName%" "The services manager of Biovation system, controls the services availability. (C) Kasra Co."
-SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+IF EXIST %binaryPath% (
+	ECHO Installing %serviceName% service
+	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
+	SC description "%serviceName%" "The services manager of Biovation system, controls the services availability. (C) Kasra Co."
+	SC failure "%serviceName%" reset=10800 actions=restart/15/restart/45//
+) ELSE (
+	ECHO [Error]: The binary file of %serviceName% service is not found in path:
+	ECHO 	%binaryPath%
+)
 
-
+:EOF
 pause
