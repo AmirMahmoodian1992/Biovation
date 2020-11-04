@@ -354,7 +354,7 @@ namespace Biovation.Brands.Eos.Commands
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
                                     var onlineDevices =
-                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.VirdiCode).ToString());
+                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.EosCode).ToString());
 
                                     foreach (var device in onlineDevices)
                                     {

@@ -122,7 +122,7 @@ namespace Biovation.Brands.EOS.Commands
                         var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
                         return new EosSendUserToDevice(deviceCode, userIds, _onlineDevices, _userService, _taskStatuses, _adminDeviceService);
                     }
-                case CommandType.GetUser:
+                case CommandType.RetrieveUserFromDevice:
                     {
 
                         var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
