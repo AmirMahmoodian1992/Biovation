@@ -41,13 +41,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Service.Api", "Bi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Repository.MessageBus", "Biovation.Repository.MessageBus\Biovation.Repository.MessageBus.csproj", "{D1105559-2D46-4FF6-BCCE-4095DF735BE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.ZK", "Biovation.Brands.ZK\Biovation.Brands.ZK.csproj", "{4DC9EA98-5750-4705-B1F3-A37513337DFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.ZK", "Biovation.Brands.ZK\Biovation.Brands.ZK.csproj", "{4DC9EA98-5750-4705-B1F3-A37513337DFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.EOS", "Biovation.Brands.EOS\Biovation.Brands.EOS.csproj", "{CDB455BC-157E-4C30-8413-33AF5F7307C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.EOS", "Biovation.Brands.EOS\Biovation.Brands.EOS.csproj", "{CDB455BC-157E-4C30-8413-33AF5F7307C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.Shahab", "Biovation.Brands.Shahab\Biovation.Brands.Shahab.csproj", "{871C1FE1-7A29-49F9-B5AE-C29EBA6AC8F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.Shahab", "Biovation.Brands.Shahab\Biovation.Brands.Shahab.csproj", "{871C1FE1-7A29-49F9-B5AE-C29EBA6AC8F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.PW", "Biovation.Brands.PW\Biovation.Brands.PW.csproj", "{996DB54E-F12A-46A4-B0C5-0586B632AEE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.PW", "Biovation.Brands.PW\Biovation.Brands.PW.csproj", "{996DB54E-F12A-46A4-B0C5-0586B632AEE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.ServiceManager", "Biovation.ServiceManager\Biovation.ServiceManager.csproj", "{9DDE8513-198C-4A87-B867-F3302FD1B71B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +137,10 @@ Global
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
