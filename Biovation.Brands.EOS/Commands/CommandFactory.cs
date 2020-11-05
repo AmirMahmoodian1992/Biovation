@@ -137,7 +137,10 @@ namespace Biovation.Brands.EOS.Commands
                 #endregion
 
                 //#region BiominiClientRequests
-
+                case 20:
+                    return new EosRetrieveUserFromDevice(Convert.ToUInt32(transferModelData.Items[0]), Convert.ToUInt32(transferModelData.Items[1]), _deviceService, _onlineDevices,
+                        _userService, _userCardService, _fingerTemplateService, _faceTemplateService, _accessGroupService, _fingerTemplateTypes,
+                        _faceTemplateTypes, _taskStatuses);
                 //case CommandType.DeviceConnectedCallback:
                 //    //Gets and updates new logs from client
                 //  //  return new BiominiDeviceConnectedCallback(Convert.ToUInt32(transferModelData.Items[0]), Convert.ToString(transferModelData.Items[1]), Connection);

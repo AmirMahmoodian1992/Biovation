@@ -210,7 +210,7 @@ namespace Biovation.Brands.EOS.Controllers
                     foreach (var id in userIds)
                     {
                         var getUser = _commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                new List<object> { code, id });
+                new List<object> { deviceId, id });
                         var getUserresult = getUser.Execute();
                     }
 
@@ -262,6 +262,10 @@ namespace Biovation.Brands.EOS.Controllers
                     OrderIndex = 1,
                     CurrentIndex = 0
                 });
+
+               // _taskService.InsertTask(task);
+               // _taskManager.ProcessQueue();
+
 
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                     new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
