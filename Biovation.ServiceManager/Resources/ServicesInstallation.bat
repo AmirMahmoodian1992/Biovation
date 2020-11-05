@@ -19,10 +19,11 @@ ECHO ====================
 ECHO Installing Biovation Gateway Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Gateway$%instanceName%)			  ELSE (SET serviceName=Biovation.Gateway)
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Gateway (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Gateway)
+SET serviceFileName=Biovation.Gateway
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Gateway$%instanceName%)			ELSE (SET serviceName=Biovation.Gateway)
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Gateway (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Gateway)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION GATEWAY MISSING
@@ -63,8 +64,11 @@ ECHO ====================
 ECHO Installing Biovation Queries Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Data.Queries$%instanceName%)		  ELSE (SET serviceName=Biovation.Data.Queries)	 
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Queries (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Queries)
+SET serviceFileName=Biovation.Data.Queries
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Data.Queries$%instanceName%)		ELSE (SET serviceName=Biovation.Data.Queries)	 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Queries (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Queries)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION QUERIES MISSING
@@ -85,8 +89,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION QUERIES MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -106,8 +108,11 @@ ECHO ====================
 ECHO Installing Biovation Commands Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Data.Commands$%instanceName)		   ELSE (SET serviceName=Biovation.Data.Commands)  
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Commands (%instanceName%^^^)) ELSE	(SET serviceDisplayName=Biovation Commands)
+SET serviceFileName=Biovation.Data.Commands
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Data.Commands$%instanceName)		 ELSE (SET serviceName=Biovation.Data.Commands)  
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Commands (%instanceName%^)) ELSE	(SET serviceDisplayName=Biovation Commands)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION COMMANDS MISSING
@@ -128,8 +133,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION COMMANDS MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -149,8 +152,11 @@ ECHO ====================
 ECHO Installing Biovation Server Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Server$%instanceName%)			 ELSE (SET serviceName=Biovation.Server)
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Server (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Server)
+SET serviceFileName=Biovation.Server
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Server$%instanceName%)		   ELSE (SET serviceName=Biovation.Server)
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Server (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Server)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SERVER MISSING
@@ -171,8 +177,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION SERVER MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -192,8 +196,11 @@ ECHO ====================
 ECHO Installing Biovation EOS Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.EOS$%instanceName%)			  ELSE (SET serviceName=Biovation.Brands.EOS)		 
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation EOS Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation EOS Manager)
+SET serviceFileName=Biovation.Brands.EOS
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.EOS$%instanceName%)			ELSE (SET serviceName=Biovation.Brands.EOS)		 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation EOS Manager (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation EOS Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION EOS MISSING
@@ -214,8 +221,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION EOS MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -235,8 +240,11 @@ ECHO ====================
 ECHO Installing Biovation PW Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.PW$%instanceName%)				 ElSE (SET serviceName=Biovation.Brands.PW)		
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation PW Manager (%instanceName%^^^)) ElSE (SET serviceDisplayName=Biovation PW Manager)
+SET serviceFileName=Biovation.Brands.PW
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.PW$%instanceName%)			   ElSE (SET serviceName=Biovation.Brands.PW)		
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation PW Manager (%instanceName%^)) ElSE (SET serviceDisplayName=Biovation PW Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION PW MISSING
@@ -257,8 +265,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION PW MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -278,8 +284,11 @@ ECHO ====================
 ECHO Installing Biovation Shahab Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Shahab$%instanceName%)				 ELSE (SET serviceName=Biovation.Brands.Shahab)		
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Shahab Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Shahab Manager)
+SET serviceFileName=Biovation.Brands.Shahab
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Shahab$%instanceName%)			   ELSE (SET serviceName=Biovation.Brands.Shahab)		
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Shahab Manager (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Shahab Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SHAHAB MISSING
@@ -300,8 +309,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION SHAHAB MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -321,8 +328,11 @@ ECHO ====================
 ECHO Installing Biovation Suprema Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Suprema$%instanceName%)			  ELSE (SET serviceName=Biovation.Brands.Suprema)		 
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Suprema Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Suprema Manager)
+SET serviceFileName=Biovation.Brands.Suprema
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE (SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe)
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Suprema$%instanceName%)			ELSE (SET serviceName=Biovation.Brands.Suprema)		 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Suprema Manager (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Suprema Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SUPREMA MISSING
@@ -343,8 +353,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION SUPREMA MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -364,8 +372,11 @@ ECHO ====================
 ECHO Installing Biovation Virdi Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Virdi$%instanceName%)				ELSE (SET serviceName=Biovation.Brands.Virdi)			
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Virdi Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Virdi Manager)
+SET serviceFileName=Biovation.Brands.Virdi
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.Virdi$%instanceName%)			  ELSE (SET serviceName=Biovation.Brands.Virdi)			
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Virdi Manager (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Virdi Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION VIRDI MISSING
@@ -386,8 +397,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION VIRDI MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -407,8 +416,11 @@ ECHO ====================
 ECHO Installing Biovation ZK Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.ZK$%instanceName%)				 ELSE (SET serviceName=Biovation.Brands.ZK)		
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation ZK Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation ZK Manager)
+SET serviceFileName=Biovation.Brands.ZK
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.Brands.ZK$%instanceName%)			   ELSE (SET serviceName=Biovation.Brands.ZK)		
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation ZK Manager (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation ZK Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION ZK MISSING
@@ -429,8 +441,6 @@ IF EXIST %binaryPath% (
 
 :BIOVATION ZK MISSING
 
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
-
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
 	SC create "%serviceName%" binPath= "%binaryPath%" DisplayName= "%serviceDisplayName%" start=auto
@@ -450,8 +460,11 @@ ECHO ====================
 ECHO Installing Biovation ServiceManager Service
 ECHO ====================
 
-IF "%instanceName%" NEQ "" (SET serviceName=Biovation.ServiceManager$%instanceName%)			  ELSE (SET serviceName=Biovation.ServiceManager)		 
-IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Service Manager (%instanceName%^^^)) ELSE (SET serviceDisplayName=Biovation Service Manager)
+SET serviceFileName=Biovation.ServiceManager
+IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceFileName%\bin\Debug\netcoreapp3.1\%serviceFileName%.exe) ELSE SET binaryPath=%basePath%%serviceFileName%\%serviceFileName%.exe
+
+IF "%instanceName%" NEQ "" (SET serviceName=Biovation.ServiceManager$%instanceName%)			ELSE (SET serviceName=Biovation.ServiceManager)		 
+IF "%instanceName%" NEQ "" (SET serviceDisplayName=Biovation Service Manager (%instanceName%^)) ELSE (SET serviceDisplayName=Biovation Service Manager)
 
 SC QUERY "%serviceName%" > NUL
 IF ERRORLEVEL 1060 GOTO BIOVATION SERVICE MANAGER MISSING
@@ -471,8 +484,6 @@ IF EXIST %binaryPath% (
 	SC delete %serviceName%)
 
 :BIOVATION SERVICE MANAGER MISSING
-
-IF "%installationMode%"=="Debug" (SET binaryPath=%basePath%%serviceName%\bin\Debug\netcoreapp3.1\%serviceName%.exe) ELSE SET binaryPath=%basePath%%serviceName%\%serviceName%.exe
 
 IF EXIST %binaryPath% (
 	ECHO Installing %serviceName% service
