@@ -3,6 +3,7 @@ using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -17,17 +18,24 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly UserCardService _userCardService;
 
 
         public const int SupremaBase = 2002;
+        public const int HonvanBase = 2001;
 
-        public DeviceFactory(/*EosServer eosServer,*/ EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
+        public DeviceFactory(/*EosServer eosServer,*/ EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, FaceTemplateService faceTemplateService, UserCardService userCardService)
         {
            // _eosServer = eosServer;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
             _eosCodeMappings = eosCodeMappings;
+            _faceTemplateTypes = faceTemplateTypes;
+            _faceTemplateService = faceTemplateService;
+            _userCardService = userCardService;
         }
 
         /// <summary>
@@ -50,8 +58,13 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
                     }
+                case HonvanBase:
+                {
+                    return new HonvanBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _faceTemplateService, _userCardService);
+                }
 
-             
+
+
                 default:
                     return new Device(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
 
