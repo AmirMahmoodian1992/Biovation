@@ -39,9 +39,8 @@ namespace Biovation.Brands.EOS.Devices
         /// <Fa>با توجه به نوع دستگاه درحال پردازش، یک نمونه از آن ایجاد می کند.</Fa>
         /// </summary>
         /// <param name="device">اطلاعات کامل دستگاه</param>
-        /// <param name="connectionType"></param>
         /// <returns>Device object</returns>
-        public Device Factory(DeviceBasicInfo device, string connectionType)
+        public Device Factory(DeviceBasicInfo device)
         {
             switch (device.ModelId)
             {
