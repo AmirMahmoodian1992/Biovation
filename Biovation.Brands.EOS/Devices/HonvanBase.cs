@@ -12,7 +12,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Automation;
 using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
@@ -30,13 +29,12 @@ namespace Biovation.Brands.EOS.Devices
         private readonly FaceTemplateService _faceTemplateService;
         private readonly UserCardService _userCardService;
         private bool _valid;
-
         private int _counter;
 
 
-        internal HonvanBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, FaceTemplateService faceTemplateService,  UserCardService userCardService) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+        internal HonvanBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, FaceTemplateService faceTemplateService, UserCardService userCardService) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
-            _valid = true;
+            _valid = false;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
             _logEvents = logEvents;
@@ -59,16 +57,21 @@ namespace Biovation.Brands.EOS.Devices
             try
             {
                 if (_deviceInfo.TimeSync)
-                    _stFace.SetDateTime(DateTime.Now);
+                    lock (_stFace)
+                    {
+                        _stFace.SetDateTime(DateTime.Now);
+                    }
             }
             catch (Exception)
             {
-                //CommonClasses.Logger.Log(exception);
                 Thread.Sleep(500);
                 try
                 {
                     if (_deviceInfo.TimeSync)
-                        _stFace.SetDateTime(DateTime.Now);
+                        lock (_stFace)
+                        {
+                            _stFace.SetDateTime(DateTime.Now);
+                        }
                 }
                 catch (Exception innerException)
                 {
@@ -76,16 +79,18 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
-            //_valid = true;
+            _valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }
         private bool IsConnected()
         {
             _stFace = new StFace(new TCPIPConnection { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
-            _stFace.Connect();
+            lock (_stFace)
+            {
+                _stFace.Connect();
+            }
             if (_stFace.Connected)
-            //if (_stFace.Connected)
             {
                 Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
                 return true;
@@ -107,7 +112,11 @@ namespace Biovation.Brands.EOS.Devices
         {
             try
             {
-                var terminalUserData = _stFace.GetUserInfo((long)userId);
+                var terminalUserData = new StFaceUserInfo();
+                lock (_stFace)
+                {
+                    terminalUserData = _stFace.GetUserInfo((long)userId);
+                }
                 if (terminalUserData is null) return new User();
                 var user = new User()
                 {
@@ -162,9 +171,12 @@ namespace Biovation.Brands.EOS.Devices
 
         public override bool Disconnect()
         {
-            //_valid = false;
-            _stFace?.Disconnect();
-            _stFace?.Dispose();
+            lock (_stFace)
+            {
+                _stFace?.Disconnect();
+                _stFace?.Dispose();
+            }
+            _valid = false;
             return true;
         }
 
@@ -174,12 +186,20 @@ namespace Biovation.Brands.EOS.Devices
             {
                 try
                 {
-                    _stFace?.Connect();
-
-                    // var userFaceTemplates = _stFace.GetUserInfo((int)sUserId);
-                    //_stFace.DeleteUserFaceTemplate(userFaceTemplates.)
-                    return _stFace.DeleteUser((int)sUserId);
-
+                    var user = new StFaceUserInfo();
+                    bool deletion = false;
+                    lock (_stFace)
+                    {
+                        user = _stFace.GetUserInfo((int)sUserId);
+                    }
+                    if (user != null)
+                    {
+                        lock (_stFace)
+                        {
+                            deletion = _stFace.DeleteUser((int)sUserId);
+                        }
+                    }
+                    return deletion;
                 }
                 catch (Exception)
                 {
@@ -262,29 +282,35 @@ namespace Biovation.Brands.EOS.Devices
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    Logger.Log("Error in Face part of Transfer User" + e.ToString());
+                    return false;
                 }
 
                 if (hasFace && hasCard)
                 {
                     transfereeUser.CheckmethodType = FaceIdCheckmethodType.BothFaceAndCard;
                     transfereeUser.OpenDoorType = FaceIdCheckmethodType.BothFaceAndCard;
-                    return _stFace.SetUserInfo(transfereeUser);
                 }
                 else if (hasFace && !hasCard)
                 {
                     transfereeUser.CheckmethodType = FaceIdCheckmethodType.Face;
                     transfereeUser.OpenDoorType = FaceIdCheckmethodType.Face;
-                    return _stFace.SetUserInfo(transfereeUser);
                 }
                 else if (hasCard && !hasFace)
                 {
                     transfereeUser.CheckmethodType = FaceIdCheckmethodType.Card;
                     transfereeUser.OpenDoorType = FaceIdCheckmethodType.Card;
-                    return _stFace.SetUserInfo(transfereeUser);
                 }
-                return false;
+                else
+                {
+                    return false;
+                }
+                bool result = false;
+                lock (_stFace)
+                {
+                    result = _stFace.SetUserInfo(transfereeUser);
+                }
+                return result;
             }
             catch (Exception e)
             {
@@ -296,9 +322,14 @@ namespace Biovation.Brands.EOS.Devices
 
         public bool DeleteAllUser()
         {
+            bool deleted = false;
             try
             {
-                return _stFace.DeleteAllUsers();
+                lock (_stFace)
+                {
+                    deleted = _stFace.DeleteAllUsers();
+                }
+                return deleted;
             }
             catch (Exception ex)
             {
@@ -313,61 +344,61 @@ namespace Biovation.Brands.EOS.Devices
         {
 
             var usersList = new List<User>();
-
+            var sTUsers = new List<StFaceUserInfo>();
             try
             {
                 lock (_stFace)
                 {
+                    sTUsers = _stFace.GetUserList();
+                }
+                foreach (var user in sTUsers)
+                {
 
-                    var users = _stFace.GetUserList();
-                    foreach (var user in users)
+                    var tempUser = new User
                     {
-
-                        var tempUser = new User
+                        UserName = user.UserName,
+                        Password = user.Password,
+                        Code = user.Id,
+                        // UniqueId = (- long.Parse(user.PersonalNumber)),
+                        IsAdmin = user.Privilege == 1
+                    };
+                    if (!(user.CardNumber is null || user.CardNumber == "0Xffffffff"))
+                    {
+                        tempUser.IdentityCard = new IdentityCard()
                         {
-                            UserName = user.UserName,
-                            Password = user.Password,
-                            Code = user.Id,
-                            // UniqueId = (- long.Parse(user.PersonalNumber)),
-                            IsAdmin = user.Privilege == 1
+                            Id = (int)user.Id,
+                            Number = user.CardNumber,
+                            DataCheck = 0,
+                            IsActive = user.CardNumber != "0Xffffffff"
                         };
-                        if (!(user.CardNumber is null || user.CardNumber == "0Xffffffff"))
-                        {
-                            tempUser.IdentityCard = new IdentityCard()
-                            {
-                                Id = (int)user.Id,
-                                Number = user.CardNumber,
-                                DataCheck = 0,
-                                IsActive = user.CardNumber != "0Xffffffff"
-                            };
-                        }
-
-                        //Face
-                        try
-                        {
-                            tempUser.FaceTemplates ??= new List<FaceTemplate>();
-                            var faceData = user.FaceData.SelectMany(s =>
-                                    System.Text.Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
-                            var faceTemplate = new FaceTemplate
-                            {
-                                Index = 1,
-                                FaceTemplateType = _faceTemplateTypes.EOSHonvan,
-                                UserId = user.Id,
-                                Template = faceData,
-                                CheckSum = faceData.Sum(x => x),
-                                Size = faceData.Length
-                            };
-                            tempUser.FaceTemplates.Add(faceTemplate);
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Log(e);
-                        }
-                        usersList.Add(tempUser);
-
                     }
 
+                    //Face
+                    try
+                    {
+                        tempUser.FaceTemplates ??= new List<FaceTemplate>();
+                        var faceData = user.FaceData.SelectMany(s =>
+                                System.Text.Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
+                        var faceTemplate = new FaceTemplate
+                        {
+                            Index = 1,
+                            FaceTemplateType = _faceTemplateTypes.EOSHonvan,
+                            UserId = user.Id,
+                            Template = faceData,
+                            CheckSum = faceData.Sum(x => x),
+                            Size = faceData.Length
+                        };
+                        tempUser.FaceTemplates.Add(faceTemplate);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                    }
+                    usersList.Add(tempUser);
+
                 }
+
+
             }
             catch (Exception)
             {
@@ -379,10 +410,22 @@ namespace Biovation.Brands.EOS.Devices
 
         public bool ExistOnDevice(uint id)
         {
-            var deviceUser = _stFace.GetUserInfo(id);
-            if (!(deviceUser is null))
+            try
             {
-                return true;
+                var terminalUser = new StFaceUserInfo();
+                lock (_stFace)
+                {
+                    terminalUser = _stFace.GetUserInfo(id);
+                }
+                if (!(terminalUser is null))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+
+                Logger.Log("Failed to getUser");
             }
 
             return false;
@@ -396,14 +439,23 @@ namespace Biovation.Brands.EOS.Devices
             {
                 try
                 {
-                    var eosDeviceType = _stFace.GetModel();
+                    string eosDeviceType = "";
+                    lock (_stFace)
+                    {
+                        eosDeviceType = _stFace.GetModel();
+                    }
                     Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
 
                     while (_stFace.Connected && _valid)
                     {
                         try
                         {
-                            while (!_stFace.IsEmpty() && _valid)
+                            bool empty = false;
+                            lock (_stFace)
+                            {
+                                empty = _stFace.IsEmpty();
+                            }
+                            while (!empty && _valid)
                             {
                                 var test = true;
                                 var exceptionTester = false;
@@ -415,10 +467,13 @@ namespace Biovation.Brands.EOS.Devices
                                     {
                                         while (record == null)
                                         {
-                                            record = (Record)_stFace.GetRecord();
+                                            lock (_stFace)
+                                            {
+                                                record = _stFace.GetRecord();
+                                                //////Danger: maybe inifinite loop
+                                                //TODO: Fix it
+                                            }
                                         }
-
-                                        //_eosServer.Count++;
                                     }
                                     catch (Exception ex)
                                     {
@@ -510,17 +565,17 @@ namespace Biovation.Brands.EOS.Devices
                                                 TnaEvent = 0,
                                             };
 
-                                            //var logService = new EOSLogService();
                                             _eosLogService.AddLog(receivedLog);
                                             test = false;
-                                            //Logger.Log("Clock " + _deviceInfo.Code + ": " + record);
                                             Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{receivedLog.UserId}
    +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
 
-                                            _stFace.NextRecord();
-                                            //Thread.Sleep(200);
+                                            lock (_stFace)
+                                            {
+                                                _stFace.NextRecord();
+                                            }
                                         }
                                         else
                                         {
@@ -528,6 +583,7 @@ namespace Biovation.Brands.EOS.Devices
                                             {
                                                 Logger.Log("Null record.");
                                             }
+                                            break;
                                         }
                                     }
                                     catch (Exception ex)
@@ -535,6 +591,10 @@ namespace Biovation.Brands.EOS.Devices
                                         Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
                                             "Error while Inserting Data to Attendance . record: " + record);
                                     }
+                                }
+                                lock (_stFace)
+                                {
+                                    empty = _stFace.IsEmpty();
                                 }
                             }
                         }
@@ -574,47 +634,82 @@ namespace Biovation.Brands.EOS.Devices
 
         }
 
-        public DateTime TimeZone() 
+        public DateTime TimeZone()
         {
-            return _stFace.GetDateTime();
+            DateTime timezone = new DateTime();
+            lock (_stFace)
+            {
+                timezone = _stFace.GetDateTime();
+            }
+            return timezone;
         }
 
-        public string FirmwareVersion() 
+        public string FirmwareVersion()
         {
-            return _stFace.GetFirmwareVersion();
+            string firmwareVersion = "";
+            lock (_stFace)
+            {
+                firmwareVersion = _stFace.GetFirmwareVersion();
+            }
+            return firmwareVersion;
         }
         public string Model()
         {
-            return _stFace.GetModel();
+            string model = "";
+            lock (_stFace)
+            {
+                model = _stFace.GetModel();
+            }
+            return model;
         }
 
         public int DeviceCapacity()
         {
-            return _stFace.GetDeviceCapacity();
+            int capacity = -1;
+            lock (_stFace)
+            {
+                capacity = _stFace.GetDeviceCapacity();
+            }
+            return capacity;
         }
 
         public string Serial()
         {
-            return _stFace.GetSerial();
+            string serial = "";
+            lock (_stFace)
+            {
+                serial = _stFace.GetSerial();
+            }
+            return serial;
         }
 
         public bool TransferTimeZone(DateTime dateTime)
         {
             try
             {
-                _stFace.SetDateTime(dateTime);
-                var changedTimeZone = _stFace.GetDateTime().Minute;
-                return Math.Abs(changedTimeZone - dateTime.Minute)<1;
+                DateTime changedTimeZone = new DateTime();
+                lock (_stFace)
+                {
+                    _stFace.SetDateTime(dateTime);
+                    changedTimeZone = _stFace.GetDateTime();
+                }
+                return ((Math.Abs(changedTimeZone.Hour - dateTime.Hour) == 0) && (changedTimeZone.Minute - dateTime.Minute) < 1);
             }
             catch (Exception)
             {
+                Logger.Log("can't change TimeZone");
                 return false;
             }
         }
 
         public bool UpdateFirmware(string filePath)
         {
-            return _stFace.UpdateFirmware(filePath);
+            bool updateFirm = false;
+            lock (_stFace)
+            {
+                updateFirm = _stFace.UpdateFirmware(filePath);
+            }
+            return updateFirm;
         }
 
 
