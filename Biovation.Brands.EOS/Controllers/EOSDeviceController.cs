@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Brands.Eos.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.Brands.EOS.Devices;
+using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.EOS.Controllers
 {
@@ -17,19 +20,36 @@ namespace Biovation.Brands.EOS.Controllers
     public class EosDeviceController : Controller
     {
         private readonly EosServer _eosServer;
-        private readonly DeviceService _deviceService;
         private readonly UserService _userService;
+        private readonly TaskManager _taskManager;
+        private readonly DeviceService _deviceService;
         private readonly Dictionary<uint, Device> _onlineDevices;
-        private readonly CommandFactory _commandFactory;
+        private readonly CommandFactory _commandFactory; private readonly TaskService _taskService;
 
 
-        public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, EosServer eosServer, CommandFactory commandFactory, UserService userService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly DeviceBrands _deviceBrands;
+
+
+        public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, EosServer eosServer, CommandFactory commandFactory, UserService userService, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _eosServer = eosServer;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _userService = userService;
             _commandFactory = commandFactory;
+            _taskService = taskService;
+            _taskManager = taskManager;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _deviceBrands = deviceBrands;
+
         }
 
         [HttpGet]
@@ -68,52 +88,77 @@ namespace Biovation.Brands.EOS.Controllers
         }
 
 
+
+
         [HttpPost]
         [Authorize]
-        public ResultViewModel DeleteUserFromDevice(uint code, [FromBody]Newtonsoft.Json.Linq.JArray userId, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
         {
-            var result = new List<ResultViewModel>();
-            var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-            foreach (var id in userIds)
+            return Task.Run(() =>
             {
-                var deleteUser = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                    new List<object> { code, id });
-                var deleteresult = deleteUser.Execute();
-                //result.Add(new ResultViewModel { Id = id, Validate = (ResultViewModel)boolResult ? 1 : 0, Message = "" });
-                result.Add((ResultViewModel)deleteresult ?? new ResultViewModel { Id = id, Validate = 0, Message = "" });
+                try
+                {
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
 
-                //task.TaskItems.Add(new TaskItem
-                //{
-                //    Status = TaskStatuses.Queued,
-                //    TaskItemType = TaskItemTypes.DeleteUserFromTerminal,
-                //    Priority = TaskPriorities.Medium,
-                //    DueDate = DateTime.Today,
-                //    DeviceId = device.DeviceId,
-                //    Data = JsonConvert.SerializeObject(new { userId = id }),
-                //    IsParallelRestricted = true,
-                //    IsScheduled = false,
-                //    OrderIndex = 1,
+                   var creatorUser = HttpContext.GetUser();
+                    //var creatorUser =new User();
 
-                //});
-            }
 
-            //_taskService.InsertTask(task).Wait();
-            //BioStarServer.ProcessQueue();
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Virdi,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
 
-            //var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
+                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    
+                    foreach (var id in userIds)
+                    {
 
-            if (result.Any(x => x.Validate == 0))
-            {
-                return new ResultViewModel { Id = userId.Count, Validate = 0, Message = "failed" };
-            }
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = 1
+                        });
 
-            return new ResultViewModel { Id = userId.Count, Validate = 1, Message = "success" };
+                    }
 
-            //return result;
 
+
+                    //_taskService.InsertTask(task);
+                    // _taskManager.ProcessQueue();
+                   
+                    foreach (var id in userIds)
+                    {
+                        var deleteUser = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                                                new List<object> { code, id });
+                        var deleteresult = deleteUser.Execute();
+                    }
+                        
+
+                    var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
+                    return result;
+
+                }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel { Validate = 1, Message = $"Error ,Removing User not queued!{exception}" };
+                }
+            });
         }
-
-
         [HttpPost]
         [Authorize]
         public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
@@ -123,15 +168,49 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        DeviceBrand = _deviceBrands.Virdi,
+                        TaskType = _taskTypes.RetrieveUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+    
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
+               
+                    foreach (var id in userIds)
+                    {
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = deviceId,
+                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = userIds.Count
+                        });
+                    }
+
+                   //_taskService.InsertTask(task);
+                   // _taskManager.ProcessQueue();
+
+                   
+                
 
                     foreach (var id in userIds)
                     {
-                        var getUser = _commandFactory.Factory(CommandType.GetUser,
-                new List<object> { code, id });
+                        var getUser = _commandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                new List<object> { deviceId, id });
                         var getUserresult = getUser.Execute();
                     }
 
@@ -147,6 +226,58 @@ namespace Biovation.Brands.EOS.Controllers
             });
 
         }
+
+        [HttpGet]
+        [Authorize]
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
+        {
+
+            try
+            {
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Virdi,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
+                var deviceId = devices.DeviceId;
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = deviceId,
+                    Data = JsonConvert.SerializeObject(deviceId),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0
+                });
+
+               // _taskService.InsertTask(task);
+               // _taskManager.ProcessQueue();
+
+
+                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
+                    new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
+            }
+        }
+
 
     }
 }

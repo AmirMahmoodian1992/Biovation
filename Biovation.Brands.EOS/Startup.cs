@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
+using Biovation.Brands.Eos.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.Brands.EOS.Devices;
 using Biovation.Brands.EOS.HostedServices;
@@ -207,6 +208,7 @@ namespace Biovation.Brands.EOS
         {
             services.AddSingleton(OnlineDevices);
 
+            services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<EosCodeMappings, EosCodeMappings>();
             services.AddSingleton<CommandFactory, CommandFactory>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();

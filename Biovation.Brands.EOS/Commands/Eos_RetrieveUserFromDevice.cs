@@ -57,11 +57,13 @@ namespace Biovation.Brands.Eos.Commands
 
         public object Execute()
         {
-            if (!_onlineDevices.ContainsKey(Convert.ToUInt32(DeviceId)))
-            {
-                return null;
-            }
-            var userOfDevice = _onlineDevices[DeviceId].GetUser(UserId);
+            var device = _deviceService.GetDevice(DeviceId);
+
+            if (!_onlineDevices.ContainsKey(device.Code))
+                return new ResultViewModel { Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
+
+      
+            var userOfDevice = _onlineDevices[device.Code].GetUser(UserId);
             if (!(userOfDevice is null))
             {
                 try
@@ -100,7 +102,7 @@ namespace Biovation.Brands.Eos.Commands
 
 
 
-                    var existUser = _userService.GetUsers( userOfDevice.Id).FirstOrDefault();
+                    var existUser = _userService.GetUsers(code: userOfDevice.Code).FirstOrDefault();
 
                     if (existUser != null)
                     {
@@ -125,272 +127,66 @@ namespace Biovation.Brands.Eos.Commands
                     }
 
                     _userService.ModifyUser(user);
-                    user.Id = _userService.GetUsers(userOfDevice.Id).FirstOrDefault().Id;
-
-                    //Card
-                    try
+                    var savedUser= _userService.GetUsers(code:userOfDevice.Code).FirstOrDefault();
+                    if(savedUser != null)
                     {
-                        Logger.Log($"   +TotalCardCount:{userOfDevice.IdentityCard}");
-                        if (!(userOfDevice.IdentityCard is null))
+                        user.Id = savedUser.Id;
+
+
+                        if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
                         {
-                            //card ro nmitoonim chandtayii dar nazar begirim???????????
-                            if (int.Parse(userOfDevice.IdentityCard.Number) > 0)
-                                for (var i = 0; i < int.Parse(userOfDevice.IdentityCard.Number); i++)
-                                {
-                                    var card = new UserCard
-                                    {
-                                        CardNum = userOfDevice.IdentityCard.Id.ToString(),
-                                        IsActive = true,
-                                        //UserId = userOfDevice.Id
-                                        UserId = user.Id
-                                    };
-                                    _userCardService.ModifyUserCard(card);
-                                }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log(e);
-                    }
-
-                    //Finger
-                    try
-                    {
-                        var nFpDataCount = userOfDevice.FingerTemplates.Count;
-                        Logger.Log($"   +TotalFingerCount:{nFpDataCount}");
-
-                        if (user.FingerTemplates is null)
-                            user.FingerTemplates = new List<FingerTemplate>();
-
-
-                        for (var i = 0; i < nFpDataCount; i += 2)
-                        {
-                            //var fingerIndex = userOfDevice.FingerTemplates[i].FingerIndex;
-                            if (existUser != null)
+                            Task.Run(() =>
                             {
-
-                                // if (existUser.FingerTemplates.Exists(fp =>
-                                //fp.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerIndex).Code && fp.FingerTemplateType == _fingerTemplateTypes.V400))
-
-
-                                var firstTemplateSampleChecksum = userOfDevice.FingerTemplates[i].CheckSum;
-                                int secondTemplateSampleChecksum = 0;
                                 try
                                 {
-                                    //secondTemplateSampleChecksum = user.FingerTemplates.Where(x => x.FingerIndex == fingerIndex && x.Index == 2).Select(x => x.CheckSum);
-                                    secondTemplateSampleChecksum = userOfDevice.FingerTemplates[i + 1].CheckSum;
-                                }
-                                catch (Exception exception)
-                                {
-                                    Logger.Log(exception);
-                                }
+                                    //todo
+                                    //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
+                                    var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id, userGroupId: 4);
 
-                                //var fingerTemplates = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id).Where(ft => ft.FingerTemplateType.Code == tempFingerTemplateTypes.Code).ToList();
-                                //var fingerTemplates = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id).ToList();
-                                var fingerTemplates = existUser.FingerTemplates
-                                    .Where(ft => ft.FingerTemplateType.Code == _fingerTemplateTypes.SU384.Code).ToList();
-
-
-                                if (fingerTemplates.Exists(ft => ft.CheckSum == firstTemplateSampleChecksum) &&
-                                    fingerTemplates.Exists(ft => ft.CheckSum == (secondTemplateSampleChecksum)))
-                                    continue;
-
-                                //for (var j = 0; j < fingerTemplates.Count; j += 2)
-                                //{
-                                //    if (firstTemplateSampleChecksum != fingerTemplates[j].CheckSum || secondTemplateSampleChecksum != fingerTemplates[j+1].CheckSum) continue;
-                                //    sameTemplateExists = true;
-                                //    break;
-                                //}
-
-                                //if (sameTemplateExists) continue;
-
-                                user.FingerTemplates.Add(new FingerTemplate
-                                {
-                                   // FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Count(ft =>
-                                        ft.FingerIndex.Code ==
-                                        userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
-                                    TemplateIndex = 0,
-                                    Size = userOfDevice.FingerTemplates[i].Size,
-                                    Template = userOfDevice.FingerTemplates[i].Template,
-                                    CheckSum = firstTemplateSampleChecksum,
-                                    UserId = user.Id,
-                                    FingerTemplateType = _fingerTemplateTypes.SU384
-                                });
-
-
-                                user.FingerTemplates.Add(new FingerTemplate
-                                {
-                                    //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Count(ft =>
-                                        ft.FingerIndex.Code ==
-                                        userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
-                                    TemplateIndex = 1,
-                                    Size = userOfDevice.FingerTemplates[i + 1].Size,
-                                    Template = userOfDevice.FingerTemplates[i + 1].Template,
-                                    CheckSum = secondTemplateSampleChecksum,
-                                    UserId = user.Id,
-                                    FingerTemplateType = _fingerTemplateTypes.SU384
-                                });
-                            }
-                            else
-                            {
-
-                                //var firstTemplateSampleChecksum = userOfDevice.FingerTemplates.Where(x => x.FingerIndex == fingerIndex && x.Index == 1).Select(x => x.CheckSum);
-                                var firstTemplateSampleChecksum = userOfDevice.FingerTemplates[i].CheckSum;
-                                var secondTemplateSampleChecksum = 0;
-                                try
-                                {
-                                    //secondTemplateSampleChecksum = user.FingerTemplates.Where(x => x.FingerIndex == fingerIndex && x.Index == 2).Select(x => x.CheckSum);
-                                    secondTemplateSampleChecksum = userOfDevice.FingerTemplates[i + 1].CheckSum;
-                                }
-                                catch (Exception exception)
-                                {
-                                    Logger.Log(exception);
-                                }
-
-
-
-                                user.FingerTemplates.Add(new FingerTemplate
-                                {
-                                    //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = userOfDevice.FingerTemplates[i].Index,
-                                    TemplateIndex = 0,
-                                    Size = userOfDevice.FingerTemplates[i].Size,
-                                    Template = userOfDevice.FingerTemplates[i].Template,
-                                    CheckSum = firstTemplateSampleChecksum,
-                                    UserId = user.Id,
-                                    FingerTemplateType = _fingerTemplateTypes.SU384
-                                });
-
-                                user.FingerTemplates.Add(new FingerTemplate
-                                {
-                                    //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = userOfDevice.FingerTemplates[i + 1].Index,
-                                    TemplateIndex = 1,
-                                    Size = userOfDevice.FingerTemplates[i + 1].Size,
-                                    Template = userOfDevice.FingerTemplates[i + 1].Template,
-                                    CheckSum = secondTemplateSampleChecksum,
-                                    UserId = user.Id,
-                                    FingerTemplateType = _fingerTemplateTypes.SU384
-                                });
-                            }
-                        }
-
-                        if (user.FingerTemplates.Any())
-                            foreach (var fingerTemplate in user.FingerTemplates)
-                            {
-                                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
-                            }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log(e);
-                    }
-
-                    //Face
-                    try
-                    {
-                        if (!(userOfDevice.FaceTemplates is null))
-                        {
-
-                            var faceCount = userOfDevice.FaceTemplates.Count;
-                            Logger.Log($"   +TotalFaceCount:{faceCount}");
-
-                            if (faceCount > 0)
-                            {
-                                if (user.FaceTemplates is null)
-                                    user.FaceTemplates = new List<FaceTemplate>();
-
-                                var userFaces = _faceTemplateService.FaceTemplates(userId:user.Id);
-                                //existUser.FaceTemplates = new List<FaceTemplate>();
-
-                                if (existUser != null)
-                                    existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
-
-                                var faceTemplate = new FaceTemplate
-                                {
-                                    Index = faceCount,
-                                    FaceTemplateType = _faceTemplateTypes.VFACE,
-                                    UserId = user.Id,
-                                    Template = userOfDevice.FaceTemplates[0].Template,
-                                    CheckSum = userOfDevice.FaceTemplates[0].CheckSum,
-                                    Size = userOfDevice.FaceTemplates[0].Size
-                                };
-                                if (existUser != null)
-                                {
-                                    if (!existUser.FaceTemplates.Exists(fp =>
-                                        fp.FaceTemplateType.Code == _faceTemplateTypes.VFACE.Code))
-                                        user.FaceTemplates.Add(faceTemplate);
-                                }
-                                else
-                                    user.FaceTemplates.Add(faceTemplate);
-
-                                if (user.FaceTemplates.Any())
-                                    foreach (var faceTemplates in user.FaceTemplates)
+                                    if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                     {
-                                        _faceTemplateService.ModifyFaceTemplate(faceTemplates);
-                                    }
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.Log(e);
-                    }
+                                        var onlineDevices =
+                                            _deviceService.GetDevices(brandId: Convert.ToInt32(DeviceBrands.EosCode).ToString());
 
-
-
-                    if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
-                    {
-                        Task.Run(() =>
-                        {
-                            try
-                            {
-                                //todo
-                                //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4);
-
-                                if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
-                                {
-                                    var onlineDevices =
-                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.VirdiCode).ToString());
-
-                                    foreach (var device in onlineDevices)
-                                    {
-                                        //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
-                                        var restRequest = new RestRequest($"Eos/EosDevice/SendUserToDevice");
-                                        restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
-                                        //restRequest.AddQueryParameter("userId", user.Code.ToString());
-                                        restRequest.AddQueryParameter("userId", user.Id.ToString());
-                                    }
-                                }
-
-                                else
-                                {
-                                    foreach (var accessGroup in accessGroupsOfUser)
-                                    {
-                                        foreach (var deviceGroup in accessGroup.DeviceGroup)
+                                        foreach (var device in onlineDevices)
                                         {
-                                            foreach (var device in deviceGroup.Devices)
+                                            //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
+                                            var restRequest = new RestRequest($"Eos/EosDevice/SendUserToDevice");
+                                            restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
+                                            //restRequest.AddQueryParameter("userId", user.Code.ToString());
+                                            restRequest.AddQueryParameter("userId", user.Id.ToString());
+                                        }
+                                    }
+
+                                    else
+                                    {
+                                        foreach (var accessGroup in accessGroupsOfUser)
+                                        {
+                                            foreach (var deviceGroup in accessGroup.DeviceGroup)
                                             {
-                                                //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
-                                                var restRequest =
-                                                    new RestRequest($"Eos/EosDevice/SendUserToDevice");
-                                                restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
-                                                restRequest.AddQueryParameter("userId", user.Id.ToString());
+                                                foreach (var device in deviceGroup.Devices)
+                                                {
+                                                    //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
+                                                    var restRequest =
+                                                        new RestRequest($"Eos/EosDevice/SendUserToDevice");
+                                                    restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
+                                                    restRequest.AddQueryParameter("userId", user.Id.ToString());
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            catch (Exception exception)
-                            {
-                                Logger.Log(exception);
-                                Logger.Log(exception);
-                            }
-                        });
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception);
+                                    Logger.Log(exception);
+                                }
+                            });
+                        }
+
                     }
+
+
 
 
                 }

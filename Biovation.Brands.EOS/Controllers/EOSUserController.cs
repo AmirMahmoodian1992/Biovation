@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Brands.Eos.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
@@ -19,24 +22,34 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly UserService _userService;
         private readonly AccessGroupService _accessGroupService;
 
-        public EosUserController(UserService userService, AccessGroupService accessGroupService, CommandFactory commandFactory)
+        private readonly TaskService _taskService;
+        private readonly TaskManager _taskManager;
+        private readonly DeviceBrands _deviceBrands;
+        private readonly DeviceService _deviceService;
+
+
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public EosUserController(UserService userService, AccessGroupService accessGroupService, CommandFactory commandFactory,TaskService taskService,TaskManager taskManager,TaskTypes taskTypes,
+            TaskStatuses taskStatuses,TaskItemTypes taskItemTypes,TaskPriorities taskPriorities,DeviceBrands deviceBrands,DeviceService deviceService)
         {
             _userService = userService;
             _accessGroupService = accessGroupService;
             _commandFactory = commandFactory;
+
+            _taskService = taskService;
+            _taskManager = taskManager;
+            _taskItemTypes = taskItemTypes;
+            _taskStatuses = taskStatuses;
+            _taskPriorities = taskPriorities;
+            _taskTypes = taskTypes;
+            _deviceBrands = deviceBrands;
+            _deviceService = deviceService;
         }
 
-        [HttpGet]
-        public Task<List<User>> Users()
-        {
-            return Task.Run(() =>
-            {
-
-                var user = _userService.GetUsers();
-                return user;
-            }
-        );
-        }
 
 
         [HttpGet]
@@ -45,8 +58,6 @@ namespace Biovation.Brands.EOS.Controllers
         {
             var user = _userService.GetUsers(userId: id)?.FirstOrDefault();
             return user;
-
-
 
             //return Task.Run(() =>
             //{
@@ -69,21 +80,7 @@ namespace Biovation.Brands.EOS.Controllers
             //});
         }
 
-        [HttpPost]
-        [Authorize]
-        public ResultViewModel ModifyUser([FromBody]User user)
-        {
-            try
-            {
-                //_fastSearchService.Initial();
-                return new ResultViewModel { Validate = 1 };
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-                throw;
-            }
-        }
+
 
         [HttpGet]
         [Authorize]
@@ -94,13 +91,55 @@ namespace Biovation.Brands.EOS.Controllers
 
                 try
                 {
+                    
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
+                    var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<uint[]>(userId);
+                   
+                 
+                    var creatorUser = HttpContext.GetUser();
+                   
+
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Eos,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+
+                    foreach (var id in userIds)
+                    {
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendUser,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = deviceId,
+                            Data = JsonConvert.SerializeObject(new { UserId = id }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = 1
+                        });
+
+                     
+                    }
+
+                  //  _taskService.InsertTask(task);
+                   // _taskManager.ProcessQueue();
+
+
+                 
                     foreach (var receivedUserId in userIds)
                     {
                       _commandFactory.Factory(CommandType.SendUserToDevice, new List<object> { code, receivedUserId })
                             .Execute();
-                        //listResult.Add(new ResultViewModel {Message = userId, Validate = Convert.ToInt32(result)});
-
+                       
                     }
 
                     return new ResultViewModel { Validate = 1 };
@@ -112,5 +151,33 @@ namespace Biovation.Brands.EOS.Controllers
                 }
             });
         }
+
+
+        [HttpPost]
+        [Authorize]
+        public ResultViewModel SendUserToAllDevices([FromBody] User user)
+        {
+            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
+            if (!accessGroups.Any())
+            {
+                return new ResultViewModel { Id = user.Id, Validate = 0 };
+            }
+            foreach (var accessGroup in accessGroups)
+            {
+                foreach (var deviceGroup in accessGroup.DeviceGroup)
+                {
+                    foreach (var deviceGroupMember in deviceGroup.Devices)
+                    {
+                        var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
+                            new List<object> { deviceGroupMember.Code, user.Code });
+
+                        addUserToTerminalCommand.Execute();
+                    }
+                }
+            }
+
+            return new ResultViewModel { Id = user.Id, Validate = 1 };
+        }
+
     }
 }
