@@ -82,7 +82,7 @@ namespace Biovation.Brands.EOS
 
                 if (!deviceInfo.Active) return;
 
-                var device = _deviceFactory.Factory(deviceInfo, "");
+                var device = _deviceFactory.Factory(deviceInfo);
                 var connectResult = device.Connect();
                 if (!connectResult) return;
 

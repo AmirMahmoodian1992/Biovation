@@ -1,10 +1,10 @@
 ﻿using Biovation.Brands.EOS.Devices;
 using Biovation.CommonClasses.Interface;
-using System;
-using System.Collections.Generic;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Brands.Eos.Commands
 {
@@ -13,19 +13,18 @@ namespace Biovation.Brands.Eos.Commands
     /// </summary>
     public class EosGetUsersOfDevice : ICommand
     {
-        /// <summary>
-        /// All connected devices
-        /// </summary>
-        private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly DeviceService _deviceService;
 
-        private uint DeviceId { get; }
+        //private uint DeviceId { get; }
+        private TaskItem TaskItem { get; }
+        private Dictionary<uint, Device> OnlineDevices { get; }
 
-        public EosGetUsersOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices)
+        public EosGetUsersOfDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
         {
-            DeviceId = deviceId;
-            _onlineDevices = onlineDevices;
-  
+            //DeviceId = deviceId;
+            TaskItem = taskItem;
+            OnlineDevices = onlineDevices;
+            _deviceService = deviceService;
         }
 
         /// <summary>
@@ -34,19 +33,24 @@ namespace Biovation.Brands.Eos.Commands
         /// </summary>
         public object Execute()
         {
-            var device = _deviceService.GetDevice(DeviceId);
+            if (TaskItem is null)
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
 
-            if (!_onlineDevices.ContainsKey(device.Code))
-                return new ResultViewModel { Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
+            var deviceId = TaskItem.DeviceId;
+
+            var device = _deviceService.GetDevice(deviceId)?.Data;
+            if (device is null)
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
+
+            if (!OnlineDevices.ContainsKey(device.Code))
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
 
-            var usersOfDevice = _onlineDevices[device.Code].GetAllUsers();
+            var usersOfDevice = OnlineDevices[device.Code].GetAllUsers();
 
 
-            return new ResultViewModel<List<User>> { Data = usersOfDevice, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+            return new ResultViewModel<List<User>> { Data = usersOfDevice, Id = device.DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
         }
-
-        
 
         public void Rollback()
         {
@@ -60,7 +64,8 @@ namespace Biovation.Brands.Eos.Commands
 
         public string GetDescription()
         {
-            return "Getting users of device : " + DeviceId + " command";
+            //return "Getting users of device : " + DeviceId + " command";
+            return "Get users of a device command";
         }
     }
 }

@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using EosClocks;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Logger = Biovation.CommonClasses.Logger;
 
-namespace Biovation.Brands.EOS.Devices.SupremaBase
+namespace Biovation.Brands.EOS.Devices
 {
     /// <summary>
     /// برای ساعت ST-Pro
@@ -43,20 +43,10 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
             _eosCodeMappings = eosCodeMappings;
         }
 
-
-
-        /// <summary>
-        /// <En>Transfer user with all data (finger template , card, Id , Access Group ,....) on validated FaceStation devices.</En>
-        /// <Fa>کاربر را به دستگاه انتقال می دهد.</Fa>
-        /// </summary>
-        /// <param name="userId">شماره کاربر</param>
-        /// <returns></returns>
-
-
-        /// <summary>
-        /// <En>Read all log data from device, since last disconnect.</En>
-        /// <Fa>داده های اتفاقات در طول زمان قطعی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
-        /// </summary>
+        ///// <summary>
+        ///// <En>Read all log data from device, since last disconnect.</En>
+        ///// <Fa>داده های اتفاقات در طول زمان قطعی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
+        ///// </summary>
         /*   public override void ReadOfflineLog(object token)
            {
                var Object = new object();
@@ -337,16 +327,6 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
         /// <Fa>دستگاه جدید را در دیتابیس ثبت می کند.</Fa>
         /// </summary>
         /// <returns></returns>
-
-
-
-        /*public override bool AddDeviceToDataBase()
-        {
-            return true;
-        }*/
-
-
-
         public override bool Connect()
         {
             var isConnect = IsConnected();
@@ -377,16 +357,14 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
             //_valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
-
         }
-
-
 
         private bool IsConnected()
         {
             var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
 
-            _clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
+            lock (_clock)
+                _clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
 
             lock (_clock)
                 if (_clock.TestConnection())
@@ -411,10 +389,7 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
         }
         public override ResultViewModel ReadOnlineLog(object token)
         {
-            //var Object = new object();
             Thread.Sleep(1000);
-            //lock (_clock)
-            //{
             try
             {
                 string eosDeviceType;
@@ -423,7 +398,7 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
 
                 Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
 
-                var deviceConnected = false;
+                bool deviceConnected;
 
                 lock (_clock)
                     deviceConnected = _clock.Connected;
@@ -432,7 +407,7 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
                 {
                     try
                     {
-                        var newRecordExists = false;
+                        bool newRecordExists;
 
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
@@ -481,7 +456,6 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
                                                     var userId = Convert.ToInt32(badRecordRawData.Substring(6, 8));
 
                                                     var gregorianDateOfRec = new DateTime(year, month, day, hour, minute, 10, new PersianCalendar());
-
 
                                                     var receivedLog = new Log
                                                     {
@@ -546,10 +520,8 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
                                             TnaEvent = 0,
                                         };
 
-                                        //var logService = new EOSLogService();
                                         _eosLogService.AddLog(receivedLog);
                                         test = false;
-                                        //Logger.Log("Clock " + _deviceInfo.Code + ": " + record);
                                         Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{receivedLog.UserId}
@@ -578,9 +550,9 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
                                 newRecordExists = !_clock.IsEmpty();
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception exception)
                     {
-                        var message = ex.Message;
+                        Logger.Log(exception);
                     }
 
                     lock (_clock)
@@ -591,9 +563,8 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
                 // _clock?.Dispose();
                 //Disconnect();
                 if (_valid)
-                {
                     Connect();
-                }
+                
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
 
             }
@@ -622,121 +593,136 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
         {
             _valid = false;
             lock (_clock)
+            {
                 _clock?.Disconnect();
-            _clock?.Dispose();
+                _clock?.Dispose();
+            }
+
             return true;
         }
 
         public override bool DeleteUser(uint sUserId)
         {
-            if (_clock.TestConnection())
+            bool deviceConnected;
+
+            lock (_clock)
+                deviceConnected = _clock.Connected;
+            if (!deviceConnected) return false;
+
+            lock (_clock)
             {
                 try
                 {
-                    _clock.ConnectToSensor();
-                    int userId = Convert.ToInt32(sUserId);
-                    var userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
+                    var isConnectToSensor = _clock.ConnectToSensor();
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        if (isConnectToSensor)
+                            break;
+
+                        Thread.Sleep(500);
+                        isConnectToSensor = _clock.ConnectToSensor();
+                    }
+
+                    if (!isConnectToSensor)
+                    {
+                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        return false;
+                    }
+
+                    var userId = Convert.ToInt32(sUserId);
+                    List<byte[]> userFingerTemplates;
+                    try
+                    {
+                        userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
+                    }
+                    catch (Exception innerException)
+                    {
+                        Logger.Log(innerException);
+                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        return true;
+                    }
+
+                    if (userFingerTemplates == null)
+                    {
+                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        return true;
+                    }
+
                     foreach (var fingerTemplate in userFingerTemplates)
                     {
                         _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
-
                     }
-
-
-                    _clock.DisconnectFromSensor();
 
                     return true;
                 }
-                catch (Exception ex)
+                catch (Exception exception)
                 {
-                    var message = ex.Message;
-
+                    Logger.Log(exception);
                 }
                 finally
                 {
                     _clock.DisconnectFromSensor();
                 }
             }
-            return false;
 
+            return false;
         }
 
         public override bool TransferUser(User user)
         {
-            try
+            lock (_clock)
             {
-                lock (_clock)
+                try
                 {
-                    _clock.ConnectToSensor();
+                    var isConnectToSensor = _clock.ConnectToSensor();
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        if (isConnectToSensor)
+                            break;
+
+                        Thread.Sleep(500);
+                        isConnectToSensor = _clock.ConnectToSensor();
+                    }
+
                     var fingerTemplates = user.FingerTemplates;
                     foreach (var fingerTemplate in fingerTemplates)
                     {
                         _clock.Sensor.EnrollByTemplate((int)user.Id, fingerTemplate.Template, EnrollOptions.Add_New);
                     }
-                }
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                var message = ex.Message;
-            }
-            finally
-            {
-                try
+                    return true;
+                }
+                catch (Exception exception)
                 {
-                    lock (_clock)
+                    Logger.Log(exception);
+                }
+                finally
+                {
+                    try
                     {
                         _clock.DisconnectFromSensor();
                     }
-                }
-                catch (Exception ex)
-                {
-                    var message = ex.Message;
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
             }
 
             return false;
         }
+
         internal override User GetUser(uint userId)
         {
-            string dataExample = "2023-09-01 19:00:00";
-            DateTime data2 = DateTime.ParseExact(dataExample, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
-
-            string sdataExample = "2013-09-01 19:00:00";
-            DateTime sdata = DateTime.ParseExact(sdataExample, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
-
-            var tempUser = new User
+            lock (_clock)
             {
-                Code = userId,
-              
-                StartDate = sdata,
-                EndDate = data2
-                // IsActive = ,
-                // AdminLevel = 
-            };
-            try
-            {
-                lock (_clock)
+                try
                 {
-
-                    //List<SensorUser> users = _clock.Sensor.GetUserIDList();
-
-                    bool userExist = true;
-                    //for (int i=0; i<users.Count;i++)
-                    //{
-                    //    if (users[i].UserId == userId)
-                    //    {
-                    //        userExist = true;
-                    //        newUser.Code = users[i].UserId;
-                    //        newUser.AdminLevel = users[i].AdministrationLevel;
-                    //        newUser.AuthMode = users[i].AuthenticationMode;
-
-                    //    }
-                    //}
                     var isConnectToSensor = _clock.ConnectToSensor();
 
-                    for (int j = 0; j < 5; j++)
+                    for (var i = 0; i < 5; i++)
                     {
                         if (isConnectToSensor)
                             break;
@@ -751,150 +737,149 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
                         return new User();
                     }
 
-                    int intId = checked((int)userId);
+                    //var intId = checked((int)userId);
                     //  var x = _clock.Sensor.GetUserIDList();
-                    var fingerTemplates = _clock.Sensor.GetUserTemplates(intId);
-                    //var fingerTemplates = _clock.Sensor.GetUserTemplate(13,1);
-                    var count = fingerTemplates.Count();
 
-                  
+                    List<byte[]> fingerTemplates;
 
-                    //if (!(userHdr.password is null))
-                    //{
-                    //    tempUser.PasswordBytes = userHdr.password.Select(Convert.ToByte).ToArray();
-                    //    tempUser.Password = userHdr.password.ToString();
-                    //}
-                    int i;
-                    tempUser.FingerTemplates = new List<FingerTemplate>();
-                    if (count > 0)
+                    try
                     {
-                        for (i = 0; i < count; i++)
-                        {
-                            //user.FingerTemplates.Add(new FingerTemplate
-                            //{
-                            //    FingerIndex = BiometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                            //    Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft => ft.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
-                            //    TemplateIndex = 0,
-                            //    Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
-                            //    Template = firstTemplateSample,
-                            //    CheckSum = firstSampleCheckSum,
-                            //    UserId = user.Id,
-                            //    FingerTemplateType = FingerTemplateTypes.V400
-                            //});
-
-                            var firstTemplateBytes = fingerTemplates[i];
-                            //var firstTemplateBytes = fingerTemplates;
-
-                            var fingerTemplate = new FingerTemplate
-                            {
-                                //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                // FingerTemplateType = _fingerTemplateTypes.SU384,
-                                UserId = tempUser.Id,
-                                Template = firstTemplateBytes,
-                                //CheckSum = (int)userHdr.fingerChecksum[i],
-                                CheckSum = firstTemplateBytes.Sum(b => b),
-                                Size = firstTemplateBytes.ToList().LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
-                                Index = i,
-                                CreateAt = DateTime.Now,
-                                TemplateIndex = 0
-                            };
-                            tempUser.FingerTemplates.Add(fingerTemplate);
-
-
-                            // var secondTemplateBytes = fingerTemplates;
-                            var secondTemplateBytes = fingerTemplates[++i];
-
-                            var secondFingerTemplateSample = new FingerTemplate
-                            {
-                                //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                //FingerTemplateType = _fingerTemplateTypes.SU384,
-                                UserId = tempUser.Id,
-                                Template = secondTemplateBytes,
-                                //CheckSum = (int)userHdr.fingerChecksum[i],
-                                CheckSum = secondTemplateBytes.Sum(b => b),
-                                Size = secondTemplateBytes.ToList().LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
-                                Index = i,
-                                CreateAt = DateTime.Now,
-                                TemplateIndex = 1
-                            };
-
-                            tempUser.FingerTemplates.Add(secondFingerTemplateSample);
-                        }
+                        fingerTemplates = _clock.Sensor.GetUserTemplates((int)userId);
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                        Logger.Log($"Error in retrieving user {userId} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                        return null;
                     }
 
-                    //  tempUser.SetStartDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime)).Ticks);
-                    //  tempUser.SetEndDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.expireDateTime)).Ticks);
 
+                    if (fingerTemplates is null || fingerTemplates.Count <= 0) return null;
+
+                    var retrievedUser = new User { FingerTemplates = new List<FingerTemplate>() };
+
+                    for (var i = 0; i < fingerTemplates.Count; i++)
+                    {
+                        //user.FingerTemplates.Add(new FingerTemplate
+                        //{
+                        //    FingerIndex = BiometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+                        //    Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft => ft.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+                        //    TemplateIndex = 0,
+                        //    Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
+                        //    Template = firstTemplateSample,
+                        //    CheckSum = firstSampleCheckSum,
+                        //    UserId = user.Id,
+                        //    FingerTemplateType = FingerTemplateTypes.V400
+                        //});
+
+                        var firstTemplateBytes = fingerTemplates[i];
+                        //var firstTemplateBytes = fingerTemplates;
+
+                        var fingerTemplate = new FingerTemplate
+                        {
+                            //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                            // FingerTemplateType = _fingerTemplateTypes.SU384,
+                            UserId = retrievedUser.Id,
+                            Template = firstTemplateBytes,
+                            //CheckSum = (int)userHdr.fingerChecksum[i],
+                            CheckSum = firstTemplateBytes.Sum(b => b),
+                            Size = firstTemplateBytes.ToList()
+                                .LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
+                            Index = i,
+                            CreateAt = DateTime.Now,
+                            TemplateIndex = 0
+                        };
+
+                        retrievedUser.FingerTemplates.Add(fingerTemplate);
+
+                        // var secondTemplateBytes = fingerTemplates;
+                        var secondTemplateBytes = fingerTemplates[++i];
+
+                        var secondFingerTemplateSample = new FingerTemplate
+                        {
+                            //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                            //FingerTemplateType = _fingerTemplateTypes.SU384,
+                            UserId = retrievedUser.Id,
+                            Template = secondTemplateBytes,
+                            //CheckSum = (int)userHdr.fingerChecksum[i],
+                            CheckSum = secondTemplateBytes.Sum(b => b),
+                            Size = secondTemplateBytes.ToList()
+                                .LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
+                            Index = i,
+                            CreateAt = DateTime.Now,
+                            TemplateIndex = 1
+                        };
+
+                        retrievedUser.FingerTemplates.Add(secondFingerTemplateSample);
+                    }
+
+                    return retrievedUser;
+
+                    //  retrievedUser.SetStartDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime)).Ticks);
+                    //  retrievedUser.SetEndDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.expireDateTime)).Ticks);
                 }
-                return tempUser;
-            }
-
-            catch (Exception ex)
-            {
-                var message = ex.Message;
-                return null;
-            }
-            finally
-            {
-                try
+                catch (Exception exception)
                 {
-                    lock (_clock)
+                    Logger.Log(exception);
+                    return null;
+                }
+                finally
+                {
+                    try
                     {
                         _clock.DisconnectFromSensor();
                     }
-                }
-                catch (Exception ex)
-                {
-                    var message = ex.Message;
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
             }
-
         }
 
 
         public override List<User> GetAllUsers()
         {
-
             var usersList = new List<User>();
 
-            try
-            {
-                lock (_clock)
-                {
-                    _clock.ConnectToSensor();
-
-                    var users = _clock.Sensor.GetUserIDList();
-                    foreach (var user in users)
-                    {
-
-                        var tempUser = new User
-                        {
-                            Code = Convert.ToInt32(user.UserId),
-                            AdminLevel = user.AdministrationLevel
-                        };
-
-                        usersList.Add(tempUser);
-
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                var message = ex.Message;
-            }
-            finally
+            lock (_clock)
             {
                 try
                 {
-                    lock (_clock)
+                    var isConnectToSensor = _clock.ConnectToSensor();
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        if (isConnectToSensor)
+                            break;
+
+                        Thread.Sleep(500);
+                        isConnectToSensor = _clock.ConnectToSensor();
+                    }
+
+                    if (!isConnectToSensor)
+                    {
+                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        return usersList;
+                    }
+
+                    var users = _clock.Sensor.GetUserIDList();
+                    usersList.AddRange(users.Select(user => new User { Code = Convert.ToInt32(user.UserId), AdminLevel = user.AdministrationLevel }));
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
+                finally
+                {
+                    try
                     {
                         _clock.DisconnectFromSensor();
                     }
-                }
-                catch (Exception ex)
-                {
-                    var message = ex.Message;
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
             }
 
@@ -903,19 +888,22 @@ namespace Biovation.Brands.EOS.Devices.SupremaBase
 
         public bool DeleteAllUser()
         {
-            try
+            lock (_clock)
             {
-                _clock.ConnectToSensor();
-                _clock.Sensor.DeleteAllTemplates();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                var message = ex.Message;
-            }
-            finally
-            {
-                _clock.DisconnectFromSensor();
+                try
+                {
+                    _clock.ConnectToSensor();
+                    _clock.Sensor.DeleteAllTemplates();
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
+                finally
+                {
+                    _clock.DisconnectFromSensor();
+                }
             }
 
             return false;
