@@ -134,7 +134,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     user.FaceTemplates ??= new List<FaceTemplate>();
                     var faceData = terminalUserData.FaceData.SelectMany(s =>
-                            System.Text.Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
+                            System.Text.Encoding.ASCII.GetBytes(s)).ToArray();
                     var faceTemplate = new FaceTemplate
                     {
                         Index = 1,
@@ -251,14 +251,11 @@ namespace Biovation.Brands.EOS.Devices
                     if (userFaces != null)
                     {
                         var userFace = userFaces.FirstOrDefault();
+                        userFace = new FaceTemplate { Template = user.FaceTemplates[0].Template };
                         if (userFace != null)
                         {
                             hasFace = true;
-                            var str = Encoding.UTF8.GetString(userFace.Template, 0, userFace.Template.Length);
-                            for (var i = 0; i < str.Length / 924; i++)
-                            {
-                                transfereeUser.FaceData.Add(str.Skip(i * 924).Take(924).ToString());
-                            }
+                            transfereeUser.FaceData = Encoding.ASCII.GetString(userFace.Template, 0, userFace.Template.Length).Split('=').SkipLast(1).ToList();
                         }
                     }
 
@@ -331,20 +328,41 @@ namespace Biovation.Brands.EOS.Devices
                             UserName = user.UserName,
                             Password = user.Password,
                             Code = user.Id,
-                            Id = Int64.Parse(user.PersonalNumber),
+                            // UniqueId = (- long.Parse(user.PersonalNumber)),
                             IsAdmin = user.Privilege == 1
                         };
-                        if (!(user.CardNumber is null))
+                        if (!(user.CardNumber is null || user.CardNumber == "0Xffffffff"))
                         {
                             tempUser.IdentityCard = new IdentityCard()
                             {
                                 Id = (int)user.Id,
                                 Number = user.CardNumber,
-                                IsActive = true
+                                DataCheck = 0,
+                                IsActive = user.CardNumber != "0Xffffffff"
                             };
                         }
 
-
+                        //Face
+                        try
+                        {
+                            tempUser.FaceTemplates ??= new List<FaceTemplate>();
+                            var faceData = user.FaceData.SelectMany(s =>
+                                    System.Text.Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
+                            var faceTemplate = new FaceTemplate
+                            {
+                                Index = 1,
+                                FaceTemplateType = _faceTemplateTypes.EOSHonvan,
+                                UserId = user.Id,
+                                Template = faceData,
+                                CheckSum = faceData.Sum(x => x),
+                                Size = faceData.Length
+                            };
+                            tempUser.FaceTemplates.Add(faceTemplate);
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
                         usersList.Add(tempUser);
 
                     }
@@ -369,8 +387,6 @@ namespace Biovation.Brands.EOS.Devices
 
             return false;
         }
-
-
 
         public override ResultViewModel ReadOnlineLog(object token)
         {
@@ -557,6 +573,55 @@ namespace Biovation.Brands.EOS.Devices
             return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
 
         }
+
+        public DateTime TimeZone() 
+        {
+            return _stFace.GetDateTime();
+        }
+
+        public string FirmwareVersion() 
+        {
+            return _stFace.GetFirmwareVersion();
+        }
+        public string Model()
+        {
+            return _stFace.GetModel();
+        }
+
+        public int DeviceCapacity()
+        {
+            return _stFace.GetDeviceCapacity();
+        }
+
+        public string Serial()
+        {
+            return _stFace.GetSerial();
+        }
+
+        public bool TransferTimeZone(DateTime dateTime)
+        {
+            try
+            {
+                _stFace.SetDateTime(dateTime);
+                var changedTimeZone = _stFace.GetDateTime().Minute;
+                return Math.Abs(changedTimeZone - dateTime.Minute)<1;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool UpdateFirmware(string filePath)
+        {
+            return _stFace.UpdateFirmware(filePath);
+        }
+
+
+
+
+
+
 
 
 
