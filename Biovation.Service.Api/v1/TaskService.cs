@@ -104,7 +104,7 @@ namespace Biovation.Service.Api.v1
         }*/
         public ResultViewModel InsertTask(TaskInfo task, string token = default)
         {
-            return _taskRepository.InsertTask(task);
+            return _taskRepository.InsertTask(task,token);
         }
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem, string token = default)

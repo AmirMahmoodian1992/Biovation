@@ -45,10 +45,12 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel InsertTask( TaskInfo task)
+        public ResultViewModel InsertTask( TaskInfo task, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/task", Method.POST);
             restRequest.AddJsonBody(task);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
