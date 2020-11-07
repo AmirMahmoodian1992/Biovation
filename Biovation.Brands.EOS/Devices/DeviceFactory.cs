@@ -19,8 +19,17 @@ namespace Biovation.Brands.EOS.Devices
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserCardService _userCardService;
 
-        public const int SupremaBase = 2002;
-        public const int HanvonBase = 2001;
+        public const int StPro = 2001;
+        public const int StProPlus = 2002;
+        public const int StShineL = 2003;
+        public const int StShineM = 2004;
+        public const int StFace110 = 2005;
+        public const int StFace120 = 2006;
+        public const int StFace130 = 2007;
+        public const int StFace160 = 2008;
+        public const int StFace710 = 2009;
+        public const int StEco210 = 2010;
+        public const int StP220 = 2011;
 
         public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
         {
@@ -42,13 +51,31 @@ namespace Biovation.Brands.EOS.Devices
         {
             switch (device.ModelId)
             {
-                case SupremaBase:
+                case StPro:
+                case StProPlus:
                     {
                         return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
                     }
-                case HanvonBase:
+
+                case StFace110:
+                case StFace710:
                     {
                         return new HanvonBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _userCardService);
+                    }
+
+                case StShineL:
+                    {
+                        return new HanvonBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _userCardService);
+                    }
+
+                case StFace120:
+                case StFace130:
+                case StFace160:
+                case StEco210:
+                case StP220:
+                case StShineM:
+                    {
+                        return null;
                     }
 
                 default:
