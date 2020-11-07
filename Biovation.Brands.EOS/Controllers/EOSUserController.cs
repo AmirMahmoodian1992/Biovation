@@ -8,7 +8,7 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -56,7 +56,7 @@ namespace Biovation.Brands.EOS.Controllers
         [Authorize]
         public User Users(int id)
         {
-            var user = _userService.GetUsers(userId: id)?.FirstOrDefault();
+            var user = _userService.GetUsers(userId: id)?.Data?.Data?.FirstOrDefault();
             return user;
 
             //return Task.Run(() =>
@@ -92,7 +92,7 @@ namespace Biovation.Brands.EOS.Controllers
                 try
                 {
                     
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
                     var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<uint[]>(userId);
                    
@@ -157,8 +157,8 @@ namespace Biovation.Brands.EOS.Controllers
         [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
-            if (!accessGroups.Any())
+            var accessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+            if (accessGroups == null || !accessGroups.Any())
             {
                 return new ResultViewModel { Id = user.Id, Validate = 0 };
             }
