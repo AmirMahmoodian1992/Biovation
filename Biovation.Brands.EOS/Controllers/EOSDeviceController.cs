@@ -203,9 +203,7 @@ namespace Biovation.Brands.EOS.Controllers
 
                    //_taskService.InsertTask(task);
                    // _taskManager.ProcessQueue();
-
-                   
-                
+                           
 
                     foreach (var id in userIds)
                     {
