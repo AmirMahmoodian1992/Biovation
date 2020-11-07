@@ -260,3 +260,4 @@ Atency/logs/*
 /NuGet.Config
 >>>>>>> feature-add-gateway-api_138_107712
 /Biovation.Data.Queries/Startup.cs.rej
+/Biovation.Brands.EOS/Libraries

@@ -49,6 +49,8 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/task", Method.POST);
             restRequest.AddJsonBody(task);
+           string token = _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }

@@ -24,7 +24,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        //[Authorize]
         public Task<ResultViewModel> InsertTask([FromBody]TaskInfo task)
         {
             return Task.Run(() =>

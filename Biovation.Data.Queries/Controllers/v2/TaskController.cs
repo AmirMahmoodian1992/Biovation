@@ -30,7 +30,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         //TODO::QUERY dynamic
         [HttpGet]
         /*[Route("GetTasks")]*/
-        [Authorize]
+        //[Authorize]
 
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
         {
