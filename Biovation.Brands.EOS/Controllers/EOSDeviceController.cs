@@ -8,7 +8,7 @@ using Biovation.Brands.EOS.Devices;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -62,7 +62,7 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
                 {
-                    onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode)?.FirstOrDefault()?.Name;
+                    onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault()?.Name;
                 }
                 onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
             }
@@ -98,7 +98,7 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 try
                 {
-                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
 
                    var creatorUser = HttpContext.GetUser();
                     //var creatorUser =new User();
@@ -181,7 +181,7 @@ namespace Biovation.Brands.EOS.Controllers
                         DueDate = DateTime.Today
                     };
     
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
                     var deviceId = devices.DeviceId;
                
                     foreach (var id in userIds)
@@ -246,7 +246,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
                 var deviceId = devices.DeviceId;
                 task.TaskItems.Add(new TaskItem
                 {

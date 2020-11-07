@@ -105,6 +105,9 @@ namespace Biovation.Brands.EOS.Commands
         /// <returns></returns>
         public ICommand Factory(DataTransferModel transferModelData)
         {
+
+            int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
+            var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
             switch (transferModelData.EventId)
             {
                 #region DatabaseRequests(NoResponces)
@@ -117,8 +120,6 @@ namespace Biovation.Brands.EOS.Commands
                     {
                         //var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
-                        int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
-                        var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
                         return new EosDeleteUserFromTerminal(taskItem, _onlineDevices, _userService, _deviceService);
                     }
                 case CommandType.SendUserToDevice:
@@ -127,8 +128,6 @@ namespace Biovation.Brands.EOS.Commands
                         //var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
 
-                        int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
-                        var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
                         return new EosSendUserToDevice(taskItem, _onlineDevices, _userService, _deviceService, _adminDeviceService);
                     }
                 case CommandType.RetrieveUserFromDevice:
@@ -137,15 +136,11 @@ namespace Biovation.Brands.EOS.Commands
                         //var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
 
-                        int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
-                        var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
                         return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
-                        var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
                         return new EosGetUsersOfDevice(taskItem, _onlineDevices, _deviceService);
                     }
                 #endregion
