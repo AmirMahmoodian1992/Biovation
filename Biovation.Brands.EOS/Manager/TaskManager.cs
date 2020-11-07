@@ -306,7 +306,7 @@ namespace Biovation.Brands.Eos.Manager
         {
             lock (_tasks)
                 _tasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode,
-                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })?.Data?.Data;
+                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })?.Data?.Data ?? new List<TaskInfo>();
 
             if (_processingQueueInProgress)
                 return;
