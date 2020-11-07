@@ -106,9 +106,10 @@ namespace Biovation.Brands.EOS.Commands
         /// <returns></returns>
         public ICommand Factory(DataTransferModel transferModelData)
         {
+            //int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
+            //var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
+            var taskItem = (TaskItem)transferModelData.Items[0];
 
-            int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
-            var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
             switch (transferModelData.EventId)
             {
                 #region DatabaseRequests(NoResponces)
