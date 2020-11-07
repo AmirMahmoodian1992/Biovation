@@ -49,7 +49,7 @@ namespace Biovation.Brands.Eos.Manager
                                     /*result = (ResultViewModel)CommandFactory.Factory(CommandType.SendUsers,
                                         new List<object> { taskItem.Id, taskItem.DeviceId }).Execute();*/
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                                 taskItem.ExecutionAt = DateTime.Now;
                             }
@@ -69,7 +69,7 @@ namespace Biovation.Brands.Eos.Manager
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(
                                         CommandType.RetrieveLogsOfDeviceInPeriod,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -88,7 +88,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.SendUserToDevice,
-                                     new List<object> { taskItem }).Execute();
+                                     new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
 
                                 });
 
@@ -109,7 +109,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.SendBlackList,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -128,7 +128,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.UnlockDevice,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
 
                                 });
 
@@ -148,7 +148,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.LockDevice,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -166,7 +166,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -184,7 +184,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.OpenDoor,
-                                        new List<object> { taskItem}).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -202,7 +202,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.SendAccessGroupToDevice,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -221,7 +221,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.UpgradeFirmware,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -240,7 +240,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                             }
                             catch (Exception exception)
@@ -259,7 +259,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.EnrollFromTerminal,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                             }
                             catch (Exception exception)
@@ -278,7 +278,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.EnrollFaceFromDevice,
-                                        new List<object> { taskItem }).Execute();
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                             }
                             catch (Exception exception)
@@ -290,6 +290,7 @@ namespace Biovation.Brands.Eos.Manager
                             break;
                         }
                 }
+
 
                 executeTask?.ContinueWith(task =>
                 {
