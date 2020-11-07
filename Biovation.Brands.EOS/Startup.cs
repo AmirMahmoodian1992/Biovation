@@ -167,17 +167,17 @@ namespace Biovation.Brands.EOS
 
             var lookups = new Lookups
             {
-                TaskStatuses = taskStatusesQuery.Data.Data,
-                TaskTypes = taskTypesQuery.Data.Data,
-                TaskItemTypes = taskItemTypesQuery.Data.Data,
-                TaskPriorities = taskPrioritiesQuery.Data.Data,
-                FingerIndexNames = fingerIndexNamesQuery.Data.Data,
-                DeviceBrands = deviceBrandsQuery.Data.Data,
-                LogSubEvents = logSubEventsQuery.Data.Data,
-                FingerTemplateType = fingerTemplateTypeQuery.Data.Data,
-                FaceTemplateType = faceTemplateTypeQuery.Data.Data,
-                LogEvents = logEventsQuery.Data.Data,
-                MatchingTypes = matchingTypeQuery.Data.Data
+                TaskStatuses = taskStatusesQuery?.Data?.Data,
+                TaskTypes = taskTypesQuery?.Data?.Data,
+                TaskItemTypes = taskItemTypesQuery?.Data?.Data,
+                TaskPriorities = taskPrioritiesQuery?.Data?.Data,
+                FingerIndexNames = fingerIndexNamesQuery?.Data?.Data,
+                DeviceBrands = deviceBrandsQuery?.Data?.Data,
+                LogSubEvents = logSubEventsQuery?.Data?.Data,
+                FingerTemplateType = fingerTemplateTypeQuery?.Data?.Data,
+                FaceTemplateType = faceTemplateTypeQuery?.Data?.Data,
+                LogEvents = logEventsQuery?.Data?.Data,
+                MatchingTypes = matchingTypeQuery?.Data?.Data
             };
 
             var genericCodeMappings = new GenericCodeMappings
