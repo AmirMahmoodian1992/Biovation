@@ -70,8 +70,7 @@ namespace Biovation.Brands.Eos.Commands
 
 
             var userOfDevice = _onlineDevices[device.Code].GetUser(userCode);
-            var readLogOfPeriod = _onlineDevices[device.Code]
-                .ReadLogOfPeriod(new DateTime(2000), new DateTime(2020, 12, 20));
+        
 
             if (userOfDevice is null)
                 return new ResultViewModel<User>
