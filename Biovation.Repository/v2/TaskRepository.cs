@@ -72,7 +72,6 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@createdBy", task.CreatedBy?.Id),
                 new SqlParameter("@createdAt", task.CreatedAt == default ? DateTime.Now : task.CreatedAt.DateTime),
                 new SqlParameter("@updatedBy", task.UpdatedBy),
-                new SqlParameter("@queuedAt", task.QueuedAt),
                 new SqlParameter("@updatedAt", task.UpdatedAt == default ? (object) null : task.UpdatedAt.DateTime),
                 new SqlParameter("@schedulingPattern", task.SchedulingPattern),
                 new SqlParameter("@deviceBrandId", task.DeviceBrand.Code),
