@@ -65,7 +65,7 @@ namespace Biovation.Brands.EOS.Devices
 
                 case StShineL:
                     {
-                        return new HanvonBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _userCardService);
+                        return null;
                     }
 
                 case StFace120:
