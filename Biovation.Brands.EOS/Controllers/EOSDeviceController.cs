@@ -118,7 +118,7 @@ namespace Biovation.Brands.EOS.Controllers
                             TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                             Priority = _taskPriorities.Medium,
                             DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            Data = JsonConvert.SerializeObject(new { userCode = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
@@ -258,7 +258,8 @@ namespace Biovation.Brands.EOS.Controllers
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                     new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
 
-                return result;
+
+
             }
             catch (Exception exception)
             {
@@ -305,8 +306,8 @@ namespace Biovation.Brands.EOS.Controllers
                     CurrentIndex = 0
                 });
 
-                // _taskService.InsertTask(task);
-                // _taskManager.ProcessQueue();
+                _taskService.InsertTask(task);
+                 _taskManager.ProcessQueue();
 
 
                 var result = (ResultViewModel<List<Log>>)_commandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
@@ -318,14 +319,6 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 return new ResultViewModel<List<Log>> { Validate = 0, Message = exception.ToString() };
             }
-        }
-
-        public class Period
-        {
-
-            public DateTime startTime { get; set; }
-            public DateTime endTime { get; set; }
-
         }
 
 
