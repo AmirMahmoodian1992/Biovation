@@ -258,7 +258,7 @@ namespace Biovation.Brands.EOS.Controllers
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                     new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
 
-
+                return result;
 
             }
             catch (Exception exception)
