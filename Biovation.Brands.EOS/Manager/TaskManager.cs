@@ -1,13 +1,13 @@
-﻿using Biovation.CommonClasses;
-using Biovation.Domain;
+﻿using Biovation.Brands.EOS.Commands;
+using Biovation.CommonClasses;
 using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v2;
-using Biovation.Brands.EOS.Commands;
 
 namespace Biovation.Brands.Eos.Manager
 {
@@ -184,7 +184,7 @@ namespace Biovation.Brands.Eos.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.OpenDoor,
-                                        new List<object> { taskItem}).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -290,6 +290,7 @@ namespace Biovation.Brands.Eos.Manager
                             break;
                         }
                 }
+
 
                 executeTask?.ContinueWith(task =>
                 {

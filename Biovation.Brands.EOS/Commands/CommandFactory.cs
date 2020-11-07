@@ -1,5 +1,6 @@
 ﻿using Biovation.Brands.Eos.Commands;
 using Biovation.Brands.EOS.Devices;
+using Biovation.Brands.EOS.Manager;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -28,15 +29,15 @@ namespace Biovation.Brands.EOS.Commands
         ///private readonly LogSubEvents _logSubEvents;
        // private readonly MatchingTypes _matchingTypes;
         //private readonly TimeZoneService _timeZoneService;
-        //private readonly UserCardService _userCardService;
+        private readonly UserCardService _userCardService;
         //private readonly BlackListService _blackListService;
         //private readonly FaceTemplateTypes _faceTemplateTypes;
         //private readonly AccessGroupService _accessGroupService;
         //private readonly FaceTemplateService _faceTemplateService;
         private readonly AdminDeviceService _adminDeviceService;
-        //private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
-        //private readonly FingerTemplateService _fingerTemplateService;
+        private readonly FingerTemplateService _fingerTemplateService;
         //private readonly BiometricTemplateManager _biometricTemplateManager;
         //private static ClientConnection Connection { get; set; }
 
@@ -59,14 +60,14 @@ namespace Biovation.Brands.EOS.Commands
         public CommandFactory(EosServer eosServer,
             UserService userService, DeviceService deviceService,
             UserCardService userCardService,
-            AccessGroupService accessGroupService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes/*, BiometricTemplateManager biometricTemplateManager,*/, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService)
+            AccessGroupService accessGroupService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService)
         {
             _eosServer = eosServer;
             //_logService = logService;
             _userService = userService;
             _taskService = taskService;
             _deviceService = deviceService;
-            //_userCardService = userCardService;
+            _userCardService = userCardService;
             // _blackListService = blackListService;
             _adminDeviceService = adminDeviceService;
             //_accessGroupService = accessGroupService;
@@ -78,8 +79,8 @@ namespace Biovation.Brands.EOS.Commands
             //_matchingTypes = matchingTypes;
             //_deviceBrands = deviceBrands;
             //_taskStatuses = taskStatuses;
-            //_fingerTemplateService = fingerTemplateService;
-            //_fingerTemplateTypes = fingerTemplateTypes;
+            _fingerTemplateService = fingerTemplateService;
+            _fingerTemplateTypes = fingerTemplateTypes;
             //_biometricTemplateManager = biometricTemplateManager;
             //_faceTemplateTypes = faceTemplateTypes;
             _onlineDevices = onlineDevices;
@@ -105,9 +106,10 @@ namespace Biovation.Brands.EOS.Commands
         /// <returns></returns>
         public ICommand Factory(DataTransferModel transferModelData)
         {
+            //int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
+            //var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
+            var taskItem = (TaskItem)transferModelData.Items[0];
 
-            int.TryParse(transferModelData.Items[0].ToString(), out var taskItemId);
-            var taskItem = _taskService.GetTaskItem(taskItemId)?.Data;
             switch (transferModelData.EventId)
             {
                 #region DatabaseRequests(NoResponces)
@@ -136,7 +138,7 @@ namespace Biovation.Brands.EOS.Commands
                         //var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
 
-                        return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService);
+                        return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService,_userCardService,_fingerTemplateService,_fingerTemplateTypes);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
                     {
