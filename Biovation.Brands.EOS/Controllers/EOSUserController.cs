@@ -1,40 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.Eos.Manager;
+﻿using Biovation.Brands.Eos.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS.Controllers
 {
     [Route("Biovation/Api/[controller]/[action]")]
     public class EosUserController : Controller
     {
-        private readonly CommandFactory _commandFactory;
-      
         private readonly UserService _userService;
+        private readonly TaskService _taskService;
+        private readonly DeviceService _deviceService;
         private readonly AccessGroupService _accessGroupService;
 
-        private readonly TaskService _taskService;
+        private readonly TaskTypes _taskTypes;
         private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
-        private readonly DeviceService _deviceService;
-
-
-        private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
+        private readonly CommandFactory _commandFactory;
 
-        public EosUserController(UserService userService, AccessGroupService accessGroupService, CommandFactory commandFactory,TaskService taskService,TaskManager taskManager,TaskTypes taskTypes,
-            TaskStatuses taskStatuses,TaskItemTypes taskItemTypes,TaskPriorities taskPriorities,DeviceBrands deviceBrands,DeviceService deviceService)
+        public EosUserController(UserService userService, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskService taskService, TaskManager taskManager, TaskTypes taskTypes,
+            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands, DeviceService deviceService)
         {
             _userService = userService;
             _accessGroupService = accessGroupService;
@@ -50,55 +47,20 @@ namespace Biovation.Brands.EOS.Controllers
             _deviceService = deviceService;
         }
 
-
-
-        [HttpGet]
-        [Authorize]
-        public User Users(int id)
-        {
-            var user = _userService.GetUsers(userId: id)?.FirstOrDefault();
-            return user;
-
-            //return Task.Run(() =>
-            //{
-
-            //    try
-            //    {
-                    
-            //            _commandFactory.Factory(CommandType.GetUsersOfDevice, new List<object> {id})
-            //                  .Execute();
-                    
-            //        }
-
-            //        return new ResultViewModel { Validate = 1 };
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        Logger.Log(e);
-            //        return new ResultViewModel { Validate = 0, Message = e.Message };
-            //    }
-            //});
-        }
-
-
-
         [HttpGet]
         [Authorize]
         public Task<ResultViewModel> SendUserToDevice(uint code, string userId)
         {
             return Task.Run(() =>
             {
-
                 try
                 {
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel { Validate = 0, Message = $"Wrong device code is provided : {code}." }; 
                     
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode).FirstOrDefault();
-                    var deviceId = devices.DeviceId;
                     var userIds = JsonConvert.DeserializeObject<uint[]>(userId);
-                   
-                 
                     var creatorUser = HttpContext.GetUser();
-                   
 
                     var task = new TaskInfo
                     {
@@ -118,7 +80,7 @@ namespace Biovation.Brands.EOS.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.SendUser,
                             Priority = _taskPriorities.Medium,
-                            DeviceId = deviceId,
+                            DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { UserId = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
@@ -126,21 +88,16 @@ namespace Biovation.Brands.EOS.Controllers
                             CurrentIndex = 0,
                             TotalCount = 1
                         });
-
-                     
                     }
 
-                  //  _taskService.InsertTask(task);
-                   // _taskManager.ProcessQueue();
+                    _taskService.InsertTask(task);
+                    _taskManager.ProcessQueue();
 
-
-                 
-                    foreach (var receivedUserId in userIds)
-                    {
-                      _commandFactory.Factory(CommandType.SendUserToDevice, new List<object> { code, receivedUserId })
-                            .Execute();
-                       
-                    }
+                    //foreach (var receivedUserId in userIds)
+                    //{
+                    //    _commandFactory.Factory(CommandType.SendUserToDevice, new List<object> {code, receivedUserId})
+                    //        .Execute();
+                    //}
 
                     return new ResultViewModel { Validate = 1 };
                 }
@@ -157,8 +114,8 @@ namespace Biovation.Brands.EOS.Controllers
         [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
-            if (!accessGroups.Any())
+            var accessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+            if (accessGroups == null || !accessGroups.Any())
             {
                 return new ResultViewModel { Id = user.Id, Validate = 0 };
             }
@@ -178,6 +135,5 @@ namespace Biovation.Brands.EOS.Controllers
 
             return new ResultViewModel { Id = user.Id, Validate = 1 };
         }
-
     }
 }
