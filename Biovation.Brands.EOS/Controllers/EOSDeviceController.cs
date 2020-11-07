@@ -160,19 +160,16 @@ namespace Biovation.Brands.EOS.Controllers
             });
         }
         [HttpPost]
-        //[Authorize]
-       // public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, int userId)
+        [Authorize]
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
 
             return Task.Run(() =>
             {
                 try
                 {
-                    var creatorUser = new User();
-                    //var creatorUser = HttpContext.GetUser();
-                    var userIds = new List<int>();
-                    userIds.Add(userId);
+                    var creatorUser = HttpContext.GetUser();
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
