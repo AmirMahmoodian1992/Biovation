@@ -143,6 +143,11 @@ namespace Biovation.Brands.EOS.Commands
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         return new EosGetUsersOfDevice(taskItem, _onlineDevices, _deviceService);
                     }
+                case CommandType.RetrieveLogsOfDeviceInPeriod:
+                    {
+                        return new EosGetLogsOfDeviceInPeriod(taskItem,_onlineDevices,_deviceService);
+                    }
+
                 #endregion
 
                 //#region BiominiClientRequests
