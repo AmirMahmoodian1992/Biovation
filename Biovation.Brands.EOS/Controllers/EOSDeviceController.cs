@@ -29,7 +29,7 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
-        private readonly CommandFactory _commandFactory;
+        private readonly CommandFactory _commandFactory; 
         private readonly Dictionary<uint, Device> _onlineDevices;
 
         public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, EosServer eosServer, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
@@ -103,7 +103,7 @@ namespace Biovation.Brands.EOS.Controllers
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.DeleteUsers,
                         Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Eos,
                         TaskItems = new List<TaskItem>(),
                         DueDate = DateTime.Today
                     };
@@ -118,7 +118,7 @@ namespace Biovation.Brands.EOS.Controllers
                             TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                             Priority = _taskPriorities.Medium,
                             DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            Data = JsonConvert.SerializeObject(new { userCode = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
@@ -163,7 +163,7 @@ namespace Biovation.Brands.EOS.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        DeviceBrand = _deviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Eos,
                         TaskType = _taskTypes.RetrieveUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
@@ -229,7 +229,7 @@ namespace Biovation.Brands.EOS.Controllers
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
+                    DeviceBrand = _deviceBrands.Eos,
                     TaskItems = new List<TaskItem>(),
                     DueDate = DateTime.Today
                 };
@@ -259,6 +259,7 @@ namespace Biovation.Brands.EOS.Controllers
                     new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
 
                 return result;
+
             }
             catch (Exception exception)
             {
@@ -268,7 +269,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<Log>> RetrieveLogsOfPeriod(uint code, DateTime? startTime, DateTime? endTime)
+        public ResultViewModel<List<Log>> GetLogsOfDeviceInPeriod(uint code, DateTime fromDate, DateTime toDate)
         {
             try
             {
@@ -290,41 +291,23 @@ namespace Biovation.Brands.EOS.Controllers
                 {
                     return new ResultViewModel<List<Log>> { Validate = 0, Message = "Device with code is not exist" };
                 }
-
-                if (startTime is null && endTime is null)
-                {
-                    startTime = new DateTime(1970);
-                    endTime = new DateTime(2050);
-                }
-                else if (startTime is null)
-                {
-                    startTime = new DateTime(1970);
-                }
-                else if (endTime is null)
-                {
-                    endTime = new DateTime(2050);
-                }
                 var deviceId = device.DeviceId;
-                var period = new Period()
-                {
-                    StartTime = startTime.Value,
-                    EndTime = endTime.Value
-                };
+
                 task.TaskItems.Add(new TaskItem
                 {
                     Status = _taskStatuses.Queued,
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(period),
+                    Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
                     CurrentIndex = 0
                 });
 
-                // _taskService.InsertTask(task);
-                // _taskManager.ProcessQueue();
+                _taskService.InsertTask(task);
+                 _taskManager.ProcessQueue();
 
 
                 var result = (ResultViewModel<List<Log>>)_commandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
@@ -336,14 +319,6 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 return new ResultViewModel<List<Log>> { Validate = 0, Message = exception.ToString() };
             }
-        }
-
-        public class Period
-        {
-
-            public DateTime StartTime { get; set; }
-            public DateTime EndTime { get; set; }
-
         }
 
 

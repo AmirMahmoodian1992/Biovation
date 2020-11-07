@@ -40,12 +40,12 @@ namespace Biovation.Brands.Eos.Commands
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            var parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["startTime"]?.ToString() ?? new DateTime(1970).ToString(CultureInfo.InvariantCulture), out var starDateTime);
+            var parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["fromDate"]?.ToString() ?? new DateTime(1970).ToString(CultureInfo.InvariantCulture), out var starDateTime);
 
             //if (!parseResult || starDateTime == DateTime.MinValue)
             //    return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
 
-            parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["endTime"]?.ToString() ?? new DateTime(1970).ToString(CultureInfo.InvariantCulture), out var endDateTime);
+            parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["toDate"]?.ToString() ?? new DateTime(1970).ToString(CultureInfo.InvariantCulture), out var endDateTime);
 
             //if (!parseResult || endDateTime == DateTime.MinValue)
             //    return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
