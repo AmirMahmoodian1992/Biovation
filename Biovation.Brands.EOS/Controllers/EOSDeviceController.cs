@@ -103,7 +103,7 @@ namespace Biovation.Brands.EOS.Controllers
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.DeleteUsers,
                         Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Eos,
                         TaskItems = new List<TaskItem>(),
                         DueDate = DateTime.Today
                     };
@@ -163,7 +163,7 @@ namespace Biovation.Brands.EOS.Controllers
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        DeviceBrand = _deviceBrands.Virdi,
+                        DeviceBrand = _deviceBrands.Eos,
                         TaskType = _taskTypes.RetrieveUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
@@ -229,7 +229,7 @@ namespace Biovation.Brands.EOS.Controllers
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
+                    DeviceBrand = _deviceBrands.Eos,
                     TaskItems = new List<TaskItem>(),
                     DueDate = DateTime.Today
                 };
@@ -268,7 +268,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<Log>> GetLogsOfDeviceInPeriod(uint code, DateTime startTime, DateTime endTime)
+        public ResultViewModel<List<Log>> GetLogsOfDeviceInPeriod(uint code, DateTime fromDate, DateTime toDate)
         {
             try
             {
@@ -291,18 +291,14 @@ namespace Biovation.Brands.EOS.Controllers
                     return new ResultViewModel<List<Log>> { Validate = 0, Message = "Device with code is not exist" };
                 }
                 var deviceId = device.DeviceId;
-                var period = new Period()
-                {
-                    startTime = startTime,
-                    endTime = endTime
-                };
+
                 task.TaskItems.Add(new TaskItem
                 {
                     Status = _taskStatuses.Queued,
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(period),
+                    Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
