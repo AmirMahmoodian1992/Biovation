@@ -17,6 +17,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
         private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly UserCardService _userCardService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
 
@@ -32,12 +33,13 @@ namespace Biovation.Brands.EOS.Devices
         public const int StEco210 = 2010;
         public const int StP220 = 2011;
 
-        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService,BiometricTemplateManager biometricTemplateManager)
+        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService,BiometricTemplateManager biometricTemplateManager,FingerTemplateTypes fingerTemplateTypes)
         {
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
             _eosCodeMappings = eosCodeMappings;
+            _fingerTemplateTypes = fingerTemplateTypes;
             _userCardService = userCardService;
             _faceTemplateTypes = faceTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
@@ -56,7 +58,7 @@ namespace Biovation.Brands.EOS.Devices
                 case StPro:
                 case StProPlus:
                     {
-                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings,_biometricTemplateManager);
+                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings,_biometricTemplateManager,_fingerTemplateTypes);
                     }
 
                 case StFace110:

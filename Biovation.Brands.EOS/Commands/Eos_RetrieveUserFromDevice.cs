@@ -23,19 +23,24 @@ namespace Biovation.Brands.Eos.Commands
 
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
+        //private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly UserCardService _userCardService;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
         //private readonly ILogger<EosRetrieveUserFromDevice> _logger;
         //private readonly UserCardService _userCardService;
-        //private readonly FingerTemplateService _fingerTemplateService;
+        private readonly FingerTemplateService _fingerTemplateService;
         //private readonly FaceTemplateService _faceTemplateService;
         //private readonly AccessGroupService _commonAccessGroupService;
-        //private readonly FingerTemplateTypes _fingerTemplateTypes;
-        //private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
         //private readonly TaskStatuses _taskStatuses;
 
-        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService)
+        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService,UserCardService userCardService,FingerTemplateService fingerTemplateService,FingerTemplateTypes fingerTemplateTypes)
         {
+            _fingerTemplateService = fingerTemplateService;
+            _fingerTemplateTypes = fingerTemplateTypes;
+            _userCardService = userCardService;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _userService = userService;
@@ -70,10 +75,10 @@ namespace Biovation.Brands.Eos.Commands
 
 
             var userOfDevice = _onlineDevices[device.Code].GetUser(userCode);
-        
+
 
             if (userOfDevice is null)
-                return new ResultViewModel<User>
+                return new ResultViewModel
                 { Id = deviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
 
             try
@@ -92,10 +97,10 @@ namespace Biovation.Brands.Eos.Commands
                     Id = 0,
                     Code = userOfDevice.Code,
                     AdminLevel = userOfDevice.AdminLevel,
-                    StartDate = userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00"
+                    StartDate = userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00" || userOfDevice.StartDate == default
                         ? DateTime.Parse("1970/01/01")
                         : DateTime.Parse(userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture)),
-                    EndDate = userOfDevice.EndDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00"
+                    EndDate = userOfDevice.EndDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00" || userOfDevice.EndDate == default
                         ? DateTime.Parse("2050/01/01")
                         : DateTime.Parse(userOfDevice.EndDate.ToString(CultureInfo.InvariantCulture)),
                     AuthMode = userOfDevice.AuthMode,
@@ -131,73 +136,75 @@ namespace Biovation.Brands.Eos.Commands
                 }
 
                 _userService.ModifyUser(user);
-                //var savedUser= _userService.GetUsers(code:userOfDevice.Code).FirstOrDefault();
-                //if(savedUser != null)
-                //{
-                //    user.Id = savedUser.Id;
+                user.Id = _userService.GetUsers(code: user.Code).Data.Data.FirstOrDefault().Id;
 
+                //Card
+                try
+                {
+                    Logger.Log($"   +TotalCardCount:{userOfDevice.IdentityCard}");
+                    if (!(userOfDevice.IdentityCard is null))
+                    {
+                       
+                        if (int.Parse(userOfDevice.IdentityCard.Number) > 0)
+                            for (var i = 0; i < int.Parse(userOfDevice.IdentityCard.Number); i++)
+                            {
+                                var card = new UserCard
+                                {
+                                    CardNum = userOfDevice.IdentityCard.Id.ToString(),
+                                    IsActive = true,
+                                    //UserId = userOfDevice.Id
+                                    UserId = user.Id
+                                };
+                                _userCardService.ModifyUserCard(card);
+                            }
+                    }
+                }
 
-                //    if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
-                //    {
-                //        Task.Run(() =>
-                //        {
-                //            try
-                //            {
-                //                //todo
-                //                //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                //                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id, userGroupId: 4);
+                catch (Exception e)
+                {
+                    Logger.Log(e);
+                }
 
-                //                if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
-                //                {
-                //                    var onlineDevices =
-                //                        _deviceService.GetDevices(brandId: Convert.ToInt32(DeviceBrands.EosCode).ToString());
+                //Finger
+                try
+                {
+                    var nFpDataCount = userOfDevice.FingerTemplates.Count;
+                    Logger.Log($"   +TotalFingerCount:{nFpDataCount}");
 
-                //                    foreach (var device in onlineDevices)
-                //                    {
-                //                        //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
-                //                        var restRequest = new RestRequest($"Eos/EosDevice/SendUserToDevice");
-                //                        restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
-                //                        //restRequest.AddQueryParameter("userId", user.Code.ToString());
-                //                        restRequest.AddQueryParameter("userId", user.Id.ToString());
-                //                    }
-                //                }
+                    if (user.FingerTemplates is null)
+                        user.FingerTemplates = new List<FingerTemplate>();
+                    user.FingerTemplates = userOfDevice.FingerTemplates;
 
-                //                else
-                //                {
-                //                    foreach (var accessGroup in accessGroupsOfUser)
-                //                    {
-                //                        foreach (var deviceGroup in accessGroup.DeviceGroup)
-                //                        {
-                //                            foreach (var device in deviceGroup.Devices)
-                //                            {
-                //                                //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
-                //                                var restRequest =
-                //                                    new RestRequest($"Eos/EosDevice/SendUserToDevice");
-                //                                restRequest.AddQueryParameter("deviceId", device.DeviceId.ToString());
-                //                                restRequest.AddQueryParameter("userId", user.Id.ToString());
-                //                            }
-                //                        }
-                //                    }
-                //                }
-                //            }
-                //            catch (Exception exception)
-                //            {
-                //                //Logger.Log(exception);
-                //                _logger.LogWarning(exception, "Error on sending user {UserId} to other devices", UserId);
-                //            }
-                //        });
-                //    }
-                //}
+                    for (var i = 0; i < nFpDataCount; i += 2)
+                    {
+
+                        if (user.FingerTemplates.Any())
+                            
+                            foreach (var fingerTemplate in user.FingerTemplates)
+                            {
+                                fingerTemplate.UserId = user.Id;
+
+                                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
+                            }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(e);
+                }
+
+             
+                    
+                }
+
+                catch (Exception e)
+                {
+                    Logger.Log(e);
+                }
+            
+
+                return new ResultViewModel { Id = deviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
             }
-            catch (Exception exception)
-            {
-                //_logger.LogWarning(exception, "Error on retrieving user {UserId} from device {DeviceId}", userId, deviceId);
-                Logger.Log(exception, $"Error on retrieving user {userCode} from device {deviceId}");
-            }
-
-            return new ResultViewModel<User> { Data = userOfDevice, Id = deviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
-
-        }
 
         public string GetDescription()
         {

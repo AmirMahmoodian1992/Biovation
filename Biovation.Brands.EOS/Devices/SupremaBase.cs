@@ -31,14 +31,15 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
         private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly FingerTemplateTypes _fingerTemplateTypes;
 
-        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings,BiometricTemplateManager biometricTemplateManager)
+        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager,FingerTemplateTypes fingerTemplateTypes)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = true;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
-            //  _eosServer = eosServer;
+            _fingerTemplateTypes = fingerTemplateTypes;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosCodeMappings = eosCodeMappings;
@@ -365,7 +366,7 @@ namespace Biovation.Brands.EOS.Devices
         {
             var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
 
-                _clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
+            _clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
 
             lock (_clock)
                 if (_clock.TestConnection())
@@ -565,7 +566,7 @@ namespace Biovation.Brands.EOS.Devices
                 //Disconnect();
                 if (_valid)
                     Connect();
-                
+
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
 
             }
@@ -757,21 +758,25 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (fingerTemplates is null || fingerTemplates.Count <= 0) return null;
 
-                    var retrievedUser = new User { FingerTemplates = new List<FingerTemplate>() };
+                    var retrievedUser = new User
+                    {
+                        Code = userId,
+                        FingerTemplates = new List<FingerTemplate>(),
+                        StartDate = default,
+                        EndDate = default
+                    };
 
                     for (var i = 0; i < fingerTemplates.Count; i++)
                     {
-                      
 
                         var firstTemplateBytes = fingerTemplates[i];
-                        
+
                         var fingerTemplate = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            // FingerTemplateType = _fingerTemplateTypes.SU384,
+                            FingerTemplateType = _fingerTemplateTypes.EOSSuprema,
                             UserId = retrievedUser.Id,
                             Template = firstTemplateBytes,
-                            //CheckSum = (int)userHdr.fingerChecksum[i],
                             CheckSum = firstTemplateBytes.Sum(b => b),
                             Size = firstTemplateBytes.ToList()
                                 .LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
@@ -782,20 +787,21 @@ namespace Biovation.Brands.EOS.Devices
 
                         retrievedUser.FingerTemplates.Add(fingerTemplate);
 
-                        // var secondTemplateBytes = fingerTemplates;
                         var secondTemplateBytes = fingerTemplates[++i];
 
                         var secondFingerTemplateSample = new FingerTemplate
                         {
-                            //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            //FingerTemplateType = _fingerTemplateTypes.SU384,
+                            FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                            FingerTemplateType = _fingerTemplateTypes.EOSSuprema,
                             UserId = retrievedUser.Id,
                             Template = secondTemplateBytes,
-                            //CheckSum = (int)userHdr.fingerChecksum[i],
                             CheckSum = secondTemplateBytes.Sum(b => b),
                             Size = secondTemplateBytes.ToList()
                                 .LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
                             Index = i,
+                            EnrollQuality = 0,
+                            SecurityLevel = 0,
+                            Duress = true,
                             CreateAt = DateTime.Now,
                             TemplateIndex = 1
                         };
