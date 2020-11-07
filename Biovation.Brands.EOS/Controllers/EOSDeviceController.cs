@@ -264,8 +264,8 @@ namespace Biovation.Brands.EOS.Controllers
                     CurrentIndex = 0
                 });
 
-                _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
+                //_taskService.InsertTask(task);
+                //_taskManager.ProcessQueue();
 
                 var result = (ResultViewModel<List<User>>) _commandFactory.Factory(
                         CommandType.RetrieveUsersListFromDevice,
@@ -284,87 +284,70 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<Log>> RetrieveLogsOfPeriod(uint code, DateTime? startTime, DateTime? endTime)
+        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            try
+            return Task.Run(() =>
             {
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetLogsInPeriod,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Eos,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                    var creatorUser = HttpContext.GetUser();
 
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
-                    ?.FirstOrDefault();
-                if (device is null)
-                {
-                    return new ResultViewModel<List<Log>> {Validate = 0, Message = "Device with code is not exist"};
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.GetLogsInPeriod,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Eos,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                        ?.FirstOrDefault();
+                    if (device is null)
+                    {
+                        return new ResultViewModel {Validate = 0, Message = "Device with code is not exist"};
+                    }
+
+                    if (fromDate is null && toDate is null)
+                    {
+                        fromDate = new DateTime(1970);
+                        toDate = new DateTime(2050);
+                    }
+                    else if (fromDate is null)
+                    {
+                        fromDate = new DateTime(1970);
+                    }
+                    else if (toDate is null)
+                    {
+                        toDate = new DateTime(2050);
+                    }
+
+                    var deviceId = device.DeviceId;
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = deviceId,
+                        Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0
+                    });
+
+                    _taskService.InsertTask(task);
+                    _taskManager.ProcessQueue();
+
+                    return new ResultViewModel {Validate = 1};
                 }
-
-                if (startTime is null && endTime is null)
+                catch (Exception exception)
                 {
-                    startTime = new DateTime(1970);
-                    endTime = new DateTime(2050);
+                    return new ResultViewModel {Validate = 0, Message = exception.Message};
                 }
-                else if (startTime is null)
-                {
-                    startTime = new DateTime(1970);
-                }
-                else if (endTime is null)
-                {
-                    endTime = new DateTime(2050);
-                }
-
-                var deviceId = device.DeviceId;
-                var period = new Period()
-                {
-                    StartTime = startTime.Value,
-                    EndTime = endTime.Value
-                };
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(period),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    CurrentIndex = 0
-                });
-
-                _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
-
-
-                var result = (ResultViewModel<List<Log>>) _commandFactory.Factory(
-                        CommandType.RetrieveLogsOfDeviceInPeriod,
-                        new List<object>
-                            {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
-                    .Execute();
-
-                return result;
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel<List<Log>> {Validate = 0, Message = exception.ToString()};
-            }
-        }
-
-        public class Period
-        {
-
-            public DateTime StartTime { get; set; }
-            public DateTime EndTime { get; set; }
-
+            });
         }
     }
 }

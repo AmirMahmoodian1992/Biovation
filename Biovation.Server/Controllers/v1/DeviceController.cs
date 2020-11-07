@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -126,8 +127,32 @@ namespace Biovation.Server.Controllers.v1
 
                         var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                         restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
+                        //restRequest.AddQueryParameter("fromDate", fromDate);
+                        //restRequest.AddQueryParameter("toDate", toDate);
+
+                        if (fromDate is null && toDate is null)
+                        {
+                            restRequest.AddQueryParameter("fromDate", DateTime.MinValue.ToString(CultureInfo.InvariantCulture));
+                            restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                        }
+                        else if (fromDate is null)
+                        {
+                            restRequest.AddQueryParameter("fromDate", (DateTime.MinValue.ToString(CultureInfo.InvariantCulture)));
+                            restRequest.AddQueryParameter("toDate", toDate);
+                        }
+                        else if (toDate is null)
+                        {
+                            restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                            restRequest.AddQueryParameter("fromDate", fromDate);
+                        }
+                        else
+                        {
+                            restRequest.AddQueryParameter("fromDate", fromDate);
+                            restRequest.AddQueryParameter("toDate", toDate);
+                        }
+
+
+
                         restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                         var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                         if (requestResult.StatusCode == HttpStatusCode.OK)

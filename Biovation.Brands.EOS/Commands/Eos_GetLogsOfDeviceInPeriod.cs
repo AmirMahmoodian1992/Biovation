@@ -21,6 +21,9 @@ namespace Biovation.Brands.Eos.Commands
         //private uint DeviceId { get; }
         private TaskItem TaskItem { get; }
         private Dictionary<uint, Device> OnlineDevices { get; }
+        private DateTime FromDate { get; }
+        private DateTime ToDate { get; }
+
 
         public EosGetLogsOfDeviceInPeriod(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
         {
@@ -28,6 +31,9 @@ namespace Biovation.Brands.Eos.Commands
             TaskItem = taskItem;
             OnlineDevices = onlineDevices;
             _deviceService = deviceService;
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            FromDate = Convert.ToDateTime(data["fromDate"]);
+            ToDate = Convert.ToDateTime(data["toDate"]);
         }
 
         /// <summary>
@@ -40,16 +46,6 @@ namespace Biovation.Brands.Eos.Commands
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            var parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["fromDate"]?.ToString() ?? new DateTime(1970).ToString(CultureInfo.InvariantCulture), out var starDateTime);
-
-            //if (!parseResult || starDateTime == DateTime.MinValue)
-            //    return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
-
-            parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["toDate"]?.ToString() ?? new DateTime(1970).ToString(CultureInfo.InvariantCulture), out var endDateTime);
-
-            //if (!parseResult || endDateTime == DateTime.MinValue)
-            //    return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
-
             var device = _deviceService.GetDevice(deviceId)?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
@@ -58,10 +54,9 @@ namespace Biovation.Brands.Eos.Commands
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
 
-            var logs = OnlineDevices[device.Code].ReadLogOfPeriod(starDateTime,endDateTime);
+            var logs = OnlineDevices[device.Code].ReadLogOfPeriod(FromDate, ToDate);
 
-
-            return new ResultViewModel<List<Log>> { Data = logs, Id = device.DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+            return logs == null ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = deviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = deviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
         }
 
         public void Rollback()

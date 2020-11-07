@@ -729,17 +729,17 @@ namespace Biovation.Brands.EOS.Devices
 
         public override List<Log> ReadLogOfPeriod(DateTime startTime, DateTime endTime)
         {
-            List<string> logs = new List<string>();
-            List<Log> EosLogs = new List<Log>();
-            List<Record> records = null;
-            bool invalidTime = false;
-            if (startTime < new DateTime(1921,3,21))
+            var logs = new List<string>();
+            var eosLogs = new List<Log>();
+            var records = new List<Record>();
+            var invalidTime = false;
+            if (startTime < new DateTime(1921,3,21) || startTime > new DateTime(2021, 3, 19))
             {
                 startTime = new DateTime(1921, 3, 21);
                 invalidTime = true;
             }
 
-            if (endTime > new DateTime(2021,3,19))
+            if (endTime > new DateTime(2021,3,19) || endTime < new DateTime(1921, 3, 21))
             {
                 endTime = new DateTime(2021, 3, 19);
                 invalidTime = true;
@@ -793,7 +793,7 @@ namespace Biovation.Brands.EOS.Devices
                                     EventLog = _logEvents.Authorized,
                                     TnaEvent = 0,
                                 };
-                                EosLogs.Add(receivedLog);
+                                eosLogs.Add(receivedLog);
                                 Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{receivedLog.UserId}
@@ -802,7 +802,7 @@ namespace Biovation.Brands.EOS.Devices
                             else
                             {
                                 Logger.Log("Null record.");
-                            }
+                            }   
                         }
                         catch (Exception ex)
                         {
@@ -812,11 +812,11 @@ namespace Biovation.Brands.EOS.Devices
 
 
                     }
-                    _eosLogService.AddLog(EosLogs);
+                    _eosLogService.AddLog(eosLogs);
 
                 }
             }
-            return EosLogs;
+            return eosLogs;
         }
 
     }
