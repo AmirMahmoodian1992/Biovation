@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.Eos.Manager;
+﻿using Biovation.Brands.Eos.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.Brands.EOS.Devices;
 using Biovation.CommonClasses.Extension;
@@ -13,6 +9,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS.Controllers
 {
@@ -20,26 +20,23 @@ namespace Biovation.Brands.EOS.Controllers
     public class EosDeviceController : Controller
     {
         private readonly EosServer _eosServer;
-        private readonly UserService _userService;
-        private readonly TaskManager _taskManager;
+        private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-        private readonly Dictionary<uint, Device> _onlineDevices;
-        private readonly CommandFactory _commandFactory; private readonly TaskService _taskService;
-
 
         private readonly TaskTypes _taskTypes;
+        private readonly TaskManager _taskManager;
+        private readonly DeviceBrands _deviceBrands;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
-        private readonly DeviceBrands _deviceBrands;
+        private readonly CommandFactory _commandFactory; 
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
-
-        public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, EosServer eosServer, CommandFactory commandFactory, UserService userService, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, EosServer eosServer, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _eosServer = eosServer;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
-            _userService = userService;
             _commandFactory = commandFactory;
             _taskService = taskService;
             _taskManager = taskManager;
@@ -49,7 +46,6 @@ namespace Biovation.Brands.EOS.Controllers
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _deviceBrands = deviceBrands;
-
         }
 
         [HttpGet]
@@ -87,9 +83,6 @@ namespace Biovation.Brands.EOS.Controllers
             return new ResultViewModel { Validate = 0, Id = device.DeviceId };
         }
 
-
-
-
         [HttpPost]
         [Authorize]
         public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
@@ -99,10 +92,10 @@ namespace Biovation.Brands.EOS.Controllers
                 try
                 {
                     var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel { Validate = 1, Message = $"Wrong device code is provided : {code}." };
 
-                   var creatorUser = HttpContext.GetUser();
-                    //var creatorUser =new User();
-
+                    var creatorUser = HttpContext.GetUser();
 
                     var task = new TaskInfo
                     {
@@ -116,10 +109,9 @@ namespace Biovation.Brands.EOS.Controllers
                     };
 
                     var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                    
+
                     foreach (var id in userIds)
                     {
-
                         task.TaskItems.Add(new TaskItem
                         {
                             Status = _taskStatuses.Queued,
@@ -136,18 +128,15 @@ namespace Biovation.Brands.EOS.Controllers
 
                     }
 
+                    _taskService.InsertTask(task);
+                    _taskManager.ProcessQueue();
 
-
-                    //_taskService.InsertTask(task);
-                    // _taskManager.ProcessQueue();
-                   
-                    foreach (var id in userIds)
-                    {
-                        var deleteUser = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                                                new List<object> { code, id });
-                        var deleteresult = deleteUser.Execute();
-                    }
-                        
+                    //foreach (var id in userIds)
+                    //{
+                    //    var deleteUser = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                    //                            new List<object> { code, id });
+                    //    var deleteResult = deleteUser.Execute();
+                    //}
 
                     var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
                     return result;
@@ -180,10 +169,12 @@ namespace Biovation.Brands.EOS.Controllers
                         TaskItems = new List<TaskItem>(),
                         DueDate = DateTime.Today
                     };
-    
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
-                    var deviceId = devices.DeviceId;
-               
+
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                    if (device is null)
+                        return new List<ResultViewModel>
+                            {new ResultViewModel {Validate = 1, Message = $"Wrong device code is provided : {code}."}};
+
                     foreach (var id in userIds)
                     {
                         task.TaskItems.Add(new TaskItem
@@ -191,7 +182,7 @@ namespace Biovation.Brands.EOS.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
                             Priority = _taskPriorities.Medium,
-                            DeviceId = deviceId,
+                            DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { userCode = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
@@ -201,16 +192,15 @@ namespace Biovation.Brands.EOS.Controllers
                         });
                     }
 
-                   //_taskService.InsertTask(task);
-                   // _taskManager.ProcessQueue();
-                           
+                    _taskService.InsertTask(task);
+                    _taskManager.ProcessQueue();
 
-                    foreach (var id in userIds)
-                    {
-                        var getUser = _commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                new List<object> { deviceId, id });
-                        var getUserresult = getUser.Execute();
-                    }
+                    //    foreach (var id in userIds)
+                    //    {
+                    //        var getUser = _commandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                    //new List<object> { deviceId, id });
+                    //        var getUserResult = getUser.Execute();
+                    //    }
 
                     return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
@@ -222,14 +212,12 @@ namespace Biovation.Brands.EOS.Controllers
                     {new ResultViewModel { Validate = 0, Message = exception.ToString() }};
                 }
             });
-
         }
 
         [HttpGet]
         [Authorize]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
         {
-
             try
             {
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
@@ -247,6 +235,9 @@ namespace Biovation.Brands.EOS.Controllers
                 };
 
                 var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                if (devices is null)
+                    return new ResultViewModel<List<User>> { Validate = 0, Message = $"Wrong device code is provided : {code}." };
+
                 var deviceId = devices.DeviceId;
                 task.TaskItems.Add(new TaskItem
                 {
@@ -261,9 +252,8 @@ namespace Biovation.Brands.EOS.Controllers
                     CurrentIndex = 0
                 });
 
-               // _taskService.InsertTask(task);
-               // _taskManager.ProcessQueue();
-
+                _taskService.InsertTask(task);
+                _taskManager.ProcessQueue();
 
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                     new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
@@ -275,7 +265,5 @@ namespace Biovation.Brands.EOS.Controllers
                 return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
             }
         }
-
-
     }
 }
