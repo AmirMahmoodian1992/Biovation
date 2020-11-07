@@ -265,5 +265,73 @@ namespace Biovation.Brands.EOS.Controllers
                 return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        public ResultViewModel<List<Log>> GetLogsOfDeviceInPeriod(uint code, DateTime startTime, DateTime endTime)
+        {
+            try
+            {
+                var creatorUser = HttpContext.GetUser();
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.GetLogsInPeriod,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Eos,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                if (device is null)
+                {
+                    return new ResultViewModel<List<Log>> { Validate = 0, Message = "Device with code is not exist" };
+                }
+                var deviceId = device.DeviceId;
+                var period = new Period()
+                {
+                    startTime = startTime,
+                    endTime = endTime
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = deviceId,
+                    Data = JsonConvert.SerializeObject(period),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0
+                });
+
+                // _taskService.InsertTask(task);
+                // _taskManager.ProcessQueue();
+
+
+                var result = (ResultViewModel<List<Log>>)_commandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
+                    new List<object> { task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id }).Execute();
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel<List<Log>> { Validate = 0, Message = exception.ToString() };
+            }
+        }
+
+        public class Period
+        {
+
+            public DateTime startTime { get; set; }
+            public DateTime endTime { get; set; }
+
+        }
+
+
     }
 }

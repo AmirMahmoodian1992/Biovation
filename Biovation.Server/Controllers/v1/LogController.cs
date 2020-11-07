@@ -17,7 +17,7 @@ using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/v1/[controller]")]
     [ApiVersion("1.0")]
     public class LogController : Controller
     {
@@ -74,38 +74,38 @@ namespace Biovation.Server.Controllers.v1
             return _logService.SelectSearchedOfflineLogsWithPaging(dTraffic, token: _kasraAdminToken);
         }
 
-        [HttpPost]
-        [Route("LogsOfDevice")]
-        public Task<ResultViewModel> LogsOfDevice(int deviceId)
-        {
-            return Task.Run(async () =>
-            {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
+        //[HttpPost]
+        //[Route("LogsOfDevice")]
+        //public Task<ResultViewModel> LogsOfDevice(int deviceId)
+        //{
+        //    return Task.Run(async () =>
+        //    {
+        //        //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+        //        var creatorUser = HttpContext.GetUser();
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetServeLogs,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
+        //        var task = new TaskInfo
+        //        {
+        //            CreatedAt = DateTimeOffset.Now,
+        //            CreatedBy = creatorUser,
+        //            TaskType = _taskTypes.GetServeLogs,
+        //            Priority = _taskPriorities.Medium,
+        //            TaskItems = new List<TaskItem>(),
 
-                };
+        //        };
 
-                var device = _commonDeviceService.GetDevice(deviceId, token: _kasraAdminToken);
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
-                restRequest.AddJsonBody(device.Code);
-                restRequest.AddQueryParameter("taskId", task.Id.ToString());
+        //        var device = _commonDeviceService.GetDevice(deviceId, token: _kasraAdminToken);
+        //        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
+        //        restRequest.AddJsonBody(device.Code);
+        //        restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                //_communicationManager.CallRest(
-                //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
-                //    $"{device.Code}");
-                return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
-            });
-        }
+        //        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+        //        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+        //        //_communicationManager.CallRest(
+        //        //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
+        //        //    $"{device.Code}");
+        //        return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
+        //    });
+        //}
 
         [HttpPost]
         [Route("LogsOfDevice")]
