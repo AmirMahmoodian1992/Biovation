@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.EOS.Service
 {
@@ -37,7 +37,7 @@ namespace Biovation.Brands.EOS.Service
                 //log.MatchingType =  log.MatchingType;
 
                 var device = _deviceService.GetDevice(log.DeviceId);
-                log.InOutMode = device?.DeviceTypeId ?? 0;
+                log.InOutMode = device?.Data?.DeviceTypeId ?? 0;
                 var addLogResult = await _logService.AddLog(log);
 
                 return addLogResult;
@@ -61,7 +61,7 @@ namespace Biovation.Brands.EOS.Service
                             var deviceCodes = logs.GroupBy(g => g.DeviceCode).Select(s => s.Key).ToList();
                             foreach (var deviceCode in deviceCodes)
                             {
-                                var device = _deviceService.GetDevices(code: deviceCode, brandId: DeviceBrands.EosCode)?.FirstOrDefault();
+                                var device = _deviceService.GetDevices(code: deviceCode, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
                                 if (device != null)
                                 {
                                     var logsToTransfer = await _logService.SelectSearchedOfflineLogs(new DeviceTraffic { DeviceId = (uint)device.DeviceId, State = false });

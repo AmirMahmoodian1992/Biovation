@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Biovation.Brands.EOS.Commands;
 
 namespace Biovation.Brands.Eos.Manager
@@ -306,7 +306,7 @@ namespace Biovation.Brands.Eos.Manager
         {
             lock (_tasks)
                 _tasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode,
-                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code }).Result;
+                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })?.Data?.Data;
 
             if (_processingQueueInProgress)
                 return;

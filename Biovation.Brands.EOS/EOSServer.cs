@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using RestSharp;
 
 namespace Biovation.Brands.EOS
@@ -36,7 +36,7 @@ namespace Biovation.Brands.EOS
             _restClient = restClient;
             _logEvents = logEvents;
             _deviceFactory = deviceFactory;
-            _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode)?.Where(x => x.Active).ToList();
+            _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode)?.Data?.Data?.Where(x => x.Active).ToList();
         }
 
         public async void ConnectToDevice(DeviceBasicInfo deviceInfo)
@@ -82,7 +82,7 @@ namespace Biovation.Brands.EOS
 
                 if (!deviceInfo.Active) return;
 
-                var device = _deviceFactory.Factory(deviceInfo, "");
+                var device = _deviceFactory.Factory(deviceInfo);
                 var connectResult = device.Connect();
                 if (!connectResult) return;
 

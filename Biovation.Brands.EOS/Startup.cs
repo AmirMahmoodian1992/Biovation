@@ -14,7 +14,7 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -93,7 +93,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<BlackListService, BlackListService>();
             services.AddSingleton<DeviceGroupService, DeviceGroupService>();
             services.AddSingleton<DeviceService, DeviceService>();
-            services.AddSingleton<FaceTemplateService, FaceTemplateService>();
+            //services.AddSingleton<FaceTemplateService, FaceTemplateService>();
             services.AddSingleton<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<LogService, LogService>();
@@ -104,7 +104,8 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton<EosLogService, EosLogService>();
+            //services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
+            services.AddSingleton<EosLogService,EosLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -166,17 +167,17 @@ namespace Biovation.Brands.EOS
 
             var lookups = new Lookups
             {
-                TaskStatuses = taskStatusesQuery.Result,
-                TaskTypes = taskTypesQuery.Result,
-                TaskItemTypes = taskItemTypesQuery.Result,
-                TaskPriorities = taskPrioritiesQuery.Result,
-                FingerIndexNames = fingerIndexNamesQuery.Result,
-                DeviceBrands = deviceBrandsQuery.Result,
-                LogSubEvents = logSubEventsQuery.Result,
-                FingerTemplateType = fingerTemplateTypeQuery.Result,
-                FaceTemplateType = faceTemplateTypeQuery.Result,
-                LogEvents = logEventsQuery.Result,
-                MatchingTypes = matchingTypeQuery.Result
+                TaskStatuses = taskStatusesQuery.Data.Data,
+                TaskTypes = taskTypesQuery.Data.Data,
+                TaskItemTypes = taskItemTypesQuery.Data.Data,
+                TaskPriorities = taskPrioritiesQuery.Data.Data,
+                FingerIndexNames = fingerIndexNamesQuery.Data.Data,
+                DeviceBrands = deviceBrandsQuery.Data.Data,
+                LogSubEvents = logSubEventsQuery.Data.Data,
+                FingerTemplateType = fingerTemplateTypeQuery.Data.Data,
+                FaceTemplateType = faceTemplateTypeQuery.Data.Data,
+                LogEvents = logEventsQuery.Data.Data,
+                MatchingTypes = matchingTypeQuery.Data.Data
             };
 
             var genericCodeMappings = new GenericCodeMappings
