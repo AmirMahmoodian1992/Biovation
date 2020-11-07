@@ -30,8 +30,9 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
 
-        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
+        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings,BiometricTemplateManager biometricTemplateManager)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = true;
@@ -41,6 +42,7 @@ namespace Biovation.Brands.EOS.Devices
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosCodeMappings = eosCodeMappings;
+            _biometricTemplateManager = biometricTemplateManager;
         }
 
         ///// <summary>
@@ -363,7 +365,6 @@ namespace Biovation.Brands.EOS.Devices
         {
             var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
 
-            lock (_clock)
                 _clock = new Clock(connection, ProtocolType.RS485, 1, ProtocolType.Suprema);
 
             lock (_clock)
@@ -760,24 +761,13 @@ namespace Biovation.Brands.EOS.Devices
 
                     for (var i = 0; i < fingerTemplates.Count; i++)
                     {
-                        //user.FingerTemplates.Add(new FingerTemplate
-                        //{
-                        //    FingerIndex = BiometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                        //    Index = _fingerTemplateService.GetFingerTemplateByUserId(existUser.Id)?.Count(ft => ft.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
-                        //    TemplateIndex = 0,
-                        //    Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
-                        //    Template = firstTemplateSample,
-                        //    CheckSum = firstSampleCheckSum,
-                        //    UserId = user.Id,
-                        //    FingerTemplateType = FingerTemplateTypes.V400
-                        //});
+                      
 
                         var firstTemplateBytes = fingerTemplates[i];
-                        //var firstTemplateBytes = fingerTemplates;
-
+                        
                         var fingerTemplate = new FingerTemplate
                         {
-                            //FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                            FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
                             // FingerTemplateType = _fingerTemplateTypes.SU384,
                             UserId = retrievedUser.Id,
                             Template = firstTemplateBytes,

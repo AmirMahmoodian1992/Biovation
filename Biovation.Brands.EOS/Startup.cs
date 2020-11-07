@@ -211,6 +211,8 @@ namespace Biovation.Brands.EOS
 
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<EosCodeMappings, EosCodeMappings>();
+            services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
+
             services.AddSingleton<CommandFactory, CommandFactory>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<EosServer, EosServer>();

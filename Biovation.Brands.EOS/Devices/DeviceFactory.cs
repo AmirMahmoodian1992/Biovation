@@ -18,6 +18,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly EosCodeMappings _eosCodeMappings;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserCardService _userCardService;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
 
         public const int StPro = 2001;
         public const int StProPlus = 2002;
@@ -31,7 +32,7 @@ namespace Biovation.Brands.EOS.Devices
         public const int StEco210 = 2010;
         public const int StP220 = 2011;
 
-        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
+        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService,BiometricTemplateManager biometricTemplateManager)
         {
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
@@ -39,6 +40,7 @@ namespace Biovation.Brands.EOS.Devices
             _eosCodeMappings = eosCodeMappings;
             _userCardService = userCardService;
             _faceTemplateTypes = faceTemplateTypes;
+            _biometricTemplateManager = biometricTemplateManager;
         }
 
         /// <summary>
@@ -54,7 +56,7 @@ namespace Biovation.Brands.EOS.Devices
                 case StPro:
                 case StProPlus:
                     {
-                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
+                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings,_biometricTemplateManager);
                     }
 
                 case StFace110:
