@@ -774,7 +774,7 @@ namespace Biovation.Brands.EOS.Devices
                         var fingerTemplate = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            FingerTemplateType = _fingerTemplateTypes.EOSSuprema,
+                            FingerTemplateType = _fingerTemplateTypes.SU384,
                             UserId = retrievedUser.Id,
                             Template = firstTemplateBytes,
                             CheckSum = firstTemplateBytes.Sum(b => b),
@@ -792,7 +792,7 @@ namespace Biovation.Brands.EOS.Devices
                         var secondFingerTemplateSample = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            FingerTemplateType = _fingerTemplateTypes.EOSSuprema,
+                            FingerTemplateType = _fingerTemplateTypes.SU384,
                             UserId = retrievedUser.Id,
                             Template = secondTemplateBytes,
                             CheckSum = secondTemplateBytes.Sum(b => b),
