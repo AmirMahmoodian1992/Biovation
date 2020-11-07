@@ -369,5 +369,10 @@ namespace Biovation.Brands.EOS.Devices
         {
             return true;
         }
+
+        public virtual List<Log> ReadLogOfPeriod(DateTime startTime, DateTime endTime) 
+        {
+            throw new NotImplementedException();
+        }
     }
 }

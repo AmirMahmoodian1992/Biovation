@@ -3,7 +3,7 @@ using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using EosClocks;
 using System;
 using System.Collections.Generic;
@@ -16,7 +16,7 @@ using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
 {
-    public class HonvanBase : Device
+    public class HanvonBase : Device
     {
         private StFace _stFace;
         private readonly DeviceBasicInfo _deviceInfo;
@@ -24,25 +24,26 @@ namespace Biovation.Brands.EOS.Devices
 
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
-        private readonly EosCodeMappings _eosCodeMappings;
+        //private readonly EosCodeMappings _eosCodeMappings;
         private readonly FaceTemplateTypes _faceTemplateTypes;
-        private readonly FaceTemplateService _faceTemplateService;
         private readonly UserCardService _userCardService;
         private bool _valid;
         private int _counter;
 
 
-        internal HonvanBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, FaceTemplateService faceTemplateService, UserCardService userCardService) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+        internal HanvonBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents,
+            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
+            UserCardService userCardService) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = false;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
-            _eosCodeMappings = eosCodeMappings;
             _faceTemplateTypes = faceTemplateTypes;
             _userCardService = userCardService;
-            _faceTemplateService = faceTemplateService;
+            _stFace = new StFace(new TCPIPConnection
+                { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
         }
 
 
@@ -83,39 +84,51 @@ namespace Biovation.Brands.EOS.Devices
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }
+
         private bool IsConnected()
         {
-            _stFace = new StFace(new TCPIPConnection { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
-            lock (_stFace)
+            try
             {
-                _stFace.Connect();
-            }
-            if (_stFace.Connected)
-            {
-                Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
-                return true;
-            }
-            while (true)
-            {
-                Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
-
-                Thread.Sleep(600);
-                Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
-                if (_stFace.TestConnection())
+                lock (_stFace)
                 {
+                    _stFace.Connect();
+                }
+
+                if (_stFace.Connected)
+                {
+                    Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}",
+                        logType: LogType.Information);
                     return true;
                 }
+
+                while (true)
+                {
+                    Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
+
+                    Thread.Sleep(600);
+                    Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
+                    if (_stFace.TestConnection())
+                    {
+                        return true;
+                    }
+                }
             }
+            catch (Exception e)
+            {
+                Logger.Log("Error in define and connect to STFace" + e.Message);
+            }
+
+            return false;
         }
 
         internal override User GetUser(uint userId)
         {
             try
             {
-                var terminalUserData = new StFaceUserInfo();
+                StFaceUserInfo terminalUserData;
                 lock (_stFace)
                 {
-                    terminalUserData = _stFace.GetUserInfo((long)userId);
+                    terminalUserData = _stFace.GetUserInfo(userId);
                 }
                 if (terminalUserData is null) return new User();
                 var user = new User()
@@ -143,11 +156,11 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     user.FaceTemplates ??= new List<FaceTemplate>();
                     var faceData = terminalUserData.FaceData.SelectMany(s =>
-                            System.Text.Encoding.ASCII.GetBytes(s)).ToArray();
+                            Encoding.ASCII.GetBytes(s)).ToArray();
                     var faceTemplate = new FaceTemplate
                     {
                         Index = 1,
-                        FaceTemplateType = _faceTemplateTypes.EOSHonvan,
+                        FaceTemplateType = _faceTemplateTypes.EOSHanvon,
                         UserId = user.Id,
                         Template = faceData,
                         CheckSum = faceData.Sum(x => x),
@@ -165,6 +178,7 @@ namespace Biovation.Brands.EOS.Devices
             }
             catch (Exception e)
             {
+                Logger.Log(("Error in GetUser from STFace " + e.Message));
                 return new User();
             }
         }
@@ -186,8 +200,8 @@ namespace Biovation.Brands.EOS.Devices
             {
                 try
                 {
-                    var user = new StFaceUserInfo();
-                    bool deletion = false;
+                    StFaceUserInfo user;
+                    var deletion = false;
                     lock (_stFace)
                     {
                         user = _stFace.GetUserInfo((int)sUserId);
@@ -240,7 +254,7 @@ namespace Biovation.Brands.EOS.Devices
                     var userCards = _userCardService.GetCardsByFilter(user.Id, true);
                     if (userCards != null)
                     {
-                        var userCard = userCards.FirstOrDefault();
+                        var userCard = userCards.Data.Data.FirstOrDefault();
                         if (userCard != null)
                         {
                             hasCard = true;
@@ -267,11 +281,10 @@ namespace Biovation.Brands.EOS.Devices
                 var hasFace = false;
                 try
                 {
-                    var userFaces = _faceTemplateService.FaceTemplates(userId: user.Id);
+                    var userFaces = user.FaceTemplates;
                     if (userFaces != null)
                     {
                         var userFace = userFaces.FirstOrDefault();
-                        userFace = new FaceTemplate { Template = user.FaceTemplates[0].Template };
                         if (userFace != null)
                         {
                             hasFace = true;
@@ -282,7 +295,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
                 catch (Exception e)
                 {
-                    Logger.Log("Error in Face part of Transfer User" + e.ToString());
+                    Logger.Log("Error in Face part of Transfer User" + e.Message);
                     return false;
                 }
 
@@ -291,12 +304,12 @@ namespace Biovation.Brands.EOS.Devices
                     transfereeUser.CheckmethodType = FaceIdCheckmethodType.BothFaceAndCard;
                     transfereeUser.OpenDoorType = FaceIdCheckmethodType.BothFaceAndCard;
                 }
-                else if (hasFace && !hasCard)
+                else if (hasFace)
                 {
                     transfereeUser.CheckmethodType = FaceIdCheckmethodType.Face;
                     transfereeUser.OpenDoorType = FaceIdCheckmethodType.Face;
                 }
-                else if (hasCard && !hasFace)
+                else if (hasCard)
                 {
                     transfereeUser.CheckmethodType = FaceIdCheckmethodType.Card;
                     transfereeUser.OpenDoorType = FaceIdCheckmethodType.Card;
@@ -305,7 +318,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     return false;
                 }
-                bool result = false;
+                bool result;
                 lock (_stFace)
                 {
                     result = _stFace.SetUserInfo(transfereeUser);
@@ -322,7 +335,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public bool DeleteAllUser()
         {
-            bool deleted = false;
+            bool deleted;
             try
             {
                 lock (_stFace)
@@ -333,7 +346,7 @@ namespace Biovation.Brands.EOS.Devices
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
+               Logger.Log("Error in Delete All User " + ex.Message);
             }
 
             return false;
@@ -344,7 +357,7 @@ namespace Biovation.Brands.EOS.Devices
         {
 
             var usersList = new List<User>();
-            var sTUsers = new List<StFaceUserInfo>();
+            List<StFaceUserInfo> sTUsers;
             try
             {
                 lock (_stFace)
@@ -378,11 +391,11 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         tempUser.FaceTemplates ??= new List<FaceTemplate>();
                         var faceData = user.FaceData.SelectMany(s =>
-                                System.Text.Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
+                                Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
                         var faceTemplate = new FaceTemplate
                         {
                             Index = 1,
-                            FaceTemplateType = _faceTemplateTypes.EOSHonvan,
+                            FaceTemplateType = _faceTemplateTypes.EOSHanvon,
                             UserId = user.Id,
                             Template = faceData,
                             CheckSum = faceData.Sum(x => x),
@@ -412,7 +425,7 @@ namespace Biovation.Brands.EOS.Devices
         {
             try
             {
-                var terminalUser = new StFaceUserInfo();
+                StFaceUserInfo terminalUser;
                 lock (_stFace)
                 {
                     terminalUser = _stFace.GetUserInfo(id);
@@ -433,13 +446,13 @@ namespace Biovation.Brands.EOS.Devices
 
         public override ResultViewModel ReadOnlineLog(object token)
         {
-            var Object = new object();
+            var objectt = new object();
             Thread.Sleep(1000);
-            lock (Object)
+            lock (objectt)
             {
                 try
                 {
-                    string eosDeviceType = "";
+                    string eosDeviceType;
                     lock (_stFace)
                     {
                         eosDeviceType = _stFace.GetModel();
@@ -450,7 +463,7 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         try
                         {
-                            bool empty = false;
+                            bool empty;
                             lock (_stFace)
                             {
                                 empty = _stFace.IsEmpty();
@@ -636,7 +649,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public DateTime TimeZone()
         {
-            DateTime timezone = new DateTime();
+            DateTime timezone;
             lock (_stFace)
             {
                 timezone = _stFace.GetDateTime();
@@ -646,7 +659,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public string FirmwareVersion()
         {
-            string firmwareVersion = "";
+            string firmwareVersion;
             lock (_stFace)
             {
                 firmwareVersion = _stFace.GetFirmwareVersion();
@@ -655,7 +668,7 @@ namespace Biovation.Brands.EOS.Devices
         }
         public string Model()
         {
-            string model = "";
+            string model;
             lock (_stFace)
             {
                 model = _stFace.GetModel();
@@ -665,7 +678,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public int DeviceCapacity()
         {
-            int capacity = -1;
+            int capacity;
             lock (_stFace)
             {
                 capacity = _stFace.GetDeviceCapacity();
@@ -675,7 +688,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public string Serial()
         {
-            string serial = "";
+            string serial;
             lock (_stFace)
             {
                 serial = _stFace.GetSerial();
@@ -687,7 +700,7 @@ namespace Biovation.Brands.EOS.Devices
         {
             try
             {
-                DateTime changedTimeZone = new DateTime();
+                DateTime changedTimeZone;
                 lock (_stFace)
                 {
                     _stFace.SetDateTime(dateTime);
@@ -704,7 +717,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public bool UpdateFirmware(string filePath)
         {
-            bool updateFirm = false;
+            bool updateFirm;
             lock (_stFace)
             {
                 updateFirm = _stFace.UpdateFirmware(filePath);
@@ -712,14 +725,78 @@ namespace Biovation.Brands.EOS.Devices
             return updateFirm;
         }
 
+        public override List<Log> ReadLogOfPeriod(DateTime startTime, DateTime endTime)
+        {
+            List<string> logs = new List<string>();
+            List<Log> EosLogs = new List<Log>();
+            List<Record> records = null;
+            string command = string.Format("GetRecord(start_time= \"{0}\" end_time=\"{1}\" )", _stFace.FormatDateTime(startTime), _stFace.FormatDateTime(endTime));
+            string text;
+            bool flag = _stFace.SendCommandAndGetResult(command, out text);
+            if (flag)
+            {
+                int num = text.IndexOf("time=", 0);
+                while (num > 0 && num + "time=".Length < text.Length)
+                {
+                    int num2 = text.IndexOf("time=", num + "time=".Length);
+                    bool flag2 = num2 == -1;
+                    if (flag2)
+                    {
+                        num2 = text.Length - 1;
+                    }
+                    string item = text.Substring(num, num2 - num);
+                    logs.Add(item);
+                    num = num2;
+                }
+                if (logs.Count() > 0)
+                {
+                    foreach (var log in logs)
+                    {
+                        records.Add(FaceIdRecord.Parse(log));
+                    }
+
+                    foreach (var record in records)
+                    {
+                        try
+                        {
+                            if (record != null)
+                            {
+                                var receivedLog = new Log
+                                {
+                                    LogDateTime = record.DateTime,
+                                    UserId = (int)record.ID,
+                                    DeviceId = _deviceInfo.DeviceId,
+                                    DeviceCode = _deviceInfo.Code,
+                                    //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                                    //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
+                                    EventLog = _logEvents.Authorized,
+                                    TnaEvent = 0,
+                                };
+                                EosLogs.Add(receivedLog);
+                                Logger.Log($@"<--
+   +TerminalID:{_deviceInfo.Code}
+   +UserID:{receivedLog.UserId}
+   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
+                            }
+                            else
+                            {
+                                Logger.Log("Null record.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
+                                "Error while Inserting Data to Attendance . record: " + record);
+                        }
 
 
+                    }
+                    _eosLogService.AddLog(EosLogs);
 
-
-
-
-
-
+                }
+            }
+            return EosLogs;
+        }
 
     }
 

@@ -2,7 +2,7 @@
 using Biovation.Brands.EOS.Service;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -17,13 +17,12 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
         private readonly FaceTemplateTypes _faceTemplateTypes;
-        private readonly FaceTemplateService _faceTemplateService;
         private readonly UserCardService _userCardService;
 
         public const int SupremaBase = 2002;
-        public const int HonvanBase = 2001;
+        public const int HanvonBase = 2001;
 
-        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, FaceTemplateService faceTemplateService, UserCardService userCardService)
+        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
         {
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
@@ -31,7 +30,6 @@ namespace Biovation.Brands.EOS.Devices
             _eosCodeMappings = eosCodeMappings;
             _userCardService = userCardService;
             _faceTemplateTypes = faceTemplateTypes;
-            _faceTemplateService = faceTemplateService;
         }
 
         /// <summary>
@@ -48,9 +46,9 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings);
                     }
-                case HonvanBase:
+                case HanvonBase:
                     {
-                        return new HonvanBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _faceTemplateService, _userCardService);
+                        return new HanvonBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _userCardService);
                     }
 
                 default:
