@@ -29,6 +29,8 @@ namespace Biovation.Brands.EOS.Devices
         private readonly UserCardService _userCardService;
         private bool _valid;
         private int _counter;
+        private readonly DateTime startDateTimeTreshhold;
+        private readonly DateTime endDateTimeTreshhold;
 
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents,
@@ -730,6 +732,25 @@ namespace Biovation.Brands.EOS.Devices
             List<string> logs = new List<string>();
             List<Log> EosLogs = new List<Log>();
             List<Record> records = null;
+            bool invalidTime = false;
+            if (startTime < new DateTime(1921,3,21))
+            {
+                startTime = new DateTime(1921, 3, 21);
+                invalidTime = true;
+            }
+
+            if (endTime > new DateTime(2021,3,19))
+            {
+                endTime = new DateTime(2021, 3, 19);
+                invalidTime = true;
+            }
+
+            if (invalidTime)
+            {
+                Logger.Log("The choosen Time Period is wrong.");
+            }
+
+
             string command = string.Format("GetRecord(start_time= \"{0}\" end_time=\"{1}\" )", _stFace.FormatDateTime(startTime), _stFace.FormatDateTime(endTime));
             string text;
             bool flag = _stFace.SendCommandAndGetResult(command, out text);

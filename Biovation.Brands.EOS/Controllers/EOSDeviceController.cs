@@ -29,7 +29,7 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
-        private readonly CommandFactory _commandFactory; 
+        private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
         public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, EosServer eosServer, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
@@ -268,7 +268,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<Log>> GetLogsOfDeviceInPeriod(uint code, DateTime startTime, DateTime endTime)
+        public ResultViewModel<List<Log>> RetrieveLogsOfPeriod(uint code, DateTime? startTime, DateTime? endTime)
         {
             try
             {
@@ -290,11 +290,25 @@ namespace Biovation.Brands.EOS.Controllers
                 {
                     return new ResultViewModel<List<Log>> { Validate = 0, Message = "Device with code is not exist" };
                 }
+
+                if (startTime is null && endTime is null)
+                {
+                    startTime = new DateTime(1970);
+                    endTime = new DateTime(2050);
+                }
+                else if (startTime is null)
+                {
+                    startTime = new DateTime(1970);
+                }
+                else if (endTime is null)
+                {
+                    endTime = new DateTime(2050);
+                }
                 var deviceId = device.DeviceId;
                 var period = new Period()
                 {
-                    startTime = startTime,
-                    endTime = endTime
+                    StartTime = startTime.Value,
+                    EndTime = endTime.Value
                 };
                 task.TaskItems.Add(new TaskItem
                 {
@@ -327,8 +341,8 @@ namespace Biovation.Brands.EOS.Controllers
         public class Period
         {
 
-            public DateTime startTime { get; set; }
-            public DateTime endTime { get; set; }
+            public DateTime StartTime { get; set; }
+            public DateTime EndTime { get; set; }
 
         }
 
