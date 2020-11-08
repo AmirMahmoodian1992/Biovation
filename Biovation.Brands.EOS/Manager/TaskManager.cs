@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Biovation.Brands.Eos.Manager
+namespace Biovation.Brands.EOS.Manager
 {
     public class TaskManager
     {
