@@ -92,7 +92,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<BlackListService, BlackListService>();
             services.AddSingleton<DeviceGroupService, DeviceGroupService>();
             services.AddSingleton<DeviceService, DeviceService>();
-            //services.AddSingleton<FaceTemplateService, FaceTemplateService>();
+            services.AddSingleton<FaceTemplateService, FaceTemplateService>();
             services.AddSingleton<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<LogService, LogService>();
@@ -103,7 +103,6 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            //services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
             services.AddSingleton<EosLogService, EosLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();

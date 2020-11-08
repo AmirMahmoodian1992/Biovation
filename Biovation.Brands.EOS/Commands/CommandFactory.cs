@@ -30,9 +30,9 @@ namespace Biovation.Brands.EOS.Commands
         //private readonly TimeZoneService _timeZoneService;
         private readonly UserCardService _userCardService;
         //private readonly BlackListService _blackListService;
-        //private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
         //private readonly AccessGroupService _accessGroupService;
-        //private readonly FaceTemplateService _faceTemplateService;
+        private readonly FaceTemplateService _faceTemplateService;
         private readonly AdminDeviceService _adminDeviceService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
@@ -57,11 +57,12 @@ namespace Biovation.Brands.EOS.Commands
         //    AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager)
         //{
         public CommandFactory(UserService userService, DeviceService deviceService, UserCardService userCardService,
-            AccessGroupService accessGroupService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService)
+            AccessGroupService accessGroupService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService, FaceTemplateService faceTemplateService)
         {
             //_logService = logService;
             _userService = userService;
             _taskService = taskService;
+            _faceTemplateService = faceTemplateService;
             _deviceService = deviceService;
             _userCardService = userCardService;
             // _blackListService = blackListService;
@@ -77,6 +78,7 @@ namespace Biovation.Brands.EOS.Commands
             //_taskStatuses = taskStatuses;
             _fingerTemplateService = fingerTemplateService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _faceTemplateTypes = faceTemplateTypes;
             //_biometricTemplateManager = biometricTemplateManager;
             //_faceTemplateTypes = faceTemplateTypes;
             _onlineDevices = onlineDevices;
@@ -134,7 +136,7 @@ namespace Biovation.Brands.EOS.Commands
                         //var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
 
-                        return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService, _userCardService, _fingerTemplateService, _fingerTemplateTypes);
+                        return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService, _userCardService, _fingerTemplateService, _fingerTemplateTypes, _faceTemplateService, _faceTemplateTypes);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
                     {
