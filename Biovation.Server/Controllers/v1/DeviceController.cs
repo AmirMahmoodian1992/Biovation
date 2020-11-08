@@ -405,7 +405,7 @@ namespace Biovation.Server.Controllers.v1
                 var users = await userAwaiter;
 
                 var lstResult = (from r in result.Data?.Data
-                                 join u in users on r.Id equals u.Id
+                                 join u in users on r.Code equals u.Code
                                      into ps
                                  from u in ps.DefaultIfEmpty()
                                  select new User

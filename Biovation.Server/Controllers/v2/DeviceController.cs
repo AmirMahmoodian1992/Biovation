@@ -416,6 +416,7 @@ namespace Biovation.Server.Controllers.v2
                                  {
                                      Type = u == null ? 0 : 1,
                                      IsActive = r.IsActive,
+                                     Id = r.Id,
                                      Code = r.Code,
                                      FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
                                      StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
