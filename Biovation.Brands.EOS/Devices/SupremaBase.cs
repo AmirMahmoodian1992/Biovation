@@ -812,7 +812,7 @@ namespace Biovation.Brands.EOS.Devices
                         EndDate = default
                     };
 
-                    for (var i = 0; i < fingerTemplates.Count; i++)
+                    for (var i = 0; i < fingerTemplates.Count; i += 2)
                     {
 
                         var firstTemplateBytes = fingerTemplates[i];
@@ -826,14 +826,14 @@ namespace Biovation.Brands.EOS.Devices
                             CheckSum = firstTemplateBytes.Sum(b => b),
                             Size = firstTemplateBytes.ToList()
                                 .LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
-                            Index = i,
+                            Index = i / 2,
                             CreateAt = DateTime.Now,
                             TemplateIndex = 0
                         };
 
                         retrievedUser.FingerTemplates.Add(fingerTemplate);
 
-                        var secondTemplateBytes = fingerTemplates[++i];
+                        var secondTemplateBytes = fingerTemplates[i + 1];
 
                         var secondFingerTemplateSample = new FingerTemplate
                         {
@@ -844,7 +844,7 @@ namespace Biovation.Brands.EOS.Devices
                             CheckSum = secondTemplateBytes.Sum(b => b),
                             Size = secondTemplateBytes.ToList()
                                 .LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
-                            Index = i,
+                            Index = i / 2,
                             EnrollQuality = 0,
                             SecurityLevel = 0,
                             Duress = true,

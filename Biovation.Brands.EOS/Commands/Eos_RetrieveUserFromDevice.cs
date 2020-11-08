@@ -32,16 +32,12 @@ namespace Biovation.Brands.Eos.Commands
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly FaceTemplateService _faceTemplateService;
         //private readonly AccessGroupService _commonAccessGroupService;
-        private readonly FingerTemplateTypes _fingerTemplateTypes;
-        private readonly FaceTemplateTypes _faceTemplateTypes;
         //private readonly TaskStatuses _taskStatuses;
 
-        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes)
+        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService)
         {
             _fingerTemplateService = fingerTemplateService;
-            _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateService = faceTemplateService;
-            _faceTemplateTypes = faceTemplateTypes;
             _userCardService = userCardService;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
@@ -178,7 +174,7 @@ namespace Biovation.Brands.Eos.Commands
 
                     for (var i = 0; i < userOfDevice?.FingerTemplates?.Count; i++)
                     {
-                        if (existUser != null && existUser.FingerTemplates.Any(template => template.FingerTemplateType == _fingerTemplateTypes.SU384 && template.CheckSum == user.FingerTemplates[i].CheckSum))
+                        if (existUser != null && existUser.FingerTemplates.Any(template => template.FingerTemplateType.Code == FingerTemplateTypes.SU384Code && template.CheckSum == user.FingerTemplates[i].CheckSum))
                             continue;
 
                         user.FingerTemplates[i].UserId = user.Id;
@@ -199,10 +195,10 @@ namespace Biovation.Brands.Eos.Commands
 
                     for (var i = 0; i < userOfDevice?.FaceTemplates?.Count; i++)
                     {
-                        if (existUser != null && existUser.FaceTemplates.Any(template => template.FaceTemplateType == _faceTemplateTypes.EOSHanvon && template.CheckSum == user.FaceTemplates[i].CheckSum))
+                        if (existUser != null && existUser.FaceTemplates.Any(template => template.FaceTemplateType.Code == FaceTemplateTypes.EOSHanvonCode && template.CheckSum == user.FaceTemplates[i].CheckSum))
                             continue;
 
-                        user.FaceTemplates[i].Id = existUser.FaceTemplates.FirstOrDefault(template => template.FaceTemplateType == _faceTemplateTypes.EOSHanvon && template.CheckSum == user.FaceTemplates[i].CheckSum).Id;
+                        user.FaceTemplates[i].Id = existUser.FaceTemplates.FirstOrDefault(template => template.FaceTemplateType.Code == FaceTemplateTypes.EOSHanvonCode && template.CheckSum == user.FaceTemplates[i].CheckSum).Id;
                         user.FaceTemplates[i].UserId = user.Id;
                         _faceTemplateService.ModifyFaceTemplate(user.FaceTemplates[i]);
                     }
