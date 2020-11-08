@@ -55,14 +55,13 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
+        public ResultViewModel UpdateTaskStatus(TaskItem taskItem, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/task", Method.PUT);
             restRequest.AddJsonBody(taskItem);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token); var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-
-
     }
 }

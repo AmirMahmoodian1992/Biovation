@@ -49,7 +49,5 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
-
-
     }
 }

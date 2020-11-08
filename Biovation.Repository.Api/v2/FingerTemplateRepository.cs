@@ -61,9 +61,9 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/FingerTemplate", Method.PATCH);
             restRequest.AddJsonBody(fingerTemplate);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
 
@@ -71,9 +71,9 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest($"Commands/v2/FingerTemplate/{userId}", Method.PATCH);
             restRequest.AddQueryParameter("fingerIndex", fingerIndex.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
 

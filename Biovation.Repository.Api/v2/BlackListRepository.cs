@@ -8,7 +8,6 @@ namespace Biovation.Repository.Api.v2
 {
     public class BlackListRepository
     {
-
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         public BlackListRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
@@ -68,8 +67,5 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
         }
-
-
-
     }
 }

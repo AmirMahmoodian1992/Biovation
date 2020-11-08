@@ -23,6 +23,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("isActive", isActive.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<UserCard>>>(restRequest);
             return requestResult.Result.Data;
         }

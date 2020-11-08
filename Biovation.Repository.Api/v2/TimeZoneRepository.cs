@@ -46,7 +46,8 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel DeleteTimeZone(int id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/TimeZone/{id}", Method.DELETE);
-            restRequest.AddUrlSegment("id", id.ToString()); token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddUrlSegment("id", id.ToString()); 
+            token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;

@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -25,7 +25,6 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<UserGroup>>>(restRequest);
             return requestResult.Result.Data;
         }
-
 
         public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id = default, string token = default)
         {
@@ -59,9 +58,9 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Commands/v2/UserGroup", Method.PUT);
             restRequest.AddJsonBody(userGroup);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
         public ResultViewModel DeleteUserGroup(int groupId = default, string token = default)

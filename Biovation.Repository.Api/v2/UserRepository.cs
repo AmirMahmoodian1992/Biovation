@@ -109,6 +109,7 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
+
         public ResultViewModel DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/UserGroupOfUser", Method.DELETE);
@@ -120,6 +121,7 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
+
         public ResultViewModel ModifyPassword(int id = default, string password = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/Password/{id}", Method.PATCH);
@@ -130,9 +132,5 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-
-
-
-
     }
 }

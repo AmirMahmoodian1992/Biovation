@@ -6,7 +6,6 @@ namespace Biovation.Repository.Api.v2
 {
     public class DeviceGroupRepository
     {
-
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         public DeviceGroupRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
