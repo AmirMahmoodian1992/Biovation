@@ -15,7 +15,6 @@ namespace Biovation.Brands.EOS.Commands
     public class CommandFactory
     {
         //private EventDispatcher _eventDispatcherObj;
-        private readonly EosServer _eosServer;
 
 
         //private readonly LogEvents _logEvents;
@@ -57,12 +56,9 @@ namespace Biovation.Brands.EOS.Commands
         //    UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
         //    AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager)
         //{
-        public CommandFactory(EosServer eosServer,
-            UserService userService, DeviceService deviceService,
-            UserCardService userCardService,
+        public CommandFactory(UserService userService, DeviceService deviceService, UserCardService userCardService,
             AccessGroupService accessGroupService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService)
         {
-            _eosServer = eosServer;
             //_logService = logService;
             _userService = userService;
             _taskService = taskService;
@@ -138,7 +134,7 @@ namespace Biovation.Brands.EOS.Commands
                         //var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
 
-                        return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService,_userCardService,_fingerTemplateService,_fingerTemplateTypes);
+                        return new EosRetrieveUserFromDevice(taskItem, _onlineDevices, _deviceService, _userService, _userCardService, _fingerTemplateService, _fingerTemplateTypes);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
                     {
@@ -147,7 +143,7 @@ namespace Biovation.Brands.EOS.Commands
                     }
                 case CommandType.RetrieveLogsOfDeviceInPeriod:
                     {
-                        return new EosGetLogsOfDeviceInPeriod(taskItem,_onlineDevices,_deviceService);
+                        return new EosGetLogsOfDeviceInPeriod(taskItem, _onlineDevices, _deviceService);
                     }
 
                 #endregion
