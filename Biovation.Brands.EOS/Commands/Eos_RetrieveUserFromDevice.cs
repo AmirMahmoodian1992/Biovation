@@ -30,16 +30,18 @@ namespace Biovation.Brands.Eos.Commands
         //private readonly ILogger<EosRetrieveUserFromDevice> _logger;
         //private readonly UserCardService _userCardService;
         private readonly FingerTemplateService _fingerTemplateService;
-        //private readonly FaceTemplateService _faceTemplateService;
+        private readonly FaceTemplateService _faceTemplateService;
         //private readonly AccessGroupService _commonAccessGroupService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         //private readonly TaskStatuses _taskStatuses;
 
-        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes)
+        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes)
         {
             _fingerTemplateService = fingerTemplateService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _faceTemplateService = faceTemplateService;
+            _faceTemplateTypes = faceTemplateTypes;
             _userCardService = userCardService;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
@@ -167,23 +169,42 @@ namespace Biovation.Brands.Eos.Commands
                     Logger.Log(exception);
                 }
 
-                //Finger
+                // Finger Templates
                 try
                 {
-                    var nFpDataCount = userOfDevice.FingerTemplates.Count;
-                    Logger.Log($"   +TotalFingerCount:{nFpDataCount}");
+                    Logger.Log($"   +TotalFingerCount:{userOfDevice?.FingerTemplates?.Count}");
 
-                    if (user.FingerTemplates is null)
-                        user.FingerTemplates = new List<FingerTemplate>();
-                    user.FingerTemplates = userOfDevice.FingerTemplates;
+                    user.FingerTemplates = userOfDevice.FingerTemplates ?? new List<FingerTemplate>();
 
-                    for (var i = 0; i < nFpDataCount; i++)
+                    for (var i = 0; i < userOfDevice?.FingerTemplates?.Count; i++)
                     {
                         if (existUser != null && existUser.FingerTemplates.Any(template => template.FingerTemplateType == _fingerTemplateTypes.SU384 && template.CheckSum == user.FingerTemplates[i].CheckSum))
                             continue;
-                        
+
                         user.FingerTemplates[i].UserId = user.Id;
-                            _fingerTemplateService.ModifyFingerTemplate(user.FingerTemplates[i]);
+                        _fingerTemplateService.ModifyFingerTemplate(user.FingerTemplates[i]);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
+
+                // Face Templates
+                try
+                {
+                    Logger.Log($"   +TotalFaceCount:{userOfDevice?.FaceTemplates?.Count}");
+
+                    user.FaceTemplates = userOfDevice.FaceTemplates ?? new List<FaceTemplate>();
+
+                    for (var i = 0; i < userOfDevice?.FaceTemplates?.Count; i++)
+                    {
+                        if (existUser != null && existUser.FaceTemplates.Any(template => template.FaceTemplateType == _faceTemplateTypes.EOSHanvon && template.CheckSum == user.FaceTemplates[i].CheckSum))
+                            continue;
+
+                        user.FaceTemplates[i].Id = existUser.FaceTemplates.FirstOrDefault(template => template.FaceTemplateType == _faceTemplateTypes.EOSHanvon && template.CheckSum == user.FaceTemplates[i].CheckSum).Id;
+                        user.FaceTemplates[i].UserId = user.Id;
+                        _faceTemplateService.ModifyFaceTemplate(user.FaceTemplates[i]);
                     }
                 }
                 catch (Exception exception)
@@ -195,7 +216,6 @@ namespace Biovation.Brands.Eos.Commands
             {
                 Logger.Log(exception);
             }
-
 
             return new ResultViewModel { Id = deviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
         }
