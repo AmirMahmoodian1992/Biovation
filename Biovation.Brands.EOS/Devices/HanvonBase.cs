@@ -1,10 +1,13 @@
-﻿using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.Eos.Manager;
+using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using EosClocks;
+using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -27,6 +30,9 @@ namespace Biovation.Brands.EOS.Devices
         //private readonly EosCodeMappings _eosCodeMappings;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserCardService _userCardService;
+        private readonly TaskManager _taskManager;
+        private readonly RestClient _restClient;
+
         private bool _valid;
         private int _counter;
         private readonly DateTime startDateTimeTreshhold;
@@ -35,7 +41,7 @@ namespace Biovation.Brands.EOS.Devices
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents,
             LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
-            UserCardService userCardService) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+            UserCardService userCardService,TaskManager taskManager,RestClient restClient) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = false;
             _deviceInfo = deviceInfo;
@@ -44,6 +50,8 @@ namespace Biovation.Brands.EOS.Devices
             _logSubEvents = logSubEvents;
             _faceTemplateTypes = faceTemplateTypes;
             _userCardService = userCardService;
+            _taskManager = taskManager;
+            _restClient = restClient;
             _stFace = new StFace(new TCPIPConnection
                 { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
         }
@@ -81,8 +89,25 @@ namespace Biovation.Brands.EOS.Devices
                     Logger.Log(innerException);
                 }
             }
+            var connectionStatus = new ConnectionStatus
+            {
+                DeviceId = _deviceInfo.DeviceId,
+                IsConnected = true
+            };
+            try
+            {
+                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
+            _taskManager.ProcessQueue();
             _valid = true;
+
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }

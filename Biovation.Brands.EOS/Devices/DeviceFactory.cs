@@ -1,8 +1,10 @@
-﻿using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.Eos.Manager;
+using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using RestSharp;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -13,11 +15,13 @@ namespace Biovation.Brands.EOS.Devices
     {
         private readonly EosLogService _eosLogService;
 
+        private readonly RestClient _restClient;
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly TaskManager _taskManager;
         private readonly UserCardService _userCardService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
 
@@ -33,9 +37,10 @@ namespace Biovation.Brands.EOS.Devices
         public const int StEco210 = 2010;
         public const int StP220 = 2011;
 
-        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService,BiometricTemplateManager biometricTemplateManager,FingerTemplateTypes fingerTemplateTypes)
+        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService,BiometricTemplateManager biometricTemplateManager,FingerTemplateTypes fingerTemplateTypes,RestClient restClient)
         {
             _logEvents = logEvents;
+            _restClient = restClient;
             _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
             _eosCodeMappings = eosCodeMappings;
@@ -64,7 +69,7 @@ namespace Biovation.Brands.EOS.Devices
                 case StFace110:
                 case StFace710:
                     {
-                        return new HanvonBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _userCardService);
+                        return new HanvonBase(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _userCardService,_taskManager,_restClient);
                     }
 
                 case StShineL:
