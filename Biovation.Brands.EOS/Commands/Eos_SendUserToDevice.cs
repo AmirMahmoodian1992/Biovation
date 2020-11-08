@@ -66,7 +66,7 @@ namespace Biovation.Brands.Eos.Commands
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
-            var user = _userService.GetUsers(userId: userId)?.Data?.Data.FirstOrDefault();
+            var user = _userService.GetUsers(userId: userId, getTemplatesData: true)?.Data?.Data.FirstOrDefault();
 
             if (user == null)
             {
@@ -76,7 +76,7 @@ namespace Biovation.Brands.Eos.Commands
 
             try
             {
-                var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.DeviceId).Value;
+                var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.Code).Value;
                 var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Code)?.Data?.Data;
                 user.IsAdmin = adminDevices?.Any(x => x.DeviceId == device.DeviceId) ?? false;
                 var result = onlineDevice.TransferUser(user);

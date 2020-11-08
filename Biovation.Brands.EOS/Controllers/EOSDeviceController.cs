@@ -91,7 +91,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId,
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userIds,
             bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
@@ -116,7 +116,7 @@ namespace Biovation.Brands.EOS.Controllers
                         DueDate = DateTime.Today
                     };
 
-                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
 
                     foreach (var id in userIds)
                     {
@@ -270,7 +270,7 @@ namespace Biovation.Brands.EOS.Controllers
                 var result = (ResultViewModel<List<User>>) _commandFactory.Factory(
                         CommandType.RetrieveUsersListFromDevice,
                         new List<object>
-                            {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
+                            {task.TaskItems?.FirstOrDefault()})
                     .Execute();
 
                 return result;

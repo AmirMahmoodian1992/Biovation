@@ -36,7 +36,7 @@ namespace Biovation.Brands.Eos.Commands
         private readonly FaceTemplateTypes _faceTemplateTypes;
         //private readonly TaskStatuses _taskStatuses;
 
-        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService,UserCardService userCardService,FingerTemplateService fingerTemplateService,FingerTemplateTypes fingerTemplateTypes)
+        public EosRetrieveUserFromDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService, UserService userService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes)
         {
             _fingerTemplateService = fingerTemplateService;
             _fingerTemplateTypes = fingerTemplateTypes;
@@ -136,7 +136,9 @@ namespace Biovation.Brands.Eos.Commands
                 }
 
                 _userService.ModifyUser(user);
-                user.Id = _userService.GetUsers(code: user.Code).Data.Data.FirstOrDefault().Id;
+                user.Id = _userService.GetUsers(code: user.Code)?.Data?.Data.FirstOrDefault()?.Id ?? -1;
+                if (user.Id == -1)
+                    return new ResultViewModel { Id = deviceId, Message = "Error on adding user to database", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
                 //Card
                 try
@@ -144,7 +146,7 @@ namespace Biovation.Brands.Eos.Commands
                     Logger.Log($"   +TotalCardCount:{userOfDevice.IdentityCard}");
                     if (!(userOfDevice.IdentityCard is null))
                     {
-                       
+
                         if (int.Parse(userOfDevice.IdentityCard.Number) > 0)
                             for (var i = 0; i < int.Parse(userOfDevice.IdentityCard.Number); i++)
                             {
@@ -160,9 +162,9 @@ namespace Biovation.Brands.Eos.Commands
                     }
                 }
 
-                catch (Exception e)
+                catch (Exception exception)
                 {
-                    Logger.Log(e);
+                    Logger.Log(exception);
                 }
 
                 //Finger
@@ -175,36 +177,28 @@ namespace Biovation.Brands.Eos.Commands
                         user.FingerTemplates = new List<FingerTemplate>();
                     user.FingerTemplates = userOfDevice.FingerTemplates;
 
-                    for (var i = 0; i < nFpDataCount; i += 2)
+                    for (var i = 0; i < nFpDataCount; i++)
                     {
-
-                        if (user.FingerTemplates.Any())
-                            
-                            foreach (var fingerTemplate in user.FingerTemplates)
-                            {
-                                fingerTemplate.UserId = user.Id;
-
-                                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
-                            }
+                        if (existUser != null && existUser.FingerTemplates.Any(template => template.FingerTemplateType == _fingerTemplateTypes.SU384 && template.CheckSum == user.FingerTemplates[i].CheckSum))
+                            continue;
+                        
+                        user.FingerTemplates[i].UserId = user.Id;
+                            _fingerTemplateService.ModifyFingerTemplate(user.FingerTemplates[i]);
                     }
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
-                    Logger.Log(e);
+                    Logger.Log(exception);
                 }
-
-             
-                    
-                }
-
-                catch (Exception e)
-                {
-                    Logger.Log(e);
-                }
-            
-
-                return new ResultViewModel { Id = deviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
             }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
+
+
+            return new ResultViewModel { Id = deviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+        }
 
         public string GetDescription()
         {

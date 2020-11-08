@@ -81,7 +81,7 @@ namespace Biovation.Brands.EOS.Controllers
                             TaskItemType = _taskItemTypes.SendUser,
                             Priority = _taskPriorities.Medium,
                             DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { UserId = id }),
+                            Data = JsonConvert.SerializeObject(new { userId = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,

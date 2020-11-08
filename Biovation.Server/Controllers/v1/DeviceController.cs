@@ -358,12 +358,12 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("RemoveUserFromDevice")]
-        public Task<List<ResultViewModel>> RemoveUserFromDevice(int deviceId, [FromBody] JArray userId)
+        public Task<List<ResultViewModel>> RemoveUserFromDevice(int deviceId, [FromBody] List<int> userIds)
         {
             return Task.Run(async () =>
             {
                 var result = new List<ResultViewModel>();
-                if (userId == null || userId.Count == 0)
+                if (userIds == null || userIds.Count == 0)
                     return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "No users selected." } };
 
                 //var users = JsonConvert.DeserializeObject<long[]>(userId.ToString());
@@ -374,10 +374,10 @@ namespace Biovation.Server.Controllers.v1
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", user.ToString());
-                restRequest.AddJsonBody(userId);
+                restRequest.AddJsonBody(userIds);
 
-                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 if (requestResult.StatusCode == HttpStatusCode.OK)
                     result.Add(requestResult.Data);
                 //}
@@ -394,7 +394,7 @@ namespace Biovation.Server.Controllers.v1
             return Task.Run(async () =>
             {
                 var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
-                var userAwaiter = _userService.GetUsers(token: _kasraAdminToken);
+                var userAwaiter = Task.Run(() => _userService.GetUsers(token: _kasraAdminToken));
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -402,7 +402,7 @@ namespace Biovation.Server.Controllers.v1
                 var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
 
                 var result = await restAwaiter;
-                var users = userAwaiter;
+                var users = await userAwaiter;
 
                 var lstResult = (from r in result.Data?.Data
                                  join u in users on r.Id equals u.Id
@@ -413,6 +413,7 @@ namespace Biovation.Server.Controllers.v1
                                      Type = u == null ? 0 : 1,
                                      IsActive = r.IsActive,
                                      Id = r.Id,
+                                     Code = r.Code,
                                      FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
                                      StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
                                      EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
