@@ -1880,9 +1880,9 @@ namespace Biovation.Brands.Virdi
                 IsActive = true,
                 ImageBytes = picture
             };
-            user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
-                ? 0
-                : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
+            //user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
+            //    ? 0
+            //    : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
             RetrieveUsers.Add(user);
             //int totalCount = TerminalUserData.TotalNumber;
             //int currentIndex = TerminalUserData.CurrentIndex;
@@ -1962,9 +1962,9 @@ namespace Biovation.Brands.Virdi
                     IsActive = true,
                     ImageBytes = picture
                 };
-                user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
-                   ? 0
-                   : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
+                //user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
+                //   ? 0
+                //   : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
 
                 //if (RetrieveUsers.All(retrievedUser => retrievedUser.Id != user.Id))
                 //{
@@ -1978,7 +1978,8 @@ namespace Biovation.Brands.Virdi
                     {
                         user = new User
                         {
-                            Id = TerminalUserData.UserID,
+                            Id = existUser.Id,
+                            Code = existUser.Code,
                             AdminLevel = TerminalUserData.IsAdmin,
                             StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
                                 ? existUser.StartDate
