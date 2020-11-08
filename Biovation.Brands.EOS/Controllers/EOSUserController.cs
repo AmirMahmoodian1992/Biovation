@@ -1,4 +1,4 @@
-﻿using Biovation.Brands.Eos.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
@@ -17,7 +17,6 @@ namespace Biovation.Brands.EOS.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class EosUserController : Controller
     {
-        private readonly UserService _userService;
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
         private readonly AccessGroupService _accessGroupService;
@@ -30,21 +29,19 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly CommandFactory _commandFactory;
 
-        public EosUserController(UserService userService, AccessGroupService accessGroupService, CommandFactory commandFactory, TaskService taskService, TaskManager taskManager, TaskTypes taskTypes,
+        public EosUserController(AccessGroupService accessGroupService, CommandFactory commandFactory, TaskService taskService, TaskManager taskManager, TaskTypes taskTypes,
             TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands, DeviceService deviceService)
         {
-            _userService = userService;
-            _accessGroupService = accessGroupService;
-            _commandFactory = commandFactory;
-
+            _taskTypes = taskTypes;
             _taskService = taskService;
             _taskManager = taskManager;
-            _taskItemTypes = taskItemTypes;
             _taskStatuses = taskStatuses;
-            _taskPriorities = taskPriorities;
-            _taskTypes = taskTypes;
             _deviceBrands = deviceBrands;
+            _taskItemTypes = taskItemTypes;
             _deviceService = deviceService;
+            _taskPriorities = taskPriorities;
+            _commandFactory = commandFactory;
+            _accessGroupService = accessGroupService;
         }
 
         [HttpGet]
@@ -57,8 +54,8 @@ namespace Biovation.Brands.EOS.Controllers
                 {
                     var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
                     if (device is null)
-                        return new ResultViewModel { Validate = 0, Message = $"Wrong device code is provided : {code}." }; 
-                    
+                        return new ResultViewModel { Validate = 0, Message = $"Wrong device code is provided : {code}." };
+
                     var userIds = JsonConvert.DeserializeObject<uint[]>(userId);
                     var creatorUser = HttpContext.GetUser();
 

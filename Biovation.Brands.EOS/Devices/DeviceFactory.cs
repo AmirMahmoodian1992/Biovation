@@ -63,7 +63,7 @@ namespace Biovation.Brands.EOS.Devices
                 case StPro:
                 case StProPlus:
                     {
-                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes);
+                        return new SupremaBaseDevice(device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient);
                     }
 
                 case StFace110:

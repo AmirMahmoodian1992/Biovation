@@ -1,5 +1,4 @@
-﻿using Biovation.Brands.Eos.Manager;
-using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.Constants;
@@ -21,47 +20,43 @@ namespace Biovation.Brands.EOS.Devices
 {
     public class HanvonBase : Device
     {
-        private StFace _stFace;
+        private readonly StFace _stFace;
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly EosLogService _eosLogService;
 
         private readonly LogEvents _logEvents;
-        private readonly LogSubEvents _logSubEvents;
-        //private readonly EosCodeMappings _eosCodeMappings;
-        private readonly FaceTemplateTypes _faceTemplateTypes;
-        private readonly UserCardService _userCardService;
-        private readonly TaskManager _taskManager;
         private readonly RestClient _restClient;
+        private readonly TaskManager _taskManager;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly UserCardService _userCardService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
 
         private bool _valid;
         private int _counter;
-        private readonly DateTime startDateTimeTreshhold;
-        private readonly DateTime endDateTimeTreshhold;
 
+        //private readonly EosCodeMappings _eosCodeMappings;
+        //private readonly DateTime _startDateTimeThreshold;
+        //private readonly DateTime _endDateTimeThreshold;
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents,
             LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
-            UserCardService userCardService,TaskManager taskManager,RestClient restClient) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+            UserCardService userCardService, TaskManager taskManager, RestClient restClient) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = false;
-            _deviceInfo = deviceInfo;
-            _eosLogService = eosLogService;
             _logEvents = logEvents;
-            _logSubEvents = logSubEvents;
-            _faceTemplateTypes = faceTemplateTypes;
-            _userCardService = userCardService;
-            _taskManager = taskManager;
             _restClient = restClient;
+            _deviceInfo = deviceInfo;
+            _taskManager = taskManager;
+            _logSubEvents = logSubEvents;
+            _eosLogService = eosLogService;
+            _userCardService = userCardService;
+            _faceTemplateTypes = faceTemplateTypes;
             _stFace = new StFace(new TCPIPConnection
-                { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
+            { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
         }
-
-
-
 
         public override bool Connect()
         {
-
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
@@ -89,22 +84,24 @@ namespace Biovation.Brands.EOS.Devices
                     Logger.Log(innerException);
                 }
             }
+
             var connectionStatus = new ConnectionStatus
             {
                 DeviceId = _deviceInfo.DeviceId,
                 IsConnected = true
             };
+
             try
             {
                 var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
                 restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
             }
             catch (Exception)
             {
                 //ignore
             }
+
             _taskManager.ProcessQueue();
             _valid = true;
 
@@ -119,13 +116,13 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_stFace)
                 {
                     _stFace.Connect();
-                }
 
-                if (_stFace.Connected)
-                {
-                    Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}",
-                        logType: LogType.Information);
-                    return true;
+                    if (_stFace.Connected)
+                    {
+                        Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}",
+                            logType: LogType.Information);
+                        return true;
+                    }
                 }
 
                 while (true)
@@ -134,10 +131,9 @@ namespace Biovation.Brands.EOS.Devices
 
                     Thread.Sleep(600);
                     Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
-                    if (_stFace.TestConnection())
-                    {
-                        return true;
-                    }
+                    lock (_stFace)
+                        if (_stFace.TestConnection())
+                            return true;
                 }
             }
             catch (Exception e)
@@ -167,14 +163,14 @@ namespace Biovation.Brands.EOS.Devices
                     IsAdmin = terminalUserData.Privilege == 1
                 };
 
-                if (!(terminalUserData.CardNumber is null || terminalUserData.CardNumber == "0Xffffffff"))
+                if (!(terminalUserData.CardNumber is null || terminalUserData.CardNumber == "0xffffffff"))
                 {
                     user.IdentityCard = new IdentityCard()
                     {
                         Id = (int)terminalUserData.Id,
                         Number = terminalUserData.CardNumber,
                         DataCheck = 0,
-                        IsActive = terminalUserData.CardNumber != "0Xffffffff"
+                        IsActive = terminalUserData.CardNumber != "0xffffffff"
                     };
                 }
 
@@ -201,11 +197,10 @@ namespace Biovation.Brands.EOS.Devices
                 }
 
                 return user;
-
             }
             catch (Exception e)
             {
-                Logger.Log(("Error in GetUser from STFace " + e.Message));
+                Logger.Log("Error in GetUser from STFace " + e.Message);
                 return new User();
             }
         }
@@ -223,31 +218,27 @@ namespace Biovation.Brands.EOS.Devices
 
         public override bool DeleteUser(uint sUserId)
         {
-            if (_stFace.TestConnection())
-            {
-                try
-                {
-                    StFaceUserInfo user;
-                    var deletion = false;
-                    lock (_stFace)
-                    {
-                        user = _stFace.GetUserInfo((int)sUserId);
-                    }
-                    if (user != null)
-                    {
-                        lock (_stFace)
-                        {
-                            deletion = _stFace.DeleteUser((int)sUserId);
-                        }
-                    }
-                    return deletion;
-                }
-                catch (Exception)
-                {
-                    //var message = ex.Message;
+            lock (_stFace)
+                if (!_stFace.TestConnection()) return false;
 
-                }
+            try
+            {
+                StFaceUserInfo user;
+                bool deletion;
+                lock (_stFace)
+                    user = _stFace.GetUserInfo((int)sUserId);
+
+                if (user == null) return false;
+                lock (_stFace)
+                    deletion = _stFace.DeleteUser((int)sUserId);
+
+                return deletion;
             }
+            catch (Exception)
+            {
+                //var message = ex.Message;
+            }
+
             return false;
         }
 
@@ -309,16 +300,12 @@ namespace Biovation.Brands.EOS.Devices
                 try
                 {
                     var userFaces = user.FaceTemplates;
-                    if (userFaces != null)
+                    var userFace = userFaces?.FirstOrDefault();
+                    if (userFace != null)
                     {
-                        var userFace = userFaces.FirstOrDefault();
-                        if (userFace != null)
-                        {
-                            hasFace = true;
-                            transfereeUser.FaceData = Encoding.ASCII.GetString(userFace.Template, 0, userFace.Template.Length).Split('=').SkipLast(1).ToList();
-                        }
+                        hasFace = true;
+                        transfereeUser.FaceData = Encoding.ASCII.GetString(userFace.Template, 0, userFace.Template.Length).Split('=').SkipLast(1).ToList();
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -357,88 +344,81 @@ namespace Biovation.Brands.EOS.Devices
                 Logger.Log(e.ToString());
                 return false;
             }
-
         }
 
         public bool DeleteAllUser()
         {
-            bool deleted;
             try
             {
+                bool deleted;
                 lock (_stFace)
-                {
                     deleted = _stFace.DeleteAllUsers();
-                }
+
                 return deleted;
             }
             catch (Exception ex)
             {
-               Logger.Log("Error in Delete All User " + ex.Message);
+                Logger.Log("Error in Delete All User " + ex.Message);
             }
 
             return false;
-
         }
 
         public override List<User> GetAllUsers()
         {
-
             var usersList = new List<User>();
-            List<StFaceUserInfo> sTUsers;
             try
             {
+                List<StFaceUserInfo> usersOfDevice;
                 lock (_stFace)
-                {
-                    sTUsers = _stFace.GetUserList();
-                }
-                foreach (var user in sTUsers)
-                {
+                    usersOfDevice = _stFace.GetUserList();
 
-                    var tempUser = new User
+                foreach (var retrievedUser in usersOfDevice)
+                {
+                    var user = new User
                     {
-                        UserName = user.UserName,
-                        Password = user.Password,
-                        Code = user.Id,
+                        UserName = retrievedUser.UserName,
+                        Password = retrievedUser.Password,
+                        Code = retrievedUser.Id,
                         // UniqueId = (- long.Parse(user.PersonalNumber)),
-                        IsAdmin = user.Privilege == 1
+                        IsAdmin = retrievedUser.Privilege == 1
                     };
-                    if (!(user.CardNumber is null || user.CardNumber == "0Xffffffff"))
+
+                    if (!(retrievedUser.CardNumber is null || string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)))
                     {
-                        tempUser.IdentityCard = new IdentityCard()
+                        user.IdentityCard = new IdentityCard()
                         {
-                            Id = (int)user.Id,
-                            Number = user.CardNumber,
+                            Id = (int)retrievedUser.Id,
+                            Number = retrievedUser.CardNumber,
                             DataCheck = 0,
-                            IsActive = user.CardNumber != "0Xffffffff"
+                            IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)
                         };
                     }
 
                     //Face
                     try
                     {
-                        tempUser.FaceTemplates ??= new List<FaceTemplate>();
-                        var faceData = user.FaceData.SelectMany(s =>
+                        user.FaceTemplates ??= new List<FaceTemplate>();
+                        var faceData = retrievedUser.FaceData.SelectMany(s =>
                                 Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
                         var faceTemplate = new FaceTemplate
                         {
                             Index = 1,
                             FaceTemplateType = _faceTemplateTypes.EOSHanvon,
-                            UserId = user.Id,
+                            UserId = retrievedUser.Id,
                             Template = faceData,
                             CheckSum = faceData.Sum(x => x),
                             Size = faceData.Length
                         };
-                        tempUser.FaceTemplates.Add(faceTemplate);
+
+                        user.FaceTemplates.Add(faceTemplate);
                     }
                     catch (Exception e)
                     {
                         Logger.Log(e);
                     }
-                    usersList.Add(tempUser);
-
+                    usersList.Add(user);
                 }
-
-
             }
             catch (Exception)
             {
@@ -454,17 +434,13 @@ namespace Biovation.Brands.EOS.Devices
             {
                 StFaceUserInfo terminalUser;
                 lock (_stFace)
-                {
                     terminalUser = _stFace.GetUserInfo(id);
-                }
+
                 if (!(terminalUser is null))
-                {
                     return true;
-                }
             }
             catch (Exception)
             {
-
                 Logger.Log("Failed to getUser");
             }
 
@@ -473,214 +449,209 @@ namespace Biovation.Brands.EOS.Devices
 
         public override ResultViewModel ReadOnlineLog(object token)
         {
-            var objectt = new object();
             Thread.Sleep(1000);
-            lock (objectt)
+
+            try
             {
-                try
+                string eosDeviceType;
+                lock (_stFace)
+                    eosDeviceType = _stFace.GetModel();
+
+                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+
+                bool deviceConnected;
+
+                lock (_stFace)
+                    deviceConnected = _stFace.Connected;
+
+                while (deviceConnected && _valid)
                 {
-                    string eosDeviceType;
-                    lock (_stFace)
+                    try
                     {
-                        eosDeviceType = _stFace.GetModel();
-                    }
-                    Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+                        bool empty;
+                        lock (_stFace)
+                            empty = _stFace.IsEmpty();
 
-                    while (_stFace.Connected && _valid)
-                    {
-                        try
+                        while (!empty && _valid)
                         {
-                            bool empty;
-                            lock (_stFace)
+                            var test = true;
+                            var exceptionTester = false;
+                            while (test && _valid)
                             {
-                                empty = _stFace.IsEmpty();
-                            }
-                            while (!empty && _valid)
-                            {
-                                var test = true;
-                                var exceptionTester = false;
-                                while (test && _valid)
-                                {
-                                    Record record = null;
+                                Record record = null;
 
-                                    try
+                                try
+                                {
+                                    while (record == null)
                                     {
-                                        while (record == null)
+                                        lock (_stFace)
                                         {
-                                            lock (_stFace)
-                                            {
-                                                record = _stFace.GetRecord();
-                                                //////Danger: maybe inifinite loop
-                                                //TODO: Fix it
-                                            }
+                                            record = _stFace.GetRecord();
+                                            Thread.Sleep(500);
+                                            //////Danger: maybe infinite loop
+                                            //TODO: Fix it
                                         }
                                     }
-                                    catch (Exception ex)
+                                }
+                                catch (Exception ex)
+                                {
+                                    try
                                     {
-                                        try
+                                        if (ex is InvalidRecordException ||
+                                            ex is InvalidDataInRecordException)
                                         {
-                                            if ((ex is InvalidRecordException) ||
-                                                (ex is InvalidDataInRecordException))
+                                            var badRecordRawData = ex.Data["RecordRawData"].ToString();
+                                            if (ex is InvalidDataInRecordException)
                                             {
-                                                var badRecordRawData = ex.Data["RecordRawData"].ToString();
-                                                if (ex is InvalidDataInRecordException)
-                                                {
-                                                    Logger.Log("Clock " + _deviceInfo.Code + ": " + "Bad record: " + badRecordRawData);
-                                                }
+                                                Logger.Log("Clock " + _deviceInfo.Code + ": " + "Bad record: " + badRecordRawData);
+                                            }
 
-                                                if (badRecordRawData != "")
+                                            if (badRecordRawData != "")
+                                            {
+                                                try
                                                 {
-                                                    try
+                                                    var year = Convert.ToInt32(badRecordRawData.Substring(24, 2)) + 1300;
+                                                    var month = Convert.ToInt32(badRecordRawData.Substring(19, 2));
+                                                    var day = Convert.ToInt32(badRecordRawData.Substring(21, 2));
+                                                    var hour = Convert.ToInt32(badRecordRawData.Substring(15, 2));
+                                                    var minute = Convert.ToInt32(badRecordRawData.Substring(17, 2));
+                                                    var userId = Convert.ToInt32(badRecordRawData.Substring(6, 8));
+
+                                                    var gregorianDateOfRec = new DateTime(year, month, day, hour, minute, 10, new PersianCalendar());
+
+
+                                                    var receivedLog = new Log
                                                     {
-                                                        var year = Convert.ToInt32(badRecordRawData.Substring(24, 2)) + 1300;
-                                                        var month = Convert.ToInt32(badRecordRawData.Substring(19, 2));
-                                                        var day = Convert.ToInt32(badRecordRawData.Substring(21, 2));
-                                                        var hour = Convert.ToInt32(badRecordRawData.Substring(15, 2));
-                                                        var minute = Convert.ToInt32(badRecordRawData.Substring(17, 2));
-                                                        var userId = Convert.ToInt32(badRecordRawData.Substring(6, 8));
+                                                        LogDateTime = gregorianDateOfRec,
+                                                        UserId = userId,
+                                                        DeviceId = _deviceInfo.DeviceId,
+                                                        DeviceCode = _deviceInfo.Code,
+                                                        //RawData = generatedRecord,
+                                                        EventLog = _logEvents.Authorized,
+                                                        SubEvent = _logSubEvents.Normal,
+                                                        TnaEvent = 0,
+                                                    };
 
-                                                        var gregorianDateOfRec = new DateTime(year, month, day, hour, minute, 10, new PersianCalendar());
-
-
-                                                        var receivedLog = new Log
-                                                        {
-                                                            LogDateTime = gregorianDateOfRec,
-                                                            UserId = userId,
-                                                            DeviceId = _deviceInfo.DeviceId,
-                                                            DeviceCode = _deviceInfo.Code,
-                                                            //RawData = generatedRecord,
-                                                            EventLog = _logEvents.Authorized,
-                                                            SubEvent = _logSubEvents.Normal,
-                                                            TnaEvent = 0,
-                                                        };
-
-                                                        //var logService = new EOSLogService();
-                                                        _eosLogService.AddLog(receivedLog);
-                                                        test = false;
-                                                        Logger.Log($@"<--
+                                                    //var logService = new EOSLogService();
+                                                    _eosLogService.AddLog(receivedLog);
+                                                    test = false;
+                                                    Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{userId}
    +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
-                                                    }
-                                                    catch (Exception)
-                                                    {
-                                                        Logger.Log("Error in parsing bad record.");
-                                                    }
                                                 }
-
-                                                if (!(ex is InvalidRecordException))
-                                                    _counter++;
-                                                if (_counter == 4)
+                                                catch (Exception)
                                                 {
-                                                    test = false;
+                                                    Logger.Log("Error in parsing bad record.");
                                                 }
                                             }
-                                            else
-                                            {
-                                                if (ex is InvalidRecordException)
-                                                    exceptionTester = true;
-                                                else
-                                                    Logger.Log(ex, "Clock " + _deviceInfo.Code);
-                                            }
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            Logger.Log(exception, "Clock " + _deviceInfo.Code);
-                                        }
-                                    }
 
-                                    try
-                                    {
-                                        if (record != null)
-                                        {
-                                            var receivedLog = new Log
+                                            if (!(ex is InvalidRecordException))
+                                                _counter++;
+                                            if (_counter == 4)
                                             {
-                                                LogDateTime = record.DateTime,
-                                                UserId = (int)record.ID,
-                                                DeviceId = _deviceInfo.DeviceId,
-                                                DeviceCode = _deviceInfo.Code,
-                                                //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
-                                                //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                                                EventLog = _logEvents.Authorized,
-                                                TnaEvent = 0,
-                                            };
-
-                                            _eosLogService.AddLog(receivedLog);
-                                            test = false;
-                                            Logger.Log($@"<--
-   +TerminalID:{_deviceInfo.Code}
-   +UserID:{receivedLog.UserId}
-   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
-
-                                            lock (_stFace)
-                                            {
-                                                _stFace.NextRecord();
+                                                test = false;
                                             }
                                         }
                                         else
                                         {
-                                            if (!exceptionTester)
-                                            {
-                                                Logger.Log("Null record.");
-                                            }
-                                            break;
+                                            if (ex is InvalidRecordException)
+                                                exceptionTester = true;
+                                            else
+                                                Logger.Log(ex, "Clock " + _deviceInfo.Code);
                                         }
                                     }
-                                    catch (Exception ex)
+                                    catch (Exception exception)
                                     {
-                                        Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
-                                            "Error while Inserting Data to Attendance . record: " + record);
+                                        Logger.Log(exception, "Clock " + _deviceInfo.Code);
                                     }
                                 }
-                                lock (_stFace)
+
+                                try
                                 {
-                                    empty = _stFace.IsEmpty();
+                                    if (record != null)
+                                    {
+                                        var receivedLog = new Log
+                                        {
+                                            LogDateTime = record.DateTime,
+                                            UserId = (int)record.ID,
+                                            DeviceId = _deviceInfo.DeviceId,
+                                            DeviceCode = _deviceInfo.Code,
+                                            //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                                            //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
+                                            EventLog = _logEvents.Authorized,
+                                            TnaEvent = 0,
+                                        };
+
+                                        _eosLogService.AddLog(receivedLog);
+                                        test = false;
+                                        Logger.Log($@"<--
+   +TerminalID:{_deviceInfo.Code}
+   +UserID:{receivedLog.UserId}
+   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
+
+                                        lock (_stFace)
+                                        {
+                                            _stFace.NextRecord();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (!exceptionTester)
+                                        {
+                                            Logger.Log("Null record.");
+                                        }
+                                        break;
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
+                                        "Error while Inserting Data to Attendance . record: " + record);
                                 }
                             }
-                        }
-                        catch (Exception)
-                        {
-                            //ignore
-                        }
 
+                            lock (_stFace)
+                                empty = _stFace.IsEmpty();
+                        }
                     }
-
-                    //_stFace?.Disconnect();
-                    // _stFace?.Dispose();
-                    //Disconnect();
-                    if (_valid)
+                    catch (Exception)
                     {
-                        Connect();
+                        //ignore
                     }
-                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
 
+                    lock (_stFace)
+                        deviceConnected = _stFace.Connected;
                 }
 
-                catch (Exception ex)
-                {
-                    Logger.Log(ex, "Clock " + _deviceInfo.Code);
-                }
+                //_stFace?.Disconnect();
+                // _stFace?.Dispose();
+                //Disconnect();
+                if (_valid)
+                    Connect();
 
-                Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
+                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
             }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, "Clock " + _deviceInfo.Code);
+            }
+
+            Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
 
             if (_valid)
-            {
                 Connect();
-            }
 
             //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
             return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-
         }
 
         public DateTime TimeZone()
         {
             DateTime timezone;
             lock (_stFace)
-            {
                 timezone = _stFace.GetDateTime();
-            }
+
             return timezone;
         }
 
@@ -688,18 +659,17 @@ namespace Biovation.Brands.EOS.Devices
         {
             string firmwareVersion;
             lock (_stFace)
-            {
                 firmwareVersion = _stFace.GetFirmwareVersion();
-            }
+
             return firmwareVersion;
         }
+
         public string Model()
         {
             string model;
             lock (_stFace)
-            {
                 model = _stFace.GetModel();
-            }
+
             return model;
         }
 
@@ -707,9 +677,8 @@ namespace Biovation.Brands.EOS.Devices
         {
             int capacity;
             lock (_stFace)
-            {
                 capacity = _stFace.GetDeviceCapacity();
-            }
+
             return capacity;
         }
 
@@ -717,9 +686,8 @@ namespace Biovation.Brands.EOS.Devices
         {
             string serial;
             lock (_stFace)
-            {
                 serial = _stFace.GetSerial();
-            }
+
             return serial;
         }
 
@@ -733,7 +701,8 @@ namespace Biovation.Brands.EOS.Devices
                     _stFace.SetDateTime(dateTime);
                     changedTimeZone = _stFace.GetDateTime();
                 }
-                return ((Math.Abs(changedTimeZone.Hour - dateTime.Hour) == 0) && (changedTimeZone.Minute - dateTime.Minute) < 1);
+
+                return Math.Abs(changedTimeZone.Hour - dateTime.Hour) == 0 && changedTimeZone.Minute - dateTime.Minute < 1;
             }
             catch (Exception)
             {
@@ -746,9 +715,8 @@ namespace Biovation.Brands.EOS.Devices
         {
             bool updateFirm;
             lock (_stFace)
-            {
                 updateFirm = _stFace.UpdateFirmware(filePath);
-            }
+
             return updateFirm;
         }
 
@@ -756,94 +724,87 @@ namespace Biovation.Brands.EOS.Devices
         {
             var logs = new List<string>();
             var eosLogs = new List<Log>();
-            var records = new List<Record>();
             var invalidTime = false;
-            if (startTime < new DateTime(1921,3,21) || startTime > new DateTime(2021, 3, 19))
+            if (startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
                 startTime = new DateTime(1921, 3, 21);
                 invalidTime = true;
             }
 
-            if (endTime > new DateTime(2021,3,19) || endTime < new DateTime(1921, 3, 21))
+            if (endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
             {
                 endTime = new DateTime(2021, 3, 19);
                 invalidTime = true;
             }
 
             if (invalidTime)
+                Logger.Log("The chosen Time Period is wrong.");
+
+            string text;
+            bool flag;
+
+            lock (_stFace)
             {
-                Logger.Log("The choosen Time Period is wrong.");
+                var command =
+                    $"GetRecord(start_time= \"{_stFace.FormatDateTime(startTime)}\" end_time=\"{_stFace.FormatDateTime(endTime)}\" )";
+                flag = _stFace.SendCommandAndGetResult(command, out text);
             }
 
-
-            string command = string.Format("GetRecord(start_time= \"{0}\" end_time=\"{1}\" )", _stFace.FormatDateTime(startTime), _stFace.FormatDateTime(endTime));
-            string text;
-            bool flag = _stFace.SendCommandAndGetResult(command, out text);
-            if (flag)
+            if (!flag) return eosLogs;
+            var num = text.IndexOf("time=", 0, StringComparison.Ordinal);
+            while (num > 0 && num + "time=".Length < text.Length)
             {
-                int num = text.IndexOf("time=", 0);
-                while (num > 0 && num + "time=".Length < text.Length)
+                var num2 = text.IndexOf("time=", num + "time=".Length, StringComparison.Ordinal);
+                var flag2 = num2 == -1;
+                if (flag2)
                 {
-                    int num2 = text.IndexOf("time=", num + "time=".Length);
-                    bool flag2 = num2 == -1;
-                    if (flag2)
-                    {
-                        num2 = text.Length - 1;
-                    }
-                    string item = text.Substring(num, num2 - num);
-                    logs.Add(item);
-                    num = num2;
+                    num2 = text.Length - 1;
                 }
-                if (logs.Count() > 0)
-                {
-                    foreach (var log in logs)
-                    {
-                        records.Add(FaceIdRecord.Parse(log));
-                    }
+                var item = text.Substring(num, num2 - num);
+                logs.Add(item);
+                num = num2;
+            }
 
-                    foreach (var record in records)
+            if (logs.Count <= 0) return eosLogs;
+            var records = logs.Select(FaceIdRecord.Parse).Cast<Record>().ToList();
+
+            foreach (var record in records)
+            {
+                try
+                {
+                    if (record != null)
                     {
-                        try
+                        var receivedLog = new Log
                         {
-                            if (record != null)
-                            {
-                                var receivedLog = new Log
-                                {
-                                    LogDateTime = record.DateTime,
-                                    UserId = (int)record.ID,
-                                    DeviceId = _deviceInfo.DeviceId,
-                                    DeviceCode = _deviceInfo.Code,
-                                    //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
-                                    //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                                    EventLog = _logEvents.Authorized,
-                                    TnaEvent = 0,
-                                };
-                                eosLogs.Add(receivedLog);
-                                Logger.Log($@"<--
+                            LogDateTime = record.DateTime,
+                            UserId = (int)record.ID,
+                            DeviceId = _deviceInfo.DeviceId,
+                            DeviceCode = _deviceInfo.Code,
+                            //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                            //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
+                            EventLog = _logEvents.Authorized,
+                            TnaEvent = 0,
+                        };
+                        eosLogs.Add(receivedLog);
+                        Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{receivedLog.UserId}
    +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
-                            }
-                            else
-                            {
-                                Logger.Log("Null record.");
-                            }   
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
-                                "Error while Inserting Data to Attendance . record: " + record);
-                        }
-
-
                     }
-                    _eosLogService.AddLog(eosLogs);
-
+                    else
+                    {
+                        Logger.Log("Null record.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
+                                   "Error while Inserting Data to Attendance . record: " + record);
                 }
             }
+
+            _eosLogService.AddLog(eosLogs);
             return eosLogs;
         }
-
     }
-
 }

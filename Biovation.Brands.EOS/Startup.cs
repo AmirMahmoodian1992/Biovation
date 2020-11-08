@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
-using Biovation.Brands.Eos.Manager;
 using Biovation.Brands.EOS.Commands;
 using Biovation.Brands.EOS.Devices;
 using Biovation.Brands.EOS.HostedServices;
@@ -24,6 +20,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
 
 namespace Biovation.Brands.EOS
 {
@@ -105,7 +104,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
             //services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
-            services.AddSingleton<EosLogService,EosLogService>();
+            services.AddSingleton<EosLogService, EosLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();

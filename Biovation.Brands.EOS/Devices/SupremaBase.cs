@@ -11,6 +11,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MoreLinq;
+using Newtonsoft.Json;
+using RestSharp;
 using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
@@ -30,18 +32,22 @@ namespace Biovation.Brands.EOS.Devices
         private readonly EosLogService _eosLogService;
 
         private readonly LogEvents _logEvents;
+        private readonly RestClient _restClient;
+        private readonly TaskManager _taskManager;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
 
-        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes)
+        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = true;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _taskManager = taskManager;
+            _restClient = restClient;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosCodeMappings = eosCodeMappings;
@@ -359,6 +365,25 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
+            var connectionStatus = new ConnectionStatus
+            {
+                DeviceId = _deviceInfo.DeviceId,
+                IsConnected = true
+            };
+
+            try
+            {
+                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
+
+            _taskManager.ProcessQueue();
+
             //_valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
@@ -440,8 +465,8 @@ namespace Biovation.Brands.EOS.Devices
                                 {
                                     try
                                     {
-                                        if ((ex is InvalidRecordException) ||
-                                            (ex is InvalidDataInRecordException))
+                                        if (ex is InvalidRecordException ||
+                                            ex is InvalidDataInRecordException)
                                         {
                                             var badRecordRawData = ex.Data["RecordRawData"].ToString();
                                             if (ex is InvalidDataInRecordException)
@@ -712,7 +737,7 @@ namespace Biovation.Brands.EOS.Devices
                     if (user.FingerTemplates.Count <= 0) return true;
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
-                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Add_New);
+                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Check_Finger);
                     }
 
                     return true;
