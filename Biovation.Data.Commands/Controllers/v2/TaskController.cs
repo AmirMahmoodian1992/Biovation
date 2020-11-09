@@ -1,11 +1,10 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.MessageBus;
+using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -13,7 +12,6 @@ namespace Biovation.Data.Commands.Controllers.v2
     //[ApiVersion("2.0")]
     public class TaskController : Controller
     {
-
         private readonly TaskRepository _taskRepository;
         private readonly TaskMessageBusRepository _taskMessageBusRepository;
 
@@ -25,7 +23,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> InsertTask([FromBody]TaskInfo task)
+        public Task<ResultViewModel> InsertTask([FromBody] TaskInfo task)
         {
             return Task.Run(() =>
             {
@@ -42,7 +40,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
         [HttpPut]
         [Authorize]
-        public Task<ResultViewModel> UpdateTaskStatus([FromBody]TaskItem taskItem)
+        public Task<ResultViewModel> UpdateTaskStatus([FromBody] TaskItem taskItem)
         {
             //return Task.Run(() => _taskRepository.UpdateTaskStatus(taskItem));
 

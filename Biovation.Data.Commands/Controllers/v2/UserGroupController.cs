@@ -29,7 +29,7 @@ namespace Biovation.Data.Commands.Controllers.v2
        }*/
 
         [HttpPatch]
-        [Route("UserGroupMember/userGroupId")]
+        [Route("UserGroupMember/{userGroupId}")]
         [Authorize]
 
         public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member, int userGroupId)
