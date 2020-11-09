@@ -41,13 +41,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Service.Api", "Bi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Repository.MessageBus", "Biovation.Repository.MessageBus\Biovation.Repository.MessageBus.csproj", "{D1105559-2D46-4FF6-BCCE-4095DF735BE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.ZK", "Biovation.Brands.ZK\Biovation.Brands.ZK.csproj", "{4DC9EA98-5750-4705-B1F3-A37513337DFB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.ZK", "Biovation.Brands.ZK\Biovation.Brands.ZK.csproj", "{4DC9EA98-5750-4705-B1F3-A37513337DFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.EOS", "Biovation.Brands.EOS\Biovation.Brands.EOS.csproj", "{CDB455BC-157E-4C30-8413-33AF5F7307C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.EOS", "Biovation.Brands.EOS\Biovation.Brands.EOS.csproj", "{CDB455BC-157E-4C30-8413-33AF5F7307C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.Shahab", "Biovation.Brands.Shahab\Biovation.Brands.Shahab.csproj", "{871C1FE1-7A29-49F9-B5AE-C29EBA6AC8F8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.Shahab", "Biovation.Brands.Shahab\Biovation.Brands.Shahab.csproj", "{871C1FE1-7A29-49F9-B5AE-C29EBA6AC8F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Brands.PW", "Biovation.Brands.PW\Biovation.Brands.PW.csproj", "{996DB54E-F12A-46A4-B0C5-0586B632AEE6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.PW", "Biovation.Brands.PW\Biovation.Brands.PW.csproj", "{996DB54E-F12A-46A4-B0C5-0586B632AEE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{0FFD83DE-D07A-437D-9CFB-3CD580B820D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Tools.UserAdapter", "Biovation.Tools.UserAdapter\Biovation.Tools.UserAdapter.csproj", "{3C494559-24B2-45CF-86CB-125D05A109E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,6 +139,10 @@ Global
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C494559-24B2-45CF-86CB-125D05A109E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C494559-24B2-45CF-86CB-125D05A109E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C494559-24B2-45CF-86CB-125D05A109E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C494559-24B2-45CF-86CB-125D05A109E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -157,6 +165,7 @@ Global
 		{CDB455BC-157E-4C30-8413-33AF5F7307C3} = {4B876D59-5F75-4213-82B7-5D3E470A3BA4}
 		{871C1FE1-7A29-49F9-B5AE-C29EBA6AC8F8} = {4B876D59-5F75-4213-82B7-5D3E470A3BA4}
 		{996DB54E-F12A-46A4-B0C5-0586B632AEE6} = {4B876D59-5F75-4213-82B7-5D3E470A3BA4}
+		{3C494559-24B2-45CF-86CB-125D05A109E3} = {0FFD83DE-D07A-437D-9CFB-3CD580B820D1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0CE0E369-D4C8-4572-B475-92CE7BA0E5FE}
