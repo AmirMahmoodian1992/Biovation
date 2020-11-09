@@ -419,7 +419,6 @@ namespace Biovation.Brands.EOS.Devices
                 if (_clock.TestConnection())
                 {
                     Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
-
                     return true;
                 }
 
@@ -427,12 +426,15 @@ namespace Biovation.Brands.EOS.Devices
             {
                 Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
 
-                Thread.Sleep(600);
+                Thread.Sleep(10000);
                 Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
 
                 lock (_clock)
                     if (_clock.TestConnection())
+                    {
+                        Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
                         return true;
+                    }
             }
 
         }

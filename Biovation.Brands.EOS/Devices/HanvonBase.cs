@@ -54,7 +54,7 @@ namespace Biovation.Brands.EOS.Devices
             _userCardService = userCardService;
             _faceTemplateTypes = faceTemplateTypes;
             _stFace = new StFace(new TCPIPConnection
-            { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100 });
+            { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100, WaitBeforeRead = 100, ReadInCompleteTimeOut = 10, RetryCount = 1 });
         }
 
         public override bool Connect()
@@ -134,25 +134,57 @@ namespace Biovation.Brands.EOS.Devices
             {
                 lock (_stFace)
                 {
-                    _stFace.Connect();
-
-                    if (_stFace.Connected)
+                    try
                     {
-                        Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}",
-                            logType: LogType.Information);
-                        return true;
+                        ((TCPIPConnection)_stFace.Connection).IsProtected = false;
+                        _stFace.Connect();
+                        if (!string.IsNullOrWhiteSpace(_deviceInfo.DeviceLockPassword))
+                        {
+                            ((TCPIPConnection)_stFace.Connection).IsProtected = true;
+                            ((TCPIPConnection)_stFace.Connection).Password = _deviceInfo.DeviceLockPassword;
+                        }
+
+                        if (_stFace.TestConnection())
+                        {
+                            Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}",
+                                logType: LogType.Information);
+
+                            return true;
+                        }
                     }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception, "", LogType.Verbose);
+                    }
+
                 }
 
                 while (true)
                 {
                     Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
 
-                    Thread.Sleep(600);
+                    Thread.Sleep(10000);
                     Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
                     lock (_stFace)
-                        if (_stFace.TestConnection())
+                        try
+                        {
+                            ((TCPIPConnection)_stFace.Connection).IsProtected = false;
+                            _stFace.Connect();
+                            if (!string.IsNullOrWhiteSpace(_deviceInfo.DeviceLockPassword))
+                            {
+                                ((TCPIPConnection)_stFace.Connection).IsProtected = true;
+                                ((TCPIPConnection)_stFace.Connection).Password = _deviceInfo.DeviceLockPassword;
+                            }
+
+                            if (!_stFace.TestConnection()) continue;
+                            Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}",
+                                logType: LogType.Information);
                             return true;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, "", LogType.Verbose);
+                        }
                 }
             }
             catch (Exception e)
