@@ -36,10 +36,11 @@ namespace Biovation.Brands.EOS.Devices
         private readonly TaskManager _taskManager;
         private readonly LogSubEvents _logSubEvents;
         private readonly EosCodeMappings _eosCodeMappings;
-        private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient)
+        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = true;
@@ -48,6 +49,7 @@ namespace Biovation.Brands.EOS.Devices
             _fingerTemplateTypes = fingerTemplateTypes;
             _taskManager = taskManager;
             _restClient = restClient;
+            _onlineDevices = onlineDevices;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _eosCodeMappings = eosCodeMappings;
@@ -340,6 +342,40 @@ namespace Biovation.Brands.EOS.Devices
         /// <returns></returns>
         public override bool Connect()
         {
+            lock (_onlineDevices)
+            {
+                if (_onlineDevices.ContainsKey(_deviceInfo.Code))
+                {
+                    _onlineDevices[_deviceInfo.Code].Disconnect();
+                    _onlineDevices.Remove(_deviceInfo.Code);
+
+                    var connectionStatus = new ConnectionStatus
+                    {
+                        DeviceId = _deviceInfo.DeviceId,
+                        IsConnected = false
+                    };
+
+                    try
+                    {
+                        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+
+                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                        _eosLogService.AddLog(new Log
+                        {
+                            DeviceId = _deviceInfo.DeviceId,
+                            LogDateTime = DateTime.Now,
+                            EventLog = _logEvents.Disconnect
+                        });
+                    }
+                    catch (Exception)
+                    {
+                        //ignore
+                    }
+                }
+            }
+
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
@@ -363,23 +399,6 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     Logger.Log(innerException);
                 }
-            }
-
-            var connectionStatus = new ConnectionStatus
-            {
-                DeviceId = _deviceInfo.DeviceId,
-                IsConnected = true
-            };
-
-            try
-            {
-                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            }
-            catch (Exception)
-            {
-                //ignore
             }
 
             _taskManager.ProcessQueue();

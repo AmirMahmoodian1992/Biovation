@@ -14,11 +14,6 @@ namespace Biovation.Brands.EOS
 {
     public class EosServer
     {
-        /// <summary>
-        /// استفاده برای قفل روی دسترسی ترد ها
-        /// </summary>
-        public readonly object LockObject = new object();
-
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly List<DeviceBasicInfo> _eosDevices;
 

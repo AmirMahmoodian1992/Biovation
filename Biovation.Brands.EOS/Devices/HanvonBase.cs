@@ -30,6 +30,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogSubEvents _logSubEvents;
         private readonly UserCardService _userCardService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly Dictionary<uint, Device> _onlineDevices;
 
         private bool _valid;
         private int _counter;
@@ -40,11 +41,12 @@ namespace Biovation.Brands.EOS.Devices
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents,
             LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
-            UserCardService userCardService, TaskManager taskManager, RestClient restClient) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+            UserCardService userCardService, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = false;
             _logEvents = logEvents;
             _restClient = restClient;
+            _onlineDevices = onlineDevices;
             _deviceInfo = deviceInfo;
             _taskManager = taskManager;
             _logSubEvents = logSubEvents;
@@ -57,6 +59,40 @@ namespace Biovation.Brands.EOS.Devices
 
         public override bool Connect()
         {
+            lock (_onlineDevices)
+            {
+                if (_onlineDevices.ContainsKey(_deviceInfo.Code))
+                {
+                    _onlineDevices[_deviceInfo.Code].Disconnect();
+                    _onlineDevices.Remove(_deviceInfo.Code);
+
+                    var connectionStatus = new ConnectionStatus
+                    {
+                        DeviceId = _deviceInfo.DeviceId,
+                        IsConnected = false
+                    };
+
+                    try
+                    {
+                        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+
+                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                        _eosLogService.AddLog(new Log
+                        {
+                            DeviceId = _deviceInfo.DeviceId,
+                            LogDateTime = DateTime.Now,
+                            EventLog = _logEvents.Disconnect
+                        });
+                    }
+                    catch (Exception)
+                    {
+                        //ignore
+                    }
+                }
+            }
+
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
@@ -83,23 +119,6 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     Logger.Log(innerException);
                 }
-            }
-
-            var connectionStatus = new ConnectionStatus
-            {
-                DeviceId = _deviceInfo.DeviceId,
-                IsConnected = true
-            };
-
-            try
-            {
-                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            }
-            catch (Exception)
-            {
-                //ignore
             }
 
             _taskManager.ProcessQueue();
