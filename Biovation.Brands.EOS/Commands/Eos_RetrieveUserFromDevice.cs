@@ -198,7 +198,7 @@ namespace Biovation.Brands.Eos.Commands
                         if (existUser != null && existUser.FaceTemplates.Any(template => template.FaceTemplateType.Code == FaceTemplateTypes.EOSHanvonCode && template.CheckSum == user.FaceTemplates[i].CheckSum))
                             continue;
 
-                        user.FaceTemplates[i].Id = existUser.FaceTemplates.FirstOrDefault(template => template.FaceTemplateType.Code == FaceTemplateTypes.EOSHanvonCode && template.CheckSum == user.FaceTemplates[i].CheckSum).Id;
+                        user.FaceTemplates[i].Id = existUser?.FaceTemplates?.FirstOrDefault(template => template?.FaceTemplateType?.Code == FaceTemplateTypes.EOSHanvonCode && template.CheckSum == user.FaceTemplates[i].CheckSum)?.Id ?? 0;
                         user.FaceTemplates[i].UserId = user.Id;
                         _faceTemplateService.ModifyFaceTemplate(user.FaceTemplates[i]);
                     }
