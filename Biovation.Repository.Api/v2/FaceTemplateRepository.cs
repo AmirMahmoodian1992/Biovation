@@ -32,23 +32,23 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel ModifyFaceTemplate(FaceTemplate faceTemplate, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/FaceTemplate/ModifyFaceTemplate", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/FaceTemplate", Method.PUT);
             restRequest.AddJsonBody(faceTemplate);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            return requestResult.Result.Data;
-        }
-        public ResultViewModel DeleteFaceTemplate(long userId = 0, int index = 0, string token = default)
-        {
-            var restRequest = new RestRequest("Commands/v2/FaceTemplate/DeleteFaceTemplate", Method.DELETE);
-            restRequest.AddQueryParameter("userId", userId.ToString());
-            restRequest.AddQueryParameter("index", index.ToString());
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            token ??= _biovationConfigurationManager.DefaultToken;
-            restRequest.AddHeader("Authorization", token);
             return requestResult.Result.Data;
         }
 
+        public ResultViewModel DeleteFaceTemplate(long userId = 0, int index = 0, string token = default)
+        {
+            var restRequest = new RestRequest("Commands/v2/FaceTemplate", Method.DELETE);
+            restRequest.AddQueryParameter("userId", userId.ToString());
+            restRequest.AddQueryParameter("index", index.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
     }
 }
