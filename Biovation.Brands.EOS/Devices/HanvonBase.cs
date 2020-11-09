@@ -182,14 +182,14 @@ namespace Biovation.Brands.EOS.Devices
                     IsAdmin = terminalUserData.Privilege == 1
                 };
 
-                if (!(terminalUserData.CardNumber is null || terminalUserData.CardNumber == "0xffffffff"))
+                if (!(terminalUserData.CardNumber is null || string.Equals(terminalUserData.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    user.IdentityCard = new IdentityCard()
+                    user.IdentityCard = new IdentityCard
                     {
                         Id = (int)terminalUserData.Id,
                         Number = terminalUserData.CardNumber,
                         DataCheck = 0,
-                        IsActive = terminalUserData.CardNumber != "0xffffffff"
+                        IsActive = !string.Equals(terminalUserData.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)
                     };
                 }
 
@@ -242,12 +242,13 @@ namespace Biovation.Brands.EOS.Devices
 
             try
             {
-                StFaceUserInfo user;
                 bool deletion;
                 lock (_stFace)
-                    user = _stFace.GetUserInfo((int)sUserId);
+                {
+                    var user = _stFace.GetUserInfo((int)sUserId);
+                    if (user == null) return true;
+                }
 
-                if (user == null) return false;
                 lock (_stFace)
                     deletion = _stFace.DeleteUser((int)sUserId);
 
@@ -288,10 +289,10 @@ namespace Biovation.Brands.EOS.Devices
                 try
                 {
 
-                    var userCards = _userCardService.GetCardsByFilter(user.Id, true);
+                    var userCards = _userCardService.GetCardsByFilter(user.Id, true)?.Data?.Data;
                     if (userCards != null)
                     {
-                        var userCard = userCards.Data.Data.FirstOrDefault();
+                        var userCard = userCards.FirstOrDefault();
                         if (userCard != null)
                         {
                             hasCard = true;
@@ -318,12 +319,11 @@ namespace Biovation.Brands.EOS.Devices
                 var hasFace = false;
                 try
                 {
-                    var userFaces = user.FaceTemplates;
-                    var userFace = userFaces?.FirstOrDefault();
-                    if (userFace != null)
+                    if (user.FaceTemplates?.Count > 0)
                     {
-                        hasFace = true;
+                        var userFace = user.FaceTemplates?.First();
                         transfereeUser.FaceData = Encoding.ASCII.GetString(userFace.Template, 0, userFace.Template.Length).Split('=').SkipLast(1).ToList();
+                        hasFace = true;
                     }
                 }
                 catch (Exception e)
@@ -405,7 +405,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (!(retrievedUser.CardNumber is null || string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)))
                     {
-                        user.IdentityCard = new IdentityCard()
+                        user.IdentityCard = new IdentityCard
                         {
                             Id = (int)retrievedUser.Id,
                             Number = retrievedUser.CardNumber,
