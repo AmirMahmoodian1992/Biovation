@@ -105,5 +105,20 @@ namespace Biovation.Tools.UserAdapter
                 }
             }
         }
+
+        private void UserAdaptationForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void CloseButton_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void MinimizeButton_Click(object sender, EventArgs e)
+        {
+            WindowState = FormWindowState.Minimized;
+        }
     }
 }
