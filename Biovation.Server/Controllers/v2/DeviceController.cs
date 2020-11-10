@@ -641,7 +641,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 var device = _deviceService.GetDevice(id, token: token).Data;
                
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice",Method.GET);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 restRequest.AddQueryParameter("embedTemplate", true.ToString());
                 if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
@@ -701,6 +701,14 @@ namespace Biovation.Server.Controllers.v2
                          TotalCount = 1
                      });
                 }
+                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/ManualActivationProcessQueue", Method.GET);
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization",
+                        HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
+                }
+                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                
 
                 return new ResultViewModel();
             });

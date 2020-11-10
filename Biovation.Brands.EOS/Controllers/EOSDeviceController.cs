@@ -256,7 +256,7 @@ namespace Biovation.Brands.EOS.Controllers
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new {deviceId, embedTemplate }),
+                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
@@ -348,5 +348,24 @@ namespace Biovation.Brands.EOS.Controllers
                 }
             });
         }
+
+        [HttpGet]
+        [Authorize]
+        public Task<ResultViewModel> ManualActivationProcessQueue()
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    _taskManager.ProcessQueue();
+                    return new ResultViewModel {Success = true};
+                }
+                catch(Exception exception)
+                {
+                    return new ResultViewModel {Success = false, Message = exception.ToString()};
+                }
+            });
+        }
+
     }
 }
