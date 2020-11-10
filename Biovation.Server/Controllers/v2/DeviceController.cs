@@ -632,6 +632,7 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPost]
+        [Authorize]
         [Route("{id}/UserAdaptation")]
         public Task<ResultViewModel> UserAdapter([FromRoute] int id, [FromBody] Dictionary<uint, uint> equivalentCodes)
         {
@@ -701,7 +702,7 @@ namespace Biovation.Server.Controllers.v2
                          TotalCount = 1
                      });
                 }
-                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/ManualActivationProcessQueue", Method.GET);
+                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/ManualActivationProcessQueue", Method.GET);
                 if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                 {
                     restRequest.AddHeader("Authorization",

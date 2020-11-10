@@ -349,23 +349,6 @@ namespace Biovation.Brands.EOS.Controllers
             });
         }
 
-        [HttpGet]
-        [Authorize]
-        public Task<ResultViewModel> ManualActivationProcessQueue()
-        {
-            return Task.Run(() =>
-            {
-                try
-                {
-                    _taskManager.ProcessQueue();
-                    return new ResultViewModel {Success = true};
-                }
-                catch(Exception exception)
-                {
-                    return new ResultViewModel {Success = false, Message = exception.ToString()};
-                }
-            });
-        }
 
     }
 }
