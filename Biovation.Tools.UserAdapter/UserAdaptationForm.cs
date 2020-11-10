@@ -47,6 +47,11 @@ namespace Biovation.Tools.UserAdapter
                 BiovationDeviceListComboBox.DataSource = bindingSource.DataSource;
                 BiovationDeviceListComboBox.DisplayMember = "Name";
                 BiovationDeviceListComboBox.ValueMember = "DeviceId";
+
+                BiovationDeviceListComboBox.Enabled = true;
+                BiovationDeviceLabel.Enabled = true;
+                DownloadSampleButton.Enabled = true;
+                PickUserAdaptationFileButton.Enabled = true;
             }
             else
             {
@@ -58,6 +63,12 @@ namespace Biovation.Tools.UserAdapter
 
         private void PickUserAdaptationFileButton_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(BiovationDeviceListComboBox.ValueMember))
+            {
+                MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             var openFileDialog = new OpenFileDialog
             {
                 FileName = "BiovationUserAdapterData",
@@ -96,7 +107,11 @@ namespace Biovation.Tools.UserAdapter
                         _userCodeMappings.Add(oldUserCode, newUserCode);
                     }
 
-                    MessageBox.Show(@"User code mappings loaded successfully.", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (string.IsNullOrWhiteSpace(BiovationDeviceListComboBox.ValueMember))
+                        MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    StartProcessButton.Enabled = true;
+                    MessageBox.Show(@"فایل تغییرات کد کاربر ها با موفقیت بارگیری شد.", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 catch (Exception exception)
                 {

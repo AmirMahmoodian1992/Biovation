@@ -35,11 +35,11 @@
             this.BiovationDeviceListComboBox = new System.Windows.Forms.ComboBox();
             this.DownloadSampleButton = new System.Windows.Forms.Button();
             this.PickUserAdaptationFileButton = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
+            this.StartProcessButton = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.label3 = new System.Windows.Forms.Label();
+            this.BiovationDeviceLabel = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.CloseButton = new System.Windows.Forms.Button();
@@ -82,6 +82,7 @@
             // 
             // BiovationDeviceListComboBox
             // 
+            this.BiovationDeviceListComboBox.Enabled = false;
             this.BiovationDeviceListComboBox.FormattingEnabled = true;
             this.BiovationDeviceListComboBox.Location = new System.Drawing.Point(152, 108);
             this.BiovationDeviceListComboBox.Name = "BiovationDeviceListComboBox";
@@ -92,6 +93,7 @@
             // 
             this.DownloadSampleButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("DownloadSampleButton.BackgroundImage")));
             this.DownloadSampleButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.DownloadSampleButton.Enabled = false;
             this.DownloadSampleButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.DownloadSampleButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
             this.DownloadSampleButton.Location = new System.Drawing.Point(538, 181);
@@ -106,6 +108,7 @@
             // 
             this.PickUserAdaptationFileButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("PickUserAdaptationFileButton.BackgroundImage")));
             this.PickUserAdaptationFileButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.PickUserAdaptationFileButton.Enabled = false;
             this.PickUserAdaptationFileButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.PickUserAdaptationFileButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
             this.PickUserAdaptationFileButton.Location = new System.Drawing.Point(254, 181);
@@ -117,18 +120,19 @@
             this.PickUserAdaptationFileButton.UseVisualStyleBackColor = true;
             this.PickUserAdaptationFileButton.Click += new System.EventHandler(this.PickUserAdaptationFileButton_Click);
             // 
-            // button1
+            // StartProcessButton
             // 
-            this.button1.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("button1.BackgroundImage")));
-            this.button1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.button1.Location = new System.Drawing.Point(37, 268);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(113, 35);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "شروع عملیات";
-            this.button1.UseVisualStyleBackColor = true;
+            this.StartProcessButton.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("StartProcessButton.BackgroundImage")));
+            this.StartProcessButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.StartProcessButton.Enabled = false;
+            this.StartProcessButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.StartProcessButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.StartProcessButton.Location = new System.Drawing.Point(37, 268);
+            this.StartProcessButton.Name = "StartProcessButton";
+            this.StartProcessButton.Size = new System.Drawing.Size(113, 35);
+            this.StartProcessButton.TabIndex = 4;
+            this.StartProcessButton.Text = "شروع عملیات";
+            this.StartProcessButton.UseVisualStyleBackColor = true;
             // 
             // panel1
             // 
@@ -151,7 +155,7 @@
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(243)))), ((int)(((byte)(244)))), ((int)(((byte)(248)))));
-            this.panel2.Controls.Add(this.label3);
+            this.panel2.Controls.Add(this.BiovationDeviceLabel);
             this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.label1);
             this.panel2.Controls.Add(this.PickUserAdaptationFileButton);
@@ -159,21 +163,22 @@
             this.panel2.Controls.Add(this.BiovationServerAddressTextBox);
             this.panel2.Controls.Add(this.BiovationServerPortTextBox);
             this.panel2.Controls.Add(this.BiovationDeviceListComboBox);
-            this.panel2.Controls.Add(this.button1);
+            this.panel2.Controls.Add(this.StartProcessButton);
             this.panel2.Controls.Add(this.BiovationConnectionButton);
             this.panel2.Location = new System.Drawing.Point(12, 44);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(776, 332);
             this.panel2.TabIndex = 6;
             // 
-            // label3
+            // BiovationDeviceLabel
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(634, 111);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(100, 20);
-            this.label3.TabIndex = 6;
-            this.label3.Text = "انتخاب دستگاه";
+            this.BiovationDeviceLabel.AutoSize = true;
+            this.BiovationDeviceLabel.Enabled = false;
+            this.BiovationDeviceLabel.Location = new System.Drawing.Point(634, 111);
+            this.BiovationDeviceLabel.Name = "BiovationDeviceLabel";
+            this.BiovationDeviceLabel.Size = new System.Drawing.Size(100, 20);
+            this.BiovationDeviceLabel.TabIndex = 6;
+            this.BiovationDeviceLabel.Text = "انتخاب دستگاه";
             // 
             // label2
             // 
@@ -253,13 +258,13 @@
         private System.Windows.Forms.ComboBox BiovationDeviceListComboBox;
         private System.Windows.Forms.Button DownloadSampleButton;
         private System.Windows.Forms.Button PickUserAdaptationFileButton;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button StartProcessButton;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label BiovationDeviceLabel;
         private System.Windows.Forms.Button CloseButton;
         private System.Windows.Forms.Button MinimizeButton;
     }
