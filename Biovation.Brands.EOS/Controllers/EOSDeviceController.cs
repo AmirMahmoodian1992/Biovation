@@ -225,7 +225,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate)
         {
             try
             {
@@ -256,7 +256,7 @@ namespace Biovation.Brands.EOS.Controllers
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(deviceId),
+                    Data = JsonConvert.SerializeObject(new {deviceId, embedTemplate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,

@@ -643,6 +643,7 @@ namespace Biovation.Server.Controllers.v2
                
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddQueryParameter("embedTemplate", true.ToString());
                 if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                 {
                     restRequest.AddHeader("Authorization",

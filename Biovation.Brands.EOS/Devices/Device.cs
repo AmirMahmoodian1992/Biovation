@@ -84,7 +84,7 @@ namespace Biovation.Brands.EOS.Devices
             throw new NotImplementedException();
         }
 
-        public virtual List<User> GetAllUsers()
+        public virtual List<User> GetAllUsers(bool embedTemplate = false)
         {
 
             var usersList = new List<User>();

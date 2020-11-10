@@ -5,6 +5,8 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.Eos.Commands
 {
@@ -18,6 +20,7 @@ namespace Biovation.Brands.Eos.Commands
         //private uint DeviceId { get; }
         private TaskItem TaskItem { get; }
         private Dictionary<uint, Device> OnlineDevices { get; }
+        private bool EmbedTemplate { get; }
 
         public EosGetUsersOfDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, DeviceService deviceService)
         {
@@ -25,6 +28,8 @@ namespace Biovation.Brands.Eos.Commands
             TaskItem = taskItem;
             OnlineDevices = onlineDevices;
             _deviceService = deviceService;
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            if (data != null) EmbedTemplate = Convert.ToBoolean(data["embedTemplate"]);
         }
 
         /// <summary>
@@ -46,7 +51,7 @@ namespace Biovation.Brands.Eos.Commands
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
 
-            var usersOfDevice = OnlineDevices[device.Code].GetAllUsers();
+            var usersOfDevice = OnlineDevices[device.Code].GetAllUsers(EmbedTemplate);
 
 
             return new ResultViewModel<List<User>> { Data = usersOfDevice, Id = device.DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
