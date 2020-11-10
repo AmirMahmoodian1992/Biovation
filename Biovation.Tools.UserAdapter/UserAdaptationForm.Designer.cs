@@ -133,6 +133,7 @@
             this.StartProcessButton.TabIndex = 4;
             this.StartProcessButton.Text = "شروع عملیات";
             this.StartProcessButton.UseVisualStyleBackColor = true;
+            this.StartProcessButton.Click += new System.EventHandler(this.StartProcessButton_Click);
             // 
             // panel1
             // 

@@ -15,29 +15,31 @@ namespace Biovation.Tools.UserAdapter
     public partial class UserAdaptationForm : Form
     {
         private RestClient _restClient;
+        private int _biovationServerPort = 9038;
+        private string _biovationServerAddress = "localhost";
         private readonly Dictionary<uint, uint> _userCodeMappings = new Dictionary<uint, uint>();
 
         public UserAdaptationForm()
         {
             InitializeComponent();
-            _restClient = (RestClient)new RestClient("http://localhost:9038/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = (RestClient)new RestClient($"http://{_biovationServerAddress}:{_biovationServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
         }
 
 
         private void BiovationConnectionButton_Click(object sender, EventArgs e)
         {
-            var biovationServerAddress = BiovationServerAddressTextBox.Text.Trim().ToLower().Replace("http://", "")
+            _biovationServerAddress = BiovationServerAddressTextBox.Text.Trim().ToLower().Replace("http://", "")
                 .Split(":").First();
             var parseResult = int.TryParse(BiovationServerPortTextBox.Text.Trim(), NumberStyles.Number,
-                CultureInfo.InvariantCulture, out var biovationServerPort);
+                CultureInfo.InvariantCulture, out _biovationServerPort);
 
-            if (!parseResult || biovationServerPort > 51212 || biovationServerPort < 100)
+            if (!parseResult || _biovationServerPort > 51212 || _biovationServerPort < 100)
             {
                 MessageBox.Show(@"Invalid port number", @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            _restClient = (RestClient)new RestClient($"http://{biovationServerAddress}:{biovationServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = (RestClient)new RestClient($"http://{_biovationServerAddress}:{_biovationServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
             var restRequest = new RestRequest("Device/Devices", Method.GET);
             var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
@@ -63,10 +65,17 @@ namespace Biovation.Tools.UserAdapter
 
         private void PickUserAdaptationFileButton_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(BiovationDeviceListComboBox.ValueMember))
+            try
+            {
+                if (BiovationDeviceListComboBox.SelectedItem is null || (int)BiovationDeviceListComboBox.SelectedValue < 1)
+                {
+                    MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+            }
+            catch (Exception)
             {
                 MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
             }
 
             var openFileDialog = new OpenFileDialog
@@ -107,8 +116,18 @@ namespace Biovation.Tools.UserAdapter
                         _userCodeMappings.Add(oldUserCode, newUserCode);
                     }
 
-                    if (string.IsNullOrWhiteSpace(BiovationDeviceListComboBox.ValueMember))
+                    try
+                    {
+                        if (BiovationDeviceListComboBox.SelectedItem is null || (int)BiovationDeviceListComboBox.SelectedValue < 1)
+                        {
+                            MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            return;
+                        }
+                    }
+                    catch (Exception)
+                    {
                         MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
 
                     StartProcessButton.Enabled = true;
                     MessageBox.Show(@"فایل تغییرات کد کاربر ها با موفقیت بارگیری شد.", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -134,6 +153,40 @@ namespace Biovation.Tools.UserAdapter
         private void MinimizeButton_Click(object sender, EventArgs e)
         {
             WindowState = FormWindowState.Minimized;
+        }
+
+        private void StartProcessButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var selectedItem = BiovationDeviceListComboBox.SelectedItem is null ? new DeviceBasicInfo() : (DeviceBasicInfo)BiovationDeviceListComboBox.SelectedItem;
+                var selectedDeviceId = selectedItem.DeviceId;
+                if (selectedDeviceId <= 0)
+                {
+                    MessageBox.Show(@"دستگاه انتخاب شده صحیح نیست، لطفا مجددا تلاش نمایید.");
+                    return;
+                }
+
+                var restRequest = new RestRequest("Device/{id}/Change", Method.POST);
+                restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
+                restRequest.AddJsonBody(_userCodeMappings);
+                var result = _restClient.Execute<ResultViewModel>(restRequest);
+
+                if (result.IsSuccessful && result.StatusCode == HttpStatusCode.OK)
+                {
+                    MessageBox.Show(@"عملیات با موفقیت آغاز شد");
+                }
+                else
+                {
+                    MessageBox.Show(
+                        @"خطا در عملیات", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(
+                    @"خطا در عملیات", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
