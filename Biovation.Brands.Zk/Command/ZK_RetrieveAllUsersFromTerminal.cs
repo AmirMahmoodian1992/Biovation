@@ -7,6 +7,8 @@ using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -18,13 +20,19 @@ namespace Biovation.Brands.ZK.Command
         private Dictionary<uint, Device> OnlineDevices { get; }
         private int DeviceId { get; }
         private uint Code { get; }
+        private int TaskItemId { get; }
+        private bool EmbedTemplate { get; }
 
-        public ZkRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
+        public ZkRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
             OnlineDevices = devices;
             DeviceId = Convert.ToInt32(items[0]);
+            TaskItemId = Convert.ToInt32(items[1]);
             Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
+            var taskItem = taskService.GetTaskItem(TaskItemId);
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            if (data != null) EmbedTemplate = Convert.ToBoolean(data["embedTemplate"]);
         }
         public object Execute()
         {
@@ -37,7 +45,7 @@ namespace Biovation.Brands.ZK.Command
             try
             {
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
-                var result = device.GetAllUserInfo();
+                var result = device.GetAllUserInfo(EmbedTemplate);
                 return new ResultViewModel<List<User>> { Data = result, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
 
             }

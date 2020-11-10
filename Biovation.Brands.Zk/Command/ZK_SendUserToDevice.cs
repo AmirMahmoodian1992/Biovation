@@ -26,6 +26,7 @@ namespace Biovation.Brands.ZK.Command
 
         private uint Code { get; }
         private int UserId { get; }
+        private User user { get; }
         private User UserObj { get; }
 
         private readonly LogEvents _logEvents;
@@ -44,8 +45,7 @@ namespace Biovation.Brands.ZK.Command
             Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             var taskItem = _taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (int)data["UserId"];
-            UserObj = _userService.GetUsers(UserId).FirstOrDefault();
+
             OnlineDevices = devices;
             _logService = logService;
             _userService = userService;
@@ -55,6 +55,25 @@ namespace Biovation.Brands.ZK.Command
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
+
+            if (data != null)
+            {
+                UserId = (int)data["UserId"];
+                user = (User)JsonConvert.DeserializeObject(data["user"]?.ToString() ?? string.Empty);
+            }
+
+            if (UserId != default && user == null)
+            {
+                UserObj = _userService.GetUsers(UserId).FirstOrDefault();
+            }
+            else if (UserId == default && user != null)
+            {
+                UserObj = user;
+            }
+            else
+            {
+                UserObj = null;
+            }
         }
 
         public object Execute()

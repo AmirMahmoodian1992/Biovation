@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Server.Middleware;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -28,7 +30,14 @@ namespace Biovation.Server.Controllers.v2
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
-        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService)
+        private readonly JwtMiddleware _jwtMiddleware;
+        public readonly DeviceBrands _deviceBrands;
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, JwtMiddleware jwtMiddleware, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _userService = userService;
@@ -36,6 +45,12 @@ namespace Biovation.Server.Controllers.v2
             _lookups = lookups;
             _restClient = restClient;
             _userCardService = userCardService;
+            _jwtMiddleware = jwtMiddleware;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _deviceBrands = deviceBrands;
         }
 
 
@@ -616,6 +631,79 @@ namespace Biovation.Server.Controllers.v2
         //    });
         //}
 
+        [HttpPost]
+        [Route("UserAdapter")]
+        public Task<ResultViewModel> UserAdapter([FromRoute] int id, [FromBody] Dictionary<uint, uint> equivalentCodes)
+        {
+            var token = (string)HttpContext.Items["Token"];
+            var creatorUser = HttpContext.GetUser();
+            return Task.Run(() =>
+            {
+                var device = _deviceService.GetDevice(id, token: token).Data;
+               
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization",
+                        HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
+                }
+                var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
+                foreach (var userCode in equivalentCodes.Keys)
+                {
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Virdi,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { userId = userCode }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
 
+                     task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Virdi,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+
+                     task.TaskItems.Add(new TaskItem
+                     {
+                         Status = _taskStatuses.Queued,
+                         TaskItemType = _taskItemTypes.SendUser,
+                         Priority = _taskPriorities.Medium,
+                         DeviceId = id,
+                         Data = JsonConvert.SerializeObject(new { User = userList.Result.Data.Data.Where(x=>x.Code == equivalentCodes[userCode]) }),
+                         IsParallelRestricted = true,
+                         IsScheduled = false,
+                         OrderIndex = 1,
+                         CurrentIndex = 0,
+                         TotalCount = 1
+                     });
+                }
+
+                return new ResultViewModel();
+            });
+
+        }
     }
 }
