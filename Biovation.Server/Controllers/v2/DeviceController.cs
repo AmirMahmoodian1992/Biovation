@@ -632,7 +632,7 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPost]
-        [Route("UserAdapter")]
+        [Route("{id}/UserAdaptation")]
         public Task<ResultViewModel> UserAdapter([FromRoute] int id, [FromBody] Dictionary<uint, uint> equivalentCodes)
         {
             var token = (string)HttpContext.Items["Token"];
