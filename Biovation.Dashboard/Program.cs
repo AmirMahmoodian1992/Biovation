@@ -18,7 +18,7 @@ namespace Biovation.Dashboard
 
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
-            return Host.CreateDefaultBuilder(args).UseSerilog()
+            return Host.CreateDefaultBuilder(args).UseSerilog().UseWindowsService()
                     .ConfigureWebHostDefaults(webBuilder =>
                     {
                         webBuilder.UseStartup<Startup>();

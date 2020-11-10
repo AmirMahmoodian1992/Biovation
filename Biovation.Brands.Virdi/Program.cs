@@ -1,10 +1,10 @@
-using System;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using Serilog;
 using App.Metrics;
 using App.Metrics.AspNetCore;
 using App.Metrics.Formatters.Json;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using System;
 
 namespace Biovation.Brands.Virdi
 {
@@ -21,7 +21,8 @@ namespace Biovation.Brands.Virdi
                 .ConfigureMetricsWithDefaults(
                     builder =>
                     {
-                        builder.Report.OverHttp(options => {
+                        builder.Report.OverHttp(options =>
+                        {
                             options.HttpSettings.RequestUri = new Uri("http://localhost:9038/biovation/api/dashboard/metrics");
                             options.HttpPolicy.BackoffPeriod = TimeSpan.FromSeconds(30);
                             options.HttpPolicy.FailuresBeforeBackoff = 2;
@@ -30,7 +31,7 @@ namespace Biovation.Brands.Virdi
                             options.FlushInterval = TimeSpan.FromSeconds(20);
                         });
                     })
-                .UseSerilog().UseMetrics()
+                .UseSerilog().UseMetrics().UseWindowsService()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
