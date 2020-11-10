@@ -30,6 +30,7 @@
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.7.1" />
+    <PackageReference Include="Serilog.Sinks.Udp" Version="7.1.0" />
   </ItemGroup>
 
   <ItemGroup>
