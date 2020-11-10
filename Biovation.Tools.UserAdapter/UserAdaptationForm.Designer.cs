@@ -33,7 +33,7 @@
             this.BiovationServerPortTextBox = new System.Windows.Forms.TextBox();
             this.BiovationDeviceListComboBox = new System.Windows.Forms.ComboBox();
             this.DownloadSampleButton = new System.Windows.Forms.Button();
-            this.AddSampleFilesInsterd = new System.Windows.Forms.Button();
+            this.PickUserAdaptationFileButton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -81,15 +81,16 @@
             this.DownloadSampleButton.Text = "Get Sample File";
             this.DownloadSampleButton.UseVisualStyleBackColor = true;
             // 
-            // AddSampleFilesInsterd
+            // PickUserAdaptationFileButton
             // 
-            this.AddSampleFilesInsterd.Location = new System.Drawing.Point(108, 214);
-            this.AddSampleFilesInsterd.Name = "AddSampleFilesInsterd";
-            this.AddSampleFilesInsterd.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.AddSampleFilesInsterd.Size = new System.Drawing.Size(196, 29);
-            this.AddSampleFilesInsterd.TabIndex = 3;
-            this.AddSampleFilesInsterd.Text = "Get Sample File";
-            this.AddSampleFilesInsterd.UseVisualStyleBackColor = true;
+            this.PickUserAdaptationFileButton.Location = new System.Drawing.Point(108, 214);
+            this.PickUserAdaptationFileButton.Name = "PickUserAdaptationFileButton";
+            this.PickUserAdaptationFileButton.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.PickUserAdaptationFileButton.Size = new System.Drawing.Size(196, 29);
+            this.PickUserAdaptationFileButton.TabIndex = 3;
+            this.PickUserAdaptationFileButton.Text = "Get Sample File";
+            this.PickUserAdaptationFileButton.UseVisualStyleBackColor = true;
+            this.PickUserAdaptationFileButton.Click += new System.EventHandler(this.PickUserAdaptationFileButton_Click);
             // 
             // button1
             // 
@@ -106,7 +107,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.Controls.Add(this.button1);
-            this.Controls.Add(this.AddSampleFilesInsterd);
+            this.Controls.Add(this.PickUserAdaptationFileButton);
             this.Controls.Add(this.DownloadSampleButton);
             this.Controls.Add(this.BiovationDeviceListComboBox);
             this.Controls.Add(this.BiovationServerPortTextBox);
@@ -126,7 +127,7 @@
         private System.Windows.Forms.TextBox BiovationServerPortTextBox;
         private System.Windows.Forms.ComboBox BiovationDeviceListComboBox;
         private System.Windows.Forms.Button DownloadSampleButton;
-        private System.Windows.Forms.Button AddSampleFilesInsterd;
+        private System.Windows.Forms.Button PickUserAdaptationFileButton;
         private System.Windows.Forms.Button button1;
     }
 }
