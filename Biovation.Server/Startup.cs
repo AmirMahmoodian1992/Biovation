@@ -5,14 +5,15 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
 using Biovation.Server.Middleware;
+using Biovation.Servers;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -26,9 +27,7 @@ using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
-using Biovation.Server.HostedServices;
 using Log = Serilog.Log;
-using Biovation.Servers;
 
 namespace Biovation.Server
 {
@@ -117,9 +116,9 @@ namespace Biovation.Server
             });
 
 
-            
+
             services.AddMvc();
-            
+
             //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
 
 
@@ -157,7 +156,7 @@ namespace Biovation.Server
                 Password = BiovationConfiguration.ConnectionStringPassword()
             };
 
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             services.AddSingleton(restClient);
             services.AddSingleton(connectionInfo);
@@ -263,8 +262,8 @@ namespace Biovation.Server
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var user = new User { Id = 0 };
-            var _tokenGenerator = new TokenGenerator(BiovationConfiguration);
-            _tokenGenerator.GenerateToken(user);
+            var tokenGenerator = new TokenGenerator(BiovationConfiguration);
+            tokenGenerator.GenerateToken(user);
 
             var serviceCollection = new ServiceCollection();
             var connectionInfo = new DatabaseConnectionInfo
@@ -278,7 +277,7 @@ namespace Biovation.Server
                 Password = BiovationConfiguration.ConnectionStringPassword()
             };
 
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
             serviceCollection.AddSingleton(connectionInfo);

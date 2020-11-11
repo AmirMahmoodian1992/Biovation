@@ -43,7 +43,7 @@ namespace Biovation.Dashboard
         {
             services.AddControllers();
 
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
             ConfigureRepositoriesServices(services);

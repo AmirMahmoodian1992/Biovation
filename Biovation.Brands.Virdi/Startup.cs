@@ -95,7 +95,7 @@ namespace Biovation.Brands.Virdi
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -140,7 +140,7 @@ namespace Biovation.Brands.Virdi
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var serviceCollection = new ServiceCollection();
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
 
