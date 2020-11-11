@@ -8,7 +8,7 @@
     "**/platforms"
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:9002",
+    "BaseUrl": "http://localhost:9038",
     "UseServiceDiscovery": false
   },
   "Routes": [
