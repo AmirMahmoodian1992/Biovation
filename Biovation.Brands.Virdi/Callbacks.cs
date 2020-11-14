@@ -1920,19 +1920,17 @@ namespace Biovation.Brands.Virdi
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
 
-                var userName = string.IsNullOrEmpty(TerminalUserData.UserName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(TerminalUserData.UserName));
+
+                var deviceUserName = TerminalUserData.UserName;
+                var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                var userName = replacements.Aggregate(deviceUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+                
                 var indexOfSpace = userName?.IndexOf(' ') ?? 0;
                 var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace) : null;
                 var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace) : userName;
 
-                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" }, { "Z", "ژ" } };
-                if (userName != null)
-                {
-                    userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-                    surName = replacements.Aggregate(surName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-                    firstName = replacements.Aggregate(firstName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-
-                }
                 byte[] picture = null;
 
                 try
@@ -1944,6 +1942,7 @@ namespace Biovation.Brands.Virdi
                 {
                     Logger.Log(exception);
                 }
+
                 var user = new User
                 {
                     Code = TerminalUserData.UserID,
@@ -1992,11 +1991,16 @@ namespace Biovation.Brands.Virdi
                             UserName = string.IsNullOrEmpty(userName) ? existUser.UserName : userName,
                             FirstName = firstName ?? existUser.FirstName,
                             SurName = string.Equals(surName, userName) ? existUser.SurName ?? surName : surName,
-                            IsActive = existUser.IsActive
+                            IsActive = existUser.IsActive,
+                            ImageBytes = picture
                         };
                     }
 
-                    _commonUserService.ModifyUser(user);
+                    var userInsertionResult = _commonUserService.ModifyUser(user);
+
+                    Logger.Log("<--User is Modified");
+                    user.Id = userInsertionResult.Id;
+
 
                     //Card
                     try
