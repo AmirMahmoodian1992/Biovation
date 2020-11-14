@@ -127,7 +127,7 @@ namespace Biovation.Server.Controllers.v1
                 else if (fromDate is null)
                 {
                     restRequest.AddQueryParameter("fromDate", (DateTime.Now.AddYears(-15).ToString(CultureInfo.InvariantCulture)));
-                    restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture)); restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (toDate is null)
                 {

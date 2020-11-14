@@ -41,20 +41,21 @@ namespace Biovation.Brands.ZK.Command
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
-            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (int)data["UserId"];
-            UserObj = _userService.GetUsers(UserId).FirstOrDefault();
+            _deviceService = deviceService;
+            _taskService = taskService;
             OnlineDevices = devices;
             _logService = logService;
             _userService = userService;
-            _deviceService = deviceService;
-            _taskService = taskService;
             _adminDeviceService = adminDeviceService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            if (data != null) UserId = (int) data["UserId"];
+            UserObj = _userService.GetUsers(UserId).FirstOrDefault();
+           
         }
 
         public object Execute()

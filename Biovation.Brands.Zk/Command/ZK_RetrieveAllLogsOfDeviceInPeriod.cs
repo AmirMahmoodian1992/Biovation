@@ -42,7 +42,7 @@ namespace Biovation.Brands.ZK.Command
             }
             catch (Exception)
             {
-                startDate = DateTime.Now.AddYears(-15);
+                startDate = new DateTime(1970, 1, 1);
             }
 
             DateTime endDate;
@@ -55,8 +55,12 @@ namespace Biovation.Brands.ZK.Command
                 endDate = DateTime.Now.AddYears(5);
             }
 
-            StartDate = startDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
-            EndDate = endDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
+            //StartDate = startDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            //EndDate = endDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+            StartDate = startDate < new DateTime(1970,1,1) ? new DateTime(1970, 1, 1).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            EndDate = endDate > DateTime.Now.AddYears(5) ? DateTime.Now.AddYears(5).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
+
         }
 
         public object Execute()
