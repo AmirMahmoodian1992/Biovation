@@ -121,17 +121,17 @@ namespace Biovation.Server.Controllers.v1
 
                 if (fromDate is null && toDate is null)
                 {
-                    restRequest.AddQueryParameter("fromDate", DateTime.MinValue.ToString(CultureInfo.InvariantCulture));
-                    restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("fromDate", DateTime.Now.AddYears(-15).ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", DateTime.Now.AddYears(5).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (fromDate is null)
                 {
-                    restRequest.AddQueryParameter("fromDate", (DateTime.MinValue.ToString(CultureInfo.InvariantCulture)));
+                    restRequest.AddQueryParameter("fromDate", (DateTime.Now.AddYears(-15).ToString(CultureInfo.InvariantCulture)));
                     restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture)); restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (toDate is null)
                 {
-                    restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", DateTime.Now.AddYears(5).ToString(CultureInfo.InvariantCulture));
                     restRequest.AddQueryParameter("fromDate", ((DateTime)fromDate).ToString(CultureInfo.InvariantCulture));
                 }
                 else

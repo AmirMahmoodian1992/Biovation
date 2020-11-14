@@ -971,7 +971,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 var user = new User
                                 {
-                                    Id = Convert.ToInt32(iUserId),
+                                    Code = Convert.ToInt32(iUserId),
                                     UserName = name,
                                     IsActive = enable,
                                     AdminLevel = privilege
@@ -1009,7 +1009,7 @@ namespace Biovation.Brands.ZK.Devices
                     {
                         var user = new User
                         {
-                            Id = userId,
+                            Code = userId,
                             AdminLevel = privilege,
                             IsActive = enabled,
                             SurName = name.Split(' ').LastOrDefault(),
@@ -1019,12 +1019,12 @@ namespace Biovation.Brands.ZK.Devices
                             Password = password,
                             UserName = name,
                         };
-                        var existUser = UserService.GetUsers(userId).FirstOrDefault();
+                        var existUser = UserService.GetUsers(code: userId).FirstOrDefault();
                         if (existUser != null)
                         {
                             user = new User
                             {
-                                Id = userId,
+                                Code = userId,
                                 AdminLevel = privilege,
                                 IsActive = existUser.IsActive,
                                 SurName = existUser.SurName,
@@ -1041,8 +1041,12 @@ namespace Biovation.Brands.ZK.Devices
                             };
                         }
 
-                        UserService.ModifyUser(user);
+                        var userInsertionResult = UserService.ModifyUser(user);
+                        if (!userInsertionResult.Success)
+                            return false;
+
                         Logger.Log("<--User is Modified");
+                        user.Id = userInsertionResult.Id;
 
                         user.FingerTemplates = new List<FingerTemplate>();
                         user.FaceTemplates = new List<FaceTemplate>();
