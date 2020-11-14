@@ -260,8 +260,9 @@ namespace Biovation.Brands.ZK.Controllers
 
                         return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
                     }
-                    catch (Exception)
+                    catch (Exception exception)
                     {
+                        Logger.Log(exception);
                         return new ResultViewModel { Validate = 0, Id = code, Message = "Retriving Log not queued" };
 
                     }
@@ -276,7 +277,7 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] JArray userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
             return Task.Run(() =>
             {
@@ -296,7 +297,7 @@ namespace Biovation.Brands.ZK.Controllers
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
 
-                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
 
                     foreach (var numericUserId in userIds)
                     {
@@ -333,7 +334,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userIds, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
@@ -353,7 +354,7 @@ namespace Biovation.Brands.ZK.Controllers
                         DeviceBrand = _deviceBrands.ZkTeco,
                         TaskItems = new List<TaskItem>()
                     };
-                    var userIds = JsonConvert.DeserializeObject<List<uint>>(JsonConvert.SerializeObject(userId));
+                    //var userIds = JsonConvert.DeserializeObject<List<uint>>(JsonConvert.SerializeObject(userId));
 
                     foreach (var id in userIds)
                     {
