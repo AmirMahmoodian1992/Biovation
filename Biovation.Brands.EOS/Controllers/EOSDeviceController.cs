@@ -311,16 +311,16 @@ namespace Biovation.Brands.EOS.Controllers
 
                     if (fromDate is null && toDate is null)
                     {
-                        fromDate = new DateTime(1970);
-                        toDate = new DateTime(2050);
+                        fromDate = new DateTime(1970, 1, 1);
+                        toDate = DateTime.Now.AddYears(5);
                     }
                     else if (fromDate is null)
                     {
-                        fromDate = new DateTime(1970);
+                        fromDate = new DateTime(1970, 1, 1);
                     }
                     else if (toDate is null)
                     {
-                        toDate = new DateTime(2050);
+                        toDate = DateTime.Now.AddYears(5);
                     }
 
                     var deviceId = device.DeviceId;

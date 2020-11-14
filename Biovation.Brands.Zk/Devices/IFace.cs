@@ -274,7 +274,7 @@ namespace Biovation.Brands.ZK.Devices
                 }
 
                 var name = user.FirstName + " " + user.SurName;
-                if (ZKTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Id.ToString(), name.Trim(), user.Password,
+                if (ZKTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
                     Logger.Log($"UserId {user.Id} successfully added to DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
