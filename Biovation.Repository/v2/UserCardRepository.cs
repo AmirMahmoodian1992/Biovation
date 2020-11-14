@@ -18,7 +18,7 @@ namespace Biovation.Repository.Sql.v2
 
 
 
-        public ResultViewModel<PagingResult<UserCard>> GetCardsByFilter(long userId,bool isactive,int pageNumber = default, int PageSize = default)
+        public ResultViewModel<PagingResult<UserCard>> GetCardsByFilter(long userId, bool isactive, int pageNumber = default, int PageSize = default)
         {
             var parameters = new List<SqlParameter>
             {
@@ -27,7 +27,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@PageNumber", pageNumber),
                 new SqlParameter("@PageSize",PageSize)
             };
-            return _repository.ToResultList<PagingResult<UserCard>>("SelectUserCardByFilter", parameters).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<UserCard>>("SelectUserCardByFilter", parameters, fetchCompositions: true, compositionDepthLevel: 3).FetchFromResultList();
 
         }
 
@@ -60,15 +60,15 @@ namespace Biovation.Repository.Sql.v2
             };
             return _repository.ToResultList<ResultViewModel>("ModifyUserCard", parameters).Data.FirstOrDefault();
         }
-        
-       /* public List<UserCard> GetActiveUserCard(long userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-            };
-            return _repository.ToResultList<UserCard>("SelectActiveUserCardByUserId", parameters).Data;
-        }*/
+
+        /* public List<UserCard> GetActiveUserCard(long userId)
+         {
+             var parameters = new List<SqlParameter>
+             {
+                 new SqlParameter("@UserId", userId),
+             };
+             return _repository.ToResultList<UserCard>("SelectActiveUserCardByUserId", parameters).Data;
+         }*/
 
         public ResultViewModel<User> FindUserByCardNumber(string cardNumber)
         {
@@ -88,14 +88,14 @@ namespace Biovation.Repository.Sql.v2
             return _repository.ToResultList<User>("SelectUserByCardNumber", parameters).Data;
         }
 
-      /* public List<UserCard> GetAllUserCardsOfUser(int userId)
-        {
-            var parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@UserId", userId),
-            };
-            return _repository.ToResultList<UserCard>("SelectUserCardByUserId", parameters).Data;
-        }*/
+        /* public List<UserCard> GetAllUserCardsOfUser(int userId)
+          {
+              var parameters = new List<SqlParameter>
+              {
+                  new SqlParameter("@UserId", userId),
+              };
+              return _repository.ToResultList<UserCard>("SelectUserCardByUserId", parameters).Data;
+          }*/
 
         public ResultViewModel DeleteUserCard(int id)
         {
