@@ -142,7 +142,7 @@ namespace Biovation.CommonClasses.Manager
                                 : new UriBuilder(useHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp, rawUrl.Split(':')[0],
                                     Convert.ToInt32(rawUrl.Split(':')[1].Split('/')[0]))).Uri;
 
-                            return new Uri(baseUri, relativeUri + "/api/Biovation");
+                            return new Uri(baseUri, relativeUri + "/Biovation/api");
                         }
                         else
                         {
@@ -150,7 +150,7 @@ namespace Biovation.CommonClasses.Manager
                                 : new UriBuilder(useHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp, rawUrl.Split(':')[0],
                                     Convert.ToInt32(rawUrl.Split(':')[1]))).Uri;
 
-                            return new Uri(baseUri, "/api/Biovation");
+                            return new Uri(baseUri, "/Biovation/api");
                         }
                     }
                     catch (Exception)
