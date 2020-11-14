@@ -641,7 +641,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     if (logTotalCount == 0)
                     {
-                        var lastConnectedTime = _deviceService.GetLastConnectedTime(DeviceInfo.DeviceId)?.Data ?? DateTime.MinValue;
+                        var lastConnectedTime = _deviceService.GetLastConnectedTime(DeviceInfo.DeviceId)?.Data ?? new DateTime(1970, 1, 1);
 
                         if (lastConnectedTime.DayOfYear < DateTime.Now.DayOfYear)
                         {

@@ -24,7 +24,7 @@ namespace Biovation.Brands.Suprema.Model
             set
             {
                 nDateTime = value;
-                if (LogDateTime == default || LogDateTime == DateTime.MinValue || LogDateTime == DateTime.MaxValue)
+                if (LogDateTime == default || LogDateTime < new DateTime(1970, 1, 1) || LogDateTime > DateTime.Now.AddYears(5))
                 {
                     LogDateTime = new DateTime(1970, 1, 1, new GregorianCalendar()).AddTicks((long)value * 10000000);
                 }

@@ -652,7 +652,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         new IntPtr(logRecord.ToInt32() + logTotalCount * Marshal.SizeOf(typeof(BSSDK.BSLogRecordEx)));
                     if (logTotalCount == 0)
                     {
-                        var lastConnectedTime = _deviceService.GetLastConnectedTime(DeviceInfo.DeviceId)?.Data??DateTime.MinValue;
+                        var lastConnectedTime = _deviceService.GetLastConnectedTime(DeviceInfo.DeviceId)?.Data?? new DateTime(1970, 1, 1);
                         var logData = _supremaLogService.GetLastLogsOfDevice(DeviceInfo.Code).Result;
 
                         if (lastConnectedTime.DayOfYear < DateTime.Now.DayOfYear)
