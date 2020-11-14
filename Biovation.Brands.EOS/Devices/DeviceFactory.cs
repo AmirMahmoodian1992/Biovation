@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using EosClocks;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -77,7 +78,12 @@ namespace Biovation.Brands.EOS.Devices
 
                 case StShineL:
                     {
-                        return null;
+                        return new StShineDevice(ProtocolType.Hdlc, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices);
+                    }
+
+                case StShineM:
+                    {
+                        return new StShineDevice(ProtocolType.Zk, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices);
                     }
 
                 case StFace120:
@@ -85,7 +91,6 @@ namespace Biovation.Brands.EOS.Devices
                 case StFace160:
                 case StEco210:
                 case StP220:
-                case StShineM:
                     {
                         return null;
                     }
