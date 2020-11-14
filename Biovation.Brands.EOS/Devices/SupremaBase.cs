@@ -901,7 +901,7 @@ namespace Biovation.Brands.EOS.Devices
         }
 
 
-        public override List<User> GetAllUsers()
+        public override List<User> GetAllUsers(bool embedTemplates = false)
         {
             var usersList = new List<User>();
 
@@ -929,6 +929,68 @@ namespace Biovation.Brands.EOS.Devices
                     var users = _clock.Sensor.GetUserIDList();
                     usersList.AddRange(users.Select(user => new User { Code = user.UserId, AdminLevel = user.AdministrationLevel }));
                     usersList = usersList.DistinctBy(user => user.Code).ToList();
+
+                    if (embedTemplates)
+                    {
+                        foreach (var user in usersList)
+                        {
+                            List<byte[]> fingerTemplates;
+
+                            try
+                            {
+                                fingerTemplates = _clock.Sensor.GetUserTemplates((int)user.Code);
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                                Logger.Log($"Error in retrieving user {user.Code} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                                continue;
+                            }
+
+                            if (fingerTemplates is null || fingerTemplates.Count <= 0) continue;
+
+                            user.FingerTemplates = new List<FingerTemplate>();
+                            for (var i = 0; i < fingerTemplates.Count; i += 2)
+                            {
+                                var firstTemplateBytes = fingerTemplates[i];
+
+                                var fingerTemplate = new FingerTemplate
+                                {
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    Template = firstTemplateBytes,
+                                    CheckSum = firstTemplateBytes.Sum(b => b),
+                                    Size = firstTemplateBytes.ToList()
+                                        .LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
+                                    Index = i / 2,
+                                    CreateAt = DateTime.Now,
+                                    TemplateIndex = 0
+                                };
+
+                                user.FingerTemplates.Add(fingerTemplate);
+
+                                var secondTemplateBytes = fingerTemplates[i + 1];
+
+                                var secondFingerTemplateSample = new FingerTemplate
+                                {
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    Template = secondTemplateBytes,
+                                    CheckSum = secondTemplateBytes.Sum(b => b),
+                                    Size = secondTemplateBytes.ToList()
+                                        .LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
+                                    Index = i / 2,
+                                    EnrollQuality = 0,
+                                    SecurityLevel = 0,
+                                    Duress = true,
+                                    CreateAt = DateTime.Now,
+                                    TemplateIndex = 1
+                                };
+
+                                user.FingerTemplates.Add(secondFingerTemplateSample);
+                            }
+                        }
+                    }
                 }
                 catch (Exception exception)
                 {
