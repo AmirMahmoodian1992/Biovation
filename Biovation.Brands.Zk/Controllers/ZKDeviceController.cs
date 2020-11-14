@@ -389,7 +389,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
         [HttpGet]
         [Authorize] 
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                 new List<object> { code });
