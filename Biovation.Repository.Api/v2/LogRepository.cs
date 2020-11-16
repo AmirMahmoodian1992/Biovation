@@ -19,7 +19,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default,
-            string order = default, long onlineUserId = default, bool? successTransfer = default, string token = default)
+            string order = default, bool? successTransfer = null, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Log", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
@@ -30,7 +30,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("toDate", toDate.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            restRequest.AddQueryParameter("where", @where ?? string.Empty);
+            restRequest.AddQueryParameter("where", where ?? string.Empty);
             restRequest.AddQueryParameter("order", order ?? string.Empty);
            // restRequest.AddQueryParameter("onlineUserId", onlineUserId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;

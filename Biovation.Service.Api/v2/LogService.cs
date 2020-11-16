@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -31,12 +30,10 @@ namespace Biovation.Service.Api.v2
         }
 
         public Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default,
-            int userId = default, bool successTransfer = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
-            int pageSize = default, string token = default)
+            int userId = default, bool? successTransfer = null, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
+            int pageSize = default, string where = default, string order = default, string token = default)
         {
-         
-            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer: successTransfer));
-            
+            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, successTransfer, token));
         }
 
         public Task<ResultViewModel> AddLog(Log log, string token = default)
@@ -45,27 +42,27 @@ namespace Biovation.Service.Api.v2
         }
         public Task<ResultViewModel> AddLog(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.AddLog(logs,token));
+            return Task.Run(() => _logRepository.AddLog(logs, token));
         }
 
         public Task<ResultViewModel> UpdateLog(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.UpdateLog(logs,token));
+            return Task.Run(() => _logRepository.UpdateLog(logs, token));
         }
 
         public Task<ResultViewModel> AddLogImage(Log log, string token = default)
         {
-            return Task.Run(() => _logRepository.AddLogImage(log,token));
+            return Task.Run(() => _logRepository.AddLogImage(log, token));
         }
 
         public Task<ResultViewModel> UpdateLog(Log log, string token = default)
         {
-            return Task.Run(() => _logRepository.UpdateLog(log,token));
+            return Task.Run(() => _logRepository.UpdateLog(log, token));
         }
 
         public Task<List<Log>> CheckLogInsertion(List<Log> logs, string token = default)
         {
-            return Task.Run(() => _logRepository.CheckLogInsertion(logs,token));
+            return Task.Run(() => _logRepository.CheckLogInsertion(logs, token));
         }
 
         public Task<byte[]> GetImage(long id)
@@ -82,12 +79,12 @@ namespace Biovation.Service.Api.v2
 
         public Task<List<Log>> SelectSearchedOfflineLogs(DeviceTraffic logFilter, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(logFilter.Id, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.OnlineUserId, logFilter.State, token)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(logFilter.Id, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.State, token)?.Data?.Data ?? new List<Log>());
         }
 
-        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic logFilter)
+        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic logFilter, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(logFilter.Id, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.OnlineUserId, logFilter.State)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(logFilter.Id, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.State, token)?.Data?.Data ?? new List<Log>());
         }
         public Task<ResultViewModel> TransferLogBulk(List<Log> logs, string token = default)
         {
