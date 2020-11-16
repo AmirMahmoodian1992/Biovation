@@ -13,6 +13,7 @@ using UNIONCOMM.SDK.UCBioBSP;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
     public class ConvertUnisController : ControllerBase
     {

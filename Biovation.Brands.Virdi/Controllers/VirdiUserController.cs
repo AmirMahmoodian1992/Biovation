@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiUserController : ControllerBase
     {

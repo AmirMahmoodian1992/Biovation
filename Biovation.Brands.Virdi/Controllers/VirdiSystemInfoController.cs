@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
-    [Route("Biovation/Api/[controller]/[action]")]
+    [ApiController]
+    [Route("Biovation/Api/[controller]")]
     public class VirdiSystemInfoController : ControllerBase
     {
         [HttpGet]
