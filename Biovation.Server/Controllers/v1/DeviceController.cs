@@ -50,8 +50,8 @@ namespace Biovation.Server.Controllers.v1
         [Route("DevicesByFilter")]
         public Task<List<DeviceBasicInfo>> DevicesByFilter(long adminUserId = 0, int deviceGroupId = 0, uint code = 0, int deviceId = 0, int brandId = 0, string deviceName = null, int deviceModelId = 0)
         {
-            return Task.Run(() => _deviceService.GetDevices(adminUserId: adminUserId, deviceGroupId: deviceGroupId, code: code,
-                brandId: brandId.ToString(), deviceName: deviceName, deviceModelId: deviceModelId, token: _kasraAdminToken));
+            return Task.Run(() => _deviceService.GetDevices(adminUserId, deviceGroupId, code,
+                brandId.ToString(), deviceName, deviceModelId, token: _kasraAdminToken));
         }
         [HttpGet]
         [Route("Devices")]
@@ -84,7 +84,7 @@ namespace Biovation.Server.Controllers.v1
                 var devices = new List<DeviceBasicInfo>();
                 foreach (var deviceId in deviceIds)
                 {
-                    var device = _deviceService.GetDevice(id: deviceId, token: _kasraAdminToken);
+                    var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
                     if (device != null)
                         devices.Add(device);
                 }
@@ -248,10 +248,10 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
-                var result = _deviceService.ModifyDevice(device, token: _kasraAdminToken);
+                var result = _deviceService.ModifyDevice(device, _kasraAdminToken);
                 if (result.Validate != 1) return result;
 
-                device = _deviceService.GetDevice(id: device.DeviceId, token: _kasraAdminToken);
+                device = _deviceService.GetDevice(device.DeviceId, token: _kasraAdminToken);
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
@@ -266,7 +266,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("RemoveDevice")]
         public Task<ResultViewModel> RemoveDevice(uint deviceId)
         {
-            return Task.Run(() => _deviceService.DeleteDevice(deviceId, token: _kasraAdminToken));
+            return Task.Run(() => _deviceService.DeleteDevice(deviceId, _kasraAdminToken));
         }
 
         [HttpPost]
@@ -296,7 +296,7 @@ namespace Biovation.Server.Controllers.v1
 
                 foreach (var deviceId in deviceIds)
                 {
-                    var result = _deviceService.DeleteDevice(deviceId, token: _kasraAdminToken);
+                    var result = _deviceService.DeleteDevice(deviceId, _kasraAdminToken);
                     resultList.Add(result);
                     //resultList.Add(deviceId, result.Validate == 1);
                 }
