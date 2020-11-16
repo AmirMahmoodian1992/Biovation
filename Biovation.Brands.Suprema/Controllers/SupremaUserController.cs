@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
     public class SupremaUserController : ControllerBase
     {
