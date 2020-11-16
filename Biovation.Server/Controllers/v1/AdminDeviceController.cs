@@ -4,6 +4,8 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -14,13 +16,11 @@ namespace Biovation.Server.Controllers.v1
     {
         private readonly AdminDeviceService _adminDeviceService;
         private readonly string _kasraAdminToken;
-        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         public AdminDeviceController([FromBody] AdminDeviceService adminDeviceService, BiovationConfigurationManager biovationConfigurationManager)
         {
             _adminDeviceService = adminDeviceService;
-            _biovationConfigurationManager = biovationConfigurationManager;
-            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+            _kasraAdminToken = biovationConfigurationManager.KasraAdminToken;
         }
 
         [HttpGet, Route("GetAdminDevicesByPersonId")]
@@ -30,9 +30,11 @@ namespace Biovation.Server.Controllers.v1
         }
 
         [HttpPost, Route("ModifyAdminDevice")]
-        public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
+        //public ResultViewModel ModifyAdminDevice([FromBody] Dictionary<string, object> adminDevice)
+        public ResultViewModel ModifyAdminDevice([FromBody] object adminDevice)
         {
-            return _adminDeviceService.ModifyAdminDevice(adminDevice, token: _kasraAdminToken);
+            var adminDeviceSerializedData = JsonConvert.DeserializeObject<JObject>(JsonSerializer.Serialize(adminDevice));
+            return _adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, token: _kasraAdminToken);
         }
     }
 }

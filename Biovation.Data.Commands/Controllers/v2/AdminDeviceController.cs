@@ -1,9 +1,9 @@
 ﻿using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using Biovation.Repository.Sql.v2;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -17,20 +17,20 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             _adminDeviceRepository = adminDeviceRepository;
         }
-        
+
         [HttpPut]
         [Authorize]
-        public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)
+        public ResultViewModel ModifyAdminDevice([FromBody] object adminDevice)
         {
             try
             {
-                var ss = adminDevice.ToString();
-                ss = ss.Replace("]}\"", "]}");
-                ss = ss.Replace("\"{", "{");
-                ss = ss.Replace("\r\n", "");
-                ss = ss.Replace(@"\", "");
+                var adminDeviceSerializedData = JsonSerializer.Serialize(adminDevice);
+                adminDeviceSerializedData = adminDeviceSerializedData.Replace("]}\"", "]}");
+                adminDeviceSerializedData = adminDeviceSerializedData.Replace("\"{", "{");
+                adminDeviceSerializedData = adminDeviceSerializedData.Replace("\r\n", "");
+                adminDeviceSerializedData = adminDeviceSerializedData.Replace(@"\", "");
 
-                string node = JsonConvert.DeserializeXNode(ss, "Root")?.ToString();
+                var node = JsonConvert.DeserializeXNode(adminDeviceSerializedData, "Root")?.ToString();
                 var result = _adminDeviceRepository.ModifyAdminDevice(node);
                 return result;
             }
@@ -39,6 +39,5 @@ namespace Biovation.Data.Commands.Controllers.v2
                 return new ResultViewModel { Message = e.Message, Validate = 0 };
             }
         }
-
     }
 }

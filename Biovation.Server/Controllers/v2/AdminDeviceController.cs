@@ -1,9 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -28,16 +31,17 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        public Task<IActionResult> AddAdminDevice([FromBody]AdminDevice adminDevice = default)
+        public Task<IActionResult> AddAdminDevice([FromBody] AdminDevice adminDevice = default)
         {
-            throw null;
+            throw new NotImplementedException();
         }
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyAdminDevice([FromBody] JObject adminDevice = default)
+        public Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDevice,token));
+            var adminDeviceSerializedData = JsonConvert.DeserializeObject<JObject>(JsonSerializer.Serialize(adminDevice));
+            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, token));
         }
     }
 }
