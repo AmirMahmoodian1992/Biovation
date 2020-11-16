@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 namespace Biovation.Brands.ZK.Controllers
 {
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkUserController : Controller
+    public class ZkUserController : ControllerBase
     {
         private readonly AccessGroupService _accessGroupService;
         private readonly TaskService _taskService;
