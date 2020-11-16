@@ -192,7 +192,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUser")]
-        public List<ResultViewModel> DeleteUser([FromBody] int[] ids)
+        public List<ResultViewModel> DeleteUser([FromBody] List<long> ids)
         {
             try
             {
