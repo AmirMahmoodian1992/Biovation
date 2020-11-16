@@ -684,7 +684,7 @@ namespace Biovation.Brands.Virdi.Controllers
         */
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             //this action return list of user so for task based this we need to syncron web and change return type for task manager statustask update
 
@@ -712,7 +712,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(deviceId),
+                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
