@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.PW.Controllers
 {
+    [ApiController]
+    [Route("Biovation/Api/[controller]")]
     public class PwSystemInfoController : ControllerBase
     {
 

@@ -14,6 +14,8 @@ using Newtonsoft.Json;
 
 namespace Biovation.Brands.PW.Controllers
 {
+    [ApiController]
+    [Route("Biovation/Api/[controller]/[action]")]
     public class PwDeviceController : ControllerBase
     {
         private readonly PwServer _pwServer;
