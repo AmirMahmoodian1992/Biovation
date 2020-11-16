@@ -40,9 +40,5 @@
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Attribute\" />
-  </ItemGroup>
-
 
 </Project>

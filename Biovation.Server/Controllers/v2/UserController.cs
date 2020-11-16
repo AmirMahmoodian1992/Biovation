@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {

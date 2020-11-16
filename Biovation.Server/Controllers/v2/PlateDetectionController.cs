@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 

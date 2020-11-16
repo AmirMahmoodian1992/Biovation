@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Threading.Tasks;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {

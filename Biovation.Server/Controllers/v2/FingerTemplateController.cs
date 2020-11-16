@@ -2,6 +2,7 @@
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {

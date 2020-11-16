@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {

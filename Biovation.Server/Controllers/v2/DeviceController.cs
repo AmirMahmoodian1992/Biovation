@@ -41,7 +41,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id:int}")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -49,7 +49,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
@@ -80,7 +80,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPut]
-        [Authorize]
+        [Attribute.Authorize]
         //[Route("ModifyDeviceInfo")]
         public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
@@ -101,7 +101,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -109,7 +109,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteDevice([FromRoute] uint id = default)
         {
@@ -118,7 +118,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/RetrieveLogs")]
         public Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, string fromDate, string toDate)
         {
@@ -164,7 +164,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("RetrieveLogs")]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
@@ -221,7 +221,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/ClearLogs")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel> ClearLogOfDevice(int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -256,7 +256,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("ClearLogsOfDevices")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -304,7 +304,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -313,7 +313,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{Id}/cardNumber")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel<int>> ReadCardNumber([FromRoute]int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -358,7 +358,7 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/RetrieveUsers")]
         public Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userId = default)
         {
@@ -387,7 +387,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/FetchUsersList")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -427,7 +427,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/RemoveUser/{userId}")]
         public Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
         {
@@ -451,7 +451,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/SendUsers")]
         public Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
         {
