@@ -131,7 +131,7 @@ namespace Biovation.Server.Controllers.v1
         //}
 
         [HttpPost]
-        [Route("SendAccessGroupToDevice")]
+        [Route("SendAccessGroupToDevices")]
         public List<ResultViewModel> SendAccessGroupToDevices(int accessGroupId)
         {
             var resultList = new List<ResultViewModel>();

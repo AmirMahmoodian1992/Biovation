@@ -1,7 +1,6 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Servers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -12,6 +11,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -40,16 +40,16 @@ namespace Biovation.Server.Controllers.v1
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
 
-        [HttpGet]
-        [Route("Logs")]
-        public Task<List<Log>> Logs()
-        {
-            return _logService.Logs(token: _kasraAdminToken);
-        }
+        //[HttpGet]
+        //[Route("Logs")]
+        //public Task<List<Log>> Logs()
+        //{
+        //    return _logService.Logs(token: _kasraAdminToken);
+        //}
 
         [HttpGet]
         [Route("Logs")]
-        public Task<List<Log>> LogsWithDate(DateTime fromDate, DateTime toDate)
+        public Task<List<Log>> LogsWithDate(DateTime? fromDate = null, DateTime? toDate = null)
         {
             return _logService.Logs(fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
@@ -147,20 +147,20 @@ namespace Biovation.Server.Controllers.v1
 
                 return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK
                     ? result.Data
-                    : new ResultViewModel {Validate = 0, Message = result.ErrorMessage};
+                    : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
             });
         }
 
-        [HttpGet]
-        [Route("OfflineLogsOfDevice")]
-        public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
-        {
-            return _logService.Logs(deviceId: (int)deviceId, token: _kasraAdminToken);
-        }
+        //[HttpGet]
+        //[Route("OfflineLogsOfDevice")]
+        //public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
+        //{
+        //    return _logService.Logs(deviceId: (int)deviceId, token: _kasraAdminToken);
+        //}
 
         [HttpGet]
         [Route("OfflineLogsOfDevice")]
-        public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime fromDate, DateTime toDate)
+        public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             return _logService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
@@ -183,16 +183,16 @@ namespace Biovation.Server.Controllers.v1
             });
         }
 
-        [HttpGet]
-        [Route("LogsOfUser")]
-        public Task<List<Log>> LogsOfUser(int userId)
-        {
-            return _logService.Logs(userId: userId, token: _kasraAdminToken);
-        }
+        //[HttpGet]
+        //[Route("LogsOfUser")]
+        //public Task<List<Log>> LogsOfUser(int userId)
+        //{
+        //    return _logService.Logs(userId: userId, token: _kasraAdminToken);
+        //}
 
         [HttpGet]
         [Route("LogsOfUser")]
-        public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime fromDate, DateTime toDate)
+        public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             return _logService.Logs(userId: userId, fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
@@ -236,7 +236,7 @@ namespace Biovation.Server.Controllers.v1
                     obj.State = null;
                     var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
                     //var logs = logsAwaiter.ToList();
-                    await Task.Run(() => { _logService.TransferLogBulk(logs,token); });
+                    await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
 
                     return new ResultViewModel { Validate = 1, Message = logs.Count.ToString() };
                 }

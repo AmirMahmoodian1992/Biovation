@@ -7,7 +7,7 @@ using Biovation.Domain;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
-namespace Biovation.Servers
+namespace Biovation.Server.Managers
 {
     public class TokenGenerator
     {

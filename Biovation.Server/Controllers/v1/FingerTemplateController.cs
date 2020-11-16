@@ -24,6 +24,8 @@ namespace Biovation.Server.Controllers.v1
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
             _biovationConfigurationManager = biovationConfigurationManager;
         }
+
+        [HttpPost]
         public ResultViewModel ModifyUser(FingerTemplate fingerTemplate)
         {
             try

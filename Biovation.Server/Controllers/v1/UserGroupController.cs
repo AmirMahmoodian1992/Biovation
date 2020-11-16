@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Servers;
+using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -567,6 +567,7 @@ namespace Biovation.Server.Controllers.v1
             }
         }
 
+        [HttpPost]
         [Route("SyncUserGroupMember")]
         public ResultViewModel SyncUserGroupMember(string lstUsers)
         {
