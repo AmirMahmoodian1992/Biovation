@@ -901,7 +901,7 @@ namespace Biovation.Brands.EOS.Devices
         }
 
 
-        public override List<User> GetAllUsers()
+        public override List<User> GetAllUsers(bool embedTemplate = false)    
         {
             var usersList = new List<User>();
 

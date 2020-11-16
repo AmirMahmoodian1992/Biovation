@@ -1,5 +1,4 @@
-﻿using Biovation.CommonClasses;
-using Biovation.Constants;
+﻿using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +13,8 @@ using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Extension;
 using Biovation.Server.Middleware;
+using Quartz.Logging;
+using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -30,14 +31,13 @@ namespace Biovation.Server.Controllers.v2
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
-        private readonly JwtMiddleware _jwtMiddleware;
         public readonly DeviceBrands _deviceBrands;
         private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, JwtMiddleware jwtMiddleware, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands)
+        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _userService = userService;
@@ -45,7 +45,6 @@ namespace Biovation.Server.Controllers.v2
             _lookups = lookups;
             _restClient = restClient;
             _userCardService = userCardService;
-            _jwtMiddleware = jwtMiddleware;
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
@@ -530,6 +529,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [Route("DeviceBrands")]
         public async Task<ResultViewModel<PagingResult<Lookup>>> DeviceBrands(bool loadedOnly = true)
         {
@@ -552,6 +552,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [Route("DeviceModels")]
         public Task<ResultViewModel<PagingResult<DeviceModel>>> DeviceModels(int brandCode = default, string name = default, bool loadedBrandsOnly = true)
         {
@@ -632,14 +633,21 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPost]
-        [Authorize]
+        //[Authorize]
+        [AllowAnonymous]
         [Route("{id}/UserAdaptation")]
-        public Task<ResultViewModel> UserAdapter([FromRoute] int id, [FromBody] Dictionary<uint, uint> equivalentCodes)
+        public Task<ResultViewModel> UserAdapter([FromRoute] int id, [FromBody] object equivalentCodesObject)
         {
+            
             var token = (string)HttpContext.Items["Token"];
             var creatorUser = HttpContext.GetUser();
             return Task.Run(() =>
             {
+                var serializedEquivalentCodes = JsonConvert.SerializeObject(equivalentCodesObject);
+                //var equivalentCodes = JsonConvert.DeserializeObject<Dictionary<uint, uint>>(serializedEquivalentCodes);
+                // should be delete
+                var equivalentCodes = new Dictionary<long, long>();
+                equivalentCodes.Add(123,456);
                 var device = _deviceService.GetDevice(id, token: token).Data;
                
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice",Method.GET);
@@ -651,8 +659,9 @@ namespace Biovation.Server.Controllers.v2
                         HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
                 }
                 var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
-                foreach (var userCode in equivalentCodes.Keys)
+                foreach (var userCode in  equivalentCodes.Keys)
                 {
+                    if (userList.Result.Data.Data.All(user => user.Code != userCode)) continue;
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -669,7 +678,7 @@ namespace Biovation.Server.Controllers.v2
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userId = userCode }),
+                        Data = JsonConvert.SerializeObject(new {userId = userCode}),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -677,7 +686,7 @@ namespace Biovation.Server.Controllers.v2
                         TotalCount = 1
                     });
 
-                     task = new TaskInfo
+                    task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
@@ -688,19 +697,20 @@ namespace Biovation.Server.Controllers.v2
                         DueDate = DateTime.Today
                     };
 
-                     task.TaskItems.Add(new TaskItem
-                     {
-                         Status = _taskStatuses.Queued,
-                         TaskItemType = _taskItemTypes.SendUser,
-                         Priority = _taskPriorities.Medium,
-                         DeviceId = id,
-                         Data = JsonConvert.SerializeObject(new { User = userList.Result.Data.Data.Where(x=>x.Code == equivalentCodes[userCode]) }),
-                         IsParallelRestricted = true,
-                         IsScheduled = false,
-                         OrderIndex = 1,
-                         CurrentIndex = 0,
-                         TotalCount = 1
-                     });
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendUser,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = id,
+                        Data = JsonConvert.SerializeObject(new
+                            {User = userList.Result.Data.Data.Where(x => x.Code == equivalentCodes[userCode])}),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
                 }
                 restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/ManualActivationProcessQueue", Method.GET);
                 if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)

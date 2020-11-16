@@ -224,7 +224,7 @@ namespace Biovation.Brands.EOS.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [AllowAnonymous]
         public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate)
         {
             try
