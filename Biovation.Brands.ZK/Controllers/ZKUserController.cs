@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 
 namespace Biovation.Brands.ZK.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
     public class ZkUserController : ControllerBase
     {
