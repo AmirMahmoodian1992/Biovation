@@ -8,7 +8,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
     [Route("biovation/api/v2/[controller]")]
 
-    public class FaceTemplateController : Controller
+    public class FaceTemplateController : ControllerBase
     {
 
         private readonly FaceTemplateRepository _faceTemplateRepository;

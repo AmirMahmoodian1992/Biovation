@@ -8,7 +8,7 @@ namespace Biovation.Server.Controllers.v1
 
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class PlateDetectionController : Controller
+    public class PlateDetectionController : ControllerBase
     {
         private readonly PlateDetectionService _plateDetectionService;
         //private readonly RestClient _restClient;

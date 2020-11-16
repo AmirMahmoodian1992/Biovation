@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
-    public class SystemInfoController : Controller
+    public class SystemInfoController : ControllerBase
     {
         private readonly SystemInfo _systemInfo;
         private readonly RestClient _restClient;

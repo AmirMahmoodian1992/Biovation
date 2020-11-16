@@ -11,7 +11,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class TaskController : Controller
+    public class TaskController : ControllerBase
     {
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;

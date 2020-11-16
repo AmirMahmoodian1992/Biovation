@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Biovation.Brands.Suprema.Controllers
 {
     [Microsoft.AspNetCore.Components.Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaSystemInfoController : Controller
+    public class SupremaSystemInfoController : ControllerBase
     {
         [HttpGet]
         public ResultViewModel<ServiceInfo> GetInfo()

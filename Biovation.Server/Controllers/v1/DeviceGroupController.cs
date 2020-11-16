@@ -16,7 +16,7 @@ namespace Biovation.Server.Controllers.v1
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
     [ApiController]
-    public class DeviceGroupController : Controller
+    public class DeviceGroupController : ControllerBase
     {
         private readonly DeviceService _deviceService;
         private readonly DeviceGroupService _deviceGroupService;

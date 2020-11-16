@@ -11,7 +11,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class FingerTemplateController : Controller
+    public class FingerTemplateController : ControllerBase
     {
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly string _kasraAdminToken;

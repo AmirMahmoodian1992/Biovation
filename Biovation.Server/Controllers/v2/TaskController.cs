@@ -12,7 +12,7 @@ namespace Biovation.Server.Controllers.v2
     [ApiVersion("2.0")]
     [Route("biovation/api/v2/[controller]")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class TaskController : Controller
+    public class TaskController : ControllerBase
     {
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;

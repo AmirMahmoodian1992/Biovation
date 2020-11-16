@@ -10,7 +10,7 @@ namespace Biovation.Data.Queries.Controllers.v2
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     [Route("biovation/api/v2/[controller]")]
 
-    public class FingerTemplateController : Controller
+    public class FingerTemplateController : ControllerBase
     {
 
         private readonly FingerTemplateRepository _fingerTemplateRepository;

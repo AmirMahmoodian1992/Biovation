@@ -9,7 +9,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class UserCardController : Controller
+    public class UserCardController : ControllerBase
     {
         //private readonly CommunicationManager<int> _communicationManager = new CommunicationManager<int>();
         private readonly UserCardService _userCard;

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Biovation.Data.Commands.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
-    public class GenericCodeMappingController : Controller
+    public class GenericCodeMappingController : ControllerBase
     {
         private readonly GenericCodeMappingRepository _genericCodeMappingRepository;
 

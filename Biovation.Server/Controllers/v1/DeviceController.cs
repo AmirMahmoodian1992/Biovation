@@ -20,7 +20,7 @@ namespace Biovation.Server.Controllers.v1
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     [Route("biovation/api/v1/[controller]")]
     [ApiVersion("1.0")]
-    public class DeviceController : Controller
+    public class DeviceController : ControllerBase
     {
         private readonly Lookups _lookups;
         private readonly RestClient _restClient;

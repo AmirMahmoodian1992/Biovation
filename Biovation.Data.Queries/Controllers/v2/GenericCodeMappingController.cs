@@ -8,7 +8,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
     [Route("biovation/api/v2/[controller]")]
 
-    public class GenericCodeMappingController : Controller
+    public class GenericCodeMappingController : ControllerBase
     {
 
         private readonly GenericCodeMappingRepository _genericCodeMappingRepository;

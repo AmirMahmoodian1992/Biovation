@@ -8,7 +8,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
     //[ApiVersion("1.0")]
     [Route("biovation/api/v2/[controller]")]
-    public class DeviceGroupController : Controller
+    public class DeviceGroupController : ControllerBase
     {
         private readonly DeviceGroupRepository _deviceGroupRepository;
 

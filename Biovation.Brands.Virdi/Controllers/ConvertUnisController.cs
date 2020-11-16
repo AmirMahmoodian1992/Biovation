@@ -14,7 +14,7 @@ using UNIONCOMM.SDK.UCBioBSP;
 namespace Biovation.Brands.Virdi.Controllers
 {
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ConvertUnisController : Controller
+    public class ConvertUnisController : ControllerBase
     {
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;

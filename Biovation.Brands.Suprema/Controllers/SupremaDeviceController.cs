@@ -17,7 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Biovation.Brands.Suprema.Controllers
 {
      [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaDeviceController : Controller
+    public class SupremaDeviceController : ControllerBase
     {
         private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, Device> _onlineDevices;

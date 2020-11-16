@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaAccessGroupController : Controller
+    public class SupremaAccessGroupController : ControllerBase
     {
         private readonly CommandFactory _commandFactory;
         private readonly FastSearchService _fastSearchService;

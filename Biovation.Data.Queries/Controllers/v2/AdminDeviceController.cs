@@ -11,7 +11,7 @@ namespace Biovation.Data.Queries.Controllers.v2
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
-    public class AdminDeviceController : Controller
+    public class AdminDeviceController : ControllerBase
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
 

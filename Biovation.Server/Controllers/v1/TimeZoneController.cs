@@ -9,7 +9,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class TimeZoneController : Controller
+    public class TimeZoneController : ControllerBase
     {
         private readonly TimeZoneService _timeZoneService;
         private readonly DeviceService _deviceService;

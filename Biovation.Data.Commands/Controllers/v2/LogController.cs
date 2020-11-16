@@ -12,7 +12,7 @@ using Biovation.Repository.Sql.v2;
 namespace Biovation.Data.Commands.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
-    public class LogController : Controller
+    public class LogController : ControllerBase
     {
         private readonly LogRepository _logRepository;
         private readonly LogMessageBusRepository _logMessageBusRepository;

@@ -7,7 +7,7 @@ using Biovation.Repository.Sql.v2;
 namespace Biovation.Data.Queries.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
-    public class SettingController : Controller
+    public class SettingController : ControllerBase
     {
         private readonly SettingRepository _settingRepository;
 

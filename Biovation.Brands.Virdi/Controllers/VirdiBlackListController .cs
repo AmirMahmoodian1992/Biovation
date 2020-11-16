@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Biovation.Brands.Virdi.Controllers
 {
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiBlackListController : Controller
+    public class VirdiBlackListController : ControllerBase
     {
         private readonly DeviceBrands _deviceBrands;
         private readonly TaskService _taskService;

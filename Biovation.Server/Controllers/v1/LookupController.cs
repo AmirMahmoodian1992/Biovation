@@ -8,7 +8,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class LookupController : Controller
+    public class LookupController : ControllerBase
     {
 
         private readonly LookupService _lookupService;

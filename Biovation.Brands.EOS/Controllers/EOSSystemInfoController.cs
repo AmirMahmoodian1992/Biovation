@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.EOS.Controllers
 {
-    public class EosSystemInfoController : Controller
+    public class EosSystemInfoController : ControllerBase
     {
         [HttpGet]
         public ResultViewModel<ServiceInfo> GetInfo()

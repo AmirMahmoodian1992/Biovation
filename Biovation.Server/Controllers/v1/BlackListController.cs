@@ -12,7 +12,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class BlackListController : Controller
+    public class BlackListController : ControllerBase
     {
         private readonly RestClient _restClient;
         private readonly BlackListService _blackListService;

@@ -10,7 +10,7 @@ namespace Biovation.Server.Controllers.v2
     [ApiVersion("2.0")]
     [Route("biovation/api/v2/[controller]")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class AdminDeviceController : Controller
+    public class AdminDeviceController : ControllerBase
     {
         private readonly AdminDeviceService _adminDeviceService;
 

@@ -8,7 +8,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
 
-    public class TimeZoneController : Controller
+    public class TimeZoneController : ControllerBase
     {
 
         private readonly TimeZoneRepository _timeZoneRepository;

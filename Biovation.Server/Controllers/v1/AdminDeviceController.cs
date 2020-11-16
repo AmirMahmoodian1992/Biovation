@@ -9,7 +9,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class AdminDeviceController : Controller
+    public class AdminDeviceController : ControllerBase
     {
         private readonly AdminDeviceService _adminDeviceService;
         private readonly string _kasraAdminToken;

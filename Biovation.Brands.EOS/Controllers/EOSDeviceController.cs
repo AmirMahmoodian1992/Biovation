@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 namespace Biovation.Brands.EOS.Controllers
 {
     [Route("Biovation/Api/[controller]/[action]")]
-    public class EosDeviceController : Controller
+    public class EosDeviceController : ControllerBase
     {
         private readonly EosServer _eosServer;
         private readonly TaskService _taskService;

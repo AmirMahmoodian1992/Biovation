@@ -78,8 +78,7 @@ namespace Biovation.Server
                 //config.Conventions.Add(new VersionByNamespaceConvention());
                 config.ApiVersionReader = new UrlSegmentApiVersionReader();
                 config.ApiVersionSelector = new CurrentImplementationApiVersionSelector(config);
-                config.RegisterMiddleware = false;
-                //config.ReportApiVersions = true;
+                config.RegisterMiddleware = true;
             });
 
             services.AddSwaggerGen(options =>
@@ -370,7 +369,7 @@ namespace Biovation.Server
 
             //app.UseAuthorization();
             //app.UseAuthentication();
-            app.UseApiVersioning();
+            //app.UseApiVersioning();
             app.UseMiddleware<JwtMiddleware>();
 
             app.UseRouting();

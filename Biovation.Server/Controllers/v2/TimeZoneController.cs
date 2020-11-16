@@ -12,7 +12,7 @@ namespace Biovation.Server.Controllers.v2
     [ApiVersion("2.0")]
     [Route("biovation/api/v2/[controller]")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class TimeZoneController : Controller
+    public class TimeZoneController : ControllerBase
     {
         //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly TimeZoneService _timeZoneService;

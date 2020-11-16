@@ -21,7 +21,7 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     //[Route("Biovation/Api/Virdi/{controller}/{action}", Name = "VirdiDevice")]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiDeviceController : Controller
+    public class VirdiDeviceController : ControllerBase
     {
         private readonly Callbacks _callbacks;
         private readonly VirdiServer _virdiServer;

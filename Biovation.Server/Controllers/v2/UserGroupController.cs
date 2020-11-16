@@ -16,7 +16,7 @@ namespace Biovation.Server.Controllers.v2
     [ApiVersion("2.0")]
     [Route("biovation/api/v2/[controller]")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class UserGroupController : Controller
+    public class UserGroupController : ControllerBase
     {
         private readonly RestClient _restClient;
 

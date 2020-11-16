@@ -7,7 +7,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
 
-    public class TaskController : Controller
+    public class TaskController : ControllerBase
     {
 
         private readonly TaskRepository _taskRepository;

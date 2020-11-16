@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 
 namespace Biovation.Brands.PW.Controllers
 {
-    public class PwDeviceController : Controller
+    public class PwDeviceController : ControllerBase
     {
         private readonly PwServer _pwServer;
         private readonly TaskService _taskService;

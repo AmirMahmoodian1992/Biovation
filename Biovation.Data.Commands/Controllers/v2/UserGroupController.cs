@@ -8,7 +8,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
 
-    public class UserGroupController : Controller
+    public class UserGroupController : ControllerBase
     {
 
         private readonly UserGroupRepository _userGroupRepository;

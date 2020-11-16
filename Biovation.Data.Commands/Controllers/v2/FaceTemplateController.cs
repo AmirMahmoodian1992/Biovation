@@ -8,7 +8,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
-    public class FaceTemplateController : Controller
+    public class FaceTemplateController : ControllerBase
     {
         private readonly FaceTemplateRepository _faceTemplateRepository;
 

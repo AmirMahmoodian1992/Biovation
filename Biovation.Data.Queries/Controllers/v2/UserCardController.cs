@@ -7,7 +7,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 {
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
-    public class UserCardController : Controller
+    public class UserCardController : ControllerBase
     {
 
         private readonly UserCardRepository _userCardRepository;

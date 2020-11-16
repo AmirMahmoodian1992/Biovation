@@ -19,7 +19,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class UserController : Controller
+    public class UserController : ControllerBase
     {
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;

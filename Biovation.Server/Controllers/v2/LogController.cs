@@ -14,7 +14,7 @@ namespace Biovation.Server.Controllers.v2
     [ApiVersion("2.0")]
     [Route("biovation/api/v2/[controller]")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class LogController : Controller
+    public class LogController : ControllerBase
     {
 
         private readonly UserService _userService;

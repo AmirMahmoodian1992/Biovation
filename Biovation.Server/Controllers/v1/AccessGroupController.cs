@@ -14,7 +14,7 @@ namespace Biovation.Server.Controllers.v1
 {
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     [ApiVersion("1.0")]
-    public class AccessGroupController : Controller
+    public class AccessGroupController : ControllerBase
     {
         //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
         private readonly RestClient _restClient;
