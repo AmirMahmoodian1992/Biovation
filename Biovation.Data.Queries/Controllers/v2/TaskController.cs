@@ -5,11 +5,10 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class TaskController : ControllerBase
     {
-
         private readonly TaskRepository _taskRepository;
 
         public TaskController(TaskRepository taskRepository)
@@ -18,10 +17,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{taskItemId}")]
         [Authorize]
-
-
+        [Route("{taskItemId}")]
         public Task<ResultViewModel<TaskItem>> GetTaskItem([FromRoute] int taskItemId = default)
         {
             return Task.Run(() => _taskRepository.GetTaskItem(taskItemId));
@@ -31,7 +28,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         /*[Route("GetTasks")]*/
         [Authorize]
-
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
         {
 

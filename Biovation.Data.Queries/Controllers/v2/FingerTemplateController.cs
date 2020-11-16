@@ -8,25 +8,20 @@ namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class FingerTemplateController : ControllerBase
     {
-
         private readonly FingerTemplateRepository _fingerTemplateRepository;
-
-
+        
         public FingerTemplateController(FingerTemplateRepository fingerTemplateRepository)
         {
             _fingerTemplateRepository = fingerTemplateRepository;
         }
-
-
-
+        
         [HttpGet]
         [Route("TemplateCount")]
         [Authorize]
-
         public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
             return Task.Run(() => _fingerTemplateRepository.GetFingerTemplatesCount());
@@ -35,16 +30,14 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-
         public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex, Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size, pageNumber, pageSize));
         }
 
         [HttpGet]
-        [Route("FingerTemplateTypes/brandId")]
         [Authorize]
-
+        [Route("FingerTemplateTypes/brandId")]
         public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId, int pageNumber = default,
         int pageSize = default)
         {

@@ -5,14 +5,11 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class GenericCodeMappingController : ControllerBase
     {
-
         private readonly GenericCodeMappingRepository _genericCodeMappingRepository;
-
 
         public GenericCodeMappingController(GenericCodeMappingRepository genericCodeMappingRepository)
         {

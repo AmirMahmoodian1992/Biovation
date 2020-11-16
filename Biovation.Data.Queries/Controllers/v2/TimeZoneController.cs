@@ -7,8 +7,8 @@ using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class TimeZoneController : ControllerBase
     {
         private readonly TimeZoneRepository _timeZoneRepository;

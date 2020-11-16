@@ -6,12 +6,11 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class LogController : ControllerBase
     {
         private readonly LogRepository _logRepository;
-
         public LogController(LogRepository logRepository)
         {
             _logRepository = logRepository;
@@ -27,7 +26,6 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-
         public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = "", string order = "", bool? successTransfer = default)
         {
 

@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class AdminDeviceController : ControllerBase
@@ -16,7 +17,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
 
         private readonly AdminDeviceRepository _adminDeviceRepository;
-
+        
         public AdminDeviceController(AdminDeviceRepository adminDeviceRepository)
         {
             _adminDeviceRepository = adminDeviceRepository;
