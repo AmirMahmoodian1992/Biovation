@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.Shahab.Controllers
 {
+    [ApiController]
+    [Route("Biovation/Api/[controller]/[action]")]
     public class ShahabDeviceController : ControllerBase
     {
         private readonly ShahabServer _shahabServer;
