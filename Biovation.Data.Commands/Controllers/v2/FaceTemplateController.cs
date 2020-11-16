@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
     public class FaceTemplateController : ControllerBase

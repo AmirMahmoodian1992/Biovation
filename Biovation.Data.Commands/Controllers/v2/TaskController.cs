@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class TaskController : ControllerBase
@@ -55,6 +56,5 @@ namespace Biovation.Data.Commands.Controllers.v2
                 return taskInsertionResult;
             });
         }
-
     }
 }

@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class UserGroupController : ControllerBase
     {
 
@@ -17,8 +17,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             _userGroupRepository = userGroupRepository;
         }
-
-
 
         //todo:add UserGroup
         /*[HttpPost]
@@ -31,12 +29,11 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPatch]
         [Route("UserGroupMember/{userGroupId}")]
         [Authorize]
-
-        public Task<ResultViewModel> ModifyUserGroupMember([FromBody]List<UserGroupMember> member, int userGroupId)
+        public Task<ResultViewModel> ModifyUserGroupMember([FromBody] List<UserGroupMember> member, int userGroupId)
         {
             return Task.Run(() => _userGroupRepository.ModifyUserGroupMember(member, userGroupId));
         }
-  
+
 
         [HttpPut]
         [Authorize]
@@ -55,6 +52,6 @@ namespace Biovation.Data.Commands.Controllers.v2
             return Task.Run(() => _userGroupRepository.DeleteUserGroup(groupId));
         }
 
-        
+
     }
 }

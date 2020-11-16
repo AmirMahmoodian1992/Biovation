@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     public class LookupController : ControllerBase
     {

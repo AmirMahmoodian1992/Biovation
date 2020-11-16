@@ -5,19 +5,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
     public class PlateDetectionController : ControllerBase
     {
-
         private readonly PlateDetectionRepository _plateDetectionRepository;
 
         public PlateDetectionController(PlateDetectionRepository plateDetectionRepository)
         {
             _plateDetectionRepository = plateDetectionRepository;
         }
-
 
         [HttpPost]
         [Route("LicensePlate")]
@@ -36,7 +34,5 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));
         }
-
-
     }
 }

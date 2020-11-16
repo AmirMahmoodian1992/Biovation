@@ -7,20 +7,17 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
     public class AdminDeviceController : ControllerBase
     {
         private readonly AdminDeviceRepository _adminDeviceRepository;
-
 
         public AdminDeviceController(AdminDeviceRepository adminDeviceRepository)
         {
             _adminDeviceRepository = adminDeviceRepository;
         }
-
-
+        
         [HttpPut]
         [Authorize]
         public ResultViewModel ModifyAdminDevice([FromBody] JObject adminDevice)

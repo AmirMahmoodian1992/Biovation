@@ -5,8 +5,8 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
-
     //[ApiVersion("1.0")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     public class DeviceGroupController : ControllerBase
     {
