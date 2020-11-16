@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
+    [ApiController]
+    [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class SystemInfoController : ControllerBase
     {
         private readonly SystemInfo _systemInfo;

@@ -11,11 +11,10 @@ using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
-
     [Authorize]
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class AccessGroupController : ControllerBase
     {
         private readonly RestClient _restClient;

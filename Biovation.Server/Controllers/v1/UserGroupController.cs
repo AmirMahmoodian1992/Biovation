@@ -14,8 +14,9 @@ using Biovation.Servers;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class UserGroupController : ControllerBase
     {
         private readonly RestClient _restClient;

@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
 {
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class LookupController : ControllerBase
     {
         private readonly LookupService _lookupService;

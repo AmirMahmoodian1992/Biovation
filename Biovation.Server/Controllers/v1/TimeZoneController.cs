@@ -7,8 +7,9 @@ using System.Collections.Generic;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class TimeZoneController : ControllerBase
     {
         private readonly TimeZoneService _timeZoneService;

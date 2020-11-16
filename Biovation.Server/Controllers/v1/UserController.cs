@@ -17,8 +17,9 @@ using System.Xml.Serialization;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly UserService _userService;

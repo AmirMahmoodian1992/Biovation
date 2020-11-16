@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
-
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class PlateDetectionController : ControllerBase
     {
         private readonly PlateDetectionService _plateDetectionService;

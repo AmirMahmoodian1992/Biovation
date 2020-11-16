@@ -1,6 +1,5 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Servers;
 using Biovation.Service.Api.v1;
@@ -13,12 +12,12 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v1/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class LogController : ControllerBase
     {
         private readonly UserService _userService;
@@ -26,18 +25,14 @@ namespace Biovation.Server.Controllers.v1
         private readonly DeviceService _commonDeviceService;
         private readonly RestClient _restClient;
 
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskPriorities _taskPriorities;
         private readonly TokenGenerator _tokenGenerator;
         private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
         {
             _userService = userService;
             _logService = logService;
-            _taskTypes = taskTypes;
-            _taskPriorities = taskPriorities;
             _commonDeviceService = deviceService;
             _restClient = restClient;
             _tokenGenerator = tokenGenerator;
