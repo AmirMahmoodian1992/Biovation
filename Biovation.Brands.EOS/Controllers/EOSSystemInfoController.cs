@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.EOS.Controllers
 {
+    [ApiController]
+    [Route("Biovation/Api/[controller]")]
     public class EosSystemInfoController : ControllerBase
     {
         [HttpGet]
