@@ -304,7 +304,8 @@ namespace Biovation.Brands.EOS.Manager
                     _taskService.UpdateTaskStatus(taskItem);
                 });
 
-                executeTask?.Wait();
+                if (taskItem.IsParallelRestricted)
+                    executeTask?.Wait();
             }
         }
 
