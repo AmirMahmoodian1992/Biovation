@@ -35,8 +35,8 @@ namespace Biovation.Server.Controllers.v2
             var user = _userService.GetUsers(code:id)?.Data?.Data?.FirstOrDefault();
             if (user != null)
             {
-                //var tokenString = _generateToken.GenerateJWTLoginToken(user);
-                var tokenString = _generateToken.GenerateToken(user);
+                var tokenString = _generateToken.GenerateJWTLoginToken(user);
+                //var tokenString = _generateToken.GenerateToken(user);
                 response = Ok(new
                 {
                     token = tokenString
