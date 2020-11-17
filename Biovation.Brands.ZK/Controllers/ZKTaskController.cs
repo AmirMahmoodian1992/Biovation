@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZkTaskController
+    [ApiController]
+    [Route("Biovation/Api/[Controller]")]
+    public class ZkTaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 

@@ -1,16 +1,16 @@
 ﻿using Biovation.Brands.ZK.Manager;
+using Biovation.Brands.ZK.Service;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using Biovation.Brands.ZK.Service;
-using Biovation.CommonClasses.Manager;
-using RestSharp;
 
 namespace Biovation.Brands.ZK.Devices
 {
@@ -24,7 +24,7 @@ namespace Biovation.Brands.ZK.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
-        internal IFace(DeviceBasicInfo info, ZkLogService zkLogService, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes) 
+        internal IFace(DeviceBasicInfo info, ZkLogService zkLogService, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
             : base(info, zkLogService, taskService, userService, deviceService, logService, accessGroupService, fingerTemplateService, userCardService, faceTemplateService, restClient, onlineDevices, biovationConfigurationManager, logEvents, logSubEvents, zkCodeMappings, taskTypes, taskPriorities, taskStatuses, taskItemTypes, deviceBrands, taskManager, matchingTypes, biometricTemplateManager, fingerTemplateTypes, faceTemplateTypes)
         {
             _accessGroupService = accessGroupService;
@@ -69,6 +69,7 @@ namespace Biovation.Brands.ZK.Devices
                         {
                             user = new User
                             {
+                                Id = existUser.Id,
                                 Code = userId,
                                 AdminLevel = privilege,
                                 IsActive = existUser.IsActive,
@@ -258,14 +259,11 @@ namespace Biovation.Brands.ZK.Devices
             {
                 var errorCode = 0;
                 // _zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);
-                var card = _userCardService.GetCardsByFilter(user.Id).FirstOrDefault(c => c.IsActive);
-                if (card != null)
+                //var card = UserCardService.GetCardsByFilter(user.Id).FirstOrDefault(c => c.IsActive);
+                if (user.IdentityCard != null && user.IdentityCard.IsActive)
                 {
-                    if (ZkTecoSdk.SetStrCardNumber(card.CardNum))
-                    {
-                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
+                    if (ZkTecoSdk.SetStrCardNumber(user.IdentityCard.Number))
                         Logger.Log($"Successfully set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                    }
                     else
                     {
                         ZkTecoSdk.GetLastError(ref errorCode);
@@ -307,34 +305,35 @@ namespace Biovation.Brands.ZK.Devices
                             }
                         }
 
-                        var faceZk = FaceTemplateService.FaceTemplates(userId: user.Id, index: 50);
-                        if (faceZk.Any())
+                        //var faceZk = FaceTemplateService.FaceTemplates(userId: user.Id, index: 50);
+                        if (user.FaceTemplates.Any(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
                         {
-                            foreach (var face in faceZk)
+                            var faceTemplate = user.FaceTemplates.First(template =>
+                                template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code);
+                            //foreach (var face in user.FaceTemplates.Where(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
+                            //{
+                            for (var i = 0; i < 9; i++)
                             {
-                                for (var i = 0; i < 9; i++)
+                                if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
+                                    Encoding.ASCII.GetString(faceTemplate.Template), faceTemplate.Size))
                                 {
-                                    if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
-                                        Encoding.ASCII.GetString(face.Template), face.Size))
-                                    {
-                                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
-                                        Logger.Log(
-                                            $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                                        break;
-                                    }
-
-                                    ZkTecoSdk.GetLastError(ref errorCode);
-                                    Thread.Sleep(50);
+                                    //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                                     Logger.Log(
-                                        $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                                        $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                    break;
                                 }
-                            }
 
+                                ZkTecoSdk.GetLastError(ref errorCode);
+                                Thread.Sleep(50);
+                                Logger.Log(
+                                    $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                            }
+                            //}
                         }
 
-                        var userAccessGroups = _accessGroupService.GetAccessGroups(user.Id);
+                        var userAccessGroups = user.Id == default ? null :_accessGroupService.GetAccessGroups(user.Id);
                         var validAccessGroup =
-                            userAccessGroups.FirstOrDefault(ag =>
+                            userAccessGroups?.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
                         if (ZkTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Code,
                             validAccessGroup?.Id ?? 1))

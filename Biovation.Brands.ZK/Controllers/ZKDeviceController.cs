@@ -335,7 +335,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userIds, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
@@ -357,7 +357,7 @@ namespace Biovation.Brands.ZK.Controllers
                     };
                     //var userIds = JsonConvert.DeserializeObject<List<uint>>(JsonConvert.SerializeObject(userId));
 
-                    foreach (var id in userIds)
+                    foreach (var userCode in userCodes)
                     {
 
                         task.TaskItems.Add(new TaskItem
@@ -367,7 +367,7 @@ namespace Biovation.Brands.ZK.Controllers
                             Priority = _taskPriorities.Medium,
 
                             DeviceId = devices.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            Data = JsonConvert.SerializeObject(new { userCode }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
@@ -390,8 +390,8 @@ namespace Biovation.Brands.ZK.Controllers
             });
         }
         [HttpGet]
-        [Authorize] 
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate)
+        [Authorize]
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                 new List<object> { code });
@@ -433,7 +433,7 @@ namespace Biovation.Brands.ZK.Controllers
                 //_taskService.InsertTask(task);
                 // ZKTecoServer.ProcessQueue();
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                    new List<object> { task.TaskItems.FirstOrDefault().DeviceId, task.TaskItems.FirstOrDefault().Id }).Execute();
+                    new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
                 return result;
             }
             catch (Exception exception)

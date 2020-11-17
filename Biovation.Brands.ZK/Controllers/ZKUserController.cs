@@ -169,7 +169,7 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<List<ResultViewModel>> DeleteUserFromAllTerminal(int[] ids)
+        public Task<List<ResultViewModel>> DeleteUserFromAllTerminal(int[] userCodes)
         {
             return Task.Run(() =>
             {
@@ -193,7 +193,7 @@ namespace Biovation.Brands.ZK.Controllers
                     var zkDevice = _deviceService.GetDevices(code: device.Key, brandId: DeviceBrands.ZkTecoCode)
                         .FirstOrDefault();
 
-                    foreach (var id in ids)
+                    foreach (var userCode in userCodes)
                     {
                         if (zkDevice != null)
                             task.TaskItems.Add(new TaskItem
@@ -202,13 +202,13 @@ namespace Biovation.Brands.ZK.Controllers
                                 TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                                 Priority = _taskPriorities.Medium,
                                 DeviceId = zkDevice.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { UserId = id }),
+                                Data = JsonConvert.SerializeObject(new { userCode }),
                                 IsParallelRestricted = true,
                                 IsScheduled = false,
                                 OrderIndex = 1
                             });
 
-                        result.Add(new ResultViewModel { Id = id, Validate = 1 });
+                        result.Add(new ResultViewModel { Id = userCode, Validate = 1 });
                     }
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();

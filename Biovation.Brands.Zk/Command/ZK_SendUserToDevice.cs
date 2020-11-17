@@ -51,10 +51,10 @@ namespace Biovation.Brands.ZK.Command
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
             Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
-            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            if (data != null) UserId = (uint) data["UserId"];
-            UserObj = _userService.GetUsers(UserId).FirstOrDefault();
+            //var taskItem = _taskService.GetTaskItem(TaskItemId);
+            //var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            //if (data != null) UserId = (uint) data["UserId"];
+            //UserObj = _userService.GetUsers(UserId).FirstOrDefault();
            
         }
 
@@ -68,9 +68,9 @@ namespace Biovation.Brands.ZK.Command
 
             var taskItem = _taskService.GetTaskItem(TaskItemId);
             var taskData = JsonConvert.DeserializeObject<JObject>(taskItem.Data);
-            if (taskData != null && taskData.ContainsKey("userId"))
+            if (taskData != null && taskData.ContainsKey("UserId"))
             {
-                var parseResult = uint.TryParse(taskData["userId"].ToString() ?? "0", out var userId);
+                var parseResult = uint.TryParse(taskData["UserId"].ToString() ?? "0", out var userId);
 
                 if (!parseResult || userId == 0)
                     return new ResultViewModel
