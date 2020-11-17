@@ -1,4 +1,5 @@
-﻿using Biovation.Constants;
+﻿using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
@@ -11,9 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Extension;
-using Biovation.Server.Middleware;
-using Quartz.Logging;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Server.Controllers.v2
@@ -31,8 +30,8 @@ namespace Biovation.Server.Controllers.v2
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
-        public readonly DeviceBrands _deviceBrands;
         private readonly TaskTypes _taskTypes;
+        private readonly DeviceBrands _deviceBrands;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
@@ -244,27 +243,27 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
-                        var device = _deviceService.GetDevice(id, token: token)?.Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {id} does not exist.");
-                            return new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
-                        }
+                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    if (device == null)
+                    {
+                        Logger.Log($"DeviceId {id} does not exist.");
+                        return new ResultViewModel
+                        { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                    }
 
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
+                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                    restRequest.AddQueryParameter("code", device.Code.ToString());
+                    restRequest.AddQueryParameter("fromDate", fromDate);
+                    restRequest.AddQueryParameter("toDate", toDate);
 
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
-                            return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                        return restResult.Data;
+                    var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
+                        return new ResultViewModel { Validate = 0, Message = "error", Id = id };
+                    return restResult.Data;
                 }
                 catch (Exception)
                 {
-                    return new ResultViewModel { Validate = 0, Message = "error", Id = id};
+                    return new ResultViewModel { Validate = 0, Message = "error", Id = id };
                 }
             });
         }
@@ -329,7 +328,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Route("{Id}/cardNumber")]
         [Authorize]
-        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute]int id = default)
+        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _userCardService.ReadCardNumber(id, token));
@@ -638,30 +637,28 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/UserAdaptation")]
         public Task<ResultViewModel> UserAdapter([FromRoute] int id, [FromBody] object equivalentCodesObject)
         {
-            
             var token = (string)HttpContext.Items["Token"];
             var creatorUser = HttpContext.GetUser();
             return Task.Run(() =>
             {
-                var serializedEquivalentCodes = JsonConvert.SerializeObject(equivalentCodesObject);
-                //var equivalentCodes = JsonConvert.DeserializeObject<Dictionary<uint, uint>>(serializedEquivalentCodes);
-                // should be delete
-                var equivalentCodes = new Dictionary<long, long>();
-                equivalentCodes.Add(123,456);
+                var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
+                var equivalentCodes = JsonConvert.DeserializeObject<Dictionary<uint, uint>>(serializedEquivalentCodes);
+                
                 var device = _deviceService.GetDevice(id, token: token).Data;
-               
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice",Method.GET);
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 restRequest.AddQueryParameter("embedTemplate", true.ToString());
                 if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    restRequest.AddHeader("Authorization", token ?? string.Empty);
+                
+                var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).Result?.Data?.Data;
+                if (userList is null)
+                    return new ResultViewModel { Success = false, Message = "The device is offline" };
+
+                foreach (var userCode in equivalentCodes.Keys)
                 {
-                    restRequest.AddHeader("Authorization",
-                        HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
-                }
-                var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
-                foreach (var userCode in  equivalentCodes.Keys)
-                {
-                    if (userList.Result.Data.Data.All(user => user.Code != userCode)) continue;
+                    if (userList.All(user => user.Code != userCode)) continue;
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -678,7 +675,7 @@ namespace Biovation.Server.Controllers.v2
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new {userId = userCode}),
+                        Data = JsonConvert.SerializeObject(new { userId = userCode }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -704,7 +701,7 @@ namespace Biovation.Server.Controllers.v2
                         Priority = _taskPriorities.Medium,
                         DeviceId = id,
                         Data = JsonConvert.SerializeObject(new
-                            {User = userList.Result.Data.Data.Where(x => x.Code == equivalentCodes[userCode])}),
+                        { User = userList.Where(x => x.Code == equivalentCodes[userCode]) }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -719,7 +716,7 @@ namespace Biovation.Server.Controllers.v2
                         HttpContext.Request.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
                 }
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                
+
 
                 return new ResultViewModel();
             });
