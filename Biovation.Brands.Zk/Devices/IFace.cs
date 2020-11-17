@@ -36,7 +36,7 @@ namespace Biovation.Brands.ZK.Devices
         }
         public override bool GetAndSaveUser(long userId)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 try
                 {
@@ -49,7 +49,7 @@ namespace Biovation.Brands.ZK.Devices
 
                     //if (ZKTecoSdk.GetUserInfo((int)DeviceInfo.Code, (int)userId, ref name,
                     //    ref password, ref privilege, ref enabled))
-                    if (ZKTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
+                    if (ZkTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
                         out var password, out var privilege, out var enabled))
                     {
                         var user = new User
@@ -98,7 +98,7 @@ namespace Biovation.Brands.ZK.Devices
 
                         try
                         {
-                            if (ZKTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
+                            if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
                             {
                                 var card = new UserCard
                                 {
@@ -122,11 +122,11 @@ namespace Biovation.Brands.ZK.Devices
 
                         try
                         {
-                            if (ZKTecoSdk.ReadAllTemplate((int)DeviceInfo.Code))
+                            if (ZkTecoSdk.ReadAllTemplate((int)DeviceInfo.Code))
                             {
                                 for (var i = 0; i <= 9; i++)
                                 {
-                                    if (!ZKTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), i,
+                                    if (!ZkTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), i,
                                         out _, out var tempData, out var tempLength))
                                     {
                                         Thread.Sleep(50);
@@ -190,7 +190,7 @@ namespace Biovation.Brands.ZK.Devices
                             var faceLen = 0;
                             for (var i = 0; i < 9; i++)
                             {
-                                if (!ZKTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
+                                if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
                                     ref faceStr, ref faceLen))
                                 {
                                     Thread.Sleep(50);
@@ -254,21 +254,21 @@ namespace Biovation.Brands.ZK.Devices
 
         public override bool TransferUser(User user)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 var errorCode = 0;
                 // _zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);
                 var card = _userCardService.GetCardsByFilter(user.Id).FirstOrDefault(c => c.IsActive);
                 if (card != null)
                 {
-                    if (ZKTecoSdk.SetStrCardNumber(card.CardNum))
+                    if (ZkTecoSdk.SetStrCardNumber(card.CardNum))
                     {
                         //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                         Logger.Log($"Successfully set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                     }
                     else
                     {
-                        ZKTecoSdk.GetLastError(ref errorCode);
+                        ZkTecoSdk.GetLastError(ref errorCode);
                         Logger.Log($"Cannot set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                     }
                 }
@@ -289,7 +289,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 for (var i = 0; i < 9; i++)
                                 {
-                                    if (ZKTecoSdk.SetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), finger.Index,
+                                    if (ZkTecoSdk.SetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), finger.Index,
                                         1,
                                         Encoding.ASCII.GetString(finger.Template)))
                                     {
@@ -299,7 +299,7 @@ namespace Biovation.Brands.ZK.Devices
                                         break;
                                     }
 
-                                    ZKTecoSdk.GetLastError(ref errorCode);
+                                    ZkTecoSdk.GetLastError(ref errorCode);
                                     Thread.Sleep(50);
                                     Logger.Log(
                                         $"Cannot set template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
@@ -314,7 +314,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 for (var i = 0; i < 9; i++)
                                 {
-                                    if (ZKTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Id.ToString(), 50,
+                                    if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Id.ToString(), 50,
                                         Encoding.ASCII.GetString(face.Template), face.Size))
                                     {
                                         //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
@@ -323,7 +323,7 @@ namespace Biovation.Brands.ZK.Devices
                                         break;
                                     }
 
-                                    ZKTecoSdk.GetLastError(ref errorCode);
+                                    ZkTecoSdk.GetLastError(ref errorCode);
                                     Thread.Sleep(50);
                                     Logger.Log(
                                         $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
@@ -336,18 +336,18 @@ namespace Biovation.Brands.ZK.Devices
                         var validAccessGroup =
                             userAccessGroups.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
-                        if (ZKTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Id,
+                        if (ZkTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Id,
                             validAccessGroup?.Id ?? 1))
                         {
-                            ZKTecoSdk.RefreshData((int)DeviceInfo.Code);
+                            ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
                             Logger.Log(
                                 $"Successfully set access group for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                             //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
                             return true;
                         }
 
-                        ZKTecoSdk.RefreshData((int)DeviceInfo.Code);
-                        ZKTecoSdk.GetLastError(ref errorCode);
+                        ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
+                        ZkTecoSdk.GetLastError(ref errorCode);
                         //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
 
                         Logger.Log($"Cannot set access group for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
@@ -362,7 +362,7 @@ namespace Biovation.Brands.ZK.Devices
                 }
 
                 errorCode = 0;
-                ZKTecoSdk.GetLastError(ref errorCode);
+                ZkTecoSdk.GetLastError(ref errorCode);
                 //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
 
                 Logger.Log($"Cannot add user {user.Id} to device {DeviceInfo.Code}. ErrorCode={errorCode}",
