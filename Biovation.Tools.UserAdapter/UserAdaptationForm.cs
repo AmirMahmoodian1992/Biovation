@@ -167,13 +167,10 @@ namespace Biovation.Tools.UserAdapter
                     return;
                 }
 
-
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
-                //restRequest.AddJsonBody(_userCodeMappings);
-                var arash = new Dictionary<string, uint>();
-                arash.Add("99222", 88888);
-                restRequest.AddJsonBody(arash);
+                restRequest.AddJsonBody(_userCodeMappings);
+                
                 var result = _restClient.Execute<ResultViewModel>(restRequest);
 
                 if (result.IsSuccessful && result.StatusCode == HttpStatusCode.OK)
