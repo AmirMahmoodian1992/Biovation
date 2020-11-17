@@ -938,7 +938,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userIds, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
@@ -969,7 +969,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     };
 
                     //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                    foreach (var id in userIds)
+                    foreach (var userCode in userCodes)
                     {
 
                         task.TaskItems.Add(new TaskItem
@@ -978,7 +978,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                             Priority = _taskPriorities.Medium,
                             DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            Data = JsonConvert.SerializeObject(new { userCode }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
@@ -993,7 +993,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     if (updateServerSideIdentification)
                     {
-                        foreach (var id in userIds)
+                        foreach (var id in userCodes)
                         {
                             _callbacks.DeleteUserFromDeviceFastSearch(code, id);
                         }
