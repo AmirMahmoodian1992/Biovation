@@ -24,18 +24,14 @@ namespace Biovation.Brands.EOS.Devices
     public class SupremaBaseDevice : Device
     {
         private Clock _clock;
-        private bool _valid;
         private int _counter;
         private readonly object _clockInstantiationLock = new object();
 
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly EosLogService _eosLogService;
 
-        private readonly LogEvents _logEvents;
         private readonly RestClient _restClient;
         private readonly TaskManager _taskManager;
-        private readonly LogSubEvents _logSubEvents;
-        private readonly EosCodeMappings _eosCodeMappings;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
@@ -43,16 +39,13 @@ namespace Biovation.Brands.EOS.Devices
         public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
-            _valid = true;
+            Valid = true;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _taskManager = taskManager;
             _restClient = restClient;
             _onlineDevices = onlineDevices;
-            _logEvents = logEvents;
-            _logSubEvents = logSubEvents;
-            _eosCodeMappings = eosCodeMappings;
             _biometricTemplateManager = biometricTemplateManager;
         }
 
@@ -366,7 +359,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             DeviceId = _deviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
-                            EventLog = _logEvents.Disconnect
+                            EventLog = LogEvents.Disconnect
                         });
                     }
                     catch (Exception)
@@ -403,7 +396,7 @@ namespace Biovation.Brands.EOS.Devices
 
             _taskManager.ProcessQueue();
 
-            //_valid = true;
+            //Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }
@@ -438,7 +431,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
         }
-        public override ResultViewModel ReadOnlineLog(object token)
+        public virtual ResultViewModel ReadOnlineLog(object token)
         {
             Thread.Sleep(1000);
             try
@@ -454,7 +447,7 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_clock)
                     deviceConnected = _clock.TestConnection();
 
-                while (deviceConnected && _valid)
+                while (deviceConnected && Valid)
                 {
                     try
                     {
@@ -463,11 +456,11 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists && _valid)
+                        while (newRecordExists && Valid)
                         {
                             var test = true;
                             var exceptionTester = false;
-                            while (test && _valid)
+                            while (test && Valid)
                             {
                                 ClockRecord record = null;
 
@@ -515,8 +508,8 @@ namespace Biovation.Brands.EOS.Devices
                                                         DeviceId = _deviceInfo.DeviceId,
                                                         DeviceCode = _deviceInfo.Code,
                                                         //RawData = generatedRecord,
-                                                        EventLog = _logEvents.Authorized,
-                                                        SubEvent = _logSubEvents.Normal,
+                                                        EventLog = LogEvents.Authorized,
+                                                        SubEvent = LogSubEvents.Normal,
                                                         TnaEvent = 0,
                                                     };
 
@@ -565,9 +558,9 @@ namespace Biovation.Brands.EOS.Devices
                                             UserId = (int)record.ID,
                                             DeviceId = _deviceInfo.DeviceId,
                                             DeviceCode = _deviceInfo.Code,
-                                            SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RecType1),
+                                            SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RecType1),
                                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                                            EventLog = _logEvents.Authorized,
+                                            EventLog = LogEvents.Authorized,
                                             TnaEvent = 0,
                                         };
 
@@ -613,7 +606,7 @@ namespace Biovation.Brands.EOS.Devices
                 //_clock?.Disconnect();
                 // _clock?.Dispose();
                 //Disconnect();
-                if (_valid)
+                if (Valid)
                     Connect();
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
@@ -631,7 +624,7 @@ namespace Biovation.Brands.EOS.Devices
 
             //_clock?.Disconnect();
             //_clock?.Dispose();
-            if (_valid)
+            if (Valid)
             {
                 Connect();
             }
@@ -642,7 +635,7 @@ namespace Biovation.Brands.EOS.Devices
         }
         public override bool Disconnect()
         {
-            _valid = false;
+            Valid = false;
             lock (_clock)
             {
                 _clock?.Disconnect();
