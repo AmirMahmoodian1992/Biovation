@@ -25,8 +25,8 @@ namespace Biovation.Server.Managers
 
             var claims = new[]
             {
-                new Claim("userCode", userInfo.Id.ToString()),
-                new Claim("uniqueId", userInfo.Id.ToString()),
+                new Claim("userCode", userInfo.Code.ToString()),
+                new Claim("uniqueId", userInfo.UniqueId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -39,7 +39,7 @@ namespace Biovation.Server.Managers
             //);
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddDays(15),
                 signingCredentials: credentials
             );
             return new JwtSecurityTokenHandler().WriteToken(token);
