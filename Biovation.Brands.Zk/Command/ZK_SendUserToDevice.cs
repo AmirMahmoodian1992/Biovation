@@ -25,9 +25,8 @@ namespace Biovation.Brands.ZK.Command
         private int TaskItemId { get; }
 
         private uint Code { get; }
-        private int UserId { get; }
-        private User user { get; }
-        private User UserObj { get; }
+        private uint UserId { get; set; }
+        private User UserObj { get; set; }
 
         private readonly LogEvents _logEvents;
         private readonly UserService _userService;
@@ -43,8 +42,6 @@ namespace Biovation.Brands.ZK.Command
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
-            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
             OnlineDevices = devices;
             _logService = logService;
@@ -55,25 +52,6 @@ namespace Biovation.Brands.ZK.Command
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
-
-            if (data != null)
-            {
-                UserId = (int)data["UserId"];
-                user = (User)JsonConvert.DeserializeObject(data["user"]?.ToString() ?? string.Empty);
-            }
-
-            if (UserId != default && user == null)
-            {
-                UserObj = _userService.GetUsers(UserId).FirstOrDefault();
-            }
-            else if (UserId == default && user != null)
-            {
-                UserObj = user;
-            }
-            else
-            {
-                UserObj = null;
-            }
         }
 
         public object Execute()
@@ -82,6 +60,44 @@ namespace Biovation.Brands.ZK.Command
             {
                 Logger.Log($"The device: {Code} is not connected.");
                 return new ResultViewModel { Validate = 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
+            }
+
+            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            var taskData = JsonConvert.DeserializeObject<JObject>(taskItem.Data);
+            if (taskData != null && taskData.ContainsKey("userId"))
+            {
+                var parseResult = uint.TryParse(taskData["userId"].ToString() ?? "0", out var userId);
+
+                if (!parseResult || userId == 0)
+                    return new ResultViewModel
+                    {
+                        Id = taskItem.Id,
+                        Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                        Message =
+                            $"Error in processing task item {taskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}",
+                        Validate = 0
+                    };
+
+                UserId = userId;
+                UserObj = _userService.GetUsers(UserId, getTemplatesData: true)?.FirstOrDefault();
+
+                if (UserObj == null)
+                {
+                    Logger.Log($"User {UserId} does not exist.");
+                    return new ResultViewModel { Validate = 0, Id = taskItem.Id, Message = $"User {UserId} does not exist.", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                }
+            }
+            else
+            {
+                try
+                {
+                    UserObj = JsonConvert.DeserializeObject<User>(taskItem.Data);
+                }
+                catch (Exception)
+                {
+                    Logger.Log($"Bad user data in task item {taskItem.Id}.");
+                    return new ResultViewModel { Validate = 0, Id = taskItem.Id, Message = $"Bad user data in task item {taskItem.Id}.", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                }
             }
 
             if (UserObj == null)
@@ -93,7 +109,7 @@ namespace Biovation.Brands.ZK.Command
             try
             {
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
-                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(UserId);
+                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)UserId);
                 UserObj.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId);
                 var result = device.TransferUser(UserObj);
                 var log = new Log
