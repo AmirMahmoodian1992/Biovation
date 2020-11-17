@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
@@ -13,6 +7,12 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using zkemkeeper;
 using TimeZone = Biovation.Domain.TimeZone;
 //using TimeZone = Biovation.CommonClasses.Models.TimeZone;
@@ -474,14 +474,11 @@ namespace Biovation.Brands.EOS.Devices
             {
                 var errorCode = 0;
                 // _zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);
-                var card = UserCardService.GetCardsByFilter(user.Id)?.Data?.Data?.FirstOrDefault(c => c.IsActive);
-                if (card != null)
+                //var card = UserCardService.GetCardsByFilter(user.Id).FirstOrDefault(c => c.IsActive);
+                if (user.IdentityCard != null && user.IdentityCard.IsActive)
                 {
-                    if (ZkTecoSdk.SetStrCardNumber(card.CardNum))
-                    {
-                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
+                    if (ZkTecoSdk.SetStrCardNumber(user.IdentityCard.Number))
                         Logger.Log($"Successfully set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                    }
                     else
                     {
                         ZkTecoSdk.GetLastError(ref errorCode);
@@ -523,32 +520,33 @@ namespace Biovation.Brands.EOS.Devices
                             }
                         }
 
-                        var faceZk = FaceTemplateService.FaceTemplates(userId: user.Id, index: 50);
-                        if (faceZk.Any())
+                        //var faceZk = FaceTemplateService.FaceTemplates(userId: user.Id, index: 50);
+                        if (user.FaceTemplates.Any(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
                         {
-                            foreach (var face in faceZk)
+                            var faceTemplate = user.FaceTemplates.First(template =>
+                                template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code);
+                            //foreach (var face in user.FaceTemplates.Where(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
+                            //{
+                            for (var i = 0; i < 9; i++)
                             {
-                                for (var i = 0; i < 9; i++)
+                                if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Id.ToString(), 50,
+                                    Encoding.ASCII.GetString(faceTemplate.Template), faceTemplate.Size))
                                 {
-                                    if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Id.ToString(), 50,
-                                        Encoding.ASCII.GetString(face.Template), face.Size))
-                                    {
-                                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
-                                        Logger.Log(
-                                            $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                                        break;
-                                    }
-
-                                    ZkTecoSdk.GetLastError(ref errorCode);
-                                    Thread.Sleep(50);
+                                    //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                                     Logger.Log(
-                                        $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                                        $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                    break;
                                 }
-                            }
 
+                                ZkTecoSdk.GetLastError(ref errorCode);
+                                Thread.Sleep(50);
+                                Logger.Log(
+                                    $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                            }
+                            //}
                         }
 
-                        var userAccessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                        var userAccessGroups = user.Id == default ? null : _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
                         var validAccessGroup =
                             userAccessGroups?.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
@@ -984,6 +982,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             user = new User
                             {
+                                Id = existUser.Id,
                                 Code = userId,
                                 AdminLevel = privilege,
                                 IsActive = existUser.IsActive,
