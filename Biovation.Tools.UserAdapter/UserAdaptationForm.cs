@@ -41,7 +41,7 @@ namespace Biovation.Tools.UserAdapter
 
             _restClient = (RestClient)new RestClient($"http://{_biovationServerAddress}:{_biovationServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
-            var restRequest = new RestRequest("Device/Devices", Method.GET);
+            var restRequest = new RestRequest("v2/Device/OnlineDevices", Method.GET);
             var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
             if (result.IsSuccessful && result.StatusCode == HttpStatusCode.OK)
             {
@@ -99,6 +99,8 @@ namespace Biovation.Tools.UserAdapter
                     var adapter = new OleDbDataAdapter("SELECT * FROM [sheet1$]", connectionString);
                     adapter.Fill(dataSet, "UserCodeMappings");
                     var data = dataSet.Tables["UserCodeMappings"];
+                    _userCodeMappings.Clear();
+
                     foreach (DataRow row in data.Rows)
                     {
                         var parseResult = uint.TryParse(row["OldUserCardNumber"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture,
@@ -170,7 +172,8 @@ namespace Biovation.Tools.UserAdapter
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
                 restRequest.AddJsonBody(_userCodeMappings);
-                
+                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEwIiwidW5pcXVlSWQiOiIxMCIsImp0aSI6IjJmYTQ2MWVhLWFmNmItNDM5YS1iMGM0LTI1YjRjMjlmN2UwZSIsImV4cCI6MTYwNjg3Njg2OH0.EYjARK-XL5a4xH4o9oaR0Sd0UQiEyPk5yMl7isFbaQ0");
+
                 var result = _restClient.Execute<ResultViewModel>(restRequest);
 
                 if (result.IsSuccessful && result.StatusCode == HttpStatusCode.OK)
