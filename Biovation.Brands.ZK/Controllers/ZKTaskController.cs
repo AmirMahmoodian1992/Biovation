@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.ZK.Manager;
 using Biovation.Domain;
@@ -9,19 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.ZK.Controllers
 {
-    public class ZKTaskController
+    public class ZkTaskController
     {
         private readonly TaskManager _taskManager;
 
-        public ZKTaskController(TaskManager taskManager)
+        public ZkTaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }
 
-
-        [HttpGet]
+        [HttpPost]
         [AllowAnonymous]
-        public Task<ResultViewModel> ManualActivationProcessQueue()
+        [Route("[Action]")]
+        public Task<ResultViewModel> RunProcessQueue()
         {
             return Task.Run(() =>
             {

@@ -18,9 +18,10 @@ namespace Biovation.Brands.EOS.Controllers
             _taskManager = taskManager;
         }
 
-        [HttpGet]
+        [HttpPost]
         [AllowAnonymous]
-        public Task<ResultViewModel> ManualActivationProcessQueue()
+        [Route("[Action]")]
+        public Task<ResultViewModel> RunProcessQueue()
         {
             return Task.Run(() =>
             {
