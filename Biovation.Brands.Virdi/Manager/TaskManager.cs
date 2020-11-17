@@ -299,6 +299,9 @@ namespace Biovation.Brands.Virdi.Manager
 
                     _taskService.UpdateTaskStatus(taskItem);
                 });
+
+                if (taskItem.IsParallelRestricted)
+                    executeTask?.Wait();
             }
         }
 
