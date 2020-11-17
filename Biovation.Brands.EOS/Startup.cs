@@ -71,6 +71,7 @@ namespace Biovation.Brands.EOS
             services.AddHealthChecks();
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 

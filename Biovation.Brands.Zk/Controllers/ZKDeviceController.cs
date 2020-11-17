@@ -390,8 +390,8 @@ namespace Biovation.Brands.ZK.Controllers
             });
         }
         [HttpGet]
-        [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
+        [Authorize] 
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate)
         {
             /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                 new List<object> { code });
@@ -424,7 +424,7 @@ namespace Biovation.Brands.ZK.Controllers
                     Priority = _taskPriorities.Medium,
 
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new { deviceId }),
+                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
@@ -478,5 +478,6 @@ namespace Biovation.Brands.ZK.Controllers
 
             return resultList;
         }
+
     }
 }

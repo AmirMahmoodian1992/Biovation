@@ -203,7 +203,13 @@ namespace Biovation.Brands.EOS.Devices
                     UserName = terminalUserData.UserName,
                     Password = terminalUserData.Password,
                     Code = terminalUserData.Id,
-                    IsAdmin = terminalUserData.Privilege == 1
+                    IsActive = true,
+                    // UniqueId = (- long.Parse(terminalUserData.PersonalNumber)),
+                    IsAdmin = terminalUserData.Privilege == 1,
+                    SurName = terminalUserData.UserName?.Split(' ').LastOrDefault(),
+                    FirstName = terminalUserData.UserName?.Split(' ').FirstOrDefault(),
+                    StartDate = DateTime.Parse("1970/01/01"),
+                    EndDate = DateTime.Parse("2050/01/01")
                 };
 
                 var parseResult = long.TryParse(terminalUserData.PersonalNumber, NumberStyles.Number, CultureInfo.InvariantCulture, out var uniqueId);
@@ -301,7 +307,7 @@ namespace Biovation.Brands.EOS.Devices
                     UserName = user.UserName,
                     Id = user.Code,
                     //PersonalNumber = (-user.UniqueId).ToString(),
-                    Privilege = 1,
+                    Privilege = user.IsAdmin == true ? 1:0 ,
                     VerifyStyle = ZkVerifyStyle.FaceOrPasswordOrCard,
                 };
                 // pwd
@@ -317,16 +323,14 @@ namespace Biovation.Brands.EOS.Devices
                 try
                 {
 
-                    var userCards = _userCardService.GetCardsByFilter(user.Id, true)?.Data?.Data;
-                    if (userCards != null)
+
+                    var userCard = user.IdentityCard;
+                    if (userCard != null)
                     {
-                        var userCard = userCards.FirstOrDefault();
-                        if (userCard != null)
-                        {
-                            hasCard = true;
-                            transfereeUser.CardNumber = userCard.CardNum;
-                        }
+                        hasCard = true;
+                        transfereeUser.CardNumber = userCard.Number;
                     }
+
                     else
                     {
                         transfereeUser.CardNumber = "0Xffffffff";
@@ -411,7 +415,7 @@ namespace Biovation.Brands.EOS.Devices
             return false;
         }
 
-        public override List<User> GetAllUsers()
+        public override List<User> GetAllUsers(bool embedTemplate = false)
         {
             var usersList = new List<User>();
             try
@@ -428,48 +432,62 @@ namespace Biovation.Brands.EOS.Devices
                         Password = retrievedUser.Password,
                         Code = retrievedUser.Id,
                         // UniqueId = (- long.Parse(user.PersonalNumber)),
-                        IsAdmin = retrievedUser.Privilege == 1
+                        IsAdmin = retrievedUser.Privilege == 1,
+                        IsActive = true,
+                        // UniqueId = (- long.Parse(terminalUserData.PersonalNumber)),
+                        SurName = retrievedUser.UserName?.Split(' ').LastOrDefault(),
+                        FirstName = retrievedUser.UserName?.Split(' ').FirstOrDefault(),
+                        StartDate = DateTime.Parse("1970/01/01"),
+                        EndDate = DateTime.Parse("2050/01/01")
                     };
 
-                    if (!(retrievedUser.CardNumber is null || string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)))
+                    if (embedTemplate)
                     {
-                        user.IdentityCard = new IdentityCard
-                        {
-                            Id = (int)retrievedUser.Id,
-                            Number = retrievedUser.CardNumber,
-                            DataCheck = 0,
-                            IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)
-                        };
-                    }
 
-                    //Face
-                    try
-                    {
-                        user.FaceTemplates ??= new List<FaceTemplate>();
-                        var faceData = retrievedUser.FaceData.SelectMany(s =>
+
+                        if (!(retrievedUser.CardNumber is null || string.Equals(retrievedUser.CardNumber, "0xffffffff",
+                            StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            user.IdentityCard = new IdentityCard
+                            {
+                                Id = (int)retrievedUser.Id,
+                                Number = retrievedUser.CardNumber,
+                                DataCheck = 0,
+                                IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff",
+                                    StringComparison.InvariantCultureIgnoreCase)
+                            };
+                        }
+
+                        //Face
+                        try
+                        {
+                            user.FaceTemplates ??= new List<FaceTemplate>();
+                            var faceData = retrievedUser.FaceData.SelectMany(s =>
                                 Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
-                        var faceTemplate = new FaceTemplate
-                        {
-                            Index = 1,
-                            FaceTemplateType = _faceTemplateTypes.EOSHanvon,
-                            UserId = retrievedUser.Id,
-                            Template = faceData,
-                            CheckSum = faceData.Sum(x => x),
-                            Size = faceData.Length
-                        };
+                            var faceTemplate = new FaceTemplate
+                            {
+                                Index = 1,
+                                FaceTemplateType = _faceTemplateTypes.EOSHanvon,
+                                UserId = retrievedUser.Id,
+                                Template = faceData,
+                                CheckSum = faceData.Sum(x => x),
+                                Size = faceData.Length
+                            };
 
-                        user.FaceTemplates.Add(faceTemplate);
+                            user.FaceTemplates.Add(faceTemplate);
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        Logger.Log(e);
-                    }
+
                     usersList.Add(user);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //ignore
+                Logger.Log((e));
             }
 
             return usersList;

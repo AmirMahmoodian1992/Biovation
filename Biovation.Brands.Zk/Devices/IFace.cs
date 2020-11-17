@@ -126,7 +126,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 for (var i = 0; i <= 9; i++)
                                 {
-                                    if (!ZkTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), i,
+                                    if (!ZkTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Code.ToString(), i,
                                         out _, out var tempData, out var tempLength))
                                     {
                                         Thread.Sleep(50);
@@ -274,7 +274,7 @@ namespace Biovation.Brands.ZK.Devices
                 }
 
                 var name = user.FirstName + " " + user.SurName;
-                if (ZKTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
+                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
                     Logger.Log($"UserId {user.Id} successfully added to DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
@@ -289,7 +289,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 for (var i = 0; i < 9; i++)
                                 {
-                                    if (ZkTecoSdk.SetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), finger.Index,
+                                    if (ZkTecoSdk.SetUserTmpExStr((int)DeviceInfo.Code, user.Code.ToString(), finger.Index,
                                         1,
                                         Encoding.ASCII.GetString(finger.Template)))
                                     {
@@ -314,7 +314,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 for (var i = 0; i < 9; i++)
                                 {
-                                    if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Id.ToString(), 50,
+                                    if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
                                         Encoding.ASCII.GetString(face.Template), face.Size))
                                     {
                                         //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
@@ -336,7 +336,7 @@ namespace Biovation.Brands.ZK.Devices
                         var validAccessGroup =
                             userAccessGroups.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
-                        if (ZkTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Id,
+                        if (ZkTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Code,
                             validAccessGroup?.Id ?? 1))
                         {
                             ZkTecoSdk.RefreshData((int)DeviceInfo.Code);

@@ -1,4 +1,4 @@
-﻿using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -27,7 +29,13 @@ namespace Biovation.Server.Controllers.v2
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
-        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _userService = userService;
@@ -35,13 +43,18 @@ namespace Biovation.Server.Controllers.v2
             _lookups = lookups;
             _restClient = restClient;
             _userCardService = userCardService;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
 
 
         [HttpGet]
         [Route("{id:int}")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -49,7 +62,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
@@ -80,7 +93,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPut]
-        [Attribute.Authorize]
+        [Authorize]
         //[Route("ModifyDeviceInfo")]
         public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
@@ -101,7 +114,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -109,7 +122,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteDevice([FromRoute] uint id = default)
         {
@@ -118,7 +131,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RetrieveLogs")]
         public Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, string fromDate, string toDate)
         {
@@ -164,7 +177,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("RetrieveLogs")]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
@@ -221,7 +234,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/ClearLogs")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel> ClearLogOfDevice(int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -229,34 +242,34 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
-                        var device = _deviceService.GetDevice(id, token: token)?.Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {id} does not exist.");
-                            return new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
-                        }
+                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    if (device == null)
+                    {
+                        Logger.Log($"DeviceId {id} does not exist.");
+                        return new ResultViewModel
+                        { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                    }
 
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
+                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                    restRequest.AddQueryParameter("code", device.Code.ToString());
+                    restRequest.AddQueryParameter("fromDate", fromDate);
+                    restRequest.AddQueryParameter("toDate", toDate);
 
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
-                            return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                        return restResult.Data;
+                    var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
+                        return new ResultViewModel { Validate = 0, Message = "error", Id = id };
+                    return restResult.Data;
                 }
                 catch (Exception)
                 {
-                    return new ResultViewModel { Validate = 0, Message = "error", Id = id};
+                    return new ResultViewModel { Validate = 0, Message = "error", Id = id };
                 }
             });
         }
 
         [HttpPost]
         [Route("ClearLogsOfDevices")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -304,7 +317,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -313,8 +326,8 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{Id}/cardNumber")]
-        [Attribute.Authorize]
-        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute]int id = default)
+        [Authorize]
+        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _userCardService.ReadCardNumber(id, token));
@@ -358,7 +371,7 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RetrieveUsers")]
         public Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userId = default)
         {
@@ -387,7 +400,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/FetchUsersList")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -427,7 +440,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RemoveUser/{userId}")]
         public Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
         {
@@ -615,6 +628,100 @@ namespace Biovation.Server.Controllers.v2
         //    });
         //}
 
+        [HttpPost]
+        [Authorize]
+        //[AllowAnonymous]
+        [Route("{id}/UserAdaptation")]
+        public Task<ResultViewModel> UserAdaptation([FromRoute] int id, [FromBody] object equivalentCodesObject)
+        {
+            var token = (string)HttpContext.Items["Token"];
+            var creatorUser = HttpContext.GetUser();
 
+            return Task.Run(() =>
+            {
+                var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
+                var equivalentCodes = JsonConvert.DeserializeObject<Dictionary<uint, uint>>(serializedEquivalentCodes);
+
+                var device = _deviceService.GetDevice(id).Data;
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddQueryParameter("embedTemplate", true.ToString());
+                restRequest.AddHeader("Authorization", token);
+
+                var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).Result?.Data?.Data;
+                if (userList is null)
+                    return new ResultViewModel { Success = false, Message = "The device is offline" };
+
+                foreach (var userCode in equivalentCodes.Keys)
+                {
+                    if (userList.All(user => user.Code != userCode)) continue;
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { userCode }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+
+                    _taskService.InsertTask(task);
+
+
+                    task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+
+                    var correctedUser = userList.First(x => x.Code == userCode);
+                    correctedUser.Code = equivalentCodes[userCode];
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendUser,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = id,
+                        Data = JsonConvert.SerializeObject(correctedUser),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+
+                    _taskService.InsertTask(task);
+                }
+
+
+                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                //restRequest.AddHeader("Authorization", token ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyIjoie1wiSWRcIjoxLFwiQ29kZVwiOjEyMzQ1Njc4OSxcIlVuaXF1ZUlkXCI6MTIzNDU2Nzg5LFwiVXNlck5hbWVcIjpcIkFkbWluXCIsXCJSZWdpc3RlckRhdGVcIjpcIjIwMjAtMTAtMjFUMTY6Mjk6MDBcIixcIkRlcGFydG1lbnROYW1lXCI6bnVsbCxcIlRlbE51bWJlclwiOm51bGwsXCJJbWFnZUJ5dGVzXCI6bnVsbCxcIkltYWdlXCI6bnVsbCxcIkZpcnN0TmFtZVwiOlwiQWRtaW5cIixcIlN1ck5hbWVcIjpcIkFkbWluaXN0cmF0b3JcIixcIkZ1bGxOYW1lXCI6XCIxX0FkbWluIEFkbWluaXN0cmF0b3JcIixcIlBhc3N3b3JkXCI6bnVsbCxcIlBhc3N3b3JkQnl0ZXNcIjpudWxsLFwiU3RhcnREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJFbmREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJBZG1pbkxldmVsXCI6MCxcIkF1dGhNb2RlXCI6MCxcIkVtYWlsXCI6bnVsbCxcIlR5cGVcIjoxLFwiRW50aXR5SWRcIjoxLFwiSXNBY3RpdmVcIjp0cnVlLFwiSXNBZG1pblwiOmZhbHNlLFwiUmVtYWluaW5nQ3JlZGl0XCI6MC4wLFwiQWxsb3dlZFN0b2NrQ291bnRcIjowLFwiRmluZ2VyVGVtcGxhdGVzXCI6W10sXCJGYWNlVGVtcGxhdGVzXCI6W10sXCJJZGVudGl0eUNhcmRcIjpudWxsfSIsImp0aSI6ImY4MWFiMzU5LTZlMjktNDVkZS1iZDNhLWFkNTEyMGRiMDFiNiIsImV4cCI6MTYzNTA3NDc4OH0.afI4VecgU50cQRhRwzae1JIVPlBd8wJpSsPt_aN-y44");
+
+                _restClient.Execute<ResultViewModel>(restRequest);
+
+                return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
+            });
+        }
     }
 }

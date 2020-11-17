@@ -6,6 +6,7 @@ using Biovation.Service.Api.v2;
 using EosClocks;
 using RestSharp;
 using System.Collections.Generic;
+using Serilog;
 using Biovation.CommonClasses.Manager;
 
 namespace Biovation.Brands.EOS.Devices
@@ -17,6 +18,7 @@ namespace Biovation.Brands.EOS.Devices
     {
         private readonly EosLogService _eosLogService;
 
+        private readonly ILogger _logger;
         private readonly LogEvents _logEvents;
         private readonly TaskTypes _taskTypes;
         private readonly RestClient _restClient;
@@ -53,7 +55,7 @@ namespace Biovation.Brands.EOS.Devices
         public const int StEco210 = 2010;
         public const int StP220 = 2011;
 
-        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, TaskManager taskManager, Dictionary<uint, Device> onlineDevices, TaskService taskService, UserService userService, DeviceService deviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, BiovationConfigurationManager biovationConfigurationManager, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes)
+        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, TaskManager taskManager, Dictionary<uint, Device> onlineDevices, TaskService taskService, UserService userService, DeviceService deviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, BiovationConfigurationManager biovationConfigurationManager, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, ILogger logger)
         {
             _logEvents = logEvents;
             _restClient = restClient;
@@ -71,6 +73,7 @@ namespace Biovation.Brands.EOS.Devices
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
             _matchingTypes = matchingTypes;
+            _logger = logger;
             _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
             _eosCodeMappings = eosCodeMappings;
@@ -104,12 +107,12 @@ namespace Biovation.Brands.EOS.Devices
 
                 case StShineL:
                     {
-                        return new StShineDevice(ProtocolType.Hdlc, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices);
+                        return new StShineDevice(ProtocolType.Hdlc, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices, _logger);
                     }
 
                 case StShineM:
                     {
-                        return new StShineDevice(ProtocolType.Zk, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices);
+                        return new StShineDevice(ProtocolType.Zk, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices, _logger);
                     }
 
                 case StFace120:
