@@ -755,7 +755,7 @@ namespace Biovation.Brands.EOS.Devices
                         isConnectToSensor = _clock.ConnectToSensor();
                     }
 
-                    if (user.FingerTemplates.Count <= 0) return true;
+                    if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
                         _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Check_Finger);
@@ -907,9 +907,11 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_clock)
             {
+                var isConnectToSensor = false;
+
                 try
                 {
-                    var isConnectToSensor = _clock.ConnectToSensor();
+                    isConnectToSensor = _clock.ConnectToSensor();
 
                     for (var i = 0; i < 5; i++)
                     {
@@ -1000,7 +1002,8 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     try
                     {
-                        _clock.DisconnectFromSensor();
+                        if (isConnectToSensor)
+                            _clock.DisconnectFromSensor();
                     }
                     catch (Exception exception)
                     {

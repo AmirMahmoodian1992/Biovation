@@ -452,6 +452,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     //_clock.Sensor.DeleteByID(userId);
 
+                    _clock.DisconnectFromSensor();
                     _clock.DeleteUser(userCode);
                     return true;
                 }
@@ -472,8 +473,11 @@ namespace Biovation.Brands.EOS.Devices
         {
             lock (_clock)
             {
+                var isConnectToSensor = false;
                 try
                 {
+                    if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
+
                     bool addUserResult;
                     try
                     {
@@ -500,7 +504,7 @@ namespace Biovation.Brands.EOS.Devices
                     if (!addUserResult)
                         return false;
 
-                    var isConnectToSensor = _clock.ConnectToSensor();
+                    isConnectToSensor = _clock.ConnectToSensor();
 
                     for (var i = 0; i < 5; i++)
                     {
@@ -511,7 +515,6 @@ namespace Biovation.Brands.EOS.Devices
                         isConnectToSensor = _clock.ConnectToSensor();
                     }
 
-                    if (user.FingerTemplates.Count <= 0) return true;
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
                         _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Check_Finger);
@@ -527,7 +530,8 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     try
                     {
-                        _clock.DisconnectFromSensor();
+                        if (isConnectToSensor)
+                            _clock.DisconnectFromSensor();
                     }
                     catch (Exception exception)
                     {
@@ -663,6 +667,7 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_clock)
             {
+                var isConnectToSensor = false;
                 try
                 {
                     var users = _clock.GetUserList();
@@ -671,7 +676,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (embedTemplates)
                     {
-                        var isConnectToSensor = _clock.ConnectToSensor();
+                        isConnectToSensor = _clock.ConnectToSensor();
 
                         for (var i = 0; i < 5; i++)
                         {
@@ -756,7 +761,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     try
                     {
-                        if (embedTemplates)
+                        if (embedTemplates && isConnectToSensor)
                             _clock.DisconnectFromSensor();
                     }
                     catch (Exception exception)

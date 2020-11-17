@@ -54,10 +54,42 @@ namespace Biovation.Brands.Eos.Commands
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            var parseResult = uint.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["userId"].ToString() ?? "0", out var userId);
 
-            if (!parseResult || userId == 0)
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
+            User user;
+            var taskData = JsonConvert.DeserializeObject<JObject>(TaskItem.Data);
+            if (taskData.ContainsKey("userId"))
+            {
+                var parseResult = uint.TryParse(taskData["userId"].ToString() ?? "0", out var userId);
+
+                if (!parseResult || userId == 0)
+                    return new ResultViewModel
+                    {
+                        Id = TaskItem.Id,
+                        Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                        Message =
+                            $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}",
+                        Validate = 0
+                    };
+                user = _userService.GetUsers(userId: userId, getTemplatesData: true)?.Data?.Data.FirstOrDefault();
+
+                if (user == null)
+                {
+                    Logger.Log($"User {userId} does not exist.");
+                    return new ResultViewModel { Validate = 0, Id = TaskItem.Id, Message = $"User {userId} does not exist.", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                }
+            }
+            else
+            {
+                try
+                {
+                    user = JsonConvert.DeserializeObject<User>(TaskItem.Data);
+                }
+                catch (Exception)
+                {
+                    Logger.Log($"Bad user data in task item {TaskItem.Id}.");
+                    return new ResultViewModel { Validate = 0, Id = TaskItem.Id, Message = $"Bad user data in task item {TaskItem.Id}.", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                }
+            }
 
             var device = _deviceService.GetDevice(deviceId)?.Data;
             if (device is null)
@@ -66,13 +98,6 @@ namespace Biovation.Brands.Eos.Commands
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
-            var user = _userService.GetUsers(userId: userId, getTemplatesData: true)?.Data?.Data.FirstOrDefault();
-
-            if (user == null)
-            {
-                Logger.Log($"User {userId} does not exist.");
-                return new ResultViewModel { Validate = 0, Id = TaskItem.Id, Message = $"User {userId} does not exist.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
-            }
 
             try
             {
