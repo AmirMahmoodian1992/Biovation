@@ -758,7 +758,7 @@ namespace Biovation.Brands.EOS.Devices
                     if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
-                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Check_Finger);
+                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Continue);
                     }
 
                     return true;
@@ -853,6 +853,9 @@ namespace Biovation.Brands.EOS.Devices
                         };
 
                         retrievedUser.FingerTemplates.Add(fingerTemplate);
+
+                        if (fingerTemplates.Count <= i + 1)
+                            continue;
 
                         var secondTemplateBytes = fingerTemplates[i + 1];
 
@@ -971,6 +974,9 @@ namespace Biovation.Brands.EOS.Devices
 
                                 user.FingerTemplates.Add(fingerTemplate);
 
+                                if (fingerTemplates.Count <= i + 1)
+                                    continue; 
+                                
                                 var secondTemplateBytes = fingerTemplates[i + 1];
 
                                 var secondFingerTemplateSample = new FingerTemplate

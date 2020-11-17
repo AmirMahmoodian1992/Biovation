@@ -6,6 +6,7 @@ using Biovation.Service.Api.v2;
 using EosClocks;
 using RestSharp;
 using System.Collections.Generic;
+using Serilog;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -17,6 +18,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly EosLogService _eosLogService;
 
         private readonly RestClient _restClient;
+        private readonly ILogger _logger;
         private readonly LogEvents _logEvents;
         private readonly TaskManager _taskManager;
         private readonly LogSubEvents _logSubEvents;
@@ -39,12 +41,13 @@ namespace Biovation.Brands.EOS.Devices
         public const int StEco210 = 2010;
         public const int StP220 = 2011;
 
-        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, TaskManager taskManager, Dictionary<uint, Device> onlineDevices)
+        public DeviceFactory(EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, TaskManager taskManager, Dictionary<uint, Device> onlineDevices, ILogger logger)
         {
             _logEvents = logEvents;
             _restClient = restClient;
             _taskManager = taskManager;
             _onlineDevices = onlineDevices;
+            _logger = logger;
             _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
             _eosCodeMappings = eosCodeMappings;
@@ -78,12 +81,12 @@ namespace Biovation.Brands.EOS.Devices
 
                 case StShineL:
                     {
-                        return new StShineDevice(ProtocolType.Hdlc, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices);
+                        return new StShineDevice(ProtocolType.Hdlc, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices, _logger);
                     }
 
                 case StShineM:
                     {
-                        return new StShineDevice(ProtocolType.Zk, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices);
+                        return new StShineDevice(ProtocolType.Zk, device, _eosLogService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices, _logger);
                     }
 
                 case StFace120:

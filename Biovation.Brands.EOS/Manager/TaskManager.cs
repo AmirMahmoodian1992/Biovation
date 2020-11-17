@@ -3,6 +3,7 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -17,39 +18,42 @@ namespace Biovation.Brands.EOS.Manager
         private readonly TaskStatuses _taskStatuses;
         private readonly CommandFactory _commandFactory;
 
+        private readonly ILogger<TaskManager> _logger;
         private List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
-        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
+        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, ILogger<TaskManager> logger)
         {
+            _logger = logger;
             _taskService = taskService;
-            _commandFactory = commandFactory;
             _taskStatuses = taskStatuses;
+            _commandFactory = commandFactory;
         }
 
         public void ExecuteTask(TaskInfo taskInfo)
         {
+            _logger.LogDebug("Processing of the Task (Id:{taskId}, Type:{taskType}) Started With Task Items:", taskInfo.Id, taskInfo.TaskType.Name);
+
             foreach (var taskItem in taskInfo.TaskItems)
             {
                 if (taskItem.Status.Code == TaskStatuses.FailedCode || taskItem.Status.Code == TaskStatuses.DoneCode || taskItem.Status.Code == TaskStatuses.InProgressCode)
                     continue;
+
+                _logger.LogDebug("  - Task Item: (Id:{taskItemId}, Type:{taskItemType} For Device:{deviceId}, Data:({taskItemData}))", taskItem.Id, taskItem.TaskItemType.Name, taskItem.DeviceId, taskItem.Data);
 
                 Task executeTask = null;
                 ResultViewModel result = null;
 
                 switch (taskItem.TaskItemType.Code)
                 {
-
                     case TaskItemTypes.GetLogsCode:
                         {
                             try
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    /*result = (ResultViewModel)CommandFactory.Factory(CommandType.SendUsers,
-                                        new List<object> { taskItem.Id, taskItem.DeviceId }).Execute();*/
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
-                                        new List<object> { taskItem }).Execute();
+                                         new List<object> { taskItem }).Execute();
                                 });
                                 taskItem.ExecutionAt = DateTime.Now;
                             }
@@ -284,22 +288,23 @@ namespace Biovation.Brands.EOS.Manager
                             catch (Exception exception)
                             {
                                 Logger.Log(exception);
-
                             }
 
                             break;
                         }
                 }
 
-
                 executeTask?.ContinueWith(task =>
                 {
+                    _logger.LogDebug("Processing of the Task Item (Id:{taskItemId}, Type:{taskItemType}) Finished With Result: (Success:{taskItemResultSuccess}, Code:{taskItemResultCode}, Message:{taskItemResultMessage})", taskItem.Id, taskItem.TaskItemType.Name, result?.Success, result?.Code, result?.Message);
                     if (result is null) return;
                     taskItem.Result = JsonConvert.SerializeObject(result);
                     taskItem.Status = _taskStatuses.GetTaskStatusByCode(result.Code.ToString());
 
                     _taskService.UpdateTaskStatus(taskItem);
                 });
+
+                executeTask?.Wait();
             }
         }
 

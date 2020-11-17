@@ -1,19 +1,19 @@
 ﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Service;
-using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using EosClocks;
+using MoreLinq;
+using Newtonsoft.Json;
+using RestSharp;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MoreLinq;
-using Newtonsoft.Json;
-using RestSharp;
-using Logger = Biovation.CommonClasses.Logger;
+using Log = Biovation.Domain.Log;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -29,6 +29,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly ProtocolType _protocolType;
         private readonly object _clockInstantiationLock = new object();
 
+        private readonly ILogger _logger;
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly EosLogService _eosLogService;
 
@@ -41,7 +42,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices)
+        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
             _valid = true;
@@ -56,6 +57,9 @@ namespace Biovation.Brands.EOS.Devices
             _eosCodeMappings = eosCodeMappings;
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
+
+            _logger = logger;
+            _logger.ForContext<StShineDevice>();
         }
 
 
@@ -111,7 +115,7 @@ namespace Biovation.Brands.EOS.Devices
             }
             catch (Exception exception)
             {
-                Logger.Log(exception);
+                _logger.Debug(exception, exception.Message);
                 Thread.Sleep(500);
                 try
                 {
@@ -121,7 +125,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
                 catch (Exception innerException)
                 {
-                    Logger.Log(innerException);
+                    _logger.Debug(innerException, innerException.Message);
                 }
             }
 
@@ -143,21 +147,21 @@ namespace Biovation.Brands.EOS.Devices
             lock (_clock)
                 if (_clock.TestConnection())
                 {
-                    Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
+                    _logger.Information("Successfully connected to device {deviceCode} --> IP: {deviceIpAddress}", _deviceInfo.Code, _deviceInfo.IpAddress);
                     return true;
                 }
 
             while (true)
             {
-                Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
+                _logger.Debug("Could not connect to device {deviceCode} --> IP: {deviceIpAddress}", _deviceInfo.Code, _deviceInfo.IpAddress);
 
                 Thread.Sleep(10000);
-                Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
+                _logger.Debug("Retrying connect to device {deviceCode} --> IP: {deviceIpAddress}", _deviceInfo.Code, _deviceInfo.IpAddress);
 
                 lock (_clock)
                     if (_clock.TestConnection())
                     {
-                        Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
+                        _logger.Information("Successfully connected to device {deviceCode} --> IP: {deviceIpAddress}", _deviceInfo.Code, _deviceInfo.IpAddress);
                         return true;
                     }
             }
@@ -172,7 +176,7 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_clock)
                     eosDeviceType = _clock.GetModel();
 
-                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+                _logger.Debug($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
 
                 bool deviceConnected;
 
@@ -217,7 +221,7 @@ namespace Biovation.Brands.EOS.Devices
                                             var badRecordRawData = ex.Data["RecordRawData"].ToString();
                                             if (ex is InvalidDataInRecordException)
                                             {
-                                                Logger.Log("Clock " + _deviceInfo.Code + ": " + "Bad record: " + badRecordRawData);
+                                                _logger.Debug("Clock " + _deviceInfo.Code + ": " + "Bad record: " + badRecordRawData);
                                             }
 
                                             if (badRecordRawData != "")
@@ -248,14 +252,14 @@ namespace Biovation.Brands.EOS.Devices
                                                     //var logService = new EOSLogService();
                                                     _eosLogService.AddLog(receivedLog);
                                                     test = false;
-                                                    Logger.Log($@"<--
+                                                    _logger.Information($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{userId}
-   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
+   +DateTime:{receivedLog.LogDateTime}");
                                                 }
                                                 catch (Exception)
                                                 {
-                                                    Logger.Log("Error in parsing bad record.");
+                                                    _logger.Debug("Error in parsing bad record.");
                                                 }
                                             }
 
@@ -271,12 +275,12 @@ namespace Biovation.Brands.EOS.Devices
                                             if (ex is InvalidRecordException)
                                                 exceptionTester = true;
                                             else
-                                                Logger.Log(ex, "Clock " + _deviceInfo.Code);
+                                                _logger.Debug(ex, "Clock " + _deviceInfo.Code);
                                         }
                                     }
                                     catch (Exception exception)
                                     {
-                                        Logger.Log(exception, "Clock " + _deviceInfo.Code);
+                                        _logger.Debug(exception, "Clock " + _deviceInfo.Code);
                                     }
                                 }
 
@@ -298,10 +302,10 @@ namespace Biovation.Brands.EOS.Devices
 
                                         _eosLogService.AddLog(receivedLog);
                                         test = false;
-                                        Logger.Log($@"<--
+                                        _logger.Information($@"<--
    +TerminalID:{_deviceInfo.Code}
    +UserID:{receivedLog.UserId}
-   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
+   +DateTime:{receivedLog.LogDateTime}");
 
                                         lock (_clock)
                                             _clock.NextRecord();
@@ -311,13 +315,13 @@ namespace Biovation.Brands.EOS.Devices
                                     {
                                         if (!exceptionTester)
                                         {
-                                            Logger.Log("Null record.");
+                                            _logger.Debug("Null record.");
                                         }
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
+                                    _logger.Debug(ex, "Clock " + _deviceInfo.Code + ": " +
                                         "Error while Inserting Data to Attendance . record: " + record);
                                 }
                             }
@@ -330,7 +334,7 @@ namespace Biovation.Brands.EOS.Devices
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
+                        _logger.Debug(exception, exception.Message);
                     }
 
                     lock (_clock)
@@ -349,10 +353,10 @@ namespace Biovation.Brands.EOS.Devices
 
             catch (Exception ex)
             {
-                Logger.Log(ex, "Clock " + _deviceInfo.Code);
+                _logger.Debug(ex, "Clock " + _deviceInfo.Code);
             }
 
-            Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
+            _logger.Debug("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
             //}
 
 
@@ -391,20 +395,11 @@ namespace Biovation.Brands.EOS.Devices
             {
                 try
                 {
-                    var isConnectToSensor = _clock.ConnectToSensor();
-
-                    for (var i = 0; i < 5; i++)
-                    {
-                        if (isConnectToSensor)
-                            break;
-
-                        Thread.Sleep(500);
-                        isConnectToSensor = _clock.ConnectToSensor();
-                    }
+                    var isConnectToSensor = ConnectToSensor();
 
                     if (!isConnectToSensor)
                     {
-                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        _logger.Debug($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
                         return false;
                     }
 
@@ -416,31 +411,31 @@ namespace Biovation.Brands.EOS.Devices
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
-                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        _logger.Debug(exception, exception.Message);
+                        _logger.Debug($"User {userId} may not be on device {_deviceInfo.DeviceId}");
                         try
                         {
-                            _clock.DisconnectFromSensor();
+                            DisconnectFromSensor();
                             _clock.DeleteUser(userCode);
                         }
                         catch (Exception innerException)
                         {
-                            Logger.Log(innerException);
+                            _logger.Debug(innerException, innerException.Message);
                         }
                         return true;
                     }
 
                     if (userFingerTemplates == null)
                     {
-                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        _logger.Debug($"User {userId} may not be on device {_deviceInfo.DeviceId}");
                         try
                         {
-                            _clock.DisconnectFromSensor();
+                            DisconnectFromSensor();
                             _clock.DeleteUser(userCode);
                         }
                         catch (Exception innerException)
                         {
-                            Logger.Log(innerException);
+                            _logger.Debug(innerException, innerException.Message);
                         }
                         return true;
                     }
@@ -452,13 +447,13 @@ namespace Biovation.Brands.EOS.Devices
 
                     //_clock.Sensor.DeleteByID(userId);
 
-                    _clock.DisconnectFromSensor();
+                    DisconnectFromSensor();
                     _clock.DeleteUser(userCode);
                     return true;
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log(exception);
+                    _logger.Debug(exception, exception.Message);
                 }
                 //finally
                 //{
@@ -497,45 +492,60 @@ namespace Biovation.Brands.EOS.Devices
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
+                        _logger.Debug(exception, exception.Message);
                         return false;
                     }
 
                     if (!addUserResult)
                         return false;
 
-                    isConnectToSensor = _clock.ConnectToSensor();
+                    isConnectToSensor = ConnectToSensor();
 
-                    for (var i = 0; i < 5; i++)
+                    if (!isConnectToSensor)
                     {
-                        if (isConnectToSensor)
-                            break;
-
-                        Thread.Sleep(500);
-                        isConnectToSensor = _clock.ConnectToSensor();
+                        _logger.Debug($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        return false;
                     }
 
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
-                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Check_Finger);
+                        var successfullyEnrolled = false;
+                        for (var i = 0; i < 5; i++)
+                        {
+                            if (successfullyEnrolled)
+                                break;
+
+                            try
+                            {
+                                Thread.Sleep((i + 1) * 100);
+                                _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Continue);
+                                successfullyEnrolled = true;
+                            }
+                            catch (Exception innerException)
+                            {
+                                _logger.Debug(innerException, innerException.Message);
+                            }
+                        }
                     }
 
                     return true;
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log(exception);
+                    _logger.Debug(exception, exception.Message);
                 }
                 finally
                 {
                     try
                     {
                         if (isConnectToSensor)
-                            _clock.DisconnectFromSensor();
+                        {
+                            DisconnectFromSensor();
+                        }
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
+                        _logger.Debug(exception, exception.Message);
                     }
                 }
             }
@@ -549,20 +559,11 @@ namespace Biovation.Brands.EOS.Devices
             {
                 try
                 {
-                    var isConnectToSensor = _clock.ConnectToSensor();
-
-                    for (var i = 0; i < 5; i++)
-                    {
-                        if (isConnectToSensor)
-                            break;
-
-                        Thread.Sleep(500);
-                        isConnectToSensor = _clock.ConnectToSensor();
-                    }
+                    var isConnectToSensor = ConnectToSensor();
 
                     if (!isConnectToSensor)
                     {
-                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        _logger.Debug($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
                         return new User();
                     }
 
@@ -577,8 +578,8 @@ namespace Biovation.Brands.EOS.Devices
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
-                        Logger.Log($"Error in retrieving user {userId} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                        _logger.Debug(exception, exception.Message);
+                        _logger.Debug($"Error in retrieving user {userId} from device {_deviceInfo.DeviceId}, user may be not available on device.");
                         return null;
                     }
 
@@ -614,6 +615,9 @@ namespace Biovation.Brands.EOS.Devices
 
                         retrievedUser.FingerTemplates.Add(fingerTemplate);
 
+                        if (fingerTemplates.Count <= i + 1)
+                            continue;
+
                         var secondTemplateBytes = fingerTemplates[i + 1];
 
                         var secondFingerTemplateSample = new FingerTemplate
@@ -643,18 +647,18 @@ namespace Biovation.Brands.EOS.Devices
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log(exception);
+                    _logger.Debug(exception, exception.Message);
                     return null;
                 }
                 finally
                 {
                     try
                     {
-                        _clock.DisconnectFromSensor();
+                        DisconnectFromSensor();
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
+                        _logger.Debug(exception, exception.Message);
                     }
                 }
             }
@@ -663,6 +667,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public override List<User> GetAllUsers(bool embedTemplates = false)
         {
+            _logger.Information("Getting user list of device:{deviceId}, with embed templates option set to:{embedTemplatesToUserList}", _deviceInfo.DeviceId, embedTemplates);
             var usersList = new List<User>();
 
             lock (_clock)
@@ -674,28 +679,26 @@ namespace Biovation.Brands.EOS.Devices
                     usersList.AddRange(users.Select(userCode => new User { Code = userCode }));
                     usersList = usersList.DistinctBy(user => user.Code).ToList();
 
+                    _logger.Debug("Successfully fetched {deviceUserCount} users from device:{deviceId}", usersList.Count, _deviceInfo.DeviceId);
+
                     if (embedTemplates)
                     {
-                        isConnectToSensor = _clock.ConnectToSensor();
+                        _logger.Debug("Connecting to sensor of device:{deviceId}", _deviceInfo.DeviceId);
 
-                        for (var i = 0; i < 5; i++)
-                        {
-                            if (isConnectToSensor)
-                                break;
-
-                            Thread.Sleep(500);
-                            isConnectToSensor = _clock.ConnectToSensor();
-                        }
+                        isConnectToSensor = ConnectToSensor();
 
                         if (!isConnectToSensor)
                         {
-                            Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                            _logger.Debug($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
                             return usersList;
                         }
+
+                        _logger.Debug("Successfully connected to sensor of device:{deviceId}", _deviceInfo.DeviceId);
 
                         foreach (var user in usersList)
                         {
                             List<byte[]> fingerTemplates;
+                            _logger.Debug("Fetching user templates of user with code:{userCode} from device:{deviceId}", user.Code, _deviceInfo.DeviceId);
 
                             try
                             {
@@ -703,8 +706,8 @@ namespace Biovation.Brands.EOS.Devices
                             }
                             catch (Exception exception)
                             {
-                                Logger.Log(exception);
-                                Logger.Log($"Error in retrieving user {user.Code} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                                _logger.Debug(exception, exception.Message);
+                                _logger.Debug($"Error in retrieving user {user.Code} from device {_deviceInfo.DeviceId}, user may be not available on device.");
                                 continue;
                             }
 
@@ -730,6 +733,9 @@ namespace Biovation.Brands.EOS.Devices
 
                                 user.FingerTemplates.Add(fingerTemplate);
 
+                                if (fingerTemplates.Count <= i + 1)
+                                    continue;
+
                                 var secondTemplateBytes = fingerTemplates[i + 1];
 
                                 var secondFingerTemplateSample = new FingerTemplate
@@ -750,23 +756,27 @@ namespace Biovation.Brands.EOS.Devices
 
                                 user.FingerTemplates.Add(secondFingerTemplateSample);
                             }
+
+                            _logger.Debug("Successfully fetched {userTemplateCount} templates for user with code:{userCode} from device:{deviceId}", fingerTemplates.Count, user.Code, _deviceInfo.DeviceId);
                         }
                     }
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log(exception);
+                    _logger.Debug(exception, exception.Message);
                 }
                 finally
                 {
                     try
                     {
                         if (embedTemplates && isConnectToSensor)
-                            _clock.DisconnectFromSensor();
+                        {
+                            DisconnectFromSensor();
+                        }
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
+                        _logger.Debug(exception, exception.Message);
                     }
                 }
             }
@@ -780,23 +790,92 @@ namespace Biovation.Brands.EOS.Devices
             {
                 try
                 {
-                    _clock.ConnectToSensor();
+                    if (!ConnectToSensor()) return false;
                     _clock.Sensor.DeleteAllTemplates();
                     _clock.Sensor.DeleteAllUsers();
                     return true;
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log(exception);
+                    _logger.Debug(exception, exception.Message);
                 }
                 finally
                 {
-                    _clock.DisconnectFromSensor();
+                    DisconnectFromSensor();
                 }
             }
 
             return false;
+        }
 
+        private bool ConnectToSensor()
+        {
+            var isConnectToSensor = false;
+
+            try
+            {
+                isConnectToSensor = _clock.ConnectToSensor();
+            }
+            catch
+            {
+                //ignore
+            }
+
+            for (var i = 0; i < 5; i++)
+            {
+                if (isConnectToSensor)
+                    break;
+
+                Thread.Sleep(500);
+                try
+                {
+                    isConnectToSensor = _clock.ConnectToSensor();
+                }
+                catch
+                {
+                    //ignore
+                }
+            }
+
+            if (isConnectToSensor)
+                _logger.Debug("Successfully disconnected from sensor of device:{deviceId}", _deviceInfo.DeviceId);
+
+            return isConnectToSensor;
+        }
+
+        private void DisconnectFromSensor()
+        {
+            var disconnectedFromSensor = false;
+
+            try
+            {
+                disconnectedFromSensor = _clock.DisconnectFromSensor();
+            }
+            catch
+            {
+                //ignore
+            }
+
+            for (var i = 0; i < 5; i++)
+            {
+                if (disconnectedFromSensor)
+                    break;
+
+                Thread.Sleep((i + 1) * 100);
+                try
+                {
+                    disconnectedFromSensor = _clock.DisconnectFromSensor();
+                }
+                catch
+                {
+                    //ignore
+                }
+            }
+
+            _logger.Debug(
+                disconnectedFromSensor
+                    ? "Successfully disconnected from sensor of device:{deviceId}"
+                    : "Could not disconnect from sensor of device:{deviceId}", _deviceInfo.DeviceId);
         }
     }
 }
