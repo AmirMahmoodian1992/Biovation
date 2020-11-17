@@ -157,7 +157,7 @@ namespace Biovation.Tools.UserAdapter
             WindowState = FormWindowState.Minimized;
         }
 
-        private void StartProcessButton_Click(object sender, EventArgs e)
+        private async void StartProcessButton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -172,9 +172,9 @@ namespace Biovation.Tools.UserAdapter
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
                 restRequest.AddJsonBody(_userCodeMappings);
-                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEwIiwidW5pcXVlSWQiOiIxMCIsImp0aSI6IjJmYTQ2MWVhLWFmNmItNDM5YS1iMGM0LTI1YjRjMjlmN2UwZSIsImV4cCI6MTYwNjg3Njg2OH0.EYjARK-XL5a4xH4o9oaR0Sd0UQiEyPk5yMl7isFbaQ0");
+                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEyMzQ1Njc4OSIsInVuaXF1ZUlkIjoiMTIzNDU2Nzg5IiwianRpIjoiODJmM2UwYTEtYzNkYy00NjM3LWJjMGMtNWZhYzE3NGIwODY0IiwiZXhwIjoxNjA2OTIwOTIyfQ.VMxm2hb2qkle39JWtMxFaQHILh1d3NJapcx19dI-j48");
 
-                var result = _restClient.Execute<ResultViewModel>(restRequest);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 if (result.IsSuccessful && result.StatusCode == HttpStatusCode.OK)
                 {
