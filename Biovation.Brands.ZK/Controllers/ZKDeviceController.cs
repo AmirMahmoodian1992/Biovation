@@ -9,7 +9,6 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -479,5 +478,22 @@ namespace Biovation.Brands.ZK.Controllers
             return resultList;
         }
 
+        [HttpPost]
+        [Authorize]
+        [Route("{id:int}/DownloadAllUserPhotos")]
+        public ResultViewModel DownloadAllUserPhotos([FromRoute] int id)
+        {
+            var result = (ResultViewModel)_commandFactory.Factory(CommandType.DownloadUserPhotos, new List<object> { id })?.Execute();
+            return result;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{id:int}/UploadAllUserPhotos")]
+        public ResultViewModel UploadAllUserPhotos([FromRoute] int id, string folderPath = default)
+        {
+            var result = (ResultViewModel)_commandFactory.Factory(CommandType.UploadUserPhotos, new List<object> { id, folderPath })?.Execute();
+            return result;
+        }
     }
 }

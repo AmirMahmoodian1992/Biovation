@@ -5,6 +5,7 @@ using Biovation.CommonClasses.Interface;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -545,22 +546,22 @@ namespace Biovation.Brands.ZK.Devices
                                 template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code);
                             //foreach (var face in user.FaceTemplates.Where(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
                             //{
-                                for (var i = 0; i < 9; i++)
+                            for (var i = 0; i < 9; i++)
+                            {
+                                if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
+                                    Encoding.ASCII.GetString(faceTemplate.Template), faceTemplate.Size))
                                 {
-                                    if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
-                                        Encoding.ASCII.GetString(faceTemplate.Template), faceTemplate.Size))
-                                    {
-                                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
-                                        Logger.Log(
-                                            $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                                        break;
-                                    }
-
-                                    ZkTecoSdk.GetLastError(ref errorCode);
-                                    Thread.Sleep(50);
+                                    //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                                     Logger.Log(
-                                        $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                                        $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                    break;
                                 }
+
+                                ZkTecoSdk.GetLastError(ref errorCode);
+                                Thread.Sleep(50);
+                                Logger.Log(
+                                    $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                            }
                             //}
                         }
 
@@ -943,13 +944,17 @@ namespace Biovation.Brands.ZK.Devices
                 {
                     var lstUsers = new List<User>();
 
+                    var index = 0;
+
                     while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
-                        out var privilege, out var enable))
+                            out var privilege, out var enable))
                     {
                         lock (LockObject) //make the object exclusive 
                         {
                             try
                             {
+                                Logger.Log($"Retrieved user {iUserId}, index: {index}");
+
                                 var user = new User
                                 {
                                     Code = Convert.ToInt32(iUserId),
@@ -962,25 +967,31 @@ namespace Biovation.Brands.ZK.Devices
                                     StartDate = DateTime.Parse("1970/01/01"),
                                     EndDate = DateTime.Parse("2050/01/01")
                                 };
+
                                 if (template)
                                 {
+                                    index++;
+                                    Logger.Log($"Retrieving templates of user {iUserId}, index: {index}");
+
                                     try
                                     {
                                         if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
                                         {
-                                            user.IdentityCard = new IdentityCard()
+                                            user.IdentityCard = new IdentityCard
                                             {
                                                 Number = cardNumber,
                                                 IsActive = true,
                                                 Id = (int)user.Id
                                             };
                                         }
+
+                                        Logger.Log($"Retried user card of user {iUserId}, index: {index}");
                                     }
                                     catch (Exception e)
                                     {
                                         Logger.Log(e);
                                     }
-                                    
+
 
                                     var retrievedFingerTemplates = new List<FingerTemplate>();
                                     var retrievedFaceTemplates = new List<FaceTemplate>();
@@ -1011,6 +1022,7 @@ namespace Biovation.Brands.ZK.Devices
                                         }
 
                                         user.FingerTemplates = retrievedFingerTemplates;
+                                        Logger.Log($"Retrieving finger templates of user {iUserId}, index: {index}");
                                     }
                                     catch (Exception e)
                                     {
@@ -1041,6 +1053,7 @@ namespace Biovation.Brands.ZK.Devices
                                             };
 
                                             retrievedFaceTemplates.Add(faceTemplate);
+                                            Logger.Log($"Retrieving face templates of user {iUserId}, index: {index}");
                                             break;
                                         }
 
@@ -1051,8 +1064,6 @@ namespace Biovation.Brands.ZK.Devices
                                         Logger.Log(e);
                                     }
                                 }
-
-
 
                                 //_zkLogService.AddLog(log);
                                 lstUsers.Add(user);
@@ -1359,6 +1370,89 @@ namespace Biovation.Brands.ZK.Devices
                     Logger.Log($"Error in Clear Log device code: {code}", logType: LogType.Warning);
                     return false;
                 }
+            }
+        }
+
+        public ResultViewModel DownloadUserPhotos()
+        {
+            try
+            {
+                Logger.Log($" Downloading user photos of device {DeviceInfo.Code}");
+                var outputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZkDeviceUserPhotos",
+                    DeviceInfo.Code.ToString());
+
+                Logger.Log($" Downloading user photos of device {DeviceInfo.Code} in path {outputFolder}");
+
+                if (!Directory.Exists(outputFolder))
+                    Directory.CreateDirectory(outputFolder);
+
+                if (ZkTecoSdk.GetAllUserPhoto((int)DeviceInfo.Code, outputFolder.Trim('/') + '/'))
+                    return new ResultViewModel
+                    {
+                        Success = true,
+                        Id = DeviceInfo.Code,
+                        Message = $" All user photos of device {DeviceInfo.Code} are downloaded",
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode)
+                    };
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't download user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't download user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+        }
+
+        public ResultViewModel UploadUserPhotos(string photosFolderPath = default)
+        {
+            try
+            {
+                var outputFolder = string.IsNullOrWhiteSpace(photosFolderPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZkDeviceUserPhotos",
+                    DeviceInfo.Code.ToString()) : photosFolderPath;
+
+                if (!Directory.Exists(outputFolder))
+                    Directory.CreateDirectory(outputFolder);
+
+                if (ZkTecoSdk.UploadUserPhoto((int)DeviceInfo.Code, outputFolder))
+                    return new ResultViewModel
+                    {
+                        Success = true,
+                        Id = DeviceInfo.Code,
+                        Message = $" All user photos of device {DeviceInfo.Code} are uploaded",
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode)
+                    };
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't upload user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't upload user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
             }
         }
     }

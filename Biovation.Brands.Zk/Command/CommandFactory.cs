@@ -183,7 +183,7 @@ namespace Biovation.Brands.ZK.Command
                     //Unlocks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new ZkRetrieveUsersListFromTerminal(transferModelData.Items, _onlineDevices, _deviceService,_taskService);
+                        return new ZkRetrieveUsersListFromTerminal(transferModelData.Items, _onlineDevices, _deviceService, _taskService);
                     }
                 //Get some data like mac,firmware and etc from device
                 case CommandType.GetDeviceAdditionalData:
@@ -197,6 +197,12 @@ namespace Biovation.Brands.ZK.Command
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         return new ZkClearLogOfDevice(transferModelData.Items, _onlineDevices, _taskService, _deviceService);
                     }
+                case CommandType.DownloadUserPhotos:
+                    return new ZkDownloadUserPhotosFromDevice(transferModelData.Items, _onlineDevices, _deviceService);
+
+                case CommandType.UploadUserPhotos:
+                    return new ZkUploadUserPhotosFromDevice(transferModelData.Items, _onlineDevices, _deviceService);
+
                 #endregion
 
                 #region WebClientRequests(WithResponse)
