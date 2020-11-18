@@ -637,7 +637,7 @@ namespace Biovation.Server.Controllers.v2
             var token = (string)HttpContext.Items["Token"];
             var creatorUser = HttpContext.GetUser();
 
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
                 var equivalentCodes = JsonConvert.DeserializeObject<Dictionary<uint, uint>>(serializedEquivalentCodes);
@@ -647,9 +647,11 @@ namespace Biovation.Server.Controllers.v2
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 restRequest.AddQueryParameter("embedTemplate", true.ToString());
+                restRequest.ReadWriteTimeout = 3600000;
+                restRequest.Timeout = 3600000;
                 restRequest.AddHeader("Authorization", token);
 
-                var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).Result?.Data?.Data;
+                var userList = (await _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest))?.Data?.Data;
                 if (userList is null)
                     return new ResultViewModel { Success = false, Message = "The device is offline" };
 
@@ -714,11 +716,25 @@ namespace Biovation.Server.Controllers.v2
                     _taskService.InsertTask(task);
                 }
 
+                try
+                {
+                    if (device.Brand.Code == Constants.DeviceBrands.ZkTecoCode)
+                    {
+                        restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
+                        restRequest.AddUrlSegment("id", device.DeviceId.ToString());
+                        restRequest.AddHeader("Authorization", token);
+                        restRequest.ReadWriteTimeout = 3600000;
+                        restRequest.Timeout = 3600000;
+                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
 
                 restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
-                //restRequest.AddHeader("Authorization", token ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyIjoie1wiSWRcIjoxLFwiQ29kZVwiOjEyMzQ1Njc4OSxcIlVuaXF1ZUlkXCI6MTIzNDU2Nzg5LFwiVXNlck5hbWVcIjpcIkFkbWluXCIsXCJSZWdpc3RlckRhdGVcIjpcIjIwMjAtMTAtMjFUMTY6Mjk6MDBcIixcIkRlcGFydG1lbnROYW1lXCI6bnVsbCxcIlRlbE51bWJlclwiOm51bGwsXCJJbWFnZUJ5dGVzXCI6bnVsbCxcIkltYWdlXCI6bnVsbCxcIkZpcnN0TmFtZVwiOlwiQWRtaW5cIixcIlN1ck5hbWVcIjpcIkFkbWluaXN0cmF0b3JcIixcIkZ1bGxOYW1lXCI6XCIxX0FkbWluIEFkbWluaXN0cmF0b3JcIixcIlBhc3N3b3JkXCI6bnVsbCxcIlBhc3N3b3JkQnl0ZXNcIjpudWxsLFwiU3RhcnREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJFbmREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJBZG1pbkxldmVsXCI6MCxcIkF1dGhNb2RlXCI6MCxcIkVtYWlsXCI6bnVsbCxcIlR5cGVcIjoxLFwiRW50aXR5SWRcIjoxLFwiSXNBY3RpdmVcIjp0cnVlLFwiSXNBZG1pblwiOmZhbHNlLFwiUmVtYWluaW5nQ3JlZGl0XCI6MC4wLFwiQWxsb3dlZFN0b2NrQ291bnRcIjowLFwiRmluZ2VyVGVtcGxhdGVzXCI6W10sXCJGYWNlVGVtcGxhdGVzXCI6W10sXCJJZGVudGl0eUNhcmRcIjpudWxsfSIsImp0aSI6ImY4MWFiMzU5LTZlMjktNDVkZS1iZDNhLWFkNTEyMGRiMDFiNiIsImV4cCI6MTYzNTA3NDc4OH0.afI4VecgU50cQRhRwzae1JIVPlBd8wJpSsPt_aN-y44");
-
-                _restClient.Execute<ResultViewModel>(restRequest);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
             });
