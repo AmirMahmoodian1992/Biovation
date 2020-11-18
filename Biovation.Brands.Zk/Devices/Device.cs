@@ -981,7 +981,7 @@ namespace Biovation.Brands.ZK.Devices
                                             {
                                                 Number = cardNumber,
                                                 IsActive = true,
-                                                Id = (int)user.Id
+                                                //Id = (int)user.Id
                                             };
                                         }
 
@@ -1285,6 +1285,139 @@ namespace Biovation.Brands.ZK.Devices
                 {
                     Logger.Log($" --> Error On GetUserData {e.Message}", logType: LogType.Warning);
                     return false;
+                }
+            }
+        }
+
+        public virtual User GetUser(long userId)
+        {
+            lock (ZkTecoSdk)
+            {
+                try
+                {
+                    Logger.Log("<--EventGetUserData");
+
+                    if (!ZkTecoSdk.SSR_GetUserInfo((int) DeviceInfo.Code, userId.ToString(), out var name,
+                        out var password, out var privilege, out var enabled)) return new User();
+                    var user = new User
+                    {
+                        Code = userId,
+                        AdminLevel = privilege,
+                        IsActive = enabled,
+                        SurName = name.Split(' ').LastOrDefault(),
+                        FirstName = name.Split(' ').FirstOrDefault(),
+                        StartDate = DateTime.Parse("1970/01/01"),
+                        EndDate = DateTime.Parse("2050/01/01"),
+                        Password = password,
+                        UserName = name,
+                        FingerTemplates = new List<FingerTemplate>(),
+                        FaceTemplates = new List<FaceTemplate>(),
+                    };
+
+
+                    try
+                    {
+                        if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
+                        {
+                            user.IdentityCard = new IdentityCard
+                            {
+                                Number = cardNumber,
+                                IsActive = true,
+                                //Id = (int)user.Id
+                            };
+
+
+
+                            //UserCardService.ModifyUserCard(card);
+                            Logger.Log("<--User card is Modified");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                        //ignore
+                    }
+
+                    var retrievedFingerTemplates = new List<FingerTemplate>();
+                    var retrievedFaceTemplates = new List<FaceTemplate>();
+
+                    try
+                    {
+                        for (var i = 0; i <= 9; i++)
+                        {
+                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
+                                out var tempData, out var tempLength))
+                            {
+                                Thread.Sleep(50);
+                                continue;
+                            }
+                            var fingerTemplate = new FingerTemplate
+                            {
+                                FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
+                                FingerTemplateType = _fingerTemplateTypes.VX10,
+                                UserId = user.Id,
+                                Template = Encoding.ASCII.GetBytes(tempData),
+                                CheckSum = Encoding.ASCII.GetBytes(tempData).Sum(x => x),
+                                Size = tempLength,
+                                Index = i
+                            };
+
+                            retrievedFingerTemplates.Add(fingerTemplate);
+
+                               
+                            user.FingerTemplates.Add(fingerTemplate);
+                            Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Id}");
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception, $"Error in getting finger template from device: {DeviceInfo.Code}");
+                    }
+
+                    try
+                    {
+                        var faceStr = "";
+                        var faceLen = 0;
+                        for (var i = 0; i < 9; i++)
+                        {
+                            if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
+                                ref faceStr, ref faceLen))
+                            {
+                                Thread.Sleep(50);
+                                continue;
+                            }
+                            var faceTemplate = new FaceTemplate
+                            {
+                                Index = 50,
+                                FaceTemplateType = _faceTemplateTypes.ZKVX7,
+                                UserId = user.Id,
+                                Template = Encoding.ASCII.GetBytes(faceStr),
+                                CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
+                                Size = faceLen,
+                            };
+
+                            retrievedFaceTemplates.Add(faceTemplate);
+
+                            user.FaceTemplates.Add(faceTemplate);
+                            break;
+                        }
+
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception, $"Error in getting face template from device: {DeviceInfo.Code}");
+                    }
+
+                    Logger.Log($@" The user: {userId} is retrieved from device:{DeviceInfo.Code}
+    Info: Finger retrieved count: {retrievedFingerTemplates.Count}, inserted count: {user.FingerTemplates.Count}, 
+          Face retrieved count: {retrievedFaceTemplates.Count}, inserted count: {user.FaceTemplates.Count}");
+                    return user;
+
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($" --> Error On GetUserData {e.Message}", logType: LogType.Warning);
+                    return new User();
                 }
             }
         }

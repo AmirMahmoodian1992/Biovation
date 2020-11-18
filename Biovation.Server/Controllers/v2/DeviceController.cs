@@ -646,7 +646,6 @@ namespace Biovation.Server.Controllers.v2
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
-                restRequest.AddQueryParameter("embedTemplate", true.ToString());
                 restRequest.ReadWriteTimeout = 3600000;
                 restRequest.Timeout = 3600000;
                 restRequest.AddHeader("Authorization", token);
@@ -655,9 +654,13 @@ namespace Biovation.Server.Controllers.v2
                 if (userList is null)
                     return new ResultViewModel { Success = false, Message = "The device is offline" };
 
-                foreach (var userCode in equivalentCodes.Keys)
+                foreach (var userCode in equivalentCodes.Keys.Where(userCode => userList.Any(user => user.Code == userCode)))
                 {
-                    if (userList.All(user => user.Code != userCode)) continue;
+                    restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveCompleteUserFromDevice", Method.GET);
+                    restRequest.AddQueryParameter("code", device.Code.ToString());
+                    restRequest.AddQueryParameter("userId", userCode.ToString());
+                    restRequest.AddHeader("Authorization", token);
+                    var correctedUser = (await _restClient.ExecuteAsync<ResultViewModel<User>>(restRequest))?.Data?.Data;
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -696,22 +699,25 @@ namespace Biovation.Server.Controllers.v2
                         DueDate = DateTime.Today
                     };
 
-                    var correctedUser = userList.First(x => x.Code == userCode);
-                    correctedUser.Code = equivalentCodes[userCode];
-
-                    task.TaskItems.Add(new TaskItem
+                    //var correctedUser = userList.First(x => x.Code == userCode);
+                    if (correctedUser != null)
                     {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.SendUser,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = id,
-                        Data = JsonConvert.SerializeObject(correctedUser),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
+                        correctedUser.Code = equivalentCodes[userCode];
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendUser,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = id,
+                            Data = JsonConvert.SerializeObject(correctedUser),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
+                            CurrentIndex = 0,
+                            TotalCount = 1
+                        });
+                    }
 
                     _taskService.InsertTask(task);
                 }

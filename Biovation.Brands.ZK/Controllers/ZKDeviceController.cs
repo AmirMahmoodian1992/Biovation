@@ -443,6 +443,60 @@ namespace Biovation.Brands.ZK.Controllers
 
         }
 
+
+        [HttpGet]
+        [Authorize]
+        public Task<ResultViewModel<User>> RetrieveCompleteUserFromDevice(uint code, int userId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var creatorUser = HttpContext.GetUser();
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        TaskType = _taskTypes.RetrieveUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    var deviceId = devices.DeviceId;
+
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
+                            Priority = _taskPriorities.Medium,
+
+                            DeviceId = deviceId,
+                            Data = JsonConvert.SerializeObject(new { userId, saving = false }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
+
+                        });
+
+                        var result = (ResultViewModel<User>)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                        new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
+                    return result;
+                }
+
+                catch (Exception exception)
+                {
+                    return new ResultViewModel<User>
+                             { Validate = 0, Message = exception.ToString() };
+                }
+            });
+
+
+        }
+
+
         [HttpGet]
         [Authorize]
         public Dictionary<string, string> GetAdditionalData(uint code)
