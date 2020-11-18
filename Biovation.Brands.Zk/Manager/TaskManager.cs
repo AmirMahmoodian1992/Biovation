@@ -160,7 +160,7 @@ namespace Biovation.Brands.ZK.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }

@@ -23,20 +23,13 @@ namespace Biovation.Brands.ZK.Command
         private int UserId { get; }
         private bool Saving { get; }
         private uint Code { get; }
-        private int TaskItemId { get; }
-        private readonly TaskService _taskService;
-        private readonly DeviceService _deviceService;
 
-        public ZkRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
+        public ZkRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
-            OnlineDevices = devices;
-            _taskService = taskService;
-            _deviceService = deviceService;
-
-            DeviceId = Convert.ToInt32(items[0]);
-            TaskItemId = Convert.ToInt32(items[1]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            var taskItem = (TaskItem)items[0];
+            DeviceId = taskItem.DeviceId;
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null)
             {
@@ -46,9 +39,8 @@ namespace Biovation.Brands.ZK.Command
                 else
                     Saving = true;
             }
-
-
-
+            
+            OnlineDevices = devices;
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
         }
         public object Execute()
