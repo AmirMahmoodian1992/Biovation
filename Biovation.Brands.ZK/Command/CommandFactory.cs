@@ -39,9 +39,15 @@ namespace Biovation.Brands.ZK.Command
         private readonly AccessGroupService _accessGroupService;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
 
         public CommandFactory(LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, Dictionary<uint, Device> onlineDevices)
+            AccessGroupService accessGroupService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, Dictionary<uint, Device> onlineDevices,
+            TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _logService = logService;
             _userService = userService;
@@ -54,6 +60,10 @@ namespace Biovation.Brands.ZK.Command
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
             _onlineDevices = onlineDevices;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -205,7 +215,7 @@ namespace Biovation.Brands.ZK.Command
 
                 #region Tools
                 case CommandType.UserAdaptation:
-                    return new ZkUploadUserPhotosFromDevice(transferModelData.Items, _onlineDevices, _deviceService);
+                    return new ZkUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService,_taskTypes,_taskService, _taskStatuses, _taskItemTypes,_taskPriorities,_userService);
                 #endregion
 
                 #endregion

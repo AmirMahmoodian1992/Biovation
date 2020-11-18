@@ -656,71 +656,6 @@ namespace Biovation.Server.Controllers.v2
 
                 foreach (var userCode in equivalentCodes.Keys.Where(userCode => userList.Any(user => user.Code == userCode)))
                 {
-                    //restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveCompleteUserFromDevice", Method.GET);
-                    //restRequest.AddQueryParameter("code", device.Code.ToString());
-                    //restRequest.AddQueryParameter("userId", userCode.ToString());
-                    //restRequest.AddHeader("Authorization", token);
-                    //var correctedUser = (await _restClient.ExecuteAsync<ResultViewModel<User>>(restRequest))?.Data?.Data;
-                    //if (correctedUser == null) continue;
-                    //var task = new TaskInfo
-                    //{
-                    //    CreatedAt = DateTimeOffset.Now,
-                    //    CreatedBy = creatorUser,
-                    //    TaskType = _taskTypes.DeleteUsers,
-                    //    Priority = _taskPriorities.Medium,
-                    //    DeviceBrand = device.Brand,
-                    //    TaskItems = new List<TaskItem>(),
-                    //    DueDate = DateTime.Today
-                    //};
-                    //task.TaskItems.Add(new TaskItem
-                    //{
-                    //    Status = _taskStatuses.Queued,
-                    //    TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                    //    Priority = _taskPriorities.Medium,
-                    //    DeviceId = device.DeviceId,
-                    //    Data = JsonConvert.SerializeObject(new {userCode}),
-                    //    IsParallelRestricted = true,
-                    //    IsScheduled = false,
-                    //    OrderIndex = 1,
-                    //    CurrentIndex = 0,
-                    //    TotalCount = 1
-                    //});
-
-                    //_taskService.InsertTask(task);
-
-
-                    //task = new TaskInfo
-                    //{
-                    //    CreatedAt = DateTimeOffset.Now,
-                    //    CreatedBy = creatorUser,
-                    //    TaskType = _taskTypes.SendUsers,
-                    //    Priority = _taskPriorities.Medium,
-                    //    DeviceBrand = device.Brand,
-                    //    TaskItems = new List<TaskItem>(),
-                    //    DueDate = DateTime.Today
-                    //};
-
-                    ////var correctedUser = userList.First(x => x.Code == userCode);
-
-                    //correctedUser.Code = equivalentCodes[userCode];
-
-                    //task.TaskItems.Add(new TaskItem
-                    //{
-                    //    Status = _taskStatuses.Queued,
-                    //    TaskItemType = _taskItemTypes.SendUser,
-                    //    Priority = _taskPriorities.Medium,
-                    //    DeviceId = id,
-                    //    Data = JsonConvert.SerializeObject(correctedUser),
-                    //    IsParallelRestricted = true,
-                    //    IsScheduled = false,
-                    //    OrderIndex = 1,
-                    //    CurrentIndex = 0,
-                    //    TotalCount = 1
-                    //});
-
-
-                    //_taskService.InsertTask(task);
-
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -766,6 +701,7 @@ namespace Biovation.Server.Controllers.v2
                 }
 
                 restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
