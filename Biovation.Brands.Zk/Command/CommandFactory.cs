@@ -203,6 +203,11 @@ namespace Biovation.Brands.ZK.Command
                 case CommandType.UploadUserPhotos:
                     return new ZkUploadUserPhotosFromDevice(transferModelData.Items, _onlineDevices, _deviceService);
 
+                #region Tools
+                case CommandType.UserAdaptation:
+                    return new ZkUploadUserPhotosFromDevice(transferModelData.Items, _onlineDevices, _deviceService);
+                #endregion
+
                 #endregion
 
                 #region WebClientRequests(WithResponse)
