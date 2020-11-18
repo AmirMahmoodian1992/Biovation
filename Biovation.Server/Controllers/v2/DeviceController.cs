@@ -661,6 +661,7 @@ namespace Biovation.Server.Controllers.v2
                     restRequest.AddQueryParameter("userId", userCode.ToString());
                     restRequest.AddHeader("Authorization", token);
                     var correctedUser = (await _restClient.ExecuteAsync<ResultViewModel<User>>(restRequest))?.Data?.Data;
+                    if (correctedUser == null) continue;
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -677,7 +678,7 @@ namespace Biovation.Server.Controllers.v2
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode }),
+                        Data = JsonConvert.SerializeObject(new {userCode}),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -700,24 +701,23 @@ namespace Biovation.Server.Controllers.v2
                     };
 
                     //var correctedUser = userList.First(x => x.Code == userCode);
-                    if (correctedUser != null)
-                    {
-                        correctedUser.Code = equivalentCodes[userCode];
 
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.SendUser,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = id,
-                            Data = JsonConvert.SerializeObject(correctedUser),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                            CurrentIndex = 0,
-                            TotalCount = 1
-                        });
-                    }
+                    correctedUser.Code = equivalentCodes[userCode];
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendUser,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = id,
+                        Data = JsonConvert.SerializeObject(correctedUser),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+
 
                     _taskService.InsertTask(task);
                 }

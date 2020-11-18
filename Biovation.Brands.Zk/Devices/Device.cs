@@ -980,7 +980,7 @@ namespace Biovation.Brands.ZK.Devices
                                             user.IdentityCard = new IdentityCard
                                             {
                                                 Number = cardNumber,
-                                                IsActive = true,
+                                                IsActive = true
                                                 //Id = (int)user.Id
                                             };
                                         }
@@ -1322,14 +1322,12 @@ namespace Biovation.Brands.ZK.Devices
                             user.IdentityCard = new IdentityCard
                             {
                                 Number = cardNumber,
-                                IsActive = true,
+                                IsActive = true
                                 //Id = (int)user.Id
                             };
 
 
-
-                            //UserCardService.ModifyUserCard(card);
-                            Logger.Log("<--User card is Modified");
+                            Logger.Log("<--User card Fetched");
                         }
                     }
                     catch (Exception e)

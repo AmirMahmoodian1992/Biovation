@@ -41,12 +41,13 @@ namespace Biovation.Brands.ZK.Command
             if (data != null)
             {
                 UserId = (int)data["userId"];
-                Saving = (bool)data["saving"];
+                if (data.ContainsKey("saving"))
+                    Saving = (bool)data["saving"];
+                else
+                    Saving = true;
             }
-            else
-            {
-                Saving = true;
-            }
+
+
 
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
         }
