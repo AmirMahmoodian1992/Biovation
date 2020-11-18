@@ -1,15 +1,16 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
 {
     [Authorize]
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class UserCardController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class UserCardController : ControllerBase
     {
         private readonly UserCardService _userCardService;
 

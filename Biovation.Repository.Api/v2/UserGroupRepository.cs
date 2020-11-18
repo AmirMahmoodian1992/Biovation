@@ -63,10 +63,10 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-        public ResultViewModel DeleteUserGroup(int groupId = default, string token = default)
+        public ResultViewModel DeleteUserGroup(int id = default, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/UserGroup/{groupId}", Method.DELETE);
-            restRequest.AddQueryParameter("groupId", groupId.ToString());
+            var restRequest = new RestRequest("Commands/v2/UserGroup/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);

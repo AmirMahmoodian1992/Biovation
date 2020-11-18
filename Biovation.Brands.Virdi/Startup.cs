@@ -95,7 +95,7 @@ namespace Biovation.Brands.Virdi
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -114,6 +114,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
+            services.AddSingleton< Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService >();
             services.AddSingleton<VirdiLogService, VirdiLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
@@ -140,7 +141,7 @@ namespace Biovation.Brands.Virdi
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var serviceCollection = new ServiceCollection();
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
 
@@ -220,6 +221,11 @@ namespace Biovation.Brands.Virdi
             UcBioApi = new UCBioAPI();
             UcBioApiExport = new UCBioAPI.Export(UcBioApi);
 
+            services.AddSingleton(UcsApi);
+            services.AddSingleton(UcBioApi);
+            services.AddSingleton(UcBioApiExport);
+            services.AddSingleton(OnlineDevices);
+
             var kernel = new StandardKernel();
 
             kernel.Load("Biovation.Identifiers.Virdi.dll");
@@ -241,10 +247,10 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<CommandFactory, CommandFactory>();
             services.AddSingleton<Callbacks, Callbacks>();
 
-            var serviceProvider = services.BuildServiceProvider();
-
             var virdiObject = new Virdi();
             var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
+            services.AddSingleton(virdiObject);
+            services.AddSingleton(virdiServer);
             //var virdiCodeMappings = new VirdiCodeMappings(serviceProvider.GetService<GenericCodeMappings>());
 
             //var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
@@ -252,15 +258,11 @@ namespace Biovation.Brands.Virdi
             //    , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
             //    , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
             //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
-            var virdiCallBacks = serviceProvider.GetService<Callbacks>();
 
-            services.AddSingleton(UcsApi);
-            services.AddSingleton(UcBioApi);
-            services.AddSingleton(UcBioApiExport);
-            services.AddSingleton(OnlineDevices);
-            services.AddSingleton(virdiObject);
+            var serviceProvider = services.BuildServiceProvider();
+            var virdiCallBacks = serviceProvider.GetService<Callbacks>();
             services.AddSingleton(virdiCallBacks);
-            services.AddSingleton(virdiServer);
+
             //services.AddSingleton(virdiCodeMappings);
             //services.AddSingleton<Virdi, Virdi>();
             //services.AddSingleton<Callbacks, Callbacks>();

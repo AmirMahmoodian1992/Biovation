@@ -7,8 +7,9 @@ using System.Collections.Generic;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaUserGroupController : Controller
+    public class SupremaUserGroupController : ControllerBase
     {
         private readonly FastSearchService _fastSearchService;
 

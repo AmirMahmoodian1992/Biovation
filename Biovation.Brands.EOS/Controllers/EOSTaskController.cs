@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.EOS.Manager;
 using Biovation.Domain;
@@ -9,19 +7,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.EOS.Controllers
 {
-    public class EOSTaskController
+    [ApiController]
+    [Route("biovation/api/[controller]")]
+    public class EosTaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public EOSTaskController(TaskManager taskManager)
+        public EosTaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }
 
-
-        [HttpGet]
+        [HttpPost]
         [AllowAnonymous]
-        public Task<ResultViewModel> ManualActivationProcessQueue()
+        [Route("[Action]")]
+        public Task<ResultViewModel> RunProcessQueue()
         {
             return Task.Run(() =>
             {

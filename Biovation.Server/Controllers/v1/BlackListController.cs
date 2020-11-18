@@ -10,9 +10,10 @@ using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
-    public class BlackListController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class BlackListController : ControllerBase
     {
         private readonly RestClient _restClient;
         private readonly BlackListService _blackListService;

@@ -93,7 +93,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton(connectionInfo);
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
             services.AddSingleton<GenericRepository, GenericRepository>();
@@ -140,7 +140,7 @@ namespace Biovation.Brands.ZK
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var serviceCollection = new ServiceCollection();
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
 

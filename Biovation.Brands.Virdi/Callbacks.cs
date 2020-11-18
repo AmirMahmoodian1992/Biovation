@@ -171,7 +171,7 @@ namespace Biovation.Brands.Virdi
             {
                 try
                 {
-                    var user = _commonUserService.GetUsers(code:userCode, withPicture: false).FirstOrDefault();
+                    var user = _commonUserService.GetUsers(code: userCode).FirstOrDefault();
                     if (user != null)
                     {
                         var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
@@ -1476,10 +1476,32 @@ namespace Biovation.Brands.Virdi
                     dynamic matchedFpInfo = fastSearch.MatchedFpInfo;
                     int userId = matchedFpInfo.UserId;
 
-                    var user = _commonUserService.GetUsers(code:userId, withPicture: false).FirstOrDefault();
+                    var user = _commonUserService.GetUsers(userId)?.FirstOrDefault();
+
+                    if (user is null)
+                    {
+                        //Authentication failed
+                        isAuthorized = 0;
+                        authErrorCode = 770; //Matching failed
+
+                        //this.serverAuthentication.SetAuthType(IsAndOperation, IsFinger, IsFPCard, IsPassword, IsCard, IsCardID);
+                        ServerAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
+                        ServerAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
+                            authErrorCode);
+
+                        Logger.Log($@"   +ErrorCode:{UcsApi.ErrorCode}
+    +TerminalID:{terminalId}
+    +AuthMode:{authMode}
+    +InputID Length:{inputIdLength}
+    +Security Level:{securityLevel}
+    +AntiPassBack Level:{antiPassBackLevel}
+    +FingerData:{fingerData}", logType: LogType.Information);
+
+                        return;
+                    }
 
                     var isVisitor = user.IsAdmin ? 0 : 1;
-                    var blacklist = _blackListService.GetBlacklist(userId: (int)(user?.Id ?? -1), deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result;
+                    var blacklist = _blackListService.GetBlacklist(userId: (int)user.Id, deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result;
                     var hasAccess = (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? blacklist != null ? 1 : 0 : 0;
 
                     isAuthorized = hasAccess;
@@ -1519,8 +1541,6 @@ namespace Biovation.Brands.Virdi
     +Security Level:{securityLevel}
     +AntiPassBack Level:{antiPassBackLevel}
     +FingerData:{fingerData}", logType: LogType.Information);
-
-
                 }
 
                 //var log = new Log
@@ -1636,8 +1656,8 @@ namespace Biovation.Brands.Virdi
                 Logger.Log(exception);
             }
 
-            int currentIndex = AccessLogData.CurrentIndex;
-            int totalCount = AccessLogData.TotalNumber;
+            var currentIndex = AccessLogData.CurrentIndex;
+            var totalCount = AccessLogData.TotalNumber;
 
             var log = new Log
             {
@@ -1690,18 +1710,11 @@ namespace Biovation.Brands.Virdi
                     }).ContinueWith(_ => { RetrievedLogs.Remove(clientId); });
                 }
 
-                TaskInfo task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
-                if (_tasks.ContainsKey(clientId))
-                    task = _tasks[clientId];
-                else
-                {
-                    task = taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null;
-                    if (task != null)
-                        _tasks.Add(clientId, task);
-                }
+                var task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
 
                 if (task != null)
                 {
+                    _tasks.Add(clientId, task);
                     task.TotalCount = totalCount;
                     task.CurrentIndex = currentIndex;
                     var taskList = new List<TaskInfo> { task };
@@ -1834,10 +1847,14 @@ namespace Biovation.Brands.Virdi
             var isoEncoding = Encoding.GetEncoding(28591);
             var windowsEncoding = Encoding.GetEncoding(1256);
 
-            var userName = string.IsNullOrEmpty(TerminalUserData.UserName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(TerminalUserData.UserName));
+            var deviceUserName = TerminalUserData.UserName;
+            var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+            var userName = replacements.Aggregate(deviceUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+            userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
             var indexOfSpace = userName?.IndexOf(' ') ?? 0;
-            var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace) : null;
-            var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace) : userName;
+            var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace).Trim() : null;
+            var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim() : userName;
 
             GetUserTaskFinished = false;
             Logger.Log($@"<--EventGetUserInfoList
@@ -1920,19 +1937,17 @@ namespace Biovation.Brands.Virdi
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
 
-                var userName = string.IsNullOrEmpty(TerminalUserData.UserName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(TerminalUserData.UserName));
+
+                var deviceUserName = TerminalUserData.UserName;
+                var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                var userName = replacements.Aggregate(deviceUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
                 var indexOfSpace = userName?.IndexOf(' ') ?? 0;
-                var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace) : null;
-                var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace) : userName;
+                var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace).Trim() : null;
+                var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim() : userName;
 
-                var replacements = new Dictionary<string, string> { { "~", "ک" }, { "N", "ژ" }, { "Z", "ژ" } };
-                if (userName != null)
-                {
-                    userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-                    surName = replacements.Aggregate(surName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-                    firstName = replacements.Aggregate(firstName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-
-                }
                 byte[] picture = null;
 
                 try
@@ -1944,6 +1959,7 @@ namespace Biovation.Brands.Virdi
                 {
                     Logger.Log(exception);
                 }
+
                 var user = new User
                 {
                     Code = TerminalUserData.UserID,
@@ -1973,7 +1989,7 @@ namespace Biovation.Brands.Virdi
 
                 if (ModifyUserData)
                 {
-                    var existUser = _commonUserService.GetUsers(code:TerminalUserData.UserID).FirstOrDefault();
+                    var existUser = _commonUserService.GetUsers(code: TerminalUserData.UserID).FirstOrDefault();
                     if (existUser != null)
                     {
                         user = new User
@@ -1992,11 +2008,15 @@ namespace Biovation.Brands.Virdi
                             UserName = string.IsNullOrEmpty(userName) ? existUser.UserName : userName,
                             FirstName = firstName ?? existUser.FirstName,
                             SurName = string.Equals(surName, userName) ? existUser.SurName ?? surName : surName,
-                            IsActive = existUser.IsActive
+                            IsActive = existUser.IsActive,
+                            ImageBytes = picture
                         };
                     }
 
-                    _commonUserService.ModifyUser(user);
+                    var userInsertionResult = _commonUserService.ModifyUser(user);
+
+                    Logger.Log("<--User is Modified");
+                    user.Id = userInsertionResult.Id;
 
                     //Card
                     try
@@ -2489,7 +2509,10 @@ namespace Biovation.Brands.Virdi
                     var taskItem = taskItemAwaiter;
                     var userId = Convert.ToInt64(JsonConvert.DeserializeObject<JObject>(taskItem.Data)["UserId"]);
                     var user = _commonUserService.GetUsers(userId).FirstOrDefault();
-                    var userFaceTemplates = _faceTemplateService.FaceTemplates(userId: userId);
+                    //var userFaceTemplates = _faceTemplateService.FaceTemplates(userId: userId);
+
+                    if (user is null)
+                        return;
 
                     var faceData = (byte[])eventData;
                     var faceTemplate = new FaceTemplate
@@ -2505,7 +2528,7 @@ namespace Biovation.Brands.Virdi
                     if (user.FaceTemplates is null)
                         user.FaceTemplates = new List<FaceTemplate>();
 
-                    if (!userFaceTemplates.Exists(ft =>
+                    if (!user.FaceTemplates.Exists(ft =>
                         ft.FaceTemplateType.Code == FaceTemplateTypes.VFACECode && ft.Index == faceTemplate.Index))
                     {
                         user.FaceTemplates.Add(faceTemplate);

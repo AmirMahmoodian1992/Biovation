@@ -15,7 +15,7 @@
 //{
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
     //[ApiVersion("1.0")]
-    //public class ServeLogController : Controller
+    //public class ServeLogController : ControllerBase
     //{
     //    private readonly ServeLogService _serveLogService;
     //    private readonly DeviceService _deviceService;

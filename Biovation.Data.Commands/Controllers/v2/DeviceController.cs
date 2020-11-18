@@ -9,19 +9,18 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
-    public class DeviceController : Controller
+    public class DeviceController : ControllerBase
     {
         private readonly DeviceRepository _deviceRepository;
-
-
+        
         public DeviceController(DeviceRepository deviceRepository)
         {
             _deviceRepository = deviceRepository;
         }
-
-
+        
         [HttpPost]
         [Authorize]
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)

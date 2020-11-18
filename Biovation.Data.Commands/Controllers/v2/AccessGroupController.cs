@@ -8,9 +8,10 @@ namespace Biovation.Data.Commands.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
-    public class AccessGroupController : Controller
+    public class AccessGroupController : ControllerBase
     {
         private readonly AccessGroupRepository _accessGroupRepository;
 

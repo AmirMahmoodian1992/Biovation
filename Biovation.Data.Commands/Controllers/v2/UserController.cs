@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
-    public class UserController : Controller
+    public class UserController : ControllerBase
     {
         private readonly UserRepository _userRepository;
 

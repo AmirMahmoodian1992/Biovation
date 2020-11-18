@@ -1,5 +1,4 @@
 ﻿using Biovation.CommonClasses.Manager;
-using Biovation.Servers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -8,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Biovation.Server.Managers;
 
 namespace Biovation.Server.Middleware
 {

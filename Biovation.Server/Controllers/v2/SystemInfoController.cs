@@ -14,7 +14,7 @@
 //    [Route("biovation/api/v{version:apiVersion}/[controller]")]
 //    [ApiVersion("2.0")]
 //    [ApiController]
-//    public class SystemInfoController : Controller
+//    public class SystemInfoController : ControllerBase
 //    {
 //        private readonly RestClient _restClient;
 

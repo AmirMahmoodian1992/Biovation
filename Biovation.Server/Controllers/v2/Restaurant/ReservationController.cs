@@ -12,7 +12,7 @@
 //{
 //    [Route("biovation/api/v{version:apiVersion}/[controller]")]
 //    [ApiVersion("2.0")]
-//    public class ReservationController : Controller
+//    public class ReservationController : ControllerBase
 //    {
 //        private readonly ReservationService _reservationService;
 //        private readonly DeviceService _deviceService;

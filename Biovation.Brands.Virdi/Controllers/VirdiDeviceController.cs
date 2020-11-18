@@ -9,7 +9,6 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +18,9 @@ using TaskItem = Biovation.Domain.TaskItem;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
-    //[Route("Biovation/Api/Virdi/{controller}/{action}", Name = "VirdiDevice")]
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiDeviceController : Controller
+    public class VirdiDeviceController : ControllerBase
     {
         private readonly Callbacks _callbacks;
         private readonly VirdiServer _virdiServer;
@@ -684,7 +683,7 @@ namespace Biovation.Brands.Virdi.Controllers
         */
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             //this action return list of user so for task based this we need to syncron web and change return type for task manager statustask update
 
@@ -712,7 +711,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(deviceId),
+                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
@@ -939,7 +938,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
@@ -969,8 +968,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         DueDate = DateTime.Today
                     };
 
-                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                    foreach (var id in userIds)
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    foreach (var userCode in userCodes)
                     {
 
                         task.TaskItems.Add(new TaskItem
@@ -979,7 +978,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                             Priority = _taskPriorities.Medium,
                             DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            Data = JsonConvert.SerializeObject(new { userCode }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
@@ -994,7 +993,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     if (updateServerSideIdentification)
                     {
-                        foreach (var id in userIds)
+                        foreach (var id in userCodes)
                         {
                             _callbacks.DeleteUserFromDeviceFastSearch(code, id);
                         }

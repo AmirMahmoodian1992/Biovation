@@ -13,14 +13,15 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {
     [Authorize]
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class UserController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class UserController : ControllerBase
     {
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -197,58 +198,59 @@ namespace Biovation.Server.Controllers.v2
 
 
         //if deviceId == 0 then send ids to all of device
-        [HttpPut]
-        [Route("SendUsersToDevices")]
-        public Task<ResultViewModel> SendUsersToDevice([FromBody] int[] ids, [FromBody] int[] deviceIds = default)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            try
-            {
-                if (!ids.Any())
-                {
-                    return Task.Run(() => new ResultViewModel { Validate = 0, Message = "User is empty" });
-                }
+        //TODO: Fix signature !important
+        //[HttpPut]
+        //[Route("SendUsersToDevices")]
+        //public Task<ResultViewModel> SendUsersToDevice([FromBody] int[] ids, [FromBody] int[] deviceIds = default)
+        //{
+        //    var token = (string)HttpContext.Items["Token"];
+        //    try
+        //    {
+        //        if (!ids.Any())
+        //        {
+        //            return Task.Run(() => new ResultViewModel { Validate = 0, Message = "User is empty" });
+        //        }
 
-                var result = new List<ResultViewModel>();
-                if (deviceIds == null)
-                    return Task.Run(() =>
-                        result.Any(e => e.Success == false)
-                            ? new ResultViewModel { Validate = 0, Message = "" }
-                            : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
-                foreach (var device in deviceIds)
-                {
-                    foreach (var id in ids)
-                    {
-                        var deviceBasic = _deviceService.GetDevice(device, token: token).Data;
-                        if (deviceBasic == null)
-                        {
-                            var msg = "DeviceId " + device + " does not exist.";
-                            Logger.Log(msg);
-                            return Task.Run(() => new ResultViewModel { Validate = 0, Message = msg });
-                        }
+        //        var result = new List<ResultViewModel>();
+        //        if (deviceIds == null)
+        //            return Task.Run(() =>
+        //                result.Any(e => e.Success == false)
+        //                    ? new ResultViewModel { Validate = 0, Message = "" }
+        //                    : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
+        //        foreach (var device in deviceIds)
+        //        {
+        //            foreach (var id in ids)
+        //            {
+        //                var deviceBasic = _deviceService.GetDevice(device, token: token).Data;
+        //                if (deviceBasic == null)
+        //                {
+        //                    var msg = "DeviceId " + device + " does not exist.";
+        //                    Logger.Log(msg);
+        //                    return Task.Run(() => new ResultViewModel { Validate = 0, Message = msg });
+        //                }
 
-                        var restRequest =
-                            new RestRequest(
-                                $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
-                                Method.GET);
-                        restRequest.AddParameter("code", deviceBasic.Code);
-                        restRequest.AddParameter("userId", id);
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
-                        result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
-                    }
-                }
+        //                var restRequest =
+        //                    new RestRequest(
+        //                        $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
+        //                        Method.GET);
+        //                restRequest.AddParameter("code", deviceBasic.Code);
+        //                restRequest.AddParameter("userId", id);
+        //                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+        //                {
+        //                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+        //                }
+        //                result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+        //            }
+        //        }
 
-                return Task.Run(() => result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-                return Task.Run(() => new ResultViewModel { Validate = 0, Message = "SendUserToDevice Failed." });
-            }
-        }
+        //        return Task.Run(() => result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Logger.Log(exception);
+        //        return Task.Run(() => new ResultViewModel { Validate = 0, Message = "SendUserToDevice Failed." });
+        //    }
+        //}
 
 
         [HttpPatch]

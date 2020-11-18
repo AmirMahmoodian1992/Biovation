@@ -7,7 +7,7 @@ using Biovation.Domain;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 
-namespace Biovation.Servers
+namespace Biovation.Server.Managers
 {
     public class TokenGenerator
     {
@@ -25,7 +25,8 @@ namespace Biovation.Servers
 
             var claims = new[]
             {
-                new Claim("Id", userInfo.Id.ToString()),
+                new Claim("userCode", userInfo.Code.ToString()),
+                new Claim("uniqueId", userInfo.UniqueId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -38,7 +39,7 @@ namespace Biovation.Servers
             //);
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddDays(15),
                 signingCredentials: credentials
             );
             return new JwtSecurityTokenHandler().WriteToken(token);

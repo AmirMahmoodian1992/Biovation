@@ -15,8 +15,9 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class EosDeviceController : Controller
+    public class EosDeviceController : ControllerBase
     {
         private readonly EosServer _eosServer;
         private readonly TaskService _taskService;
@@ -225,7 +226,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             try
             {
@@ -311,16 +312,16 @@ namespace Biovation.Brands.EOS.Controllers
 
                     if (fromDate is null && toDate is null)
                     {
-                        fromDate = new DateTime(1970);
-                        toDate = new DateTime(2050);
+                        fromDate = new DateTime(1970, 1, 1);
+                        toDate = DateTime.Now.AddYears(5);
                     }
                     else if (fromDate is null)
                     {
-                        fromDate = new DateTime(1970);
+                        fromDate = new DateTime(1970, 1, 1);
                     }
                     else if (toDate is null)
                     {
-                        toDate = new DateTime(2050);
+                        toDate = DateTime.Now.AddYears(5);
                     }
 
                     var deviceId = device.DeviceId;

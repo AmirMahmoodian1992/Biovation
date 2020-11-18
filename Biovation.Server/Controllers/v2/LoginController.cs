@@ -1,16 +1,16 @@
 ﻿using System.Linq;
 using Biovation.CommonClasses.Manager;
-using Biovation.Servers;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Server.Controllers.v2
 {
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class LoginController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class LoginController : ControllerBase
     {
         //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
 
@@ -35,8 +35,8 @@ namespace Biovation.Server.Controllers.v2
             var user = _userService.GetUsers(code:id)?.Data?.Data?.FirstOrDefault();
             if (user != null)
             {
-                //var tokenString = _generateToken.GenerateJWTLoginToken(user);
-                var tokenString = _generateToken.GenerateToken(user);
+                var tokenString = _generateToken.GenerateJWTLoginToken(user);
+                //var tokenString = _generateToken.GenerateToken(user);
                 response = Ok(new
                 {
                     token = tokenString

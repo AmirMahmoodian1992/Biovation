@@ -51,7 +51,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Brands.PW", "Biov
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{0FFD83DE-D07A-437D-9CFB-3CD580B820D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Biovation.Tools.UserAdapter", "Biovation.Tools.UserAdapter\Biovation.Tools.UserAdapter.csproj", "{3C494559-24B2-45CF-86CB-125D05A109E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.Tools.UserAdapter", "Biovation.Tools.UserAdapter\Biovation.Tools.UserAdapter.csproj", "{3C494559-24B2-45CF-86CB-125D05A109E3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Biovation.ServiceManager", "Biovation.ServiceManager\Biovation.ServiceManager.csproj", "{9DDE8513-198C-4A87-B867-F3302FD1B71B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -143,6 +145,10 @@ Global
 		{3C494559-24B2-45CF-86CB-125D05A109E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C494559-24B2-45CF-86CB-125D05A109E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C494559-24B2-45CF-86CB-125D05A109E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DDE8513-198C-4A87-B867-F3302FD1B71B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

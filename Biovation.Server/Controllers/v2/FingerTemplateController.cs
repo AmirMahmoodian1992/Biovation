@@ -2,14 +2,15 @@
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {
     [Authorize]
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class FingerTemplateController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class FingerTemplateController : ControllerBase
     {
         private readonly FingerTemplateService _fingerTemplateService;
 

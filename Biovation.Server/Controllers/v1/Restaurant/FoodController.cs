@@ -18,7 +18,7 @@
 //{
 //    [Route("biovation/api/v{version:apiVersion}/[controller]")]
 //    [ApiVersion("1.0")]
-//    public class FoodController : Controller
+//    public class FoodController : ControllerBase
 //    {
 //        private readonly FoodService _foodService;
 //        private readonly TaskService _taskService;

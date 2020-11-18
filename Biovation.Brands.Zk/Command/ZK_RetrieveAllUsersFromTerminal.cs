@@ -26,11 +26,14 @@ namespace Biovation.Brands.ZK.Command
         public ZkRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
         {
             OnlineDevices = devices;
-            DeviceId = Convert.ToInt32(items[0]);
-            TaskItemId = Convert.ToInt32(items[1]);
+            //DeviceId = Convert.ToInt32(items[0]);
+            //TaskItemId = Convert.ToInt32(items[1]);
+            var taskItem = (TaskItem) items[0];
+            DeviceId = taskItem.DeviceId;
+            TaskItemId = taskItem.Id;
             Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
-            var taskItem = taskService.GetTaskItem(TaskItemId);
+            //var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null) EmbedTemplate = Convert.ToBoolean(data["embedTemplate"]);
         }

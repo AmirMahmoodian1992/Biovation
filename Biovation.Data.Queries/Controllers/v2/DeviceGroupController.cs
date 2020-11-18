@@ -6,11 +6,10 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-
-
     //[ApiVersion("1.0")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-    public class DeviceGroupController : Controller
+    public class DeviceGroupController : ControllerBase
     {
         private readonly DeviceGroupRepository _deviceGroupRepository;
 
@@ -18,12 +17,10 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             _deviceGroupRepository = deviceGroupRepository;
         }
-
-
+        
         [HttpGet]
-        [Route("GetDeviceGroups")]
         [Authorize]
-
+        [Route("GetDeviceGroups")]
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroups(int deviceGroupId,
             int pageNumber = default, int pageSize = default)
         {
@@ -31,9 +28,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("GetAccessControlDeviceGroup")]
         [Authorize]
-
+        [Route("GetAccessControlDeviceGroup")]
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id,
             int pageNumber = default, int pageSize = default)
         {

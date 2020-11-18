@@ -10,13 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Servers;
+using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
-    public class UserGroupController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class UserGroupController : ControllerBase
     {
         private readonly RestClient _restClient;
 
@@ -566,6 +567,7 @@ namespace Biovation.Server.Controllers.v1
             }
         }
 
+        [HttpPost]
         [Route("SyncUserGroupMember")]
         public ResultViewModel SyncUserGroupMember(string lstUsers)
         {

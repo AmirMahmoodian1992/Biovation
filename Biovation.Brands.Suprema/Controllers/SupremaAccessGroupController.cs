@@ -9,7 +9,9 @@ using System.Collections.Generic;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
-    public class SupremaAccessGroupController : Controller
+    [ApiController]
+    [Route("Biovation/Api/[controller]/[action]")]
+    public class SupremaAccessGroupController : ControllerBase
     {
         private readonly CommandFactory _commandFactory;
         private readonly FastSearchService _fastSearchService;

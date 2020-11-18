@@ -1,8 +1,6 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
-using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Servers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -13,31 +11,28 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Extension;
+using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v1/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
-    public class LogController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class LogController : ControllerBase
     {
         private readonly UserService _userService;
         private readonly LogService _logService;
         private readonly DeviceService _commonDeviceService;
         private readonly RestClient _restClient;
 
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskPriorities _taskPriorities;
         private readonly TokenGenerator _tokenGenerator;
         private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, TaskTypes taskTypes, TaskPriorities taskPriorities, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
+        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
         {
             _userService = userService;
             _logService = logService;
-            _taskTypes = taskTypes;
-            _taskPriorities = taskPriorities;
             _commonDeviceService = deviceService;
             _restClient = restClient;
             _tokenGenerator = tokenGenerator;
@@ -45,16 +40,16 @@ namespace Biovation.Server.Controllers.v1
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
 
-        [HttpGet]
-        [Route("Logs")]
-        public Task<List<Log>> Logs()
-        {
-            return _logService.Logs(token: _kasraAdminToken);
-        }
+        //[HttpGet]
+        //[Route("Logs")]
+        //public Task<List<Log>> Logs()
+        //{
+        //    return _logService.Logs(token: _kasraAdminToken);
+        //}
 
         [HttpGet]
         [Route("Logs")]
-        public Task<List<Log>> LogsWithDate(DateTime fromDate, DateTime toDate)
+        public Task<List<Log>> LogsWithDate(DateTime? fromDate = null, DateTime? toDate = null)
         {
             return _logService.Logs(fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
@@ -121,17 +116,17 @@ namespace Biovation.Server.Controllers.v1
 
                 if (fromDate is null && toDate is null)
                 {
-                    restRequest.AddQueryParameter("fromDate", DateTime.MinValue.ToString(CultureInfo.InvariantCulture));
-                    restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("fromDate", DateTime.Now.AddYears(-15).ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", DateTime.Now.AddYears(5).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (fromDate is null)
                 {
-                    restRequest.AddQueryParameter("fromDate", (DateTime.MinValue.ToString(CultureInfo.InvariantCulture)));
-                    restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture)); restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("fromDate", (DateTime.Now.AddYears(-15).ToString(CultureInfo.InvariantCulture)));
+                    restRequest.AddQueryParameter("toDate", ((DateTime)toDate).ToString(CultureInfo.InvariantCulture));
                 }
                 else if (toDate is null)
                 {
-                    restRequest.AddQueryParameter("toDate", DateTime.MaxValue.ToString(CultureInfo.InvariantCulture));
+                    restRequest.AddQueryParameter("toDate", DateTime.Now.AddYears(5).ToString(CultureInfo.InvariantCulture));
                     restRequest.AddQueryParameter("fromDate", ((DateTime)fromDate).ToString(CultureInfo.InvariantCulture));
                 }
                 else
@@ -152,20 +147,20 @@ namespace Biovation.Server.Controllers.v1
 
                 return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK
                     ? result.Data
-                    : new ResultViewModel {Validate = 0, Message = result.ErrorMessage};
+                    : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
             });
         }
 
-        [HttpGet]
-        [Route("OfflineLogsOfDevice")]
-        public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
-        {
-            return _logService.Logs(deviceId: (int)deviceId, token: _kasraAdminToken);
-        }
+        //[HttpGet]
+        //[Route("OfflineLogsOfDevice")]
+        //public Task<List<Log>> OfflineLogsOfDevice(uint deviceId)
+        //{
+        //    return _logService.Logs(deviceId: (int)deviceId, token: _kasraAdminToken);
+        //}
 
         [HttpGet]
         [Route("OfflineLogsOfDevice")]
-        public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime fromDate, DateTime toDate)
+        public Task<List<Log>> OfflineLogsOfDeviceByDate(uint deviceId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             return _logService.Logs(deviceId: (int)deviceId, fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
@@ -188,16 +183,16 @@ namespace Biovation.Server.Controllers.v1
             });
         }
 
-        [HttpGet]
-        [Route("LogsOfUser")]
-        public Task<List<Log>> LogsOfUser(int userId)
-        {
-            return _logService.Logs(userId: userId, token: _kasraAdminToken);
-        }
+        //[HttpGet]
+        //[Route("LogsOfUser")]
+        //public Task<List<Log>> LogsOfUser(int userId)
+        //{
+        //    return _logService.Logs(userId: userId, token: _kasraAdminToken);
+        //}
 
         [HttpGet]
         [Route("LogsOfUser")]
-        public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime fromDate, DateTime toDate)
+        public Task<List<Log>> LogsOfUserWithDate(int userId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             return _logService.Logs(userId: userId, fromDate: fromDate, toDate: toDate, token: _kasraAdminToken);
         }
@@ -241,7 +236,7 @@ namespace Biovation.Server.Controllers.v1
                     obj.State = null;
                     var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
                     //var logs = logsAwaiter.ToList();
-                    await Task.Run(() => { _logService.TransferLogBulk(logs,token); });
+                    await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
 
                     return new ResultViewModel { Validate = 1, Message = logs.Count.ToString() };
                 }

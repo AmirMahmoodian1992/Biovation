@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Servers;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -13,10 +13,10 @@ using RestSharp;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [ApiVersion("1.0")]
     [ApiController]
-    public class DeviceGroupController : Controller
+    [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class DeviceGroupController : ControllerBase
     {
         private readonly DeviceService _deviceService;
         private readonly DeviceGroupService _deviceGroupService;

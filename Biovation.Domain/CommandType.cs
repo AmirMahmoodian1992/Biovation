@@ -40,6 +40,8 @@ namespace Biovation.Domain
         public const int GetServerTime = 800;
 
         public const int UpgradeFirmware = 11102;
+        public const int DownloadUserPhotos = 11103;
+        public const int UploadUserPhotos = 11104;
 
 
         public const int SendBlackList = 11601;

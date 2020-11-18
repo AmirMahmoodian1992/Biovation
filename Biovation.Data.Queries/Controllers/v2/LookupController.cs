@@ -5,12 +5,11 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-    public class LookupController : Controller
+    public class LookupController : ControllerBase
     {
         private readonly LookupRepository _lookupRepository;
-
-
         public LookupController(LookupRepository lookupRepository)
         {
             _lookupRepository = lookupRepository;
