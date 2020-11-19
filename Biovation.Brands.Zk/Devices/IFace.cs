@@ -155,17 +155,17 @@ namespace Biovation.Brands.ZK.Devices
                                         {
                                             user.FingerTemplates.Add(fingerTemplate);
                                             Logger.Log(
-                                                $"A finger print with index: {i} is retrieved for user: {user.Id}");
+                                                $"A finger print with index: {i} is retrieved for user: {user.Code}");
                                         }
                                         else
                                         {
-                                            Logger.Log($"The User: {user.Id} has a finger print with index: {i}");
+                                            Logger.Log($"The User: {user.Code} has a finger print with index: {i}");
                                         }
                                     }
                                     else
                                     {
                                         user.FingerTemplates.Add(fingerTemplate);
-                                        Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Id}");
+                                        Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Code}");
                                     }
                                 }
                             }
@@ -263,11 +263,11 @@ namespace Biovation.Brands.ZK.Devices
                 if (user.IdentityCard != null && user.IdentityCard.IsActive)
                 {
                     if (ZkTecoSdk.SetStrCardNumber(user.IdentityCard.Number))
-                        Logger.Log($"Successfully set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                        Logger.Log($"Successfully set card for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                     else
                     {
                         ZkTecoSdk.GetLastError(ref errorCode);
-                        Logger.Log($"Cannot set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                        Logger.Log($"Cannot set card for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                     }
                 }
 
@@ -275,7 +275,7 @@ namespace Biovation.Brands.ZK.Devices
                 if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
-                    Logger.Log($"UserId {user.Id} successfully added to DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                    Logger.Log($"UserId {user.Code} successfully added to DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                     try
                     {
                         if (user.FingerTemplates.Any())
@@ -293,14 +293,14 @@ namespace Biovation.Brands.ZK.Devices
                                     {
                                         //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                                         Logger.Log(
-                                            $"Successfully set template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                            $"Successfully set template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                                         break;
                                     }
 
                                     ZkTecoSdk.GetLastError(ref errorCode);
                                     Thread.Sleep(50);
                                     Logger.Log(
-                                        $"Cannot set template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                                        $"Cannot set template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                                 }
                             }
                         }
@@ -319,14 +319,14 @@ namespace Biovation.Brands.ZK.Devices
                                 {
                                     //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                                     Logger.Log(
-                                        $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                        $"Successfully set face template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                                     break;
                                 }
 
                                 ZkTecoSdk.GetLastError(ref errorCode);
                                 Thread.Sleep(50);
                                 Logger.Log(
-                                    $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                                    $"Cannot set face template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                             }
                             //}
                         }
@@ -340,7 +340,7 @@ namespace Biovation.Brands.ZK.Devices
                         {
                             ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
                             Logger.Log(
-                                $"Successfully set access group for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                $"Successfully set access group for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                             //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
                             return true;
                         }
@@ -349,7 +349,7 @@ namespace Biovation.Brands.ZK.Devices
                         ZkTecoSdk.GetLastError(ref errorCode);
                         //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
 
-                        Logger.Log($"Cannot set access group for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                        Logger.Log($"Cannot set access group for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                     }
                     catch (Exception exception)
                     {
@@ -364,7 +364,7 @@ namespace Biovation.Brands.ZK.Devices
                 ZkTecoSdk.GetLastError(ref errorCode);
                 //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
 
-                Logger.Log($"Cannot add user {user.Id} to device {DeviceInfo.Code}. ErrorCode={errorCode}",
+                Logger.Log($"Cannot add user {user.Code} to device {DeviceInfo.Code}. ErrorCode={errorCode}",
                     logType: LogType.Warning);
                 return false;
             }
