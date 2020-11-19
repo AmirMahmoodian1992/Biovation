@@ -8,19 +8,21 @@ using Kasra.MessageBus.Managers.Sinks.EventBus;
 using Kasra.MessageBus.Managers.Sinks.Internal;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Biovation.Repository.MessageBus
 {
     public class LogMessageBusRepository
     {
-
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly ISource<DataChangeMessage<Log>> _logInternalSource;
         private const string LogTopicName = "BiovationLogUpdateEvent";
-      
-        public LogMessageBusRepository(BiovationConfigurationManager biovationConfiguration)
+
+        public LogMessageBusRepository(BiovationConfigurationManager biovationConfiguration, BiovationConfigurationManager biovationConfigurationManager)
         {
-           
+            _biovationConfigurationManager = biovationConfigurationManager;
+            if (!biovationConfiguration.BroadcastToMessageBus) return;
             var kafkaServerAddress = biovationConfiguration.KafkaServerAddress;
             _logInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
                 .Build<DataChangeMessage<Log>>();
@@ -33,11 +35,12 @@ namespace Biovation.Repository.MessageBus
         }
 
 
-        public Task<ResultViewModel> SendLog(List<Log >logList)
+        public Task<ResultViewModel> SendLog(List<Log> logList)
         {
             return Task.Run(() =>
             {
-               
+                if (!_biovationConfigurationManager.BroadcastToMessageBus) return new ResultViewModel { Success = false, Id = logList.FirstOrDefault()?.Id ?? 0, Message = "The use message bus option is disabled." };
+
                 try
                 {
                     var biovationBrokerMessageData = new List<DataChangeMessage<Log>>
@@ -51,16 +54,12 @@ namespace Biovation.Repository.MessageBus
 
                     _logInternalSource.PushData(biovationBrokerMessageData);
                     return new ResultViewModel { Validate = 1 };
-
                 }
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
                     return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-
-
                 }
-
             });
         }
     }

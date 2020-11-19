@@ -185,7 +185,25 @@ namespace Biovation.CommonClasses.Manager
                 }
             }
 
-            set => Configuration.GetSection("AppSettings")["MigrateUp"] = value.ToString();
+            set => Configuration.GetSection("AppSettings")["UseHealthCheck"] = value.ToString();
+        }
+
+        public bool BroadcastToMessageBus
+        {
+            get
+            {
+                try
+                {
+                    return string.Equals(Configuration.GetSection("AppSettings")["BroadcastToMessageBus"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return false;
+                }
+            }
+
+            set => Configuration.GetSection("AppSettings")["BroadcastToMessageBus"] = value.ToString();
         }
 
         public bool MigrateUp

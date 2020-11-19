@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Kasra.MessageBus.Domain.Enumerators;
@@ -9,18 +6,24 @@ using Kasra.MessageBus.Domain.Interfaces;
 using Kasra.MessageBus.Infrastructure;
 using Kasra.MessageBus.Managers.Sinks.EventBus;
 using Kasra.MessageBus.Managers.Sinks.Internal;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.MessageBus
 {
     public class TaskMessageBusRepository
     {
-
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly ISource<DataChangeMessage<TaskInfo>> _taskInternalSource;
         private const string TaskTopicName = "BiovationTaskUpdateEvent";
-     
-        public TaskMessageBusRepository(BiovationConfigurationManager biovationConfiguration)
+
+        public TaskMessageBusRepository(BiovationConfigurationManager biovationConfiguration, BiovationConfigurationManager biovationConfigurationManager)
         {
-           
+            _biovationConfigurationManager = biovationConfigurationManager;
+            if (!biovationConfiguration.BroadcastToMessageBus) return;
+
             var kafkaServerAddress = biovationConfiguration.KafkaServerAddress;
             _taskInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
                 .Build<DataChangeMessage<TaskInfo>>();
@@ -37,7 +40,8 @@ namespace Biovation.Repository.MessageBus
         {
             return Task.Run(() =>
             {
-                
+                if (!_biovationConfigurationManager.BroadcastToMessageBus) return new ResultViewModel { Success = false, Id = taskList.FirstOrDefault()?.Id ?? 0, Message = "The use message bus option is disabled." };
+
                 try
                 {
                     var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
@@ -57,7 +61,6 @@ namespace Biovation.Repository.MessageBus
                 {
                     Logger.Log(exception);
                     return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-
                 }
             });
         }
