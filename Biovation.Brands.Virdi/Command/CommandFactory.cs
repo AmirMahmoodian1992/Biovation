@@ -30,6 +30,7 @@ namespace Biovation.Brands.Virdi.Command
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
 
+
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,

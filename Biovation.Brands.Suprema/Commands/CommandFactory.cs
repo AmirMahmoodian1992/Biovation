@@ -8,6 +8,7 @@ using Biovation.Brands.Suprema.Devices;
 using Biovation.Brands.Suprema.Manager;
 using Biovation.Constants;
 using Biovation.Service.Api.v1;
+using RestSharp;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -41,6 +42,12 @@ namespace Biovation.Brands.Suprema.Commands
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly RestClient _restClient;
+
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskService _taskService;
         //private static ClientConnection Connection { get; set; }
 
         // <summary>
@@ -62,7 +69,7 @@ namespace Biovation.Brands.Suprema.Commands
         public CommandFactory(BioStarServer supremaServer, 
             UserService userService, DeviceService deviceService,
             UserCardService userCardService,  
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, RestClient restClient, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _bioStarServer = supremaServer;
             //_logService = logService;
@@ -86,6 +93,11 @@ namespace Biovation.Brands.Suprema.Commands
             _biometricTemplateManager = biometricTemplateManager;
             _faceTemplateTypes = faceTemplateTypes;
             _onlineDevices = onlineDevices;
+            _restClient = restClient;
+            _taskTypes = taskTypes;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         public  ICommand Factory(int eventId, List<object> items)
@@ -207,7 +219,10 @@ namespace Biovation.Brands.Suprema.Commands
                     //Gets online devices
                     return new SupremaGetOnlineDevices(_onlineDevices);
 
-
+                #region Tools
+                case CommandType.UserAdaptation:
+                    return new Suprema_UserAdaptation(transferModelData.Items, _onlineDevices, _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient);
+                #endregion
 
 
                 #endregion
