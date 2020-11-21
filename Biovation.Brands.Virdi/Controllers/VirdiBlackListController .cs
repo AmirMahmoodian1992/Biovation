@@ -42,7 +42,6 @@ namespace Biovation.Brands.Virdi.Controllers
         [Authorize]
         public Task<List<ResultViewModel>> SendBlackLisDevice(List<BlackList> blackLists)
         {
-
             return Task.Run(() =>
             {
                 var resultList = new List<ResultViewModel>();

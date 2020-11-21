@@ -46,9 +46,9 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody] int accessGroupId)
+        public async Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody] int accessGroupId)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {

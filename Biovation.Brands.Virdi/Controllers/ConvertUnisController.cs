@@ -3,12 +3,12 @@ using Biovation.Brands.Virdi.Model;
 using Biovation.Brands.Virdi.Service;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v1;
 using UNIONCOMM.SDK.UCBioBSP;
 
 namespace Biovation.Brands.Virdi.Controllers
@@ -37,14 +37,14 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpPost]
-        public IActionResult Convert(DatabaseConnectionParameters connectionParameters)
+        public async Task<IActionResult> Convert(DatabaseConnectionParameters connectionParameters)
         {
             try
             {
                 connectionParameters.DatabaseName = string.IsNullOrWhiteSpace(connectionParameters.DatabaseName) ? "Unis" : connectionParameters.DatabaseName;
                 connectionParameters.UserName = string.IsNullOrWhiteSpace(connectionParameters.UserName) ? "unisuser" : connectionParameters.UserName;
                 connectionParameters.Password = string.IsNullOrWhiteSpace(connectionParameters.Password) ? "unisamho" : connectionParameters.Password;
-                ConvertToUnis(connectionParameters).Wait();
+                await ConvertToUnis(connectionParameters);
                 return Ok();
             }
             catch (Exception e)
@@ -54,13 +54,13 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         [HttpGet]
-        public IActionResult Convert(string serverAddress, string databaseName = "Unis", string username = "unisuser", string password = "unisamho")
+        public async Task<IActionResult> Convert(string serverAddress, string databaseName = "Unis", string username = "unisuser", string password = "unisamho")
         {
             try
             {
                 var databaseConnectionParameters = new DatabaseConnectionParameters
                 { Server = serverAddress, DatabaseName = databaseName, UserName = username, Password = password };
-                ConvertToUnis(databaseConnectionParameters).Wait();
+                await ConvertToUnis(databaseConnectionParameters);
                 return Ok();
             }
             catch (Exception e)
@@ -103,7 +103,7 @@ namespace Biovation.Brands.Virdi.Controllers
                         Type = 1
                     };
 
-                     _userService.ModifyUser(biovationUser);
+                    _userService.ModifyUser(biovationUser);
                 }
 
                 var ucBioApi = new UCBioAPI();

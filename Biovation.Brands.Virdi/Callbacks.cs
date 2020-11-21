@@ -165,42 +165,46 @@ namespace Biovation.Brands.Virdi
             }
         }
 
-        public void AddUserToDeviceFastSearch(uint deviceCode, int userCode)
+        public async Task AddUserToDeviceFastSearch(uint deviceCode, int userCode)
         {
-            lock (_fastSearchOfDevices)
+            await Task.Run(() =>
             {
-                try
+                lock (_fastSearchOfDevices)
                 {
-                    var user = _commonUserService.GetUsers(code: userCode).FirstOrDefault();
-                    if (user != null)
+                    try
                     {
-                        var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
-                        if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
+                        var user = _commonUserService.GetUsers(code: userCode).FirstOrDefault();
+                        if (user != null)
                         {
-                            var fpData = _fingerPrintDataOfDevices[(int)deviceCode];
-                            var fastSearch = _fastSearchOfDevices[(int)deviceCode];
-                            fpData.ClearFPData();
-
-                            for (var i = 0; i < userFingerTemplates.Count - 1; i += 2)
+                            var userFingerTemplates = user.FingerTemplates.Where(fingerTemplate =>
+                                fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
+                            if (_fastSearchOfDevices.ContainsKey((int)deviceCode))
                             {
-                                fpData.Import(0, userFingerTemplates[i].FingerIndex.OrderIndex, 2, 400, 400,
-                                    userFingerTemplates[i].Template, userFingerTemplates[i + 1].Template);
+                                var fpData = _fingerPrintDataOfDevices[(int)deviceCode];
+                                var fastSearch = _fastSearchOfDevices[(int)deviceCode];
+                                fpData.ClearFPData();
+
+                                for (var i = 0; i < userFingerTemplates.Count - 1; i += 2)
+                                {
+                                    fpData.Import(0, userFingerTemplates[i].FingerIndex.OrderIndex, 2, 400, 400,
+                                        userFingerTemplates[i].Template, userFingerTemplates[i + 1].Template);
+                                }
+
+                                var firTemplate = fpData.TextFIR;
+                                fastSearch?.AddFIR(firTemplate, userCode);
+                                fpData.ClearFPData();
                             }
 
-                            var firTemplate = fpData.TextFIR;
-                            fastSearch?.AddFIR(firTemplate, userCode);
-                            fpData.ClearFPData();
+                            else
+                                LoadFingerTemplates().Wait();
                         }
-
-                        else
-                            LoadFingerTemplates();
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
                     }
                 }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                }
-            }
+            });
         }
 
         public Callbacks(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService
@@ -258,7 +262,7 @@ namespace Biovation.Brands.Virdi
             _matching = _ucBioBsp.Matching as IMatching;
             //_smartCard = _ucBioBsp.SmartCard as ISmartCard;
 
-            LoadFingerTemplates();
+            LoadFingerTemplates().Wait();
 
             //var deviceModels = _commonDeviceService.GetDeviceModelsByBrandCode(DeviceBrands.VirdiCode);
 
@@ -443,21 +447,21 @@ namespace Biovation.Brands.Virdi
 
         #endregion
 
-        public /*async*/ void LoadFingerTemplates()
+        public async Task LoadFingerTemplates()
         {
-            //await Task.Run(() =>
-            //{
-            lock (_loadFingerTemplateLock)
+            await Task.Run(() =>
             {
-                Logger.Log("Fast search initialization started.");
-                var devices = _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                var accessGroups = _accessGroupService.GetAccessGroups();
-                var devicesWithAccessGroup = accessGroups.SelectMany(accessGroup =>
-                    accessGroup.DeviceGroup.SelectMany(deviceGroup => deviceGroup.Devices)).ToList();
-                var deviceWithoutAccessGroup =
-                    devices.ExceptBy(devicesWithAccessGroup, device => device.DeviceId).ToList();
+                lock (_loadFingerTemplateLock)
+                {
+                    Logger.Log("Fast search initialization started.");
+                    var devices = _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+                    var accessGroups = _accessGroupService.GetAccessGroups();
+                    var devicesWithAccessGroup = accessGroups.SelectMany(accessGroup =>
+                        accessGroup.DeviceGroup.SelectMany(deviceGroup => deviceGroup.Devices)).ToList();
+                    var deviceWithoutAccessGroup =
+                        devices.ExceptBy(devicesWithAccessGroup, device => device.DeviceId).ToList();
 
-                var tasks = new List<Task>
+                    var tasks = new List<Task>
                     {
                         Task.Run(() => Parallel.ForEach(accessGroups, accessGroup =>
                         {
@@ -467,7 +471,8 @@ namespace Biovation.Brands.Virdi
                                     _accessGroupService.GetServerSideIdentificationCacheOfAccessGroup(accessGroup.Id,
                                         DeviceBrands.VirdiCode);
 
-                                var identificationObjectsOfDevices = cachedList.GroupBy(cachedObject => cachedObject.DeviceCode)
+                                var identificationObjectsOfDevices = cachedList
+                                    .GroupBy(cachedObject => cachedObject.DeviceCode)
                                     .Select(group => new
                                     {
                                         DeviceCode = group.Key,
@@ -518,24 +523,29 @@ namespace Biovation.Brands.Virdi
                                         {
                                             var minIndexTemplate = templatesOfUser.Where(x =>
                                                     x.UserId == templateOfUser.UserId &&
-                                                    x.FingerTemplate.FingerIndex.Code ==templateOfUser.FingerTemplate.FingerIndex.Code &&
+                                                    x.FingerTemplate.FingerIndex.Code ==
+                                                    templateOfUser.FingerTemplate.FingerIndex.Code &&
                                                     x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index)
                                                 .MinBy(x => x.FingerTemplate.TemplateIndex).FirstOrDefault();
                                             if (templateOfUser.FingerTemplate.Id != minIndexTemplate?.FingerTemplate.Id)
                                                 continue;
 
                                             var secondTemplateSample = templatesOfUser.FirstOrDefault(x =>
-                                                x.FingerTemplate.FingerIndex.Code == templateOfUser.FingerTemplate.FingerIndex.Code &&
-                                                x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index &&
-                                                x.FingerTemplate.TemplateIndex == templateOfUser.FingerTemplate.TemplateIndex + 1)?.FingerTemplate.Template;
+                                                    x.FingerTemplate.FingerIndex.Code ==
+                                                    templateOfUser.FingerTemplate.FingerIndex.Code &&
+                                                    x.FingerTemplate.Index == templateOfUser.FingerTemplate.Index &&
+                                                    x.FingerTemplate.TemplateIndex ==
+                                                    templateOfUser.FingerTemplate.TemplateIndex + 1)?.FingerTemplate
+                                                .Template;
                                             fpData.Import(0, templateOfUser.FingerTemplate.FingerIndex.OrderIndex, 2,
-                                                400,400,
+                                                400, 400,
                                                 templateOfUser.FingerTemplate.Template,
                                                 secondTemplateSample);
                                         }
 
                                         var firTemplate = fpData.TextFIR;
-                                        fastSearch.AddFIR(firTemplate, Convert.ToInt32(identificationObjectsOfUser.UserId));
+                                        fastSearch.AddFIR(firTemplate,
+                                            Convert.ToInt32(identificationObjectsOfUser.UserId));
                                         fpData.ClearFPData();
                                     }
 
@@ -579,7 +589,9 @@ namespace Biovation.Brands.Virdi
                             Parallel.For(0, loopUpperBound, index =>
                             {
                                 var tempTemplates =
-                                    _fingerTemplateService.FingerTemplates(fingerTemplateType: FingerTemplateTypes.V400Code, pageNumber: index, pageSize: groupSize);
+                                    _fingerTemplateService.FingerTemplates(
+                                        fingerTemplateType: FingerTemplateTypes.V400Code, pageNumber: index,
+                                        pageSize: groupSize);
 
                                 lock (fingerTemplates)
                                     fingerTemplates.AddRange(tempTemplates);
@@ -652,7 +664,7 @@ namespace Biovation.Brands.Virdi
                                 }
                             });
 
-                            return Parallel.ForEach(deviceWithoutAccessGroup, device =>
+                            Parallel.ForEach(deviceWithoutAccessGroup, device =>
                             {
                                 var ucBioBsp = new UCBioBSPClass();
 
@@ -685,24 +697,25 @@ namespace Biovation.Brands.Virdi
 
                                 lock (_bioBspClasses)
                                 {
-                                    if (_bioBspClasses.ContainsKey((int)device.Code))
+                                    if (_bioBspClasses.ContainsKey((int) device.Code))
                                     {
-                                        _bioBspClasses.Remove((int)device.Code);
-                                        _fastSearchOfDevices.Remove((int)device.Code);
-                                        _fingerPrintDataOfDevices.Remove((int)device.Code);
+                                        _bioBspClasses.Remove((int) device.Code);
+                                        _fastSearchOfDevices.Remove((int) device.Code);
+                                        _fingerPrintDataOfDevices.Remove((int) device.Code);
                                     }
 
-                                    _bioBspClasses.Add((int)device.Code, ucBioBsp);
-                                    _fastSearchOfDevices.Add((int)device.Code, fastSearch);
-                                    _fingerPrintDataOfDevices.Add((int)device.Code, fpData);
+                                    _bioBspClasses.Add((int) device.Code, ucBioBsp);
+                                    _fastSearchOfDevices.Add((int) device.Code, fastSearch);
+                                    _fingerPrintDataOfDevices.Add((int) device.Code, fpData);
                                 }
                             });
                         })
                     };
 
-                Task.WaitAll(tasks.ToArray());
-                Logger.Log("Fast search initialization completed.");
-            }
+                    Task.WaitAll(tasks.ToArray());
+                    Logger.Log("Fast search initialization completed.");
+                }
+            });
 
             //Task.Run(() =>
             //{

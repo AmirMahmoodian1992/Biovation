@@ -50,16 +50,14 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> EnrollFromTerminal([FromBody] uint deviceId)
+        public async Task<ResultViewModel> EnrollFromTerminal([FromBody] uint deviceId)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
-                    var devices = _deviceService.GetDevice(id: deviceId);
-
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
+                    var devices = _deviceService.GetDevice(deviceId);
 
                     var task = new TaskInfo
                     {
@@ -103,35 +101,39 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel ModifyUser([FromBody] User user)
+        public async Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
-            try
+            return await Task.Run(() =>
             {
-                _callbacks.LoadFingerTemplates();
-                return new ResultViewModel { Validate = 1 };
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-                throw;
-            }
+                try
+                {
+                    // ReSharper disable once AssignmentIsFullyDiscarded
+                    _ = _callbacks.LoadFingerTemplates();
+                    return new ResultViewModel { Validate = 1 };
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new ResultViewModel { Validate = 0, Message = exception.Message };
+                }
+            });
         }
 
         [HttpGet]
         [Authorize]
-        public Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId, bool updateServerSideIdentification = false)
+        public async Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId, bool updateServerSideIdentification = false)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 var resultList = new List<ResultViewModel>();
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-                    var deviceId = devices.DeviceId;
-                    var userIds = JsonConvert.DeserializeObject<long[]>(userId);
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                    if (device is null)
+                        return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists" } };
 
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
+                    var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 
                     var task = new TaskInfo
                     {
@@ -151,7 +153,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.SendUser,
                             Priority = _taskPriorities.Medium,
-                            DeviceId = deviceId,
+                            DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { UserId = id }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
@@ -161,7 +163,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         });
 
                         if (!updateServerSideIdentification) continue;
-                        _callbacks.AddUserToDeviceFastSearch(code, (int)id);
+                        // ReSharper disable once AssignmentIsFullyDiscarded
+                        _ = _callbacks.AddUserToDeviceFastSearch(code, (int)id);
                     }
 
                     _taskService.InsertTask(task);
@@ -206,40 +209,47 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel DeleteUserFromTerminal(uint code, int userId)
+        public async Task<ResultViewModel> DeleteUserFromTerminal(uint code, int userId)
         {
-            var deleteUserFromTerminalCommand = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                new List<object> { code, userId });
-
-            var result = deleteUserFromTerminalCommand.Execute();
-
-            return new ResultViewModel { Id = userId, Validate = Convert.ToInt32(result) };
-        }
-
-        [HttpPost]
-        [Authorize]
-        public List<ResultViewModel> DeleteUserFromAllTerminal(int[] ids)
-        {
-            var onlineDevice = _virdiServer.GetOnlineDevices();
-            var result = new List<ResultViewModel>();
-            foreach (var device in onlineDevice)
+            return await Task.Run(() =>
             {
-                foreach (var userId in ids)
-                {
-                    var deleteUserFromTerminalCommand = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                        new List<object> { device.Key, userId });
-                    var deleteResult = (bool)deleteUserFromTerminalCommand.Execute();
-                    result.Add(new ResultViewModel { Id = userId, Validate = Convert.ToInt32(deleteResult) });
-                }
-            }
-            return result;
+                var deleteUserFromTerminalCommand = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                    new List<object> { code, userId });
+
+                var result = deleteUserFromTerminalCommand.Execute();
+
+                return new ResultViewModel { Id = userId, Validate = Convert.ToInt32(result) };
+            });
         }
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
+        public async Task<List<ResultViewModel>> DeleteUserFromAllTerminal(int[] ids)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
+            {
+                var onlineDevice = _virdiServer.GetOnlineDevices();
+                var result = new List<ResultViewModel>();
+                foreach (var device in onlineDevice)
+                {
+                    foreach (var userId in ids)
+                    {
+                        var deleteUserFromTerminalCommand = _commandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                            new List<object> { device.Key, userId });
+                        var deleteResult = (bool)deleteUserFromTerminalCommand.Execute();
+                        result.Add(new ResultViewModel { Id = userId, Validate = Convert.ToInt32(deleteResult) });
+                    }
+                }
+
+                return result;
+            });
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
+        {
+            return await Task.Run(() =>
             {
                 try
                 {

@@ -23,7 +23,9 @@ namespace Biovation.Brands.Virdi.Controllers
         {
             try
             {
+#pragma warning disable 4014
                 _callbacks.LoadFingerTemplates();
+#pragma warning restore 4014
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)
