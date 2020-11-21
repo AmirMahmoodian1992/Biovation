@@ -702,7 +702,6 @@ namespace Biovation.Server.Controllers.v2
 
                 restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
             });

@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using RestSharp;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -26,6 +27,7 @@ namespace Biovation.Brands.ZK.Command
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
+        private readonly RestClient _restClient;
 
 
         private Dictionary<uint, Device> OnlineDevices { get; }
@@ -36,7 +38,7 @@ namespace Biovation.Brands.ZK.Command
         private uint Code { get; set; }
         private TaskItem TaskItem { get; }
         public ZkUserAdaptation(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskTypes taskTypes, TaskService taskService,
-            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, UserService userService)
+            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, UserService userService, RestClient restClient)
         {
             var taskItem = (TaskItem)items[0];
             TaskItem = taskItem;
@@ -51,6 +53,7 @@ namespace Biovation.Brands.ZK.Command
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _userService = userService;
+            _restClient = restClient;
         }
 
         public object Execute()
@@ -157,6 +160,9 @@ namespace Biovation.Brands.ZK.Command
                 });
                 _taskService.InsertTask(task);
 
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
                 return new ResultViewModel
                 {
                     Success = true,
@@ -165,7 +171,7 @@ namespace Biovation.Brands.ZK.Command
                     Message = $"The Delete and send User operations for User{UserCode}  on Device {device.DeviceId} successfully started"
                 };
 
-
+                
             }
             catch (Exception exception)
             {
