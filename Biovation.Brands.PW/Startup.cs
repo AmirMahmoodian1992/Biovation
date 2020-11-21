@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Reflection;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.PW.Command;
@@ -7,7 +5,6 @@ using Biovation.Brands.PW.Devices;
 using Biovation.Brands.PW.HostedServices;
 using Biovation.Brands.PW.Manager;
 using Biovation.Brands.PW.Middleware;
-using Biovation.Brands.PW.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -22,6 +19,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace Biovation.Brands.PW
 {
@@ -94,6 +93,7 @@ namespace Biovation.Brands.PW
             services.AddSingleton<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<LogService, LogService>();
+            services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
             services.AddSingleton<LookupService, LookupService>();
             services.AddSingleton<SettingService, SettingService>();
             services.AddSingleton<TaskService, TaskService>();
@@ -101,7 +101,6 @@ namespace Biovation.Brands.PW
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton<PwLogService, PwLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();

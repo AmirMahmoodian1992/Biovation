@@ -4,7 +4,6 @@ using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
 using Biovation.Brands.ZK.Manager;
 using Biovation.Brands.ZK.Middleware;
-using Biovation.Brands.ZK.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -34,7 +33,7 @@ namespace Biovation.Brands.ZK
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
-            Serilog.Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
                 .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
                 .CreateLogger();
@@ -43,7 +42,7 @@ namespace Biovation.Brands.ZK
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(environment.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", true, true)
                 .AddJsonFile($"appsettings.{environment.EnvironmentName}.json", true, true)
                 .AddEnvironmentVariables();
 
@@ -113,8 +112,8 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton<ZkLogService, ZkLogService>();
-            services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+            services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();

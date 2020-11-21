@@ -1,8 +1,12 @@
 ﻿using Biovation.Brands.ZK.Manager;
-using Biovation.Brands.ZK.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
+using Biovation.CommonClasses.Manager;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,11 +14,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
-using RestSharp;
 using zkemkeeper;
 using TimeZone = Biovation.Domain.TimeZone;
 //using TimeZone = Biovation.CommonClasses.Models.TimeZone;
@@ -26,7 +25,6 @@ namespace Biovation.Brands.ZK.Devices
     public class Device : IDevices
     {
         protected readonly DeviceBasicInfo DeviceInfo;
-        protected readonly ZkLogService ZkLogService;
         private readonly TaskService _taskService;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -65,10 +63,9 @@ namespace Biovation.Brands.ZK.Devices
 
 
         protected static readonly object LockObject = new object();
-        internal Device(DeviceBasicInfo info, ZkLogService zkLogService, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
+        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
         {
             DeviceInfo = info;
-            ZkLogService = zkLogService;
             _taskService = taskService;
             UserService = userService;
             _userService = userService;
@@ -400,12 +397,12 @@ namespace Biovation.Brands.ZK.Devices
                 EventLog = _logEvents.Authorized,
                 UserId = iUserId,
                 MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
-
+                InOutMode = DeviceInfo.DeviceTypeId,
                 TnaEvent = (ushort)iInOutMode,
                 SubEvent = _logSubEvents.Normal
             };
 
-            ZkLogService.AddLog(log);
+            LogService.AddLog(log);
         }
         //If your fingerprint(or your card) passes the verification,this event will be triggered
 
@@ -433,11 +430,12 @@ namespace Biovation.Brands.ZK.Devices
                     EventLog = _logEvents.Authorized,
                     UserId = userId,
                     MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                    InOutMode = DeviceInfo.DeviceTypeId,
                     TnaEvent = (ushort)iInOutMode,
                     SubEvent = _logSubEvents.Normal
                 };
 
-                ZkLogService.AddLog(log);
+                LogService.AddLog(log);
             }
             catch (Exception exception)
             {
@@ -655,10 +653,10 @@ namespace Biovation.Brands.ZK.Devices
                                     DeviceId = DeviceInfo.DeviceId,
                                     DeviceCode = DeviceInfo.Code,
                                     LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
-                                    //EventLog = Event.ATHORIZED,
                                     EventLog = _logEvents.Authorized,
                                     UserId = userId,
                                     MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    InOutMode = DeviceInfo.DeviceTypeId,
                                     TnaEvent = (ushort)iInOutMode
                                 };
 
@@ -681,7 +679,7 @@ namespace Biovation.Brands.ZK.Devices
 
                     Task.Run(() =>
                     {
-                        ZkLogService.AddLog(lstLogs);
+                        LogService.AddLog(lstLogs);
                         if (!saveFile) return;
 
                         LogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
@@ -772,10 +770,10 @@ namespace Biovation.Brands.ZK.Devices
                                     DeviceId = DeviceInfo.DeviceId,
                                     DeviceCode = DeviceInfo.Code,
                                     LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
-                                    //EventLog = Event.ATHORIZED,
                                     EventLog = _logEvents.Authorized,
                                     UserId = userId,
                                     MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    InOutMode = DeviceInfo.DeviceTypeId,
                                     TnaEvent = (ushort)iInOutMode
                                 };
 
@@ -796,7 +794,7 @@ namespace Biovation.Brands.ZK.Devices
                         }
                     }
 
-                    Task.Run(() => { ZkLogService.AddLog(lstLogs); }, TokenSource.Token);
+                    Task.Run(() => { LogService.AddLog(lstLogs); }, TokenSource.Token);
 
                     Logger.Log($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.", logType: LogType.Information);
 
@@ -1297,7 +1295,7 @@ namespace Biovation.Brands.ZK.Devices
                 {
                     Logger.Log("<--EventGetUserData");
 
-                    if (!ZkTecoSdk.SSR_GetUserInfo((int) DeviceInfo.Code, userId.ToString(), out var name,
+                    if (!ZkTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
                         out var password, out var privilege, out var enabled)) return new User();
                     var user = new User
                     {
@@ -1362,7 +1360,7 @@ namespace Biovation.Brands.ZK.Devices
 
                             retrievedFingerTemplates.Add(fingerTemplate);
 
-                               
+
                             user.FingerTemplates.Add(fingerTemplate);
                             Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Code}");
                         }

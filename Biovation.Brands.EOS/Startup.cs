@@ -5,7 +5,6 @@ using Biovation.Brands.EOS.Devices;
 using Biovation.Brands.EOS.HostedServices;
 using Biovation.Brands.EOS.Manager;
 using Biovation.Brands.EOS.Middleware;
-using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -104,7 +103,6 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton<EosLogService, EosLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();

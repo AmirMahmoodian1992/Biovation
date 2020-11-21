@@ -131,7 +131,6 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton<SupremaLogService, SupremaLogService>();
             services.AddSingleton<FastSearchService, FastSearchService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();

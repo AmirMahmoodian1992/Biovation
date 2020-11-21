@@ -5,6 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="v1\LogService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="RestSharp" Version="106.11.4" />
   </ItemGroup>
 

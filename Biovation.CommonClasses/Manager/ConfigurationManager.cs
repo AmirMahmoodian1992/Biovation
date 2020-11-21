@@ -194,7 +194,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(Configuration.GetSection("AppSettings")["BroadcastToMessageBus"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["BroadcastToMessageBus"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -204,6 +204,24 @@ namespace Biovation.CommonClasses.Manager
             }
 
             set => Configuration.GetSection("AppSettings")["BroadcastToMessageBus"] = value.ToString();
+        }
+
+        public bool BroadcastToApi
+        {
+            get
+            {
+                try
+                {
+                    return string.Equals(Configuration.GetSection("AppSettings")["BroadcastToApi"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return false;
+                }
+            }
+
+            set => Configuration.GetSection("AppSettings")["BroadcastToApi"] = value.ToString();
         }
 
         public bool MigrateUp
@@ -368,7 +386,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(Configuration.GetSection("AppSettings")["LockDevice"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["LockDevice"], bool.FalseString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {

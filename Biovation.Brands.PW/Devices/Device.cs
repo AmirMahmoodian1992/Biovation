@@ -1,15 +1,15 @@
-﻿using Biovation.Brands.PW.Service;
+﻿using Biovation.Brands.PW.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.CommonClasses.Manager;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Brands.PW.Manager;
-using Biovation.Constants;
-using Biovation.Domain;
 using xLink;
 
 namespace Biovation.Brands.PW.Devices
@@ -21,9 +21,9 @@ namespace Biovation.Brands.PW.Devices
 
         private readonly xLinkClass _pwSdk = new xLinkClass();//create Standalone _PWSdk class dynamically
         private readonly NetTypes.LINK_PARAMS_TYPE _linkParam = new NetTypes.LINK_PARAMS_TYPE();
-        
+
         private static readonly object LockObject = new object();
-        
+
         //private readonly bool _isGetLogEnable = ConfigurationManager.GetAllLogWhenConnect;
         private int _lastLogReadCount;
         private int _offlineLogReadCount = 1;
@@ -33,17 +33,17 @@ namespace Biovation.Brands.PW.Devices
         private readonly LogSubEvents _logSubEvents;
         private readonly PwCodeMappings _pwCodeMappings;
 
-        private readonly PwLogService _pwLogService;
+        private readonly LogService _logService;
         private readonly DeviceBasicInfo _deviceInfo;
 
-        internal Device(DeviceBasicInfo deviceInfo, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, PwLogService pwLogService)
+        internal Device(DeviceBasicInfo deviceInfo, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, LogService logService)
         {
             _valid = true;
             _deviceInfo = deviceInfo;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _pwCodeMappings = pwCodeMappings;
-            _pwLogService = pwLogService;
+            _logService = logService;
             _clearLogAfterRetrieving = biovationConfigurationManager.ClearLogAfterRetrieving;
             Token = new CancellationTokenSource();
         }
@@ -298,7 +298,7 @@ namespace Biovation.Brands.PW.Devices
                                         try
                                         {
                                             userId = Convert.ToInt32(newRecords[i].cardNo);
-                                           
+
 
                                             var log = new Log
                                             {
@@ -310,6 +310,7 @@ namespace Biovation.Brands.PW.Devices
                                                 EventLog = _logEvents.Authorized,
                                                 UserId = userId,
                                                 MatchingType = _pwCodeMappings.GetMatchingTypeGenericLookup(newRecords[i].ioType),
+                                                InOutMode = _deviceInfo.DeviceTypeId,
                                                 TnaEvent = 0,
                                                 SubEvent = _logSubEvents.Normal
                                             };
@@ -323,7 +324,7 @@ namespace Biovation.Brands.PW.Devices
                                         }
                                     }
 
-                                    _pwLogService.AddLog(logs);
+                                    _logService.AddLog(logs);
 
                                     Task.Run(() =>
                                     {
@@ -408,7 +409,7 @@ namespace Biovation.Brands.PW.Devices
                                 try
                                 {
                                     var userId = Convert.ToInt32(records[i].cardNo);
-                                   
+
                                     var log = new Log
                                     {
                                         DeviceId = _deviceInfo.DeviceId,
@@ -418,6 +419,7 @@ namespace Biovation.Brands.PW.Devices
                                         EventLog = _logEvents.Authorized,
                                         UserId = userId,
                                         MatchingType = _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
+                                        InOutMode = _deviceInfo.DeviceTypeId,
                                         TnaEvent = 0,
                                         SubEvent = _logSubEvents.Normal
                                     };
@@ -483,7 +485,7 @@ namespace Biovation.Brands.PW.Devices
 
                             //Task.Run(() =>
                             //{
-                            _pwLogService.AddLog(logs);
+                            _logService.AddLog(logs);
                             //});
 
                         }

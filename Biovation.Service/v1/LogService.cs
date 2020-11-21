@@ -42,59 +42,7 @@ namespace Biovation.Service.Sql.v1
 
                     if (log.EventLog.Code == _logEvents.Authorized.Code || log.EventLog.Code == _logEvents.UnAuthorized.Code)
                     {
-                        await Task.Run(async () =>
-                        {
-                            try
-                            {
-                                for (var i = 0; i < 3; i++)
-                                {
-                                    var restRequest = new RestRequest("UpdateAttendance/UpdateAttendance", Method.POST);
-                                    restRequest.AddJsonBody(log);
-
-                                    var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                                    log.SuccessTransfer = result.IsSuccessful && result.StatusCode == HttpStatusCode.OK && result.Data?.Validate == 1;
-                                    if (!log.SuccessTransfer) continue;
-
-                                    await UpdateLog(log);
-                                    break;
-                                }
-                            }
-                            catch (Exception exception)
-                            {
-                                Logger.Log(exception);
-                            }
-
-                            try
-                            {
-                                // صفحه مانیتورینگ
-                                var restRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
-                                restRequest.AddJsonBody(_configurationManager.ShowLiveImageInMonitoring
-                                    ? log
-                                    : new Log
-                                    {
-                                        Id = log.Id,
-                                        DeviceId = log.DeviceId,
-                                        DeviceCode = log.DeviceCode,
-                                        UserId = log.UserId,
-                                        LogDateTime = log.LogDateTime,
-                                        EventLog = log.EventLog,
-                                        AuthResult = log.AuthResult,
-                                        AuthType = log.AuthType,
-                                        InOutMode = log.InOutMode,
-                                        DeviceName = log.DeviceName,
-                                        MatchingType = log.MatchingType,
-                                        SubEvent = log.SubEvent,
-                                        SurName = log.SurName,
-                                        TnaEvent = log.TnaEvent
-                                    });
-                                await _logExternalSubmissionRestClient.ExecuteAsync(restRequest);
-                            }
-                            catch (Exception exception)
-                            {
-                                Logger.Log(exception);
-                            }
-                        });
+                        
                     }
 
                     return insertionResult;

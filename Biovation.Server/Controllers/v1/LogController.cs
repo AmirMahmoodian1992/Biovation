@@ -58,7 +58,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SelectSearchedOfflineLogs")]
         public Task<List<Log>> SelectSearchedOfflineLogs([FromBody] DeviceTraffic dTraffic)
         {
-            return _logService.SelectSearchedOfflineLogs(dTraffic, token: _kasraAdminToken);
+            return _logService.SelectSearchedOfflineLogs(dTraffic, _kasraAdminToken);
         }
 
         [HttpPost]
@@ -66,7 +66,7 @@ namespace Biovation.Server.Controllers.v1
         public Task<List<Log>> SelectSearchedOfflineLogsWithPaging([FromBody] DeviceTraffic dTraffic)
         {
             //return _logService.SelectSearchedOfflineLogs(dTraffic);
-            return _logService.SelectSearchedOfflineLogsWithPaging(dTraffic, token: _kasraAdminToken);
+            return _logService.SelectSearchedOfflineLogsWithPaging(dTraffic, _kasraAdminToken);
         }
 
         //[HttpPost]

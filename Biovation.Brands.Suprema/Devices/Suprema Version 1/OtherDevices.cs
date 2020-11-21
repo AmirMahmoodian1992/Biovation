@@ -1,16 +1,15 @@
 ﻿using Biovation.Brands.Suprema.Manager;
 using Biovation.Brands.Suprema.Model;
 using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Biovation.Brands.Suprema.Services;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 {
@@ -23,7 +22,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         private readonly object _deviceAccessObject = new object();
 
         private readonly DeviceService _deviceService;
-        private readonly SupremaLogService _supremaLogService;
+        private readonly LogService _logService;
         private readonly AccessGroupService _accessGroupService;
         private readonly UserCardService _userCardService;
         private readonly FingerTemplateService _fingerTemplateService;
@@ -39,11 +38,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
 
-        public OtherDevices(SupremaDeviceModel info, DeviceService deviceService, SupremaLogService supremaLogService, UserService userService, AccessGroupService accessGroupService, UserCardService userCardService, FingerTemplateService fingerTemplateService, SupremaCodeMappings supremaCodeMappings, FingerTemplateTypes fingerTemplateTypes, DeviceBrands deviceBrands, TimeZoneService timeZoneService, BiometricTemplateManager biometricTemplateManager, MatchingTypes matchingTypes, LogEvents logEvents, LogSubEvents logSubEvents)
-            : base(info,accessGroupService,userCardService)
+        public OtherDevices(SupremaDeviceModel info, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, UserCardService userCardService, FingerTemplateService fingerTemplateService, SupremaCodeMappings supremaCodeMappings, FingerTemplateTypes fingerTemplateTypes, DeviceBrands deviceBrands, TimeZoneService timeZoneService, BiometricTemplateManager biometricTemplateManager, MatchingTypes matchingTypes, LogEvents logEvents, LogSubEvents logSubEvents)
+            : base(info, accessGroupService, userCardService)
         {
             _deviceService = deviceService;
-            _supremaLogService = supremaLogService;
+            _logService = logService;
             _accessGroupService = accessGroupService;
             _userCardService = userCardService;
             _fingerTemplateService = fingerTemplateService;
@@ -103,8 +102,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 userHdr.opMode = BSSDK.BS_AUTH_FINGER_ONLY - 1;
 
 
-           
-            var userTemplate = (_fingerTemplateService.FingerTemplates(userId:(int) userData.Id).Where(x => x.FingerTemplateType.Code == _fingerTemplateTypes.SU384.Code)).ToList();
+
+            var userTemplate = (_fingerTemplateService.FingerTemplates(userId: (int)userData.Id).Where(x => x.FingerTemplateType.Code == _fingerTemplateTypes.SU384.Code)).ToList();
             var rowCount = userTemplate.Count;
             var numberOfFingers = 0;
             int fingerChecksum1 = new ushort();
@@ -161,8 +160,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             try
             {
 
-               
-                var userCards = _userCardService.GetCardsByFilter(userData.Id,true);
+
+                var userCards = _userCardService.GetCardsByFilter(userData.Id, true);
                 //var rowc = dtCard.Count;
                 if (userCards != null)
                 {
@@ -302,7 +301,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //    accessGroupEx[i].reserved = new int[2];
             //}
 
-          
+
             var accessGroup = _accessGroupService.GetAccessGroup(nAccessIdn);
 
             var accessGroupEx = new BSSDK.BSAccessGroupEx
@@ -551,7 +550,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         else
                         {
 
-                            var logData = _supremaLogService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
+                            var logData = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
                             if (logData.Count == 0)
                             {
                                 //result = BSSDK.BS_ReadLog(DeviceInfo.Handle, 0, 0, ref logCount, buf);
@@ -663,6 +662,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     receivedLog.DateTimeTicks = (uint)record.eventTime;
                     receivedLog.DeviceId = DeviceInfo.DeviceId;
                     receivedLog.DeviceCode = DeviceInfo.Code;
+                    receivedLog.InOutMode = DeviceInfo.DeviceTypeId;
                     receivedLog.EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
                     {
                         Code = Convert.ToInt32(record.eventType).ToString()
@@ -758,7 +758,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
-                _supremaLogService.AddLog(allLogList);
+                _logService.AddLog(allLogList);
                 Logger.Log($"{logTotalCount} offline logs retrieved from device {DeviceInfo.Code}");
 
                 Marshal.FreeHGlobal(logRecord);
@@ -916,7 +916,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     {
                         DateTimeTicks = (uint)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
-                        //EventLog = record.eventType,
+                        InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.eventType).ToString()
@@ -938,7 +938,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
-                _supremaLogService.AddLog(allLogList);
+                _logService.AddLog(allLogList);
                 Logger.Log($"{logTotalCount} offline logs retrieved from device {DeviceInfo.Code}");
 
                 Marshal.FreeHGlobal(logRecord);
@@ -971,7 +971,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             var bLSysInfoObj =
                 (BESysInfoDataBLN)Marshal.PtrToStructure(bLSysInfo, typeof(BESysInfoDataBLN));
 
-            var existingDevice = _deviceService.GetDevices(code:DeviceInfo.Code,brandId: _deviceBrands.Suprema.Code).FirstOrDefault();
+            var existingDevice = _deviceService.GetDevices(code: DeviceInfo.Code, brandId: _deviceBrands.Suprema.Code).FirstOrDefault();
 
             if (existingDevice is null)
             {
@@ -1436,7 +1436,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 UserId = (int)userId,
                 MatchingType = _matchingTypes.Unknown
             };
-            _supremaLogService.AddLog(deleteLog);
+            _logService.AddLog(deleteLog);
 
             return true;
         }

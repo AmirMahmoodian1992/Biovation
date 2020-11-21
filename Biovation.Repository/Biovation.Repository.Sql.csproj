@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
+    <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>

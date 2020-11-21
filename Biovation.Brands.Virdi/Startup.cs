@@ -1,16 +1,20 @@
-using System.Collections.Generic;
-using System.Linq;
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Virdi.Command;
+using Biovation.Brands.Virdi.HostedServices;
 using Biovation.Brands.Virdi.Manager;
+using Biovation.Brands.Virdi.Middleware;
 using Biovation.Brands.Virdi.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,17 +22,12 @@ using Microsoft.Extensions.Logging;
 using Ninject;
 using RestSharp;
 using Serilog;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
-using App.Metrics;
-using App.Metrics.Extensions.Configuration;
-using Biovation.Brands.Virdi.HostedServices;
-using Biovation.Brands.Virdi.Middleware;
-using Biovation.Domain;
-using Microsoft.AspNetCore.Mvc;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
-
 
 namespace Biovation.Brands.Virdi
 {
@@ -61,7 +60,7 @@ namespace Biovation.Brands.Virdi
                 .AddEnvironmentVariables();
 
             var metrics = new MetricsBuilder()
-                .Configuration.ReadFrom(configuration); 
+                .Configuration.ReadFrom(configuration);
 
             Configuration = builder.Build();
             metrics.Build();
@@ -114,7 +113,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton< Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService >();
+            services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
             services.AddSingleton<VirdiLogService, VirdiLogService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
@@ -149,7 +148,7 @@ namespace Biovation.Brands.Virdi
             serviceCollection.AddScoped<LookupService, LookupService>();
             serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
-            
+
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
@@ -300,7 +299,7 @@ namespace Biovation.Brands.Virdi
             app.UseMiddleware<JwtMiddleware>();
             loggerFactory.AddSerilog();
             app.UseSerilogRequestLogging();
-            
+
             app.UseHealthChecks("/biovation/api/health");
 
             app.UseEndpoints(endpoints =>

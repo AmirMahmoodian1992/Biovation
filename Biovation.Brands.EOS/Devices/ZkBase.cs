@@ -1,5 +1,4 @@
 ﻿using Biovation.Brands.EOS.Manager;
-using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -41,22 +40,23 @@ namespace Biovation.Brands.EOS.Devices
 
         private readonly bool _isGetLogEnable;
 
-        private readonly TaskManager _taskManager;
         private readonly TaskTypes _taskTypes;
-        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskManager _taskManager;
+        private readonly LogService _logService;
         private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
         private readonly DeviceBrands _deviceBrands;
-        private readonly MatchingTypes _matchingTypes;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
         protected static readonly object LockObject = new object();
-        internal ZkBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, EosCodeMappings eosCodeMappings, TaskService taskService, UserService userService, DeviceService deviceService, AccessGroupService accessGroupService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
-            : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+        internal ZkBaseDevice(DeviceBasicInfo deviceInfo, LogService logService, EosCodeMappings eosCodeMappings, TaskService taskService, UserService userService, DeviceService deviceService, AccessGroupService accessGroupService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
+            : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             DeviceInfo = deviceInfo;
+            _logService = logService;
             _taskService = taskService;
             UserService = userService;
             _userService = userService;
@@ -72,7 +72,6 @@ namespace Biovation.Brands.EOS.Devices
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
             _taskManager = taskManager;
-            _matchingTypes = matchingTypes;
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
@@ -224,12 +223,12 @@ namespace Biovation.Brands.EOS.Devices
                 //ignore
             }
 
-            EosLogService.AddLog(new Log
+            _logService.AddLog(new Log
             {
                 DeviceId = DeviceInfo.DeviceId,
+                DeviceCode = DeviceInfo.Code,
                 LogDateTime = DateTime.Now,
                 EventLog = LogEvents.Connect
-
             });
 
             if (_isGetLogEnable)
@@ -346,13 +345,12 @@ namespace Biovation.Brands.EOS.Devices
                 //ignore
             }
 
-            EosLogService.AddLog(new Log
+            _logService.AddLog(new Log
             {
                 DeviceId = DeviceInfo.DeviceId,
+                DeviceCode = DeviceInfo.Code,
                 LogDateTime = DateTime.Now,
-                EventLog = LogEvents.Disconnect,
-                SuccessTransfer = true,
-                MatchingType = _matchingTypes.Finger
+                EventLog = LogEvents.Disconnect
             });
 
             Logger.Log($"Disconnected from device: {DeviceInfo.Code} IPAddress => {DeviceInfo.IpAddress}:{DeviceInfo.Port}", logType: LogType.Information);
@@ -378,12 +376,12 @@ namespace Biovation.Brands.EOS.Devices
                 EventLog = LogEvents.Authorized,
                 UserId = iUserId,
                 MatchingType = EosCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
-
+                InOutMode = DeviceInfo.DeviceTypeId,
                 TnaEvent = (ushort)iInOutMode,
                 SubEvent = LogSubEvents.Normal
             };
 
-            EosLogService.AddLog(log);
+            _logService.AddLog(log);
         }
         //If your fingerprint(or your card) passes the verification,this event will be triggered
 
@@ -410,12 +408,13 @@ namespace Biovation.Brands.EOS.Devices
                     LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
                     EventLog = LogEvents.Authorized,
                     UserId = userId,
+                    InOutMode = DeviceInfo.DeviceTypeId,
                     MatchingType = EosCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                     TnaEvent = (ushort)iInOutMode,
                     SubEvent = LogSubEvents.Normal
                 };
 
-                EosLogService.AddLog(log);
+                _logService.AddLog(log);
             }
             catch (Exception exception)
             {
@@ -450,13 +449,12 @@ namespace Biovation.Brands.EOS.Devices
                 var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
                 restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                EosLogService.AddLog(new Log
+                _logService.AddLog(new Log
                 {
                     DeviceId = DeviceInfo.DeviceId,
+                    DeviceCode = DeviceInfo.Code,
                     LogDateTime = DateTime.Now,
-                    EventLog = LogEvents.Disconnect,
-                    SuccessTransfer = true,
-                    MatchingType = _matchingTypes.Finger
+                    EventLog = LogEvents.Disconnect
                 });
             }
             catch (Exception)
@@ -636,9 +634,9 @@ namespace Biovation.Brands.EOS.Devices
                                     DeviceId = DeviceInfo.DeviceId,
                                     DeviceCode = DeviceInfo.Code,
                                     LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
-                                    //EventLog = Event.ATHORIZED,
                                     EventLog = LogEvents.Authorized,
                                     UserId = userId,
+                                    InOutMode = DeviceInfo.DeviceTypeId,
                                     MatchingType = EosCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                                     TnaEvent = (ushort)iInOutMode
                                 };
@@ -662,7 +660,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     Task.Run(() =>
                     {
-                        EosLogService.AddLog(lstLogs);
+                        _logService.AddLog(lstLogs);
 
                         //if (!saveFile) return;
                         //EosLogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
@@ -753,9 +751,9 @@ namespace Biovation.Brands.EOS.Devices
                                     DeviceId = DeviceInfo.DeviceId,
                                     DeviceCode = DeviceInfo.Code,
                                     LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, iSecond),
-                                    //EventLog = Event.ATHORIZED,
                                     EventLog = LogEvents.Authorized,
                                     UserId = userId,
+                                    InOutMode = DeviceInfo.DeviceTypeId,
                                     MatchingType = EosCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
                                     TnaEvent = (ushort)iInOutMode
                                 };
@@ -777,7 +775,7 @@ namespace Biovation.Brands.EOS.Devices
                         }
                     }
 
-                    Task.Run(() => { EosLogService.AddLog(lstLogs); }, TokenSource.Token);
+                    Task.Run(() => { _logService.AddLog(lstLogs); }, TokenSource.Token);
 
                     Logger.Log($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.", logType: LogType.Information);
 

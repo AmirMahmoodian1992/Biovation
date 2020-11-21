@@ -5,8 +5,10 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
+using Biovation.Constants;
 using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
+using Newtonsoft.Json;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -77,18 +79,35 @@ namespace Biovation.Repository.Sql.v2
             });
         }
 
-        public Task<ResultViewModel> UpdateLog(DataTable logs)
+        public Task<ResultViewModel> UpdateLog(List<Log> logs)
         {
             return Task.Run(() =>
             {
                 try
                 {
+                    var serializedData = JsonConvert.SerializeObject(logs.Select(s => new
+                    {
+                        s.Id,
+                        s.DeviceId,
+                        s.DeviceCode,
+                        EventId = s.EventLog.Code,
+                        s.UserId,
+                        datetime = s.LogDateTime,
+                        Ticks = s.DateTimeTicks,
+                        SubEvent = s.SubEvent?.Code ?? LogSubEvents.NormalCode,
+                        TNAEvent = s.TnaEvent,
+                        s.InOutMode,
+                        s.MatchingType.Code,
+                        s.SuccessTransfer
+                    }));
+                    var logsDataTable = JsonConvert.DeserializeObject<DataTable>(serializedData);
+
                     var parameters = new List<SqlParameter>
                     {
                         new SqlParameter("@LogTable", logs)
                     };
 
-                    return logs.Rows.Count > 0
+                    return logsDataTable.Rows.Count > 0
                         ? _repository.ToResultList<ResultViewModel>("SetLogIsTransferedBatch", parameters).Data
                             .FirstOrDefault()
                         : new ResultViewModel { Validate = 1, Message = "0" };

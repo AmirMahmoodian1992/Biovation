@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
 using Biovation.Data.Commands.Middleware;
+using Biovation.Data.Commands.Sinks;
+using Biovation.Repository.MessageBus;
 
 namespace Biovation.Data.Commands
 {
@@ -74,33 +76,29 @@ namespace Biovation.Data.Commands
             services.AddSingleton<GenericRepository, GenericRepository>();
 
 
-            services.AddScoped<UserGroupRepository, UserGroupRepository>();
-            services.AddScoped<UserRepository, UserRepository>();
-            services.AddScoped<DeviceRepository, DeviceRepository>();
-            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
-            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
-            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
-            services.AddScoped<BlackListRepository, BlackListRepository>();
-            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
-            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
-            services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
-            services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             services.AddScoped<LogRepository, LogRepository>();
-            services.AddScoped<LookupRepository, LookupRepository>();
+            services.AddScoped<UserRepository, UserRepository>();
             services.AddScoped<TaskRepository, TaskRepository>();
+            services.AddScoped<DeviceRepository, DeviceRepository>();
+            services.AddScoped<LookupRepository, LookupRepository>();
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
-
-
-            // services.AddScoped<UserService, UserService>();
-
+            services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<BlackListRepository, BlackListRepository>();
+            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
+            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
+            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
+            services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
 
 
             //integration
-            services.AddScoped<Biovation.Repository.MessageBus.LogMessageBusRepository, Biovation.Repository.MessageBus.LogMessageBusRepository>();
-            services.AddScoped<Biovation.Repository.MessageBus.TaskMessageBusRepository, Biovation.Repository.MessageBus.TaskMessageBusRepository>();
-
+            services.AddScoped<LogApiSink, LogApiSink>();
+            services.AddScoped<LogMessageBusRepository, LogMessageBusRepository>();
+            services.AddScoped<TaskMessageBusRepository, TaskMessageBusRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,26 +1,25 @@
 ﻿using Biovation.Brands.PW.Manager;
-using Biovation.Brands.PW.Service;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.PW.Devices
 {
     public class DeviceFactory
     {
-        private readonly PwLogService _pwLogService;
-
         private readonly LogEvents _logEvents;
+        private readonly LogService _logService;
         private readonly LogSubEvents _logSubEvents;
         private readonly PwCodeMappings _pwCodeMappings;
-        
+
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public DeviceFactory(LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, BiovationConfigurationManager biovationConfigurationManager, PwLogService pwLogService)
+        public DeviceFactory(LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, BiovationConfigurationManager biovationConfigurationManager, LogService logService)
         {
             _logEvents = logEvents;
+            _logService = logService;
             _logSubEvents = logSubEvents;
-            _pwLogService = pwLogService;
             _pwCodeMappings = pwCodeMappings;
             _biovationConfigurationManager = biovationConfigurationManager;
         }
@@ -36,7 +35,7 @@ namespace Biovation.Brands.PW.Devices
             switch (device.Model.Id)
             {
                 default:
-                    return new Device(device, _biovationConfigurationManager, _logEvents, _logSubEvents, _pwCodeMappings, _pwLogService);
+                    return new Device(device, _biovationConfigurationManager, _logEvents, _logSubEvents, _pwCodeMappings, _logService);
             }
         }
     }

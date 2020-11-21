@@ -1,5 +1,4 @@
 ﻿using Biovation.Brands.EOS.Manager;
-using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -22,11 +21,10 @@ namespace Biovation.Brands.EOS.Devices
     {
         private readonly StFace _stFace;
         private readonly DeviceBasicInfo _deviceInfo;
-        private readonly EosLogService _eosLogService;
 
         private readonly RestClient _restClient;
+        private readonly LogService _logService;
         private readonly TaskManager _taskManager;
-        private readonly UserCardService _userCardService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
@@ -36,16 +34,14 @@ namespace Biovation.Brands.EOS.Devices
         //private readonly DateTime _startDateTimeThreshold;
         //private readonly DateTime _endDateTimeThreshold;
 
-        internal HanvonBase(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents,
-            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
-            UserCardService userCardService, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+        internal HanvonBase(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents,
+            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices) : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             _restClient = restClient;
-            _onlineDevices = onlineDevices;
+            _logService = logService;
             _deviceInfo = deviceInfo;
             _taskManager = taskManager;
-            _eosLogService = eosLogService;
-            _userCardService = userCardService;
+            _onlineDevices = onlineDevices;
             _faceTemplateTypes = faceTemplateTypes;
             _stFace = new StFace(new TCPIPConnection
             { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100, WaitBeforeRead = 100, ReadInCompleteTimeOut = 10, RetryCount = 1 });
@@ -73,7 +69,7 @@ namespace Biovation.Brands.EOS.Devices
 
                         _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-                        _eosLogService.AddLog(new Log
+                        _logService.AddLog(new Log
                         {
                             DeviceId = _deviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
@@ -307,7 +303,7 @@ namespace Biovation.Brands.EOS.Devices
                     UserName = user.UserName,
                     Id = user.Code,
                     //PersonalNumber = (-user.UniqueId).ToString(),
-                    Privilege = user.IsAdmin == true ? 1:0 ,
+                    Privilege = user.IsAdmin ? 1 : 0,
                     VerifyStyle = ZkVerifyStyle.FaceOrPasswordOrCard,
                 };
                 // pwd
@@ -598,7 +594,7 @@ namespace Biovation.Brands.EOS.Devices
                                                     };
 
                                                     //var logService = new EOSLogService();
-                                                    _eosLogService.AddLog(receivedLog);
+                                                    _logService.AddLog(receivedLog);
                                                     test = false;
                                                     Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
@@ -648,7 +644,7 @@ namespace Biovation.Brands.EOS.Devices
                                             TnaEvent = 0,
                                         };
 
-                                        _eosLogService.AddLog(receivedLog);
+                                        _logService.AddLog(receivedLog);
                                         test = false;
                                         Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
@@ -845,6 +841,7 @@ namespace Biovation.Brands.EOS.Devices
                             UserId = (int)record.ID,
                             DeviceId = _deviceInfo.DeviceId,
                             DeviceCode = _deviceInfo.Code,
+                            InOutMode = _deviceInfo.DeviceTypeId,
                             //SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
                             EventLog = LogEvents.Authorized,
@@ -868,7 +865,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
-            _eosLogService.AddLog(eosLogs);
+            _logService.AddLog(eosLogs);
             return eosLogs;
         }
     }

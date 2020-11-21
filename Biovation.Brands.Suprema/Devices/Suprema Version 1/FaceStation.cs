@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Services;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -23,8 +22,6 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
     {
         private readonly object _deviceAccessObject = new object();
         private readonly DeviceService _deviceService ;
-        private readonly SupremaLogService _supremaLogService ;
-        private readonly UserService _userService;
         private readonly AccessGroupService _accessGroupService;
         private readonly UserCardService _userCardService;
         private readonly FaceTemplateService _faceTemplateService;
@@ -39,14 +36,12 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         private readonly MatchingTypes _matchingTypes;
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
-        public FaceStation(SupremaDeviceModel info, DeviceService deviceService, SupremaLogService supremaLogService, UserCardService userCardService, AccessGroupService accessGroupService, UserService userService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, MatchingTypes matchingTypes, LogEvents logEvents, LogService logService, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, DeviceBrands deviceBrands, LogSubEvents logSubEvents)
+        public FaceStation(SupremaDeviceModel info, DeviceService deviceService, UserCardService userCardService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, MatchingTypes matchingTypes, LogEvents logEvents, LogService logService, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, DeviceBrands deviceBrands, LogSubEvents logSubEvents)
             : base(info,accessGroupService,userCardService)
         {
             _deviceService = deviceService;
-            _supremaLogService = supremaLogService;
             _userCardService = userCardService;
             _accessGroupService = accessGroupService;
-            _userService = userService;
             _faceTemplateService = faceTemplateService;
             _faceTemplateTypes = faceTemplateTypes;
             _matchingTypes = matchingTypes;
@@ -653,7 +648,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     if (logTotalCount == 0)
                     {
                         var lastConnectedTime = _deviceService.GetLastConnectedTime(DeviceInfo.DeviceId)?.Data?? new DateTime(1970, 1, 1);
-                        var logData = _supremaLogService.GetLastLogsOfDevice(DeviceInfo.Code).Result;
+                        var logData = _logService.GetLastLogsOfDevice(DeviceInfo.Code).Result;
 
                         if (lastConnectedTime.DayOfYear < DateTime.Now.DayOfYear)
                         {
@@ -876,6 +871,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         DateTimeTicks = (uint)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         DeviceCode = DeviceInfo.Code,
+                        InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.eventType).ToString()
@@ -979,7 +975,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 //logService.BulkInsertLogAsync(allLogList, ConnectionType)/*.ConfigureAwait(true)*/;
-                _supremaLogService.AddLog(allLogList);
+                _logService.AddLog(allLogList);
 
                 Task.Run(() => GetAllImageOfFaceLogs(allLogList));
 
@@ -1302,6 +1298,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         DateTimeTicks = (uint)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         DeviceCode = DeviceInfo.Code,
+                        InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
                         {
                             Code = Convert.ToInt32(record.eventType).ToString()
@@ -1767,7 +1764,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 UserId = (int)userId,
                 MatchingType = _matchingTypes.Unknown
             };
-            _supremaLogService.AddLog(deleteLog);
+            _logService.AddLog(deleteLog);
 
             return true;
         }

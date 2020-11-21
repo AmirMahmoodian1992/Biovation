@@ -1,5 +1,4 @@
 ﻿using Biovation.Brands.EOS.Manager;
-using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses.Interface;
 using System;
 using System.Collections.Generic;
@@ -24,17 +23,15 @@ namespace Biovation.Brands.EOS.Devices
         //private readonly LogService _commonLogService = new LogService();
 
        // private readonly EosServer _eosServer;
-        protected readonly EosLogService EosLogService;
 
         protected readonly LogEvents LogEvents;
         protected readonly LogSubEvents LogSubEvents;
         protected readonly EosCodeMappings EosCodeMappings;
 
-        internal Device(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
+        internal Device(DeviceBasicInfo deviceInfo, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings)
         {
             Valid = true;
             _deviceInfo = deviceInfo;
-            EosLogService = eosLogService;
           //  _eosServer = eosServer;
             LogEvents = logEvents;
             LogSubEvents = logSubEvents;

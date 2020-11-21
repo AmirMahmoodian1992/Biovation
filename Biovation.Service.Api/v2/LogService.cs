@@ -1,32 +1,29 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
+using Biovation.Repository.Api.v2;
+using Biovation.Repository.MessageBus;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using Biovation.Repository.Api.v2;
-using Kasra.MessageBus.Domain.Enumerators;
-using Kasra.MessageBus.Domain.Interfaces;
-using Kasra.MessageBus.Managers.Sinks.Internal;
-using RestSharp;
 
 namespace Biovation.Service.Api.v2
 {
     public class LogService
     {
+        private readonly RestClient _restClient;
         private readonly LogRepository _logRepository;
-        private readonly RestClient _logExternalSubmissionRestClient;
-        private readonly ISource<DataChangeMessage<Log>> _biovationInternalSource;
+        private readonly LogMessageBusRepository _logMessageBusRepository;
 
-        public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager)
+        public LogService(LogRepository logRepository, BiovationConfigurationManager configurationManager, LogMessageBusRepository logMessageBusRepository)
         {
             _logRepository = logRepository;
-            _logExternalSubmissionRestClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
-            _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
-              .Build<DataChangeMessage<Log>>();
+            _logMessageBusRepository = logMessageBusRepository;
+            _restClient = (RestClient)new RestClient(configurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         public Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default,
@@ -111,25 +108,24 @@ namespace Biovation.Service.Api.v2
                             restRequest.AddHeader("Authorization", token);
 
 
-                            var result = await _logExternalSubmissionRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
 
 
                             //integration
+                            await _logMessageBusRepository.SendLog(logs.Where(log => !log.SuccessTransfer).ToList());
 
 
-                            var biovationBrokerMessageData = new List<DataChangeMessage<Log>>
+                            //var biovationBrokerMessageData = new List<DataChangeMessage<Log>>
+                            //      {
+                            //     new DataChangeMessage<Log>
+                            //      {
+                            //          Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                            //          TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = shortenedLogList
+                            //          }
+                            //      };
 
-                                  {
-                                 new DataChangeMessage<Log>
-                                  {
-                                      Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
-                                      TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = shortenedLogList
-
-                                      }
-                                  };
-
-                            _biovationInternalSource.PushData(biovationBrokerMessageData);
+                            //_biovationInternalSource.PushData(biovationBrokerMessageData);
 
 
 

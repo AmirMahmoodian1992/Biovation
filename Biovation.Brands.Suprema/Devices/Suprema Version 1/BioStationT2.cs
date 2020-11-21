@@ -1,6 +1,5 @@
 ﻿using Biovation.Brands.Suprema.Manager;
 using Biovation.Brands.Suprema.Model;
-using Biovation.Brands.Suprema.Services;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -22,7 +21,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
     {
         private readonly object _deviceAccessObject = new object();
         private readonly DeviceService _deviceService;
-        private readonly SupremaLogService _supremaLogService;
+        private readonly LogService _logService;
         private readonly AccessGroupService _accessGroupService;
         private readonly UserCardService _userCardService;
         private readonly FingerTemplateService _fingerTemplateService;
@@ -32,11 +31,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public BioStationT2(SupremaDeviceModel info, DeviceService deviceService, SupremaLogService supremaLogService, AccessGroupService accessGroupService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, BiometricTemplateManager biometricTemplateManager, DeviceBrands deviceBrands)
+        public BioStationT2(SupremaDeviceModel info, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, BiometricTemplateManager biometricTemplateManager, DeviceBrands deviceBrands)
             : base(info, accessGroupService, userCardService)
         {
+            _logService = logService;
             _deviceService = deviceService;
-            _supremaLogService = supremaLogService;
             _accessGroupService = accessGroupService;
             _userCardService = userCardService;
             _fingerTemplateService = fingerTemplateService;
@@ -671,7 +670,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                         else
                         {
-                            var logData = _supremaLogService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
+                            var logData = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
                             if (logData.Count == 0)
                             {
                                 try
@@ -768,6 +767,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     receivedLog.DateTimeTicks = (uint)record.eventTime;
                     receivedLog.DeviceId = DeviceInfo.DeviceId;
                     receivedLog.EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup { Code = record.eventType.ToString() };
+                    receivedLog.InOutMode = DeviceInfo.DeviceTypeId;
                     receivedLog.Reserved = record.reserved1;
                     receivedLog.TnaEvent = record.tnaEvent;
                     receivedLog.SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup { Code = record.subEvent.ToString() };
@@ -778,7 +778,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
-                _supremaLogService.AddLog(allLogList);
+                _logService.AddLog(allLogList);
                 Logger.Log($"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}");
 
                 Marshal.FreeHGlobal(logRecord);
@@ -936,6 +936,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     {
                         DateTimeTicks = (uint)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
+                        InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup { Code = record.eventType.ToString() },
                         Reserved = record.reserved1,
                         TnaEvent = record.tnaEvent,
@@ -951,7 +952,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
-                _supremaLogService.AddLog(allLogList);
+                _logService.AddLog(allLogList);
                 Logger.Log($"{logTotalCount} offline logs retrieved from device {DeviceInfo.Code}");
 
                 Marshal.FreeHGlobal(logRecord);

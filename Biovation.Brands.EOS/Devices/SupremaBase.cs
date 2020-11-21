@@ -1,8 +1,8 @@
 ﻿using Biovation.Brands.EOS.Manager;
-using Biovation.Brands.EOS.Service;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using EosClocks;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -28,7 +28,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly object _clockInstantiationLock = new object();
 
         private readonly DeviceBasicInfo _deviceInfo;
-        private readonly EosLogService _eosLogService;
+        private readonly LogService _logService;
 
         private readonly RestClient _restClient;
         private readonly TaskManager _taskManager;
@@ -36,12 +36,12 @@ namespace Biovation.Brands.EOS.Devices
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices)
-         : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
+        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices)
+         : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             Valid = true;
             _deviceInfo = deviceInfo;
-            _eosLogService = eosLogService;
+            _logService = logService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _taskManager = taskManager;
             _restClient = restClient;
@@ -355,9 +355,10 @@ namespace Biovation.Brands.EOS.Devices
 
                         _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-                        _eosLogService.AddLog(new Log
+                        _logService.AddLog(new Log
                         {
                             DeviceId = _deviceInfo.DeviceId,
+                            DeviceCode = _deviceInfo.Code,
                             LogDateTime = DateTime.Now,
                             EventLog = LogEvents.Disconnect
                         });
@@ -510,11 +511,12 @@ namespace Biovation.Brands.EOS.Devices
                                                         //RawData = generatedRecord,
                                                         EventLog = LogEvents.Authorized,
                                                         SubEvent = LogSubEvents.Normal,
+                                                        InOutMode = _deviceInfo.DeviceTypeId,
                                                         TnaEvent = 0,
                                                     };
 
                                                     //var logService = new EOSLogService();
-                                                    _eosLogService.AddLog(receivedLog);
+                                                    _logService.AddLog(receivedLog);
                                                     test = false;
                                                     Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
@@ -561,10 +563,11 @@ namespace Biovation.Brands.EOS.Devices
                                             SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RecType1),
                                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
                                             EventLog = LogEvents.Authorized,
+                                            InOutMode = _deviceInfo.DeviceTypeId,
                                             TnaEvent = 0,
                                         };
 
-                                        _eosLogService.AddLog(receivedLog);
+                                        _logService.AddLog(receivedLog);
                                         test = false;
                                         Logger.Log($@"<--
    +TerminalID:{_deviceInfo.Code}
@@ -968,8 +971,8 @@ namespace Biovation.Brands.EOS.Devices
                                 user.FingerTemplates.Add(fingerTemplate);
 
                                 if (fingerTemplates.Count <= i + 1)
-                                    continue; 
-                                
+                                    continue;
+
                                 var secondTemplateBytes = fingerTemplates[i + 1];
 
                                 var secondFingerTemplateSample = new FingerTemplate

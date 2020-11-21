@@ -1,123 +1,143 @@
 ﻿using Biovation.Constants;
+using Biovation.Data.Commands.Sinks;
 using Biovation.Domain;
 using Biovation.Repository.MessageBus;
+using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Repository.Sql.v2;
 
+// ReSharper disable AssignmentIsFullyDiscarded
 namespace Biovation.Data.Commands.Controllers.v2
 {
     [ApiController]
     [Route("biovation/api/v2/[controller]")]
     public class LogController : ControllerBase
     {
+        private readonly LogApiSink _logApiSink;
         private readonly LogRepository _logRepository;
+        private readonly DeviceRepository _deviceRepository;
         private readonly LogMessageBusRepository _logMessageBusRepository;
-        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository)
+
+        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository, LogApiSink logApiSink, DeviceRepository deviceRepository)
         {
+            _logApiSink = logApiSink;
             _logRepository = logRepository;
+            _deviceRepository = deviceRepository;
             _logMessageBusRepository = logMessageBusRepository;
         }
 
         [HttpPost]
-        [Route("AddLog")]
         [Authorize]
-        public Task<ResultViewModel> AddLog([FromBody]Log log)
+        [Route("AddLog")]
+        public async Task<ResultViewModel> AddLog([FromBody] Log log)
         {
-            var logInsertionResult = _logRepository.AddLog(log);
-            if (!logInsertionResult.Result.Success) return logInsertionResult;
-            //integration
-            var logList = new List<Log> { log };
-            _logMessageBusRepository.SendLog(logList);
+            var logInsertionAwaiter = _logRepository.AddLog(log);
 
-            return logInsertionResult;
+            //Todo: !important add save image
+            //var filePath = log.PicByte is null
+            //    ? string.Empty
+            //    : _commonLogService.SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, DeviceBrands.Virdi.Name).Result;
+            //log.Image = filePath;
+
+            //integration
+            _ = _logMessageBusRepository.SendLog(new List<Log> { log });
+
+            if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
+                _ = _logApiSink.TransferLog(log);
+
+            return await logInsertionAwaiter;
         }
 
         [HttpPost]
+        [Authorize]
         [Route("AddLogBulk")]
-        [Authorize]
-
-        public Task<ResultViewModel> AddLog([FromBody]List<Log> logs)
+        public async Task<ResultViewModel> AddLog([FromBody] List<Log> logs)
         {
-            return Task.Run(async () =>
+            var json = JsonConvert.SerializeObject(logs.Select(s => new
             {
-                var json = JsonConvert.SerializeObject(logs.Select(s => new
-                {
-                    s.Id,
-                    s.DeviceId,
-                    s.DeviceCode,
-                    EventId = s.EventLog.Code,
-                    s.UserId,
-                    datetime = s.LogDateTime,
-                    Ticks = s.DateTimeTicks,
-                    SubEvent = s.SubEvent?.Code ?? LogSubEvents.NormalCode,
-                    TNAEvent = s.TnaEvent,
-                    s.InOutMode,
-                    MatchingType = s.MatchingType?.Code,
-                    //s.MatchingType,
-                    s.SuccessTransfer
-                }));
+                s.Id,
+                s.DeviceId,
+                s.DeviceCode,
+                EventId = s.EventLog.Code,
+                s.UserId,
+                datetime = s.LogDateTime,
+                Ticks = s.DateTimeTicks,
+                SubEvent = s.SubEvent?.Code ?? LogSubEvents.NormalCode,
+                TNAEvent = s.TnaEvent,
+                s.InOutMode,
+                MatchingType = s.MatchingType?.Code,
+                s.SuccessTransfer
+            }));
 
-                var logsDataTable = JsonConvert.DeserializeObject<DataTable>(json);
-                return await _logRepository.AddLog(logsDataTable);
-            });
+            var logsDataTable = JsonConvert.DeserializeObject<DataTable>(json);
+            var logInsertionAwaiter = _logRepository.AddLog(logsDataTable);
+
+            foreach (var deviceId in logs.GroupBy(g => g.DeviceId).Select(s => s.Key).Where(s => s > 0))
+            {
+                _ = Task.Run(async () =>
+                {
+                    var tasks = new List<Task>();
+                    var device = _deviceRepository.GetDevice(deviceId)?.Data;
+                    if (device is null) return;
+
+                    var logsToTransfer = await _logRepository.Logs(deviceId: device.DeviceId, successTransfer: false);
+                    tasks.Add(_logApiSink.TransferLogBulk(logsToTransfer));
+                    tasks.Add(_logMessageBusRepository.SendLog(logsToTransfer));
+
+                    var logsWithImages = logs.Where(log => logsToTransfer.Any(newLog =>
+                                                               log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
+                                                               log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
+
+                    foreach (var log in logsWithImages)
+                    {
+                        //Todo: Change for .net core
+                        //var filePath = log.PicByte is null
+                        //    ? string.Empty
+                        //    : await _commonLogService.SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, DeviceBrands.Virdi.Name);
+                        //log.Image = filePath;
+
+                        tasks.Add(_logRepository.AddLogImage(log));
+                    }
+
+                    await Task.WhenAll(tasks);
+                });
+            }
+
+            return await logInsertionAwaiter;
         }
 
-        [HttpPut]
+        [HttpPost]
+        [Authorize]
         [Route("UpdateLog")]
-        [Authorize]
-
-        public Task<ResultViewModel> UpdateLog([FromBody]List<Log> logs)
+        public Task<ResultViewModel> UpdateLog([FromBody] List<Log> logs)
         {
-            return Task.Run(async () =>
-            {
-                var serializedData = JsonConvert.SerializeObject(logs.Select(s => new
-                {
-                    s.Id,
-                    s.DeviceId,
-                    s.DeviceCode,
-                    EventId = s.EventLog.Code,
-                    s.UserId,
-                    datetime = s.LogDateTime,
-                    Ticks = s.DateTimeTicks,
-                    SubEvent = s.SubEvent?.Code ?? LogSubEvents.NormalCode,
-                    TNAEvent = s.TnaEvent,
-                    s.InOutMode,
-                    s.MatchingType.Code,
-                    s.SuccessTransfer
-                }));
-                var logsDataTable = JsonConvert.DeserializeObject<DataTable>(serializedData);
-                return await _logRepository.UpdateLog(logsDataTable);
-            });
+            return Task.Run(async () => await _logRepository.UpdateLog(logs));
         }
-        [HttpPatch]
-        [Route("AddLogImage")]
-        [Authorize]
 
-        public Task<ResultViewModel> AddLogImage([FromBody]Log log)
+        [HttpPatch]
+        [Authorize]
+        [Route("AddLogImage")]
+        public Task<ResultViewModel> AddLogImage([FromBody] Log log)
         {
             return Task.Run(async () => await _logRepository.AddLogImage(log));
         }
 
-
         [HttpPut]
-        [Route("UpdateLog")]
         [Authorize]
-
-        public Task<ResultViewModel> UpdateLog([FromBody]Log log)
+        [Route("UpdateLog")]
+        public Task<ResultViewModel> UpdateLog([FromBody] Log log)
         {
             return Task.Run(async () => await _logRepository.UpdateLog(log));
         }
 
         [HttpPut]
-        [Route("CheckLogInsertion")]
         [Authorize]
-
-        public Task<List<Log>> CheckLogInsertion([FromBody]List<Log> logs)
+        [Route("CheckLogInsertion")]
+        public Task<List<Log>> CheckLogInsertion([FromBody] List<Log> logs)
         {
             return Task.Run(async () => await _logRepository.CheckLogInsertion(logs));
         }

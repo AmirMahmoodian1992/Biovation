@@ -16,7 +16,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Services;
 using Biovation.CommonClasses.Manager;
 
 namespace Biovation.Brands.Suprema
@@ -61,12 +60,11 @@ namespace Biovation.Brands.Suprema
         /// <summary>
         /// استفاده برای قفل روی دسترسی ترد ها
         /// </summary>
-        private  readonly object Object = new object();
-        private  readonly object _logObject = new object();
+        private readonly object _logObject = new object();
         //private static readonly object Log1Object = new object();
 
-        public  readonly Semaphore DeviceConnectionSemaphore = new Semaphore(1, 1);
-        public  readonly CancellationToken ServiceCancellationToken = new CancellationToken(false);
+        public readonly Semaphore DeviceConnectionSemaphore = new Semaphore(1, 1);
+        public readonly CancellationToken ServiceCancellationToken = new CancellationToken(false);
 
         /// 
 
@@ -80,9 +78,8 @@ namespace Biovation.Brands.Suprema
 
         private readonly DeviceService _deviceService;
         private readonly LogService _logService;
-        private readonly SupremaLogService _supremaLogService;
 
-      
+
         private bool _handlingOfflineEventsInProgress;
 
         private readonly LogEvents _logEvents;
@@ -94,7 +91,7 @@ namespace Biovation.Brands.Suprema
 
         private bool _readingLogsInProgress;
 
-        public BioStarServer(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, SupremaLogService supremaLogService, RestClient monitoringRestClient, SupremaCodeMappings supremaCodeMappings, BiovationConfigurationManager biovationConfigurationManager, DeviceFactory deviceFactory)
+        public BioStarServer(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, RestClient monitoringRestClient, SupremaCodeMappings supremaCodeMappings, BiovationConfigurationManager biovationConfigurationManager, DeviceFactory deviceFactory)
         {
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
@@ -102,7 +99,6 @@ namespace Biovation.Brands.Suprema
             _logEvents = logEvents;
             _matchingTypes = matchingTypes;
             _logService = logService;
-            _supremaLogService = supremaLogService;
             _monitoringRestClient = monitoringRestClient;
             _supremaCodeMappings = supremaCodeMappings;
             _deviceFactory = deviceFactory;
@@ -192,7 +188,7 @@ namespace Biovation.Brands.Suprema
                         return;
                     }
 
-                 
+
                     lock (_onlineDevices)
                     {
                         foreach (var onlineDevice in _onlineDevices)
@@ -361,13 +357,8 @@ namespace Biovation.Brands.Suprema
             lock (_onlineDevices)
             {
                 if (_onlineDevices.ContainsKey(deviceInfo.Code))
-                {
 
                     _onlineDevices[deviceId].UpdateDeviceInfo(deviceInfo);
-
-
-
-                }
 
                 else // if not exist in list, then insert new one.
                 {
@@ -379,7 +370,6 @@ namespace Biovation.Brands.Suprema
                     {
                         //ignore
                     }
-
 
                     _onlineDevices.Add(deviceInfo.Code, device);
 
@@ -393,12 +383,6 @@ namespace Biovation.Brands.Suprema
                     }
 
                     _mCount++;
-                    //var fetchedDevice = DeviceService.GetDeviceBasicInfoWithCode(deviceId, _deviceBrands.Suprema);
-
-                    //if (fetchedDevice == null)
-                    //{
-                    //    _onlineDevices[deviceId].AddDeviceToDataBase();
-                    //}
                 }
             }
 
@@ -418,9 +402,9 @@ namespace Biovation.Brands.Suprema
 
                     await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest, ServiceCancellationToken);
 
-                    await _supremaLogService.AddLog(new Log
+                    await _logService.AddLog(new Log
                     {
-                        DeviceId = (int)deviceId,
+                        DeviceId = deviceInfo.DeviceId,
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.Connect
                     });
@@ -445,12 +429,10 @@ namespace Biovation.Brands.Suprema
                             Logger.Log($"Device {deviceId} StartRequest result: {requestStartResult} Steps_SourceDatabase_");
 
                             if (requestStartResult == 0)
-                            {
                                 break;
-                            }
                         }
 
-                    });
+                    }, ServiceCancellationToken);
             }
 
             return BSSDK.BS_SUCCESS;
@@ -567,7 +549,7 @@ namespace Biovation.Brands.Suprema
             return BSSDK.BS_SUCCESS;
         }
 
-        public  int DisconnectedProc(int handle, uint deviceId, int deviceType, int connectionType, int functionType, string ipAddress)
+        public int DisconnectedProc(int handle, uint deviceId, int deviceType, int connectionType, int functionType, string ipAddress)
         {
             //return DisconnectedProcMethod(handle, deviceId, deviceType, connectionType, functionType, ipAddress);
             try
@@ -597,16 +579,16 @@ namespace Biovation.Brands.Suprema
         /// <returns></returns>
         public int DisconnectedProcMethod(int handle, uint deviceId, int deviceType, int connectionType, int functionType, string ipAddress)
         {
-            var deviceModel = _deviceService.GetDevices(code:deviceId).FirstOrDefault();
+            var device = _deviceService.GetDevices(code: deviceId).FirstOrDefault();
 
             lock (_onlineDevices)
             {
-                foreach (var device in _onlineDevices)
+                foreach (var onlineDevice in _onlineDevices)
                 {
-                    if (deviceModel is null
-                        ? device.Key == deviceId
-                        : device.Value.GetDeviceInfo().Code == deviceModel.Code &&
-                          device.Value.GetDeviceInfo().Handle == handle)
+                    if (device is null
+                        ? onlineDevice.Key == deviceId
+                        : onlineDevice.Value.GetDeviceInfo().Code == device.Code &&
+                          onlineDevice.Value.GetDeviceInfo().Handle == handle)
                     {
                         try
                         {
@@ -617,7 +599,7 @@ namespace Biovation.Brands.Suprema
                             //ignore
                         }
 
-                        _onlineDevices.Remove(device.Key);
+                        _onlineDevices.Remove(onlineDevice.Key);
 
                         try
                         {
@@ -627,9 +609,6 @@ namespace Biovation.Brands.Suprema
                         {
                             //ignore
                         }
-
-
-
 
                         Logger.Log("A device has been disconnected");
                         _mCount--;
@@ -645,7 +624,7 @@ namespace Biovation.Brands.Suprema
             {
                 var connectionStatus = new ConnectionStatus
                 {
-                    DeviceId = deviceModel?.DeviceId ?? (int)deviceId,
+                    DeviceId = device?.DeviceId ?? (int)deviceId,
                     IsConnected = false
                 };
 
@@ -656,9 +635,9 @@ namespace Biovation.Brands.Suprema
 
                     await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest, ServiceCancellationToken);
 
-                    await _supremaLogService.AddLog(new Log
+                    await _logService.AddLog(new Log
                     {
-                        DeviceId = (int)deviceId,
+                        DeviceId = device?.DeviceId ?? (int)deviceId,
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.Disconnect
                     });
@@ -750,7 +729,7 @@ namespace Biovation.Brands.Suprema
 
             var receivedLog = new SupremaLog();
 
-            var device = _deviceService.GetDevices(code:deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+            var device = _deviceService.GetDevices(code: deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
 
             lock (_logObject)
             {
@@ -759,21 +738,19 @@ namespace Biovation.Brands.Suprema
                 if (device != null)
                 {
                     receivedLog.DeviceId = device.DeviceId;
-                    // receivedLog.EventLog = logRecord.Event;
+                    receivedLog.DeviceCode = device.Code;
                     receivedLog.EventLog = _supremaCodeMappings.GetLogEventGenericLookup(logRecord.Event) ??
-                                           new Lookup {Code = logRecord.Event.ToString()};
-                    receivedLog.DateTimeTicks = (uint) logRecord.eventTime;
+                                           new Lookup { Code = logRecord.Event.ToString() };
+                    receivedLog.DateTimeTicks = (uint)logRecord.eventTime;
+                    receivedLog.InOutMode = device.DeviceTypeId;
                     receivedLog.Reserved = logRecord.reserved1;
                     receivedLog.TnaEvent = logRecord.tnaKey;
                     receivedLog.SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(logRecord.subEvent) ??
-                                           new Lookup {Code = logRecord.subEvent.ToString()};
-                    receivedLog.UserId = (int) logRecord.userID;
+                                           new Lookup { Code = logRecord.subEvent.ToString() };
+                    receivedLog.UserId = (int)logRecord.userID;
 
-                    if (receivedLog.EventLog.Code == "16001" || receivedLog.EventLog.Code == "16002" ||
-                        receivedLog.EventLog.Code == "16007")
-                    {
+                    if (receivedLog.EventLog.Code == LogEvents.ConnectCode || receivedLog.EventLog.Code == LogEvents.DisconnectCode || receivedLog.EventLog.Code == LogEvents.DeviceEnabledCode)
                         receivedLog.UserId = 0;
-                    }
 
                     switch (logRecord.subEvent)
                     {
@@ -839,17 +816,10 @@ namespace Biovation.Brands.Suprema
 
 
                     if (receivedLog.MatchingType is null)
-                    {
-                        if (logRecord.Event == 55 || logRecord.Event == 56 || logRecord.Event == 109 ||
-                            logRecord.Event == 99)
-                        {
+                        if (logRecord.Event == 55 || logRecord.Event == 56 || logRecord.Event == 109 || logRecord.Event == 99)
                             receivedLog.MatchingType = _matchingTypes.Unknown;
-                        }
                         else
-                        {
                             receivedLog.MatchingType = _matchingTypes.UnIdentify;
-                        }
-                    }
 
                     Logger.Log($@"nReaderIdn : {device.Code}
     EventId : {receivedLog.EventLog.Code}
@@ -948,10 +918,7 @@ namespace Biovation.Brands.Suprema
 
                                 Logger.Log("In LogProcMethod");
 
-                                //var logService = new LogServices();
-                                //--------------------------------------------------------------------------------------------------------------------------
-                                //logService.InsertFaceLog(faceLog, "Personnel");
-                                _supremaLogService.AddLog(receivedLog);
+                                _logService.AddLog(receivedLog);
                                 //--------------------------------------------------------------------------------------------------------------------------
 
                                 //try
@@ -983,7 +950,7 @@ namespace Biovation.Brands.Suprema
 
                 else
                 {
-                    _supremaLogService.AddLog(receivedLog);
+                    _logService.AddLog(receivedLog);
                 }
             }
 
@@ -999,7 +966,7 @@ namespace Biovation.Brands.Suprema
             //        dev =>
             //            dev.Value.GetDeviceInfo().DeviceId == deviceId && dev.Value.GetDeviceInfo().Handle == handle);
 
-            var device = _deviceService.GetDevices(code:deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+            var device = _deviceService.GetDevices(code: deviceId, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
 
 
             if (device != null)
@@ -1007,8 +974,10 @@ namespace Biovation.Brands.Suprema
                 var receivedLog = new SupremaLog
                 {
                     DeviceId = device.DeviceId,
+                    DeviceCode = device.Code,
                     EventLog = _supremaCodeMappings.GetLogEventGenericLookup(logRecord.Event) ?? new Lookup { Code = logRecord.Event.ToString() },
                     DateTimeTicks = (uint)logRecord.eventTime,
+                    InOutMode = device.DeviceTypeId,
                     Reserved = logRecord.reserved,
                     TnaEvent = logRecord.tnaEvent,
                     SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(logRecord.subEvent) ?? new Lookup { Code = logRecord.subEvent.ToString() },
@@ -1108,7 +1077,7 @@ namespace Biovation.Brands.Suprema
                 //--------------------------------------------------------------------------------------------------------------------------
                 lock (_logObject)
                 {
-                    _supremaLogService.AddLog(receivedLog);
+                    _logService.AddLog(receivedLog);
                 }
             }
 
@@ -1413,7 +1382,7 @@ namespace Biovation.Brands.Suprema
             return BSSDK.BS_SUCCESS;
         }
 
-        public  int RequestUserInfoProc(int handle, uint deviceId, int deviceType, int connectionType, int idType, uint id, uint customId, IntPtr userHdr)
+        public int RequestUserInfoProc(int handle, uint deviceId, int deviceType, int connectionType, int idType, uint id, uint customId, IntPtr userHdr)
         {
             return RequestUserInfoProcMethod(handle, deviceId, deviceType, connectionType, idType, id, customId, userHdr);
 
@@ -1594,7 +1563,7 @@ namespace Biovation.Brands.Suprema
             return BSSDK.BS_SUCCESS;
         }
 
-        public  void StartReadLogs()
+        public void StartReadLogs()
         {
             if (_readingLogsInProgress)
                 return;
@@ -1654,6 +1623,6 @@ namespace Biovation.Brands.Suprema
             }
         }
 
-       
+
     }
 }
