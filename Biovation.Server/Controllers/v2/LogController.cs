@@ -68,7 +68,7 @@ namespace Biovation.Server.Controllers.v2
                 {
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(logFilter);
                     obj.OnlineUserId = userId;
-                    obj.State = false;
+                    obj.State = resendLogs ? (bool?)null : false;
                     var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
                     //var logs = logsAwaiter.Where(w => !w.SuccessTransfer).ToList();
                     await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
