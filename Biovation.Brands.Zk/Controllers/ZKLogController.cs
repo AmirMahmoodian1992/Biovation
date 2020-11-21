@@ -39,16 +39,16 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> ClearLog(uint code, DateTime? fromDate, DateTime? toDate)
+        public async Task<ResultViewModel> ClearLog(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
-                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel { Success = false, Message = $"Device {code} does not exists" };
 
                     var task = new TaskInfo
                     {
@@ -59,23 +59,21 @@ namespace Biovation.Brands.ZK.Controllers
                         DeviceBrand = _deviceBrands.ZkTeco,
                         TaskItems = new List<TaskItem>()
                     };
-                    if (device != null)
-                        task.TaskItems.Add(new TaskItem
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.ClearLog,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new
                         {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.ClearLog,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new
-                            {
-                                fromDate,
-                                toDate
-                            }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-
-                            OrderIndex = 1
-                        });
+                            fromDate,
+                            toDate
+                        }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
 
 
                     _taskService.InsertTask(task);
@@ -87,7 +85,6 @@ namespace Biovation.Brands.ZK.Controllers
                     return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                 }
             });
-
         }
     }
 }

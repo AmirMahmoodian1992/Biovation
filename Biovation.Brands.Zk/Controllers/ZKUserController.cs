@@ -45,9 +45,9 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpGet]
         [Authorize]
-        public Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId)
+        public async Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 var listResult = new List<ResultViewModel>();
                 try
@@ -111,11 +111,12 @@ namespace Biovation.Brands.ZK.Controllers
             });
 
         }
+
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> SendUserToAllDevices([FromBody] User user)
+        public async Task<ResultViewModel> SendUserToAllDevices([FromBody] User user)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
                 {
                     var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
                     var userId = user.Code;
@@ -164,14 +165,13 @@ namespace Biovation.Brands.ZK.Controllers
                     _taskManager.ProcessQueue();
                     return new ResultViewModel { Id = user.Id, Validate = 1 };
                 });
-
         }
 
         [HttpPost]
         [Authorize]
-        public Task<List<ResultViewModel>> DeleteUserFromAllTerminal(int[] userCodes)
+        public async Task<List<ResultViewModel>> DeleteUserFromAllTerminal(int[] userCodes)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 var onlineDevice = _onlineDevices;
                 var result = new List<ResultViewModel>();
@@ -215,7 +215,6 @@ namespace Biovation.Brands.ZK.Controllers
                 }
                 return result;
             });
-
         }
     }
 }

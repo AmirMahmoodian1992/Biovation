@@ -39,9 +39,9 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> SendTimeZoneToAllDevices([FromBody] int timeZoneId)
+        public async Task<ResultViewModel> SendTimeZoneToAllDevices([FromBody] int timeZoneId)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -94,9 +94,9 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel> SendTimeZoneToDevice(int timeZoneId, uint code)
+        public async Task<ResultViewModel> SendTimeZoneToDevice(int timeZoneId, uint code)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
                 {
                     try
                     {

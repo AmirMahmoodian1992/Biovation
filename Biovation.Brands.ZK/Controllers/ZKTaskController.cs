@@ -21,9 +21,9 @@ namespace Biovation.Brands.ZK.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("[Action]")]
-        public Task<ResultViewModel> RunProcessQueue()
+        public async Task<ResultViewModel> RunProcessQueue()
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {

@@ -51,36 +51,48 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public List<DeviceBasicInfo> GetOnlineDevices()
+        public async Task<List<DeviceBasicInfo>> GetOnlineDevices()
         {
-            var onlineDevices = new List<DeviceBasicInfo>();
-
-            foreach (var onlineDevice in _onlineDevices)
+            return await Task.Run(() =>
             {
-                if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
-                {
-                    onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault()?.Name;
-                }
-                onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
-            }
+                var onlineDevices = new List<DeviceBasicInfo>();
 
-            return onlineDevices;
+                lock (_onlineDevices)
+                {
+                    foreach (var onlineDevice in _onlineDevices)
+                    {
+                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                        {
+                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService
+                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault()
+                                ?.Name;
+                        }
+
+                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    }
+                }
+
+                return onlineDevices;
+            });
         }
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
+        public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
-            var dbDevice = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-            device.DeviceId = dbDevice.DeviceId;
-            device.TimeSync = dbDevice.TimeSync;
-            device.DeviceLockPassword = dbDevice.DeviceLockPassword;
+            var storedDevice = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+            if (storedDevice is null)
+                return new ResultViewModel { Success = false, Message = $"Device {device.Code} does not exists" };
+
+            device.DeviceId = storedDevice.DeviceId;
+            device.TimeSync = storedDevice.TimeSync;
+            device.DeviceLockPassword = storedDevice.DeviceLockPassword;
             //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
             var creatorUser = HttpContext.GetUser();
 
             if (device.Active)
             {
-                return Task.Run(() =>
+                return await Task.Run(() =>
                 {
                     try
                     {
@@ -118,7 +130,7 @@ namespace Biovation.Brands.ZK.Controllers
             }
 
 
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -159,46 +171,49 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel SendUsersOfDevice([FromBody] DeviceBasicInfo device)
+        public async Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
-            try
+            return await Task.Run(() =>
             {
-                var accessGroups = _accessGroupService.GetAccessGroups((uint)device.DeviceId);
-
-                foreach (var accessGroup in accessGroups)
+                try
                 {
-                    foreach (var userGroup in accessGroup.UserGroup)
+                    var accessGroups = _accessGroupService.GetAccessGroups((uint)device.DeviceId);
+
+                    foreach (var accessGroup in accessGroups)
                     {
-                        foreach (var userGroupMember in userGroup.Users)
+                        foreach (var userGroup in accessGroup.UserGroup)
                         {
-                            var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
-                                        new List<object> { device.Code, userGroupMember.UserCode });
-                            addUserToTerminalCommand.Execute();
+                            foreach (var userGroupMember in userGroup.Users)
+                            {
+                                var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
+                                    new List<object> { device.Code, userGroupMember.UserCode });
+                                addUserToTerminalCommand.Execute();
+                            }
                         }
                     }
-                }
 
-                return new ResultViewModel { Validate = 1, Id = device.DeviceId };
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Message = "SendUsersToDevice Failed." };
-            }
+                    return new ResultViewModel { Validate = 1, Id = device.DeviceId };
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new ResultViewModel { Validate = 0, Message = "SendUsersToDevice Failed." };
+                }
+            });
         }
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
 
                     try
                     {
@@ -213,21 +228,21 @@ namespace Biovation.Brands.ZK.Controllers
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.ZkTeco,
                             };
-                            if (devices != null)
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = devices.DeviceId,
-                                    Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1,
-                                });
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                            });
                             _taskService.InsertTask(task);
                             _taskManager.ProcessQueue();
-                            return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
+                            return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
                         }
 
                         else
@@ -248,8 +263,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 TaskItemType = _taskItemTypes.GetLogs,
                                 Priority = _taskPriorities.Medium,
 
-                                DeviceId = devices.DeviceId,
-                                Data = JsonConvert.SerializeObject(devices.DeviceId),
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(device.DeviceId),
                                 IsParallelRestricted = true,
                                 IsScheduled = false,
                                 OrderIndex = 1
@@ -283,8 +298,11 @@ namespace Biovation.Brands.ZK.Controllers
             {
                 try
                 {
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    if (device is null)
+                        return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists." } };
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -294,35 +312,29 @@ namespace Biovation.Brands.ZK.Controllers
                         Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-                    var deviceId = devices.DeviceId;
 
                     //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
 
                     foreach (var numericUserId in userIds)
                     {
-
                         task.TaskItems.Add(new TaskItem
                         {
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
                             Priority = _taskPriorities.Medium,
-
-                            DeviceId = deviceId,
+                            DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { userId = numericUserId }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
-                            OrderIndex = 1,
-
+                            OrderIndex = 1
                         });
-
                     }
 
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
 
                     return new List<ResultViewModel>
-                        {new ResultViewModel {Validate = 1, Message = "Retriving users queued"}};
+                        {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
                 }
 
                 catch (Exception exception)
@@ -335,9 +347,9 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel<User>> RetrieveCompleteUserFromDevice(uint code, int userId)
+        public async Task<ResultViewModel<User>> RetrieveCompleteUserFromDevice(uint code, int userId)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -345,8 +357,8 @@ namespace Biovation.Brands.ZK.Controllers
                     var creatorUser = HttpContext.GetUser();
                     var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                     if (device is null)
-                        return new ResultViewModel<User> {Success = false, Message = "Device is null" };
-                    
+                        return new ResultViewModel<User> { Success = false, Message = "Device is null" };
+
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
@@ -356,7 +368,7 @@ namespace Biovation.Brands.ZK.Controllers
                         Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>()
                     };
-                    
+
 
                     //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
 
@@ -365,13 +377,11 @@ namespace Biovation.Brands.ZK.Controllers
                         Status = _taskStatuses.Queued,
                         TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
                         Priority = _taskPriorities.Medium,
-
                         DeviceId = device.DeviceId,
                         Data = JsonConvert.SerializeObject(new { userId, saving = false }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
-                        OrderIndex = 1,
-
+                        OrderIndex = 1
                     });
 
                     var result = (ResultViewModel<User>)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
@@ -385,22 +395,20 @@ namespace Biovation.Brands.ZK.Controllers
                     { Validate = 0, Message = exception.ToString() };
                 }
             });
-
-
         }
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
+        public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
 
                     var task = new TaskInfo
                     {
@@ -421,13 +429,11 @@ namespace Biovation.Brands.ZK.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                             Priority = _taskPriorities.Medium,
-
-                            DeviceId = devices.DeviceId,
+                            DeviceId = device.DeviceId,
                             Data = JsonConvert.SerializeObject(new { userCode }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
-                            OrderIndex = 1,
-
+                            OrderIndex = 1
                         });
                     }
 
@@ -440,121 +446,129 @@ namespace Biovation.Brands.ZK.Controllers
                 catch (Exception exception)
                 {
                     return new ResultViewModel { Validate = 1, Message = $"Error ,Removing User not queued!{exception}" };
-
                 }
-
             });
         }
+
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
+        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
-            /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                new List<object> { code });
-
-            var result = (List<User>)retrieveUserFromTerminalCommand.Execute();
-            var resultViewModel = new ResultViewModel<List<User>> { Validate = 1, Data = result };
-            return resultViewModel;
-        }*/
-            try
+            return await Task.Run(() =>
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.ZkTeco,
-                    TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>()
-                };
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-                var deviceId = devices.DeviceId;
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode)
+                        .FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel<List<User>>
+                        { Success = false, Message = $"Device {code} does not exists." };
 
-                task.TaskItems.Add(new TaskItem
+                    var creatorUser = HttpContext.GetUser();
+
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>()
+                    };
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { device.DeviceId, embedTemplate }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+
+                    });
+
+                    //_taskService.InsertTask(task);
+                    // ZKTecoServer.ProcessQueue();
+                    var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
+                        CommandType.RetrieveUsersListFromDevice,
+                        new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
+                    return result;
+                }
+                catch (Exception exception)
                 {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
-                    Priority = _taskPriorities.Medium,
-
-                    DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-
-                });
-                //_taskService.InsertTask(task);
-                // ZKTecoServer.ProcessQueue();
-                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                    new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
-                return result;
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
-            }
-
-
+                    return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
+                }
+            });
         }
 
 
-        
-
-
         [HttpGet]
         [Authorize]
-        public Dictionary<string, string> GetAdditionalData(uint code)
+        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
         {
-            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-               new List<object> { code });
+            return await Task.Run(() =>
+            {
+                var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                    new List<object> { code });
 
-            var result = getAdditionalData.Execute();
+                var result = getAdditionalData.Execute();
 
-            return (Dictionary<string, string>)result;
+                return (Dictionary<string, string>)result;
+            });
         }
 
         [HttpPost]
         [Authorize]
-        public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
+        public async Task<Dictionary<uint, bool>> DeleteDevices([FromBody] List<uint> deviceIds)
         {
-            var resultList = new Dictionary<uint, bool>();
-
-            foreach (var deviceId in deviceIds)
+            return await Task.Run(() =>
             {
-                lock (_onlineDevices)
+                var resultList = new Dictionary<uint, bool>();
+
+                foreach (var deviceId in deviceIds)
                 {
-                    if (_onlineDevices.ContainsKey(deviceId))
+                    lock (_onlineDevices)
                     {
-                        _onlineDevices[deviceId].Disconnect();
-                        _onlineDevices.Remove(deviceId);
+                        if (_onlineDevices.ContainsKey(deviceId))
+                        {
+                            _onlineDevices[deviceId].Disconnect();
+                            _onlineDevices.Remove(deviceId);
+                        }
                     }
+
+                    resultList.Add(deviceId, true);
                 }
 
-                resultList.Add(deviceId, true);
-            }
-
-            return resultList;
+                return resultList;
+            });
         }
 
         [HttpPost]
         [Authorize]
         [Route("{id:int}/DownloadAllUserPhotos")]
-        public ResultViewModel DownloadAllUserPhotos([FromRoute] int id)
+        public async Task<ResultViewModel> DownloadAllUserPhotos([FromRoute] int id)
         {
-            var result = (ResultViewModel)_commandFactory.Factory(CommandType.DownloadUserPhotos, new List<object> { id })?.Execute();
-            return result;
+            return await Task.Run(() =>
+            {
+                var result = (ResultViewModel)_commandFactory
+                    .Factory(CommandType.DownloadUserPhotos, new List<object> { id })?.Execute();
+                return result;
+            });
         }
 
         [HttpPost]
         [Authorize]
         [Route("{id:int}/UploadAllUserPhotos")]
-        public ResultViewModel UploadAllUserPhotos([FromRoute] int id, string folderPath = default)
+        public async Task<ResultViewModel> UploadAllUserPhotos([FromRoute] int id, string folderPath = default)
         {
-            var result = (ResultViewModel)_commandFactory.Factory(CommandType.UploadUserPhotos, new List<object> { id, folderPath })?.Execute();
-            return result;
+            return await Task.Run(() =>
+            {
+                var result = (ResultViewModel)_commandFactory
+                    .Factory(CommandType.UploadUserPhotos, new List<object> { id, folderPath })?.Execute();
+                return result;
+            });
         }
     }
 }

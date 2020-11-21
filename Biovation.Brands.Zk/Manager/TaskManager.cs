@@ -346,25 +346,28 @@ namespace Biovation.Brands.ZK.Manager
             if (_processingQueueInProgress)
                 return;
 
-            _processingQueueInProgress = true;
-            while (true)
+            Task.Run(() =>
             {
-                TaskInfo taskInfo;
-                lock (_tasks)
+                _processingQueueInProgress = true;
+                while (true)
                 {
-                    if (_tasks.Count <= 0)
+                    TaskInfo taskInfo;
+                    lock (_tasks)
                     {
-                        _processingQueueInProgress = false;
-                        return;
+                        if (_tasks.Count <= 0)
+                        {
+                            _processingQueueInProgress = false;
+                            return;
+                        }
+
+                        taskInfo = _tasks.First();
                     }
 
-                    taskInfo = _tasks.First();
+                    ExecuteTask(taskInfo);
+                    lock (_tasks)
+                        _tasks.Remove(taskInfo);
                 }
-
-                ExecuteTask(taskInfo);
-                lock (_tasks)
-                    _tasks.Remove(taskInfo);
-            }
+            });
         }
     }
 }
