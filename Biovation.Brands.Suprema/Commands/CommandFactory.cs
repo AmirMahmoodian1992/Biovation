@@ -221,7 +221,7 @@ namespace Biovation.Brands.Suprema.Commands
 
                 #region Tools
                 case CommandType.UserAdaptation:
-                    return new Suprema_UserAdaptation(transferModelData.Items, _onlineDevices, _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient);
+                    return new SupremaUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient);
                 #endregion
 
 

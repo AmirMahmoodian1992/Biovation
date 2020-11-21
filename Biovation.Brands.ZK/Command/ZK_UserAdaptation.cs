@@ -94,13 +94,16 @@ namespace Biovation.Brands.ZK.Command
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
+            var creatorUser = _userService.GetUsers(userId: CreatorUserId).FirstOrDefault();
+            var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.ReadWriteTimeout = 3600000;
             restRequest.Timeout = 3600000;
             restRequest.AddHeader("Authorization", Token ?? string.Empty);
 
-            var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).Result?.Data?.Data;
+            var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).Result.Data?.Data;
             if (userList is null)
                 return new ResultViewModel { Success = false, Message = "The device is offline" };
 
@@ -108,8 +111,6 @@ namespace Biovation.Brands.ZK.Command
             {
                 try
                 {
-                    var creatorUser = _userService.GetUsers(userId: CreatorUserId).FirstOrDefault();
-                    var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
                     var correctedUser = onlineDevice.GetUser(userCode);
 
 
@@ -142,7 +143,7 @@ namespace Biovation.Brands.ZK.Command
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode = userCode }),
+                        Data = JsonConvert.SerializeObject(new {userCode }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -207,7 +208,7 @@ namespace Biovation.Brands.ZK.Command
             {
                 restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
                     restRequest.AddUrlSegment("id", device.DeviceId.ToString());
-                    restRequest.AddHeader("Authorization", Token);
+                    restRequest.AddHeader("Authorization", Token ?? string.Empty);
                     restRequest.ReadWriteTimeout = 3600000;
                     restRequest.Timeout = 3600000;
                     _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -228,12 +229,12 @@ namespace Biovation.Brands.ZK.Command
 
         public string GetTitle()
         {
-            return "Download user photos of device.";
+            return "Adapt users' Code.";
         }
 
         public string GetDescription()
         {
-            return $"Download user photos of device {Code}";
+            return $"Adapt users' code for device {Code}";
         }
     }
 }
