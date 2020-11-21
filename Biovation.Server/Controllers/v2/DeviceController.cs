@@ -640,67 +640,36 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(async () =>
             {
                 var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
-                var equivalentCodes = JsonConvert.DeserializeObject<Dictionary<uint, uint>>(serializedEquivalentCodes);
-
                 var device = _deviceService.GetDevice(id).Data;
 
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
-                restRequest.AddQueryParameter("code", device.Code.ToString());
-                restRequest.ReadWriteTimeout = 3600000;
-                restRequest.Timeout = 3600000;
-                restRequest.AddHeader("Authorization", token);
 
-                var userList = (await _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest))?.Data?.Data;
-                if (userList is null)
-                    return new ResultViewModel { Success = false, Message = "The device is offline" };
-
-                foreach (var userCode in equivalentCodes.Keys.Where(userCode => userList.Any(user => user.Code == userCode)))
+                var task = new TaskInfo
                 {
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.UserAdaptation,
-                        Priority = _taskPriorities.Medium,
-                        DeviceBrand = device.Brand,
-                        TaskItems = new List<TaskItem>(),
-                        DueDate = DateTime.Today
-                    };
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.UserAdaptation,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode, CorrectedUserCode = equivalentCodes[userCode], CreatorUserId = creatorUser.Id }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
-
-                    _taskService.InsertTask(task);
-                }
-
-                try
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.UserAdaptation,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+                task.TaskItems.Add(new TaskItem
                 {
-                    if (device.Brand.Code == Constants.DeviceBrands.ZkTecoCode)
-                    {
-                        restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
-                        restRequest.AddUrlSegment("id", device.DeviceId.ToString());
-                        restRequest.AddHeader("Authorization", token);
-                        restRequest.ReadWriteTimeout = 3600000;
-                        restRequest.Timeout = 3600000;
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                }
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.UserAdaptation,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { serializedEquivalentCodes, token, creatorUserId = creatorUser.Id }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0,
+                    TotalCount = 1
+                });
 
-                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                _taskService.InsertTask(task);
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };

@@ -31,10 +31,9 @@ namespace Biovation.Brands.ZK.Command
 
 
         private Dictionary<uint, Device> OnlineDevices { get; }
+        private Dictionary<uint, uint> EquivalentCodes { get; set; }
         private uint CreatorUserId { get; set; }
-
-        private uint UserCode { get; set; }
-        private uint CorrectedUserCode { get; set; }
+        private string Token { get; set; }
         private uint Code { get; set; }
         private TaskItem TaskItem { get; }
         public ZkUserAdaptation(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskTypes taskTypes, TaskService taskService,
@@ -70,12 +69,24 @@ namespace Biovation.Brands.ZK.Command
             }
 
             var data = (JObject)JsonConvert.DeserializeObject(TaskItem.Data);
-            if (data != null)
+            try
             {
-                UserCode = Convert.ToUInt32(data["userCode"]);
-                CorrectedUserCode = Convert.ToUInt32(data["CorrectedUserCode"]);
-                CreatorUserId = Convert.ToUInt32(data["CreatorUserId"]);
+                if (data != null)
+                {
+                    Token = Convert.ToString(data["token"]);
+                    EquivalentCodes =
+                        JsonConvert.DeserializeObject<Dictionary<uint, uint>>(Convert.ToString(data["serializedEquivalentCodes"]) ?? string.Empty);
+                    CreatorUserId = Convert.ToUInt32(data["creatorUserId"]);
+                }
             }
+            catch (Exception e)
+            {
+                Logger.Log($"The Data of device {Code} is not valid.");
+                Logger.Log(e,logType:LogType.Error);
+                return new ResultViewModel { Success = false, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
+            }
+
+
             var device = _deviceService.GetDevice(deviceId);
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
@@ -83,101 +94,131 @@ namespace Biovation.Brands.ZK.Command
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
-            try
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.ReadWriteTimeout = 3600000;
+            restRequest.Timeout = 3600000;
+            restRequest.AddHeader("Authorization", Token ?? string.Empty);
+
+            var userList = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).Result?.Data?.Data;
+            if (userList is null)
+                return new ResultViewModel { Success = false, Message = "The device is offline" };
+
+            foreach (var userCode in EquivalentCodes.Keys.Where(userCode => userList.Any(user => user.Code == userCode)))
             {
-                var creatorUser = _userService.GetUsers(userId: CreatorUserId).FirstOrDefault();
-                var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
-                var correctedUser = onlineDevice.GetUser(UserCode);
-
-
-
-                if (correctedUser == null)
+                try
                 {
-                    Logger.Log($"User {UserCode}  doesn't exist on Device {device.DeviceId}");
+                    var creatorUser = _userService.GetUsers(userId: CreatorUserId).FirstOrDefault();
+                    var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+                    var correctedUser = onlineDevice.GetUser(userCode);
+
+
+
+                    if (correctedUser == null)
+                    {
+                        Logger.Log($"User {userCode}  doesn't exist on Device {device.DeviceId}");
+                        return new ResultViewModel
+                        {
+                            Success = false,
+                            Id = deviceId,
+                            Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                            Message = $"User {userCode}  doesn't exist on Device {device.DeviceId}"
+                        };
+                    }
+
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { userCode = userCode }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+
+                    _taskService.InsertTask(task);
+
+
+                    task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+
+                    //var correctedUser = userList.First(x => x.Code == userCode);
+
+                    correctedUser.Code = EquivalentCodes[userCode];
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendUser,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(correctedUser),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+                    _taskService.InsertTask(task);
+
+                    restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
                     return new ResultViewModel
                     {
-                        Success = false,
+                        Success = true,
                         Id = deviceId,
-                        Code = Convert.ToInt64(TaskStatuses.FailedCode),
-                        Message = $"User {UserCode}  doesn't exist on Device {device.DeviceId}"
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                        Message = $"The Delete and send User operations for User{userCode}  on Device {device.DeviceId} successfully started"
                     };
+
+
                 }
-
-                var task = new TaskInfo
+                catch (Exception exception)
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = device.Brand,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = device.DeviceId,
-                    Data = JsonConvert.SerializeObject(new { userCode = UserCode }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    CurrentIndex = 0,
-                    TotalCount = 1
-                });
+                    Logger.Log(exception);
+                    return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                }
+            }
 
-                _taskService.InsertTask(task);
-
-
-                task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.SendUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = device.Brand,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                //var correctedUser = userList.First(x => x.Code == userCode);
-
-                correctedUser.Code = CorrectedUserCode;
-
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.SendUser,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = device.DeviceId,
-                    Data = JsonConvert.SerializeObject(correctedUser),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    CurrentIndex = 0,
-                    TotalCount = 1
-                });
-                _taskService.InsertTask(task);
-
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                return new ResultViewModel
-                {
-                    Success = true,
-                    Id = deviceId,
-                    Code = Convert.ToInt64(TaskStatuses.DoneCode),
-                    Message = $"The Delete and send User operations for User{UserCode}  on Device {device.DeviceId} successfully started"
-                };
-
+            try
+            {
+                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
+                    restRequest.AddUrlSegment("id", device.DeviceId.ToString());
+                    restRequest.AddHeader("Authorization", Token);
+                    restRequest.ReadWriteTimeout = 3600000;
+                    restRequest.Timeout = 3600000;
+                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
+
+            return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
         }
 
         public void Rollback()
