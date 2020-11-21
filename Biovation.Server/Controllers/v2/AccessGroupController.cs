@@ -154,7 +154,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}/AdminUsers")]
-        public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default)
+        public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup([FromRoute] long id = default, int accessGroupId = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _accessGroupService.GetAdminUserOfAccessGroup(id, accessGroupId, token));
@@ -264,7 +264,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("SendAccessGroupToDevices/{id}")]
-        public ResultViewModel SendAccessGroupToDevices(int id)
+        public ResultViewModel SendAccessGroupToDevices([FromRoute] int id)
         {
             var token = (string)HttpContext.Items["Token"];
 
@@ -289,7 +289,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("SendAccessGroupToDevice/{id}")]
-        public ResultViewModel SendAccessGroupToDevice(int id, int deviceId)
+        public ResultViewModel SendAccessGroupToDevice([FromRoute] int id, int deviceId)
         {
             var token = (string)HttpContext.Items["Token"];
 

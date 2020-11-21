@@ -287,7 +287,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUserGroup(int id = default)
+        public Task<ResultViewModel> DeleteUserGroup([FromRoute] int id = default)
         {
             return Task.Run(() => _userGroupService.DeleteUserGroup(id, HttpContext.Items["Token"].ToString()));
         }

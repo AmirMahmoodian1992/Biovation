@@ -20,7 +20,7 @@ namespace Biovation.Data.Commands.Sinks
         {
             _logRepository = logRepository;
             _biovationConfigurationManager = biovationConfigurationManager;
-            _restClient = (RestClient)new RestClient(biovationConfigurationManager.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            _restClient = (RestClient)new RestClient(biovationConfigurationManager.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
         }
 
         public Task<ResultViewModel> TransferLog(Log log)
@@ -100,9 +100,9 @@ namespace Biovation.Data.Commands.Sinks
                     {
                         var deviceLogs = logs.Where(x => x.DeviceCode == deviceCode).OrderByDescending(x => x.LogDateTime).ToList();
                         //برای ارسال لاگ به صورت 1000 تا 1000تا
-                        var logsCount = deviceLogs.Count();
+                        var logsCount = deviceLogs.Count;
                         var loopUpperBound = logsCount / 1000;
-                        loopUpperBound = loopUpperBound == 0 ? 1 : loopUpperBound;
+                        //loopUpperBound = loopUpperBound == 0 ? 1 : loopUpperBound;
                         loopUpperBound = logsCount % 1000 <= 0 ? loopUpperBound : loopUpperBound + 1;
 
                         for (var i = 0; i < loopUpperBound; i++)

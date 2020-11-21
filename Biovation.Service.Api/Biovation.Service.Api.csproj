@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Repository.Api\Biovation.Repository.Api.csproj" />
-    <ProjectReference Include="..\Biovation.Repository.MessageBus\Biovation.Repository.MessageBus.csproj" />
     <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
   </ItemGroup>
 

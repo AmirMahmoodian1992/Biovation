@@ -10,7 +10,6 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-// ReSharper disable AssignmentIsFullyDiscarded
 namespace Biovation.Data.Commands.Controllers.v2
 {
     [ApiController]
@@ -44,11 +43,12 @@ namespace Biovation.Data.Commands.Controllers.v2
             //log.Image = filePath;
 
             //integration
-            _ = _logMessageBusRepository.SendLog(new List<Log> { log });
-
+            var broadcastApiAwaiter = _logMessageBusRepository.SendLog(new List<Log> { log });
+            var broadcastMessageBusAwaiter = Task.CompletedTask;
             if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
-                _ = _logApiSink.TransferLog(log);
+                broadcastMessageBusAwaiter = _logApiSink.TransferLog(log);
 
+            await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastMessageBusAwaiter);
             return await logInsertionAwaiter;
         }
 
@@ -78,7 +78,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             foreach (var deviceId in logs.GroupBy(g => g.DeviceId).Select(s => s.Key).Where(s => s > 0))
             {
-                _ = Task.Run(async () =>
+                await Task.Run(async () =>
                 {
                     var tasks = new List<Task>();
                     var device = _deviceRepository.GetDevice(deviceId)?.Data;
@@ -113,33 +113,51 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("UpdateLog")]
-        public Task<ResultViewModel> UpdateLog([FromBody] List<Log> logs)
+        public async Task<ResultViewModel> UpdateLog([FromBody] List<Log> logs)
         {
-            return Task.Run(async () => await _logRepository.UpdateLog(logs));
+            return await _logRepository.UpdateLog(logs);
         }
 
         [HttpPatch]
         [Authorize]
         [Route("AddLogImage")]
-        public Task<ResultViewModel> AddLogImage([FromBody] Log log)
+        public async Task<ResultViewModel> AddLogImage([FromBody] Log log)
         {
-            return Task.Run(async () => await _logRepository.AddLogImage(log));
+            return await _logRepository.AddLogImage(log);
         }
 
         [HttpPut]
         [Authorize]
         [Route("UpdateLog")]
-        public Task<ResultViewModel> UpdateLog([FromBody] Log log)
+        public async Task<ResultViewModel> UpdateLog([FromBody] Log log)
         {
-            return Task.Run(async () => await _logRepository.UpdateLog(log));
+            return await _logRepository.UpdateLog(log);
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize]
         [Route("CheckLogInsertion")]
-        public Task<List<Log>> CheckLogInsertion([FromBody] List<Log> logs)
+        public async Task<List<Log>> CheckLogInsertion([FromBody] List<Log> logs)
         {
-            return Task.Run(async () => await _logRepository.CheckLogInsertion(logs));
+            return await _logRepository.CheckLogInsertion(logs);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("BroadcastLogs")]
+        public async Task<ResultViewModel> BroadcastLogs([FromBody] List<Log> logs)
+        {
+            var broadcastToApiAwaiter = _logApiSink.TransferLogBulk(logs);
+            var broadcastToMessageBusAwaiter = _logMessageBusRepository.SendLog(logs);
+            await Task.WhenAll(broadcastToApiAwaiter, broadcastToMessageBusAwaiter);
+
+            var broadcastToApiResult = broadcastToApiAwaiter.Result;
+            var broadcastToMessageBusResult = broadcastToMessageBusAwaiter.Result;
+            return new ResultViewModel
+            {
+                Success = broadcastToApiResult.Success && broadcastToMessageBusResult.Success,
+                Message = !broadcastToApiResult.Success ? broadcastToApiResult.Message : (!broadcastToMessageBusResult.Success ? broadcastToMessageBusResult.Message : "Logs are sent successfully")
+            };
         }
     }
 }

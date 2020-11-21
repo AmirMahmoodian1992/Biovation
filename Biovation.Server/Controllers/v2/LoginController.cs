@@ -29,7 +29,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Route("{id}")]
         [AllowAnonymous]
-        public IActionResult Login(long id = default)
+        public IActionResult Login([FromRoute] long id = default)
         {
             IActionResult response = Unauthorized();
             var user = _userService.GetUsers(code:id)?.Data?.Data?.FirstOrDefault();
@@ -45,10 +45,5 @@ namespace Biovation.Server.Controllers.v2
             }
             return response;
         }
-
-
-
-     
-
     }
 }

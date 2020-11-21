@@ -41,7 +41,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Route("DeviceModels/{id?}")]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels(long id = 0, string brandId = default,
+        public Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels([FromRoute] long id = 0, string brandId = default,
             string name = default, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDeviceModels(id, brandId, name, pageNumber, pageSize));

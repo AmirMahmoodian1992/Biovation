@@ -74,14 +74,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetAdminUser")]
         public List<User> GetAdminUser(long userId = 0)
         {
-            return _userService.GetAdminUser(userId, token: _kasraAdminToken);
+            return _userService.GetAdminUser(userId, _kasraAdminToken);
         }
 
         [HttpGet]
         [Route("GetAdminUserOfAccessGroup")]
         public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
         {
-            return _accessGroupService.GetAdminUserOfAccessGroup(userId, accessGroupId, token: _kasraAdminToken);
+            return _accessGroupService.GetAdminUserOfAccessGroup(userId, accessGroupId, _kasraAdminToken);
         }
 
         [HttpGet]
@@ -90,7 +90,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.GetUsers(userId: id, token: _kasraAdminToken)?.FirstOrDefault();
+                return _userService.GetUsers(id, token: _kasraAdminToken)?.FirstOrDefault();
             }
             catch (Exception exception)
             {
@@ -103,7 +103,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SearchUserFilter")]
         public List<User> SearchUser(string filterText, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
                 return _userService.GetUsers(filterText: filterText, token: token);
@@ -118,7 +118,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SearchUser")]
         public List<User> SearchUser(string filterText, int type, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
                 return _userService.GetUsers(filterText: filterText, type: type, token: token);
@@ -164,7 +164,7 @@ namespace Biovation.Server.Controllers.v1
                             : user.TelNumber;
                     }
 
-                    var result = _userService.ModifyUser(user, token: _kasraAdminToken);
+                    var result = _userService.ModifyUser(user, _kasraAdminToken);
 
                     await Task.Run(async () =>
                     {
@@ -196,7 +196,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return ids.Select(id => _userService.DeleteUser(id, token: _kasraAdminToken)).ToList();
+                return ids.Select(id => _userService.DeleteUser(id, _kasraAdminToken)).ToList();
 
                 //Task.Run(() =>
                 //{
@@ -280,7 +280,7 @@ namespace Biovation.Server.Controllers.v1
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < length; i++)
                     {
-                        var user = _userService.GetUsers(userId: userIds[i], token: _kasraAdminToken).FirstOrDefault();
+                        var user = _userService.GetUsers(userIds[i], token: _kasraAdminToken).FirstOrDefault();
                         if (user == null)
                         {
                             Logger.Log($"User {userIds[i]} not exists.");
@@ -322,7 +322,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return _userService.ModifyPassword(userId, password, token: _kasraAdminToken);
+                return _userService.ModifyPassword(userId, password, _kasraAdminToken);
             }
             catch (Exception e)
             {
@@ -645,7 +645,7 @@ namespace Biovation.Server.Controllers.v1
 
                     // for rolling back on problem occuring
                     var userExistingDevices = new List<DeviceBasicInfo>();
-                    var userGroupsOfUser = _userGroupService.UsersGroup(userId, token: _kasraAdminToken);
+                    var userGroupsOfUser = _userGroupService.UsersGroup(userId, _kasraAdminToken);
                     foreach (var userGroup in userGroupsOfUser)
                     {
                         var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id, token: _kasraAdminToken);
@@ -673,7 +673,7 @@ namespace Biovation.Server.Controllers.v1
                             try
                             {
                                 var userGroupMember = userGroup.Users.FirstOrDefault(userGroupMem => userGroupMem.UserId == userId);
-                                _userGroupService.AddUserGroup(userGroupMember, token: _kasraAdminToken);
+                                _userGroupService.AddUserGroup(userGroupMember, _kasraAdminToken);
                             }
                             catch (Exception)
                             {
@@ -691,7 +691,7 @@ namespace Biovation.Server.Controllers.v1
                             GroupId = userGroupId,
                             UserType = 1.ToString(),
                             UserTypeTitle = string.Empty
-                        }, token: _kasraAdminToken);
+                        }, _kasraAdminToken);
                     }
                     //_userGroupService.ModifyUserGroupMember(userGroupMembersList,)
 
@@ -829,7 +829,7 @@ namespace Biovation.Server.Controllers.v1
                         GroupId = userGroupId,
                         UserType = 1.ToString(),
                         UserTypeTitle = string.Empty
-                    }, token: _kasraAdminToken);
+                    }, _kasraAdminToken);
                 }
 
                 return new ResultViewModel { Id = userId, Validate = 1, Message = $"User groups of user {userId} updated successfully" };

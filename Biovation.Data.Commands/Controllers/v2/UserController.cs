@@ -36,7 +36,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpDelete]
         [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteUser(int id = default)
+        public Task<ResultViewModel> DeleteUser([FromRoute] int id = default)
         {
             return Task.Run(() => _userRepository.DeleteUser(id));
         }
@@ -54,7 +54,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPatch]
         [Route("Password/{id}")]
         [Authorize]
-        public Task<ResultViewModel> ModifyPassword(int id = default, string password = default)
+        public Task<ResultViewModel> ModifyPassword([FromRoute] int id = default, string password = default)
         {
             return Task.Run(() => _userRepository.ModifyPassword(id, password));
         }

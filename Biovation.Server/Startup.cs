@@ -25,7 +25,6 @@ using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
-using Biovation.Repository.MessageBus;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -195,9 +194,6 @@ namespace Biovation.Server
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
-
-            services.AddScoped<LogMessageBusRepository, LogMessageBusRepository>();
-            services.AddScoped<TaskMessageBusRepository, TaskMessageBusRepository>();
 
             //services.AddScoped<FoodService, FoodService>();
             //services.AddScoped<MealService, MealService>();

@@ -30,7 +30,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Route("AccessControlUserGroup/{id}")]
         [Authorize]
 
-        public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default)
+        public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup([FromRoute] int id = default)
         {
             return Task.Run(() => _userGroupRepository.GetAccessControlUserGroup(id));
         }

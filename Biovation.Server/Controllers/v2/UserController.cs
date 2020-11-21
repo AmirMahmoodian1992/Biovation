@@ -181,7 +181,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}/Card")]
-        public Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard(long id, bool isActive,
+        public Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard([FromRoute] long id, bool isActive,
             int pageNumber = default, int pageSize = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -496,7 +496,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/EnrollFaceTemplate")]
-        public Task<ResultViewModel> EnrollFaceTemplate(int id = default, int deviceId = default)
+        public Task<ResultViewModel> EnrollFaceTemplate([FromRoute] int id = default, int deviceId = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () =>
@@ -850,7 +850,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Route("UserToDevice/{id}")]
         [Authorize]
-        public Task<ResultViewModel> SendUserToDevice(int id = default)
+        public Task<ResultViewModel> SendUserToDevice([FromRoute] int id = default)
         {
             return Task.Run(async () =>
             {

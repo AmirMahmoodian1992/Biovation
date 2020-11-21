@@ -16,17 +16,17 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             _timeZoneRepository = timeZoneRepository;
         }
-        
+
         [HttpPut]
         [Authorize]
-        public Task<ResultViewModel>AddTimeZone([FromBody]TimeZone timeZone)
+        public Task<ResultViewModel> AddTimeZone([FromBody] TimeZone timeZone)
         {
             return Task.Run(() => _timeZoneRepository.AddTimeZone(timeZone));
         }
 
         [HttpPut]
         [Authorize]
-        public Task<ResultViewModel> ModifyTimeZone([FromBody]TimeZone timeZone)
+        public Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone)
         {
             return Task.Run(() => _timeZoneRepository.ModifyTimeZone(timeZone));
         }
@@ -35,7 +35,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("{id}")]
         [Authorize]
 
-        public Task<ResultViewModel> DeleteTimeZone(int id)
+        public Task<ResultViewModel> DeleteTimeZone([FromRoute] int id)
         {
             return Task.Run(() => _timeZoneRepository.DeleteTimeZone(id));
         }

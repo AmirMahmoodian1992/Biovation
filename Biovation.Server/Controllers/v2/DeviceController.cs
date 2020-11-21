@@ -55,7 +55,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Route("{id:int}")]
         [Attribute.Authorize]
-        public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
+        public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = default, long adminUserId = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _deviceService.GetDevice(id, adminUserId, token));
@@ -235,7 +235,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Route("{id}/ClearLogs")]
         [Attribute.Authorize]
-        public Task<ResultViewModel> ClearLogOfDevice(int id, string fromDate, string toDate)
+        public Task<ResultViewModel> ClearLogOfDevice([FromRoute] int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () =>

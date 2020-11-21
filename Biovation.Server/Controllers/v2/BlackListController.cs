@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -27,14 +27,14 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        public Task<List<ResultViewModel>> CreateBlackList([FromBody]List<BlackList> blackLists)
+        public Task<List<ResultViewModel>> CreateBlackList([FromBody] List<BlackList> blackLists)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
             {
                 try
                 {
-                    var resultsBlackLists = blackLists.Select(blackList => _blackListService.CreateBlackList(blackList,token)).ToList();
+                    var resultsBlackLists = blackLists.Select(blackList => _blackListService.CreateBlackList(blackList, token)).ToList();
 
                     Task.Run(async () =>
                     {
@@ -43,7 +43,7 @@ namespace Biovation.Server.Controllers.v2
                         {
                             if (blackList.Validate == 1)
                             {
-                                successResult.Add((_blackListService.GetBlacklist(id: (int)blackList.Id,token:token)).Data.Data.Find(l => l.Id == blackList.Id));
+                                successResult.Add((_blackListService.GetBlacklist(id: (int)blackList.Id, token: token)).Data.Data.Find(l => l.Id == blackList.Id));
 
                             }
                         }
@@ -93,10 +93,10 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<PagingResult<BlackList>>> GetBlackList(int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
+        public Task<ResultViewModel<PagingResult<BlackList>>> GetBlackList([FromRoute] int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run( () => _blackListService.GetBlacklist(id,userid,deviceId,startDate,endDate,isDeleted,token:token));
+            return Task.Run(() => _blackListService.GetBlacklist(id, userid, deviceId, startDate, endDate, isDeleted, token: token));
         }
 
         [HttpPut]
@@ -149,7 +149,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteBlackList(int id)
+        public Task<ResultViewModel> DeleteBlackList([FromRoute] int id)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() =>
@@ -169,7 +169,7 @@ namespace Biovation.Server.Controllers.v2
                         var successBlackList = new List<BlackList>();
                         if (result.Validate == 1)
                         {
-                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id, isDeleted: true, token:token).Data.Data;
+                            successBlackList = _blackListService.GetBlacklist(id: (int)result.Id, isDeleted: true, token: token).Data.Data;
                         }
 
                         var brand = successBlackList?.FirstOrDefault()?.Device.Brand;
@@ -197,5 +197,5 @@ namespace Biovation.Server.Controllers.v2
 
             });
         }
-        }
+    }
 }

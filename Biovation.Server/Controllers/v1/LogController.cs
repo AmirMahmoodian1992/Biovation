@@ -137,7 +137,7 @@ namespace Biovation.Server.Controllers.v1
 
                 restRequest.AddQueryParameter("code", device.Code.ToString());
 
-                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                restRequest.AddHeader("Authorization", _kasraAdminToken);
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
                 //        _communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Post", null,
@@ -205,13 +205,11 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
-                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken)?.FirstOrDefault());
                     var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
                     obj.OnlineUserId = userId;
                     obj.State = false;
-                    var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
-                    //var logs = logsAwaiter.Where(w => !w.SuccessTransfer).ToList();
-                    await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
+                    var logs = await _logService.SelectSearchedOfflineLogs(obj, _kasraAdminToken);
+                    await _logService.TransferLogBulk(logs, _kasraAdminToken);
                     return new ResultViewModel { Validate = 1, Code = logs.Count, Message = logs.Count.ToString() };
                 }
                 catch (Exception exception)
@@ -224,28 +222,24 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ConvertOfflineAllLogs")]
-        public Task<ResultViewModel> ConvertOfflineAllLogs(long userId, string dTraffic)
+        public async Task<ResultViewModel> ConvertOfflineAllLogs(long userId, string dTraffic)
         {
-            return Task.Run(async () =>
+            try
             {
-                try
-                {
-                    var token = _tokenGenerator.GenerateToken(_userService.GetUsers(userId, token: _kasraAdminToken).FirstOrDefault());
-                    var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
-                    obj.OnlineUserId = userId;
-                    obj.State = null;
-                    var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
-                    //var logs = logsAwaiter.ToList();
-                    await Task.Run(() => { _logService.TransferLogBulk(logs, token); });
+                var obj = JsonConvert.DeserializeObject<DeviceTraffic>(dTraffic);
+                obj.OnlineUserId = userId;
+                obj.State = null;
+                var logs = await _logService.SelectSearchedOfflineLogs(obj, _kasraAdminToken);
+                //var logs = logsAwaiter.ToList();
+                await _logService.TransferLogBulk(logs, _kasraAdminToken);
 
-                    return new ResultViewModel { Validate = 1, Message = logs.Count.ToString() };
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception.Message);
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                }
-            });
+                return new ResultViewModel { Validate = 1, Message = logs.Count.ToString() };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception.Message);
+                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+            }
         }
 
         [HttpPost]

@@ -50,7 +50,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpDelete]
         [Authorize]
         [Route("DeleteDeviceGroupMember/{id}")]
-        public Task<ResultViewModel> DeleteDeviceGroupMember(uint id)
+        public Task<ResultViewModel> DeleteDeviceGroupMember([FromRoute] uint id)
         {
             return Task.Run(() => _deviceGroupRepository.DeleteDeviceGroupMember(id));
         }

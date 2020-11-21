@@ -76,7 +76,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpDelete]
         [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteAccessGroup(int id)
+        public Task<ResultViewModel> DeleteAccessGroup([FromRoute] int id)
         {
             return Task.Run(() => _accessGroupRepository.DeleteAccessGroup(id));
         }

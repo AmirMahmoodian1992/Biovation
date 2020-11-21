@@ -7,23 +7,10 @@ namespace Biovation.Service.Api.v2
     public class TaskService
     {
         private readonly TaskRepository _taskRepository;
-        //private ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
-        //private ConnectorNode<DataChangeMessage<TaskInfo>> _biovationTaskConnectorNode;
-        //private const string _biovationTopicName = "BiovationTaskStatusUpdateEvent";
 
         public TaskService(TaskRepository taskRepository)
         {
             _taskRepository = taskRepository;
-
-            //var kafkaServerAddress = biovationConfiguration.KafkaServerAddress;
-            //_biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
-            //   .Build<DataChangeMessage<TaskInfo>>();
-
-            //var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(_biovationTopicName)
-            //    .BuildTarget<DataChangeMessage<TaskInfo>>();
-
-            //_biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(_biovationInternalSource, biovationKafkaTarget);
-            //_biovationTaskConnectorNode.StartProcess();
         }
 
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,

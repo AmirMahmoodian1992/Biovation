@@ -35,7 +35,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUserCard(int id = default)
+        public Task<ResultViewModel> DeleteUserCard([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _userCardService.DeleteUserCard(id, token));

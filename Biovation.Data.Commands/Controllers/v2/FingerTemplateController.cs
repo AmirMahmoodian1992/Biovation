@@ -35,7 +35,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpDelete]
         [Route("{userId}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteFingerTemplate(int userId, int fingerIndex)
+        public Task<ResultViewModel> DeleteFingerTemplate([FromRoute] int userId, int fingerIndex)
         {
             return Task.Run(() => _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex));
         }

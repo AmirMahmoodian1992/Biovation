@@ -22,7 +22,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [Route("{id}")]
         [Authorize]
 
-        public Task<ResultViewModel<TimeZone>> TimeZones(int id = default)
+        public Task<ResultViewModel<TimeZone>> TimeZones([FromRoute] int id = default)
         {
             return Task.Run(() => _timeZoneRepository.GetTimeZone(id));
         }
