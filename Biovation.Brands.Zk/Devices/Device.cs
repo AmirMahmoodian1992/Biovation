@@ -256,7 +256,7 @@ namespace Biovation.Brands.ZK.Devices
                 //Task.Run(() => { ReadOfflineLog(Token); }, Token);
                 //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(TokenSource.Token), TokenSource.Token));
                 //ZKTecoServer.StartReadLogs();
-                var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = _userService.GetUsers(code: 123456789).FirstOrDefault();
                 var task = new TaskInfo
                 {
                     CreatedAt = DateTimeOffset.Now,
