@@ -66,7 +66,7 @@ namespace Biovation.Brands.Virdi.Command
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
-            UserObj = userService.GetUsers(UserId, withPicture: true).FirstOrDefault();
+            UserObj = userService.GetUsers(UserId, withPicture: true,getTemplatesData: true).FirstOrDefault();
 
             var blackList = blackListService.GetBlacklist(id: default, userId: UserId, deviceId: DeviceId, startDate: DateTime.Now, endDate: DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
@@ -141,13 +141,14 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     try
                     {
-                        var decryptedPassword = Decrypt(UserObj.Password);
-                        _callbacks.ServerUserData.Password = decryptedPassword;
+                        //var decryptedPassword = Encoding.ASCII.GetBytes(UserObj.Password);
+                        //_callbacks.ServerUserData.Password = decryptedPassword;
+                        _callbacks.ServerUserData.Password = UserObj.Password;
                         isPassword = true;
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        //ignore
+                        Logger.Log(e);
                     }
                 }
 
