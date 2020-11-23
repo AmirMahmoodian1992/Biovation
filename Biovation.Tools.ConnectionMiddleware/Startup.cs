@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using RestSharp;
 using Serilog;
 
 namespace Biovation.Tools.ConnectionMiddleware
@@ -53,6 +54,9 @@ namespace Biovation.Tools.ConnectionMiddleware
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
+
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
+            services.AddSingleton(restClient);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
