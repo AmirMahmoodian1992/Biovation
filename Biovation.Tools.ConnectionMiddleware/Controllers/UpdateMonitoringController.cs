@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Biovation.Tools.ConnectionMiddleware.Controllers
 {
     [ApiController]
-    [Route("biovation/api/[controller]")]
+    [Route("lego.web/api/biovation/[controller]")]
     public class UpdateMonitoringController : ControllerBase
     {
         private readonly RestClient _restClient;
@@ -19,10 +19,10 @@ namespace Biovation.Tools.ConnectionMiddleware.Controllers
         }
 
         [HttpPost]
-        [Route("UpdateAttendance")]
-        public async Task<ResultViewModel> UpdateAttendance(Log log)
+        [Route("UpdateMonitoring")]
+        public async Task<ResultViewModel> UpdateMonitoring(Log log)
         {
-            var restRequest = new RestRequest("UpdateAttendance/UpdateAttendance", Method.POST);
+            var restRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
             var compatibleModel = new AttendanceV9(log);
             restRequest.AddJsonBody(compatibleModel);
 

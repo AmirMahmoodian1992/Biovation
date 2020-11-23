@@ -3,12 +3,12 @@
   "profiles": {
     "Biovation.Tools.ConnectionMiddleware": {
       "commandName": "Project",
-      "launchBrowser": true,
+      //"launchBrowser": true,
       //"launchUrl": "weatherforecast",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:9050"
+      "applicationUrl": "http://0.0.0.0:9050"
     },
     "Docker": {
       "commandName": "Docker",

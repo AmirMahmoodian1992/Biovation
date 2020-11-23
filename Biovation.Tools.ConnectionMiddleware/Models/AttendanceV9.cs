@@ -16,7 +16,7 @@ namespace Biovation.Tools.ConnectionMiddleware.Models
         {
             foreach (var propertyInfo in typeof(Log).GetProperties())
             {
-                if (string.Equals(propertyInfo.Name, MatchingType.GetType().Name, StringComparison.InvariantCultureIgnoreCase))
+                if (string.Equals(propertyInfo.Name, "MatchingType", StringComparison.InvariantCultureIgnoreCase))
                     MatchingType = Convert.ToInt32(log.MatchingType?.Code ?? 0.ToString()) % 10;
                 
                 try { propertyInfo.SetValue(this, propertyInfo.GetValue(log)); }
