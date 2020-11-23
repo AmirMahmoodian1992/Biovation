@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.Tools.ConnectionMiddleware.Models;
 
 namespace Biovation.Tools.ConnectionMiddleware.Controllers
 {
@@ -22,10 +23,11 @@ namespace Biovation.Tools.ConnectionMiddleware.Controllers
         public async Task<ResultViewModel> UpdateMonitoring(Log log)
         {
             var restRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
-            restRequest.AddJsonBody(log);
+            var compatibleModel = new AttendanceV9(log);
+            restRequest.AddJsonBody(compatibleModel);
 
             var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result?.Data ?? new ResultViewModel { Success = false, Message = result.Content } : new ResultViewModel { Success = false, Message = result.Content };
+            return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data ?? new ResultViewModel { Success = false, Message = result.Content } : new ResultViewModel { Success = false, Message = result.Content };
         }
     }
 }
