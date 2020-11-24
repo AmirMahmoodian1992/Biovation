@@ -312,31 +312,39 @@ namespace Biovation.Brands.EOS.Manager
         public void ProcessQueue()
         {
             lock (_tasks)
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode,
-                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })?.Data?.Data ?? new List<TaskInfo>();
-
-            if (_processingQueueInProgress)
-                return;
-
-            _processingQueueInProgress = true;
-            while (true)
             {
-                TaskInfo taskInfo;
-                lock (_tasks)
+                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode,
+                             excludedTaskStatusCodes: new List<string>
+                                 {_taskStatuses.Done.Code, _taskStatuses.Failed.Code})?.Data?.Data ??
+                         new List<TaskInfo>();
+
+                if (_processingQueueInProgress)
+                    return;
+
+                _processingQueueInProgress = true;
+            }
+
+            Task.Run(() =>
+            {
+                while (true)
                 {
-                    if (_tasks.Count <= 0)
+                    TaskInfo taskInfo;
+                    lock (_tasks)
                     {
-                        _processingQueueInProgress = false;
-                        return;
+                        if (_tasks.Count <= 0)
+                        {
+                            _processingQueueInProgress = false;
+                            return;
+                        }
+
+                        taskInfo = _tasks.First();
                     }
 
-                    taskInfo = _tasks.First();
+                    ExecuteTask(taskInfo);
+                    lock (_tasks)
+                        _tasks.Remove(taskInfo);
                 }
-
-                ExecuteTask(taskInfo);
-                lock (_tasks)
-                    _tasks.Remove(taskInfo);
-            }
+            });
         }
     }
 }
