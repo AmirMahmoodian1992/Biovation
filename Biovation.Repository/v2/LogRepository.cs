@@ -104,7 +104,7 @@ namespace Biovation.Repository.Sql.v2
 
                     var parameters = new List<SqlParameter>
                     {
-                        new SqlParameter("@LogTable", logs)
+                        new SqlParameter("@LogTable", logsDataTable)
                     };
 
                     return logsDataTable.Rows.Count > 0
