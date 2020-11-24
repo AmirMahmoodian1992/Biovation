@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses;
+﻿using Biovation.Brands.ZK.Command;
+using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -7,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.ZK.Command;
 
 namespace Biovation.Brands.ZK.Manager
 {
@@ -340,15 +340,18 @@ namespace Biovation.Brands.ZK.Manager
         public void ProcessQueue()
         {
             lock (_tasks)
+            {
                 _tasks = _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode,
                     excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
 
-            if (_processingQueueInProgress)
-                return;
+                if (_processingQueueInProgress)
+                    return;
+
+                _processingQueueInProgress = true;
+            }
 
             Task.Run(() =>
             {
-                _processingQueueInProgress = true;
                 while (true)
                 {
                     TaskInfo taskInfo;
