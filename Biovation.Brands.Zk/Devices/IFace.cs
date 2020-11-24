@@ -5,6 +5,7 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using RestSharp;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +24,8 @@ namespace Biovation.Brands.ZK.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
-        internal IFace(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
-            : base(info, taskService, userService, deviceService, logService, accessGroupService, fingerTemplateService, userCardService, faceTemplateService, restClient, onlineDevices, biovationConfigurationManager, logEvents, logSubEvents, zkCodeMappings, taskTypes, taskPriorities, taskStatuses, taskItemTypes, deviceBrands, taskManager, matchingTypes, biometricTemplateManager, fingerTemplateTypes, faceTemplateTypes)
+        internal IFace(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
+            : base(info, taskService, userService, deviceService, logService, accessGroupService, fingerTemplateService, userCardService, faceTemplateService, restClient, onlineDevices, biovationConfigurationManager, logEvents, logSubEvents, zkCodeMappings, taskTypes, taskPriorities, taskStatuses, taskItemTypes, deviceBrands, taskManager, matchingTypes, biometricTemplateManager, fingerTemplateTypes, faceTemplateTypes, logger)
         {
             _accessGroupService = accessGroupService;
             _userService = userService;
@@ -330,7 +331,7 @@ namespace Biovation.Brands.ZK.Devices
                             //}
                         }
 
-                        var userAccessGroups = user.Id == default ? null :_accessGroupService.GetAccessGroups(user.Id);
+                        var userAccessGroups = user.Id == default ? null : _accessGroupService.GetAccessGroups(user.Id);
                         var validAccessGroup =
                             userAccessGroups?.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));

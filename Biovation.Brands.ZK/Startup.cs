@@ -68,8 +68,10 @@ namespace Biovation.Brands.ZK
             //services.AddMvcCore().AddMetricsCore();
             services.AddHealthChecks();
 
+            services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
+
 
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
