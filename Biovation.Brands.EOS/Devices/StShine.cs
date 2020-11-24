@@ -50,8 +50,7 @@ namespace Biovation.Brands.EOS.Devices
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
 
-            _logger = logger;
-            _logger.ForContext<StShineDevice>();
+            _logger = logger.ForContext<StShineDevice>();
         }
 
 
