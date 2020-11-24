@@ -1,13 +1,13 @@
 ﻿using Biovation.Brands.Virdi.Command;
 using Biovation.CommonClasses;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Manager
 {
@@ -308,31 +308,38 @@ namespace Biovation.Brands.Virdi.Manager
         public void ProcessQueue()
         {
             lock (_tasks)
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                    excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code }).Result;
-
-            if (_processingQueueInProgress)
-                return;
-
-            _processingQueueInProgress = true;
-            while (true)
             {
-                TaskInfo taskInfo;
-                lock (_tasks)
+                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
+                        excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })
+                    .Result;
+
+                if (_processingQueueInProgress)
+                    return;
+
+                _processingQueueInProgress = true;
+            }
+
+            Task.Run(() =>
+            {
+                while (true)
                 {
-                    if (_tasks.Count <= 0)
+                    TaskInfo taskInfo;
+                    lock (_tasks)
                     {
-                        _processingQueueInProgress = false;
-                        return;
+                        if (_tasks.Count <= 0)
+                        {
+                            _processingQueueInProgress = false;
+                            return;
+                        }
+
+                        taskInfo = _tasks.First();
                     }
 
-                    taskInfo = _tasks.First();
+                    ExecuteTask(taskInfo);
+                    lock (_tasks)
+                        _tasks.Remove(taskInfo);
                 }
-
-                ExecuteTask(taskInfo);
-                lock (_tasks)
-                    _tasks.Remove(taskInfo);
-            }
+            });
         }
     }
 }
