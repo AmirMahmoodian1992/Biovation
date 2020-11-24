@@ -88,20 +88,20 @@ namespace Biovation.Data.Commands.Controllers.v2
                     tasks.Add(_logApiSink.TransferLogBulk(logsToTransfer));
                     tasks.Add(_logMessageBusRepository.SendLog(logsToTransfer));
 
-                    var logsWithImages = logs.Where(log => logsToTransfer.Any(newLog =>
-                                                               log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
-                                                               log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
+                    //var logsWithImages = logs.Where(log => logsToTransfer.Any(newLog =>
+                    //                                           log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
+                    //                                           log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
 
-                    foreach (var log in logsWithImages)
-                    {
+                    //foreach (var log in logsWithImages)
+                    //{
                         //Todo: Change for .net core
                         //var filePath = log.PicByte is null
                         //    ? string.Empty
                         //    : await _commonLogService.SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, DeviceBrands.Virdi.Name);
                         //log.Image = filePath;
 
-                        tasks.Add(_logRepository.AddLogImage(log));
-                    }
+                        //tasks.Add(_logRepository.AddLogImage(log));
+                    //}
 
                     await Task.WhenAll(tasks);
                 });
