@@ -18,8 +18,13 @@ namespace Biovation.Tools.ConnectionMiddleware.Models
             {
                 if (string.Equals(propertyInfo.Name, "MatchingType", StringComparison.InvariantCultureIgnoreCase))
                     MatchingType = Convert.ToInt32(log.MatchingType?.Code ?? 0.ToString()) % 10;
+
+                var attendanceProperty = typeof(AttendanceV9).GetProperties().FirstOrDefault(prop =>
+                    string.Equals(prop.Name, propertyInfo.Name, StringComparison.InvariantCultureIgnoreCase));
+                if (attendanceProperty is null)
+                    continue;
                 
-                try { propertyInfo.SetValue(this, propertyInfo.GetValue(log)); }
+                try { attendanceProperty.SetValue(this, propertyInfo.GetValue(log)); }
                 catch (Exception) { /*ignore*/ }
             }
         }
