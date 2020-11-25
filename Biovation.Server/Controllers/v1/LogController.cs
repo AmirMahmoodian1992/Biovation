@@ -8,34 +8,28 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
     [ApiController]
-    [ApiVersion("1.0")]
+    [ApiVersion("1.0", Deprecated = true)]
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class LogController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly RestClient _restClient;
         private readonly LogService _logService;
         private readonly DeviceService _commonDeviceService;
-        private readonly RestClient _restClient;
-
-        private readonly TokenGenerator _tokenGenerator;
-        private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(DeviceService deviceService, UserService userService, LogService logService, RestClient restClient, TokenGenerator tokenGenerator, BiovationConfigurationManager biovationConfigurationManager)
+        private readonly string _kasraAdminToken;
+
+        public LogController(DeviceService deviceService, LogService logService, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
         {
-            _userService = userService;
             _logService = logService;
             _commonDeviceService = deviceService;
             _restClient = restClient;
-            _tokenGenerator = tokenGenerator;
             _biovationConfigurationManager = biovationConfigurationManager;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
         }
