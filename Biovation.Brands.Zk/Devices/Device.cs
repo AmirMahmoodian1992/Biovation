@@ -49,7 +49,6 @@ namespace Biovation.Brands.ZK.Devices
 
 
         private readonly LogEvents _logEvents;
-        private readonly LogSubEvents _logSubEvents;
         private readonly ZkCodeMappings _zkCodeMappings;
 
         private readonly TaskManager _taskManager;
@@ -65,7 +64,7 @@ namespace Biovation.Brands.ZK.Devices
 
 
         protected static readonly object LockObject = new object();
-        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
+        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
         {
             DeviceInfo = info;
             _taskService = taskService;
@@ -80,7 +79,6 @@ namespace Biovation.Brands.ZK.Devices
             _restClient = restClient;
             _onlineDevices = onlineDevices;
             _logEvents = logEvents;
-            _logSubEvents = logSubEvents;
             _zkCodeMappings = zkCodeMappings;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
@@ -401,9 +399,9 @@ namespace Biovation.Brands.ZK.Devices
                 EventLog = _logEvents.Authorized,
                 UserId = iUserId,
                 MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                SubEvent = _zkCodeMappings.GetLogSubEventGenericLookup(iInOutMode),
                 InOutMode = DeviceInfo.DeviceTypeId,
-                TnaEvent = (ushort)iInOutMode,
-                SubEvent = _logSubEvents.Normal
+                TnaEvent = (ushort)iInOutMode
             };
 
             LogService.AddLog(log);
@@ -434,9 +432,9 @@ namespace Biovation.Brands.ZK.Devices
                     EventLog = _logEvents.Authorized,
                     UserId = userId,
                     MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                    SubEvent = _zkCodeMappings.GetLogSubEventGenericLookup(iInOutMode),
                     InOutMode = DeviceInfo.DeviceTypeId,
-                    TnaEvent = (ushort)iInOutMode,
-                    SubEvent = _logSubEvents.Normal
+                    TnaEvent = (ushort)iInOutMode
                 };
 
                 LogService.AddLog(log);
@@ -658,6 +656,7 @@ namespace Biovation.Brands.ZK.Devices
                                     EventLog = _logEvents.Authorized,
                                     UserId = userId,
                                     MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    SubEvent = _zkCodeMappings.GetLogSubEventGenericLookup(iInOutMode),
                                     InOutMode = DeviceInfo.DeviceTypeId,
                                     TnaEvent = (ushort)iInOutMode
                                 };
@@ -777,6 +776,7 @@ namespace Biovation.Brands.ZK.Devices
                                     EventLog = _logEvents.Authorized,
                                     UserId = userId,
                                     MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    SubEvent = _zkCodeMappings.GetLogSubEventGenericLookup(iInOutMode),
                                     InOutMode = DeviceInfo.DeviceTypeId,
                                     TnaEvent = (ushort)iInOutMode
                                 };
