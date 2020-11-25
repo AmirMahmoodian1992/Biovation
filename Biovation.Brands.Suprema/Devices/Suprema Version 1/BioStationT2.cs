@@ -771,6 +771,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     receivedLog.Reserved = record.reserved1;
                     receivedLog.TnaEvent = record.tnaEvent;
                     receivedLog.SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup { Code = record.subEvent.ToString() };
+                    receivedLog.MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent);
                     receivedLog.UserId = (int)record.userID;
 
                     allLogList.Add(receivedLog);
@@ -941,6 +942,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         Reserved = record.reserved1,
                         TnaEvent = record.tnaEvent,
                         SubEvent = _supremaCodeMappings.GetLogSubEventGenericLookup(record.subEvent) ?? new Lookup { Code = record.subEvent.ToString() },
+                        MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent),
                         UserId = (int)record.userID
                     };
 

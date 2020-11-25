@@ -4,6 +4,7 @@ using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace Biovation.Brands.Suprema.Manager
 {
@@ -19,10 +20,14 @@ namespace Biovation.Brands.Suprema.Manager
 
             _supremaLogEventMappings = genericCodeMapping.LogEventMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.SupremaCode).ToList();
+
+            _supremaMatchingTypeMappings = genericCodeMapping.MatchingTypeMappings.Where(
+                genericCode => genericCode.Brand.Code == DeviceBrands.SupremaCode).ToList();
         }
 
         private readonly List<GenericCodeMapping> _supremaLogSubEventMappings;
         private readonly List<GenericCodeMapping> _supremaLogEventMappings;
+        private readonly List<GenericCodeMapping> _supremaMatchingTypeMappings;
 
         public Lookup GetLogSubEventGenericLookup(byte supremaCode)
         {
@@ -38,6 +43,12 @@ namespace Biovation.Brands.Suprema.Manager
         {
             var deviceModels = _commonDeviceService.GetDeviceModels(brandId: DeviceBrands.SupremaCode);
             return deviceModels.FirstOrDefault(deviceModel => deviceModel.Brand.Code == DeviceBrands.SupremaCode && deviceModel.ManufactureCode == supremaDeviceTypeId);
+        } 
+
+        public Lookup GetMatchingTypeGenericLookup(int supremaCode)
+        {
+            var result =  _supremaMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, supremaCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+            return result;
         }
     }
 }
