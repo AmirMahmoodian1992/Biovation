@@ -290,6 +290,7 @@ namespace Biovation.Brands.Virdi
             UcsApi.EventGetAccessLogCount += GetAccessLogCount;
             //ucsAPI.EventGetTAFunction += new GetTAFunctionEventHandler(ucsAPI_EventGetTAFunction);
             //ucsAPI.EventGetUserCount += new GetUserCountEventHandler(ucsAPI_EventGetUserCount);
+            UcsApi.EventGetUserData += GetUserDataCallback;
             UcsApi.EventGetUserInfoList += GetUserListCallback;
             //ucsAPI.EventOpenDoor += new OpenDoorEventHandler(ucsAPI_EventOpenDoor);
             UcsApi.EventPictureLog += PictureLog;
@@ -1942,7 +1943,376 @@ namespace Biovation.Brands.Virdi
 
         }
 
-        
+        private void GetUserDataCallback(int clientId, int terminalId)
+        {
+            try
+            {
+                var isoEncoding = Encoding.GetEncoding(28591);
+                var windowsEncoding = Encoding.GetEncoding(1256);
+
+
+                var deviceUserName = TerminalUserData.UserName;
+                var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                var userName = replacements.Aggregate(deviceUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
+                var indexOfSpace = userName?.IndexOf(' ') ?? 0;
+                var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace).Trim() : null;
+                var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim() : userName;
+
+                byte[] picture = null;
+
+                try
+                {
+                    if (TerminalUserData.PictureDataLength > 0)
+                        picture = TerminalUserData.PictureData as byte[];
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
+
+                var user = new User
+                {
+                    Code = TerminalUserData.UserID,
+                    AdminLevel = TerminalUserData.IsAdmin,
+                    StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
+                           ? DateTime.Parse("1970/01/01")
+                           : DateTime.Parse(TerminalUserData.StartAccessDate),
+                    EndDate = TerminalUserData.EndAccessDate == "0000-00-00"
+                           ? DateTime.Parse("2050/01/01")
+                           : DateTime.Parse(TerminalUserData.EndAccessDate),
+                    AuthMode = TerminalUserData.AuthType,
+                    Password = TerminalUserData.Password,
+                    UserName = userName,
+                    FirstName = firstName,
+                    SurName = surName,
+                    IsActive = true,
+                    ImageBytes = picture
+                };
+                //user.Id = _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
+                //   ? 0
+                //   : _commonUserService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
+
+                //if (RetrieveUsers.All(retrievedUser => retrievedUser.Id != user.Id))
+                //{
+                //    RetrieveUsers.Add(user);
+                //}
+
+                if (ModifyUserData)
+                {
+                    var existUser = _commonUserService.GetUsers(code: TerminalUserData.UserID).FirstOrDefault();
+                    if (existUser != null)
+                    {
+                        user = new User
+                        {
+                            Id = existUser.Id,
+                            Code = existUser.Code,
+                            AdminLevel = TerminalUserData.IsAdmin,
+                            StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
+                                ? existUser.StartDate
+                                : DateTime.Parse(TerminalUserData.StartAccessDate),
+                            EndDate = TerminalUserData.EndAccessDate == "0000-00-00"
+                                ? existUser.EndDate
+                                : DateTime.Parse(TerminalUserData.EndAccessDate),
+                            AuthMode = TerminalUserData.AuthType,
+                            Password = TerminalUserData.Password,
+                            UserName = string.IsNullOrEmpty(userName) ? existUser.UserName : userName,
+                            FirstName = firstName ?? existUser.FirstName,
+                            SurName = string.Equals(surName, userName) ? existUser.SurName ?? surName : surName,
+                            IsActive = existUser.IsActive,
+                            ImageBytes = picture
+                        };
+                    }
+
+                    var userInsertionResult = _commonUserService.ModifyUser(user);
+
+                    Logger.Log("<--User is Modified");
+                    user.Id = userInsertionResult.Id;
+
+                    //Card
+                    try
+                    {
+                        Logger.Log($"   +TotalCardCount:{TerminalUserData.CardNumber}");
+                        if (TerminalUserData.CardNumber > 0)
+                            for (var i = 0; i < TerminalUserData.CardNumber; i++)
+                            {
+                                var card = new UserCard
+                                {
+                                    CardNum = TerminalUserData.RFID[i],
+                                    IsActive = true,
+                                    UserId = user.Id
+                                };
+                                _commonUserCardService.ModifyUserCard(card);
+                            }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                    }
+
+                    //Finger
+                    try
+                    {
+                        var nFpDataCount = TerminalUserData.TotalFingerCount;
+                        Logger.Log($"   +TotalFingerCount:{nFpDataCount}");
+
+                        if (user.FingerTemplates is null)
+                            user.FingerTemplates = new List<FingerTemplate>();
+
+                        for (var i = 0; i < nFpDataCount; i++)
+                        {
+                            var sameTemplateExists = false;
+                            var fingerIndex = TerminalUserData.FingerID[i];
+                            if (existUser != null)
+                            {
+
+                                // if (existUser.FingerTemplates.Exists(fp =>
+                                //fp.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(fingerIndex).Code && fp.FingerTemplateType == FingerTemplateTypes.V400))
+
+                                var firstSampleCheckSum = 0;
+                                var secondSampleCheckSum = 0;
+
+                                var firstTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 0] as byte[];
+                                byte[] secondTemplateSample = null;
+                                try
+                                {
+                                    secondTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 1] as byte[];
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception);
+                                }
+
+                                if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
+                                if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
+
+                                if (FpData == null) continue;
+                                FpData.ClearFPData();
+                                FpData.Import(1, TerminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
+
+                                var deviceTemplate = FpData.TextFIR;
+                                var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id)).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
+
+                                if (fingerTemplates.Exists(ft => ft.CheckSum == firstSampleCheckSum) || fingerTemplates.Exists(ft => ft.CheckSum == secondSampleCheckSum))
+                                    continue;
+
+                                for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
+                                {
+                                    if (FpData == null) continue;
+                                    FpData.ClearFPData();
+                                    FpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
+                                        fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
+                                    var firTemplate = FpData.TextFIR;
+
+                                    _matching.VerifyMatch(deviceTemplate, firTemplate);
+
+                                    if (_matching.MatchingResult == 0) continue;
+                                    sameTemplateExists = true;
+                                    break;
+                                }
+
+                                if (sameTemplateExists) continue;
+
+                                user.FingerTemplates.Add(new FingerTemplate
+                                {
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+                                    Index = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+                                    TemplateIndex = 0,
+                                    Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
+                                    Template = firstTemplateSample,
+                                    CheckSum = firstSampleCheckSum,
+                                    UserId = user.Id,
+                                    FingerTemplateType = _fingerTemplateTypes.V400
+                                });
+
+
+                                if (secondTemplateSample != null)
+                                {
+                                    user.FingerTemplates.Add(new FingerTemplate
+                                    {
+                                        FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+                                        Index = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+                                        TemplateIndex = 1,
+                                        Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
+                                        Template = secondTemplateSample,
+                                        CheckSum = secondSampleCheckSum,
+                                        UserId = user.Id,
+                                        FingerTemplateType = _fingerTemplateTypes.V400
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                var firstSampleCheckSum = 0;
+                                var secondSampleCheckSum = 0;
+
+                                var firstTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 0] as byte[];
+                                byte[] secondTemplateSample = null;
+                                try
+                                {
+                                    secondTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 1] as byte[];
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception);
+                                }
+
+                                if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
+                                if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
+
+                                user.FingerTemplates.Add(new FingerTemplate
+                                {
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+                                    Index = fingerIndex,
+                                    TemplateIndex = 0,
+                                    Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
+                                    Template = firstTemplateSample,
+                                    CheckSum = firstSampleCheckSum,
+                                    UserId = user.Id,
+                                    FingerTemplateType = _fingerTemplateTypes.V400
+                                });
+
+                                if (secondTemplateSample != null)
+                                {
+                                    user.FingerTemplates.Add(new FingerTemplate
+                                    {
+                                        FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+                                        Index = fingerIndex,
+                                        TemplateIndex = 1,
+                                        Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
+                                        Template = secondTemplateSample,
+                                        CheckSum = secondSampleCheckSum,
+                                        UserId = user.Id,
+                                        FingerTemplateType = _fingerTemplateTypes.V400
+                                    });
+                                }
+                            }
+                        }
+
+                        if (user.FingerTemplates.Any())
+                            foreach (var fingerTemplate in user.FingerTemplates)
+                            {
+                                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
+                            }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                    }
+
+                    //Face
+                    try
+                    {
+                        var faceCount = TerminalUserData.FaceNumber;
+                        Logger.Log($"   +TotalFaceCount:{faceCount}");
+
+                        if (faceCount > 0)
+                        {
+                            if (user.FaceTemplates is null)
+                                user.FaceTemplates = new List<FaceTemplate>();
+
+                            var userFaces = _faceTemplateService.FaceTemplates(userId: TerminalUserData.UserID);
+                            //existUser.FaceTemplates = new List<FaceTemplate>();
+
+                            if (existUser != null)
+                                existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
+
+                            var faceData = (byte[])TerminalUserData.FaceData;
+                            var faceTemplate = new FaceTemplate
+                            {
+                                Index = faceCount,
+                                FaceTemplateType = _faceTemplateTypes.VFACE,
+                                UserId = user.Id,
+                                Template = faceData,
+                                CheckSum = faceData.Sum(x => x),
+                                Size = faceData.Length
+                            };
+                            if (existUser != null)
+                            {
+                                if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
+                                    user.FaceTemplates.Add(faceTemplate);
+                            }
+                            else
+                                user.FaceTemplates.Add(faceTemplate);
+
+                            if (user.FaceTemplates.Any())
+                                foreach (var faceTemplates in user.FaceTemplates)
+                                {
+                                    _faceTemplateService.ModifyFaceTemplate(faceTemplates);
+                                }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                    }
+
+                }
+
+                if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
+                {
+                    Task.Run(() =>
+                    {
+                        try
+                        {
+                            lock (_loadFingerTemplateLock)
+                            {
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(userId: user.Id);
+                                if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
+                                {
+                                    var devices =
+                                        _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+
+                                    foreach (var device in devices)
+                                    {
+                                        AddUserToDeviceFastSearch(device.Code, (int)user.Code);
+                                    }
+                                }
+
+                                else
+                                {
+                                    foreach (var accessGroup in accessGroupsOfUser)
+                                    {
+                                        foreach (var deviceGroup in accessGroup.DeviceGroup)
+                                        {
+                                            foreach (var device in deviceGroup.Devices)
+                                            {
+                                                AddUserToDeviceFastSearch(device.Code, (int)user.Code);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+                            Logger.Log(exception);
+                        }
+                    });
+                }
+
+                Logger.Log($@"<--EventGetUserData
+    +ClientID:{clientId}
+    +TerminalID:{terminalId}
+    +ErrorCode:{UcsApi.ErrorCode}
+    +UserID:{TerminalUserData.UserID}
+    +Admin:{TerminalUserData.IsAdmin}
+    +Admin:{TerminalUserData.FaceNumber}
+    +AccessGroup:{TerminalUserData.AccessGroup}
+    +AccessDateType:{TerminalUserData.AccessDateType}
+    +AccessDate:{TerminalUserData.StartAccessDate}~{TerminalUserData.EndAccessDate}
+    +AuthType:{TerminalUserData.AuthType}
+    +Password:{TerminalUserData.Password}
+    +Progress:{TerminalUserData.CurrentIndex}/{TerminalUserData.TotalNumber}", logType: LogType.Information);
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"--> Error On GetUserDataCallback Error: {e.Message} ");
+            }
+        }
 
         private void GetTerminalTimeCallback(int terminalId)
         {
