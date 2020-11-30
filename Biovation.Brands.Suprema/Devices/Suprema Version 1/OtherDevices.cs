@@ -679,79 +679,80 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         receivedLog.UserId = 0;
                     }
                     //receivedLog.MatchingType = _matchingTypes.Unknown;
-                    switch (record.subEvent)
-                    {
-                        case 0x3A:
-                            receivedLog.MatchingType = _matchingTypes.Finger;
-                            break;
-                        case 0x3B:
-                            //User has been verified by(Finger + PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x3D:
-                            receivedLog.MatchingType = _matchingTypes.Face;
-                            break;
+                    //switch (record.subEvent)
+                    //{
+                    //    case 0x3A:
+                    //        receivedLog.MatchingType = _matchingTypes.Finger;
+                    //        break;
+                    //    case 0x3B:
+                    //        //User has been verified by(Finger + PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x3D:
+                    //        receivedLog.MatchingType = _matchingTypes.Face;
+                    //        break;
 
-                        case 0x3E:
-                            //User has been verified by(Face + PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x2B:
-                            //User has been verified by(ID + Finger)
-                            receivedLog.MatchingType = _matchingTypes.Finger;
-                            break;
-                        case 0x2C:
-                            //User has been verified by (ID+PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x2D:
-                            //User has been verified by (Card+Finger)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x2E:
-                            //User has been verified by (Card+PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x2F:
-                            receivedLog.MatchingType = _matchingTypes.Card;
-                            break;
-                        case 0x30:
-                            //User has been verified by (Card+Finger+PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x31:
-                            //User has been verified by (ID+Finger+PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x32:
-                            //User has been verified by (ID+Face)
-                            receivedLog.MatchingType = _matchingTypes.Face;
-                            break;
-                        case 0x33:
-                            //User has been verified by (Card+Face)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x34:
-                            //User has been verified by (Card+Face+PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                        case 0x35:
-                            //User has been verified by (FACE+PIN)
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                            break;
-                    }
+                    //    case 0x3E:
+                    //        //User has been verified by(Face + PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x2B:
+                    //        //User has been verified by(ID + Finger)
+                    //        receivedLog.MatchingType = _matchingTypes.Finger;
+                    //        break;
+                    //    case 0x2C:
+                    //        //User has been verified by (ID+PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x2D:
+                    //        //User has been verified by (Card+Finger)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x2E:
+                    //        //User has been verified by (Card+PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x2F:
+                    //        receivedLog.MatchingType = _matchingTypes.Card;
+                    //        break;
+                    //    case 0x30:
+                    //        //User has been verified by (Card+Finger+PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x31:
+                    //        //User has been verified by (ID+Finger+PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x32:
+                    //        //User has been verified by (ID+Face)
+                    //        receivedLog.MatchingType = _matchingTypes.Face;
+                    //        break;
+                    //    case 0x33:
+                    //        //User has been verified by (Card+Face)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x34:
+                    //        //User has been verified by (Card+Face+PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //    case 0x35:
+                    //        //User has been verified by (FACE+PIN)
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //        break;
+                    //}
 
-                    if (receivedLog.MatchingType is null)
-                    {
-                        if (record.eventType == 55 || record.eventType == 56 || record.eventType == 109 || record.eventType == 99)
-                        {
-                            receivedLog.MatchingType = _matchingTypes.Unknown;
-                        }
-                        else
-                        {
-                            receivedLog.MatchingType = _matchingTypes.UnIdentify;
-                        }
-                    }
+                    //if (receivedLog.MatchingType is null)
+                    //{
+                    //    if (record.eventType == 55 || record.eventType == 56 || record.eventType == 109 || record.eventType == 99)
+                    //    {
+                    //        receivedLog.MatchingType = _matchingTypes.Unknown;
+                    //    }
+                    //    else
+                    //    {
+                    //        receivedLog.MatchingType = _matchingTypes.UnIdentify;
+                    //    }
+                    //}
+                    receivedLog.MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent);
 
                     allLogList.Add(receivedLog);
                     //logService.InsertLog(receivedLog, ConnectionType);
@@ -927,6 +928,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         {
                             Code = Convert.ToInt32(record.subEvent).ToString()
                         },
+                        MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent),
                         UserId = (int)record.userID
                     };
 

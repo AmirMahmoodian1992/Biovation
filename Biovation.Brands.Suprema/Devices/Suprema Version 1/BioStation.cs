@@ -773,6 +773,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     {
                         Code = Convert.ToInt32(record.subEvent).ToString()
                     };
+                    receivedLog.MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent);
                     receivedLog.UserId = (int)record.userID;
                     if (receivedLog.EventLog.Code == "16001" || receivedLog.EventLog.Code == "16002" || receivedLog.EventLog.Code == "16007")
                     {
@@ -1027,6 +1028,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         {
                             Code = Convert.ToInt32(record.subEvent).ToString()
                         },
+                        MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent),
                         UserId = (int)record.userID
                     };
 
