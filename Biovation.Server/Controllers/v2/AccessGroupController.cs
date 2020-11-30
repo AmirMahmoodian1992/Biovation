@@ -129,7 +129,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 5)
         {
             var token = (string)HttpContext.Items["Token"];
