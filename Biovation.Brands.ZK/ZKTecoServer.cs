@@ -31,7 +31,7 @@ namespace Biovation.Brands.ZK
         {
             _onlineDevices = onlineDevices;
             _deviceFactory = deviceFactory;
-            _zkDevices = deviceService.GetDevices(brandId:DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
+            _zkDevices = deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
         }
 
         /// <summary>
@@ -91,17 +91,26 @@ namespace Biovation.Brands.ZK
             });
         }
 
-        public void StopServer()
+        public async Task StopServer()
         {
-            lock (_onlineDevices)
+            await Task.Run(() =>
             {
-                foreach (var onlineDevice in _onlineDevices)
+                Dictionary<uint, Device> onlineDevices;
+                lock (_onlineDevices)
+                    onlineDevices = new Dictionary<uint, Device>(_onlineDevices);
+
+                Parallel.ForEach(onlineDevices, onlineDevice =>
                 {
-                    onlineDevice.Value.Disconnect();
-                }
-            }
+                    try
+                    {
+                        onlineDevice.Value.Disconnect();
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                });
+            });
         }
-
-
     }
 }

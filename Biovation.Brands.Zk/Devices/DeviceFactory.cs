@@ -84,7 +84,7 @@ namespace Biovation.Brands.ZK.Devices
 
                 default:
 
-                    return new Device(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _logSubEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _taskManager, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
+                    return new Device(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _taskManager, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
             }
         }
     }

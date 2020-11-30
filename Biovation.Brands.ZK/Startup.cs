@@ -28,6 +28,7 @@ namespace Biovation.Brands.ZK
 {
     public class Startup
     {
+        private ZkTecoServer _zkTecoServer;
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
@@ -232,19 +233,20 @@ namespace Biovation.Brands.ZK
 
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
             var serviceProvider = services.BuildServiceProvider();
-            var zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
-            zkTecoServer.StartServer();
+            _zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
+            _zkTecoServer.StartServer();
         }
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IHostApplicationLifetime applicationLifetime)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            applicationLifetime.ApplicationStopping.Register(OnServiceStopping);
             //app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -260,6 +262,14 @@ namespace Biovation.Brands.ZK
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private async void OnServiceStopping()
+        {
+            if (_zkTecoServer is null)
+                return;
+
+            await _zkTecoServer.StopServer();
         }
     }
 }
