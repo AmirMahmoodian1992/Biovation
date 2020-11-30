@@ -3,6 +3,7 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using MoreLinq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ namespace Biovation.Brands.ZK.Manager
             _commandFactory = commandFactory;
             _taskStatuses = taskStatuses;
         }
+
         public void ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)
@@ -37,7 +39,6 @@ namespace Biovation.Brands.ZK.Manager
 
                 switch (taskItem.TaskItemType.Code)
                 {
-
                     case TaskItemTypes.GetLogsCode:
                         {
                             try
@@ -115,6 +116,7 @@ namespace Biovation.Brands.ZK.Manager
 
                             break;
                         }
+
                     case TaskItemTypes.UnlockDeviceCode:
                         {
                             try
@@ -153,6 +155,7 @@ namespace Biovation.Brands.ZK.Manager
 
                             break;
                         }
+
                     case TaskItemTypes.RetrieveUserFromTerminalCode:
                         {
                             try
@@ -171,6 +174,7 @@ namespace Biovation.Brands.ZK.Manager
 
                             break;
                         }
+
                     case TaskItemTypes.RetrieveAllUsersFromTerminalCode:
                         {
                             try
@@ -189,6 +193,7 @@ namespace Biovation.Brands.ZK.Manager
 
                             break;
                         }
+
                     case TaskItemTypes.OpenDoorCode:
                         {
                             try
@@ -207,6 +212,7 @@ namespace Biovation.Brands.ZK.Manager
 
                             break;
                         }
+
                     case TaskItemTypes.SendAccessGroupToTerminalCode:
                         {
                             try
@@ -244,6 +250,7 @@ namespace Biovation.Brands.ZK.Manager
                             break;
 
                         }
+
                     case TaskItemTypes.UpgradeDeviceFirmwareCode:
                         {
                             try
@@ -334,21 +341,29 @@ namespace Biovation.Brands.ZK.Manager
 
                 if (taskItem.IsParallelRestricted)
                     executeTask?.Wait();
+
+                executeTask?.Dispose();
             }
         }
 
         public void ProcessQueue()
         {
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
+
             lock (_tasks)
             {
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode,
-                    excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
+                var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
+
+                Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
+                _tasks.AddRange(newTasks);
 
                 if (_processingQueueInProgress)
                     return;
 
                 _processingQueueInProgress = true;
             }
+
 
             Task.Run(() =>
             {
@@ -366,9 +381,13 @@ namespace Biovation.Brands.ZK.Manager
                         taskInfo = _tasks.First();
                     }
 
+                    Logger.Log($"The task {taskInfo.Id} execution is started");
                     ExecuteTask(taskInfo);
+                    Logger.Log($"The task {taskInfo.Id} is executed");
+
                     lock (_tasks)
-                        _tasks.Remove(taskInfo);
+                        if (_tasks.Any(task => task.Id == taskInfo.Id))
+                            _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
                 }
             });
         }

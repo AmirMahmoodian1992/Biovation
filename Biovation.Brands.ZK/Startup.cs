@@ -9,8 +9,6 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
-using DataAccessLayerCore;
-using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,6 +21,7 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK
 {
@@ -57,7 +56,7 @@ namespace Biovation.Brands.ZK
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public async void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
                 .AddJsonOptions(options =>
@@ -76,29 +75,14 @@ namespace Biovation.Brands.ZK
 
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
-            ConfigureZkServices(services);
+            await ConfigureZkServices(services);
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
-
-            services.AddSingleton(connectionInfo);
-            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
             services.AddSingleton(restClient);
 
-            services.AddSingleton<GenericRepository, GenericRepository>();
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
             services.AddSingleton<BlackListService, BlackListService>();
@@ -180,6 +164,11 @@ namespace Biovation.Brands.ZK
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
+            Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
+                fingerIndexNamesQuery, deviceBrandsQuery, logEventsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
+                faceTemplateTypeQuery, matchingTypeQuery, logEventMappingsQuery, logSubEventMappingsQuery,
+                fingerTemplateTypeMappingsQuery, matchingTypeMappingsQuery);
+
             var lookups = new Lookups
             {
                 TaskStatuses = taskStatusesQuery.Result,
@@ -220,7 +209,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 
-        private void ConfigureZkServices(IServiceCollection services)
+        private async Task ConfigureZkServices(IServiceCollection services)
         {
             services.AddSingleton(OnlineDevices);
 
@@ -234,7 +223,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
             var serviceProvider = services.BuildServiceProvider();
             _zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
-            _zkTecoServer.StartServer();
+            await _zkTecoServer.StartServer();
         }
 
 

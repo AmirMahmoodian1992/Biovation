@@ -27,6 +27,7 @@ namespace Biovation.Brands.ZK.Devices
     {
         private readonly ILogger _logger;
         protected readonly DeviceBasicInfo DeviceInfo;
+        private readonly LogService _logService;
         private readonly TaskService _taskService;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -71,6 +72,7 @@ namespace Biovation.Brands.ZK.Devices
             UserService = userService;
             _userService = userService;
             _deviceService = deviceService;
+            _logService = logService;
             LogService = logService;
             _accessGroupService = accessGroupService;
             FingerTemplateService = fingerTemplateService;
@@ -259,31 +261,74 @@ namespace Biovation.Brands.ZK.Devices
                 //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(TokenSource.Token), TokenSource.Token));
                 //ZKTecoServer.StartReadLogs();
                 var creatorUser = _userService.GetUsers(code: 123456789).FirstOrDefault();
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetLogs,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DeviceBrand = _deviceBrands.ZkTeco,
-                    DueDate = DateTimeOffset.Now
-                };
+                var lastLogsOfDevice = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
 
-                task.TaskItems.Add(new TaskItem
+                if (lastLogsOfDevice != null)
                 {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.GetLogs,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = DeviceInfo.DeviceId,
-                    Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1
-                });
-                _taskService.InsertTask(task);
+                    foreach (var log in lastLogsOfDevice)
+                        _logger.Information(
+                            "Last logs of device {deviceId}: LogTime: {logDateTime}, eventId: {eventId}",
+                            DeviceInfo.Code, log.LogDateTime, log.EventLog.Code);
+
+                    var lastLogOfDevice = lastLogsOfDevice.LastOrDefault();
+                    if (lastLogOfDevice != null)
+                    {
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.GetLogsInPeriod,
+                            Priority = _taskPriorities.Medium,
+                            TaskItems = new List<TaskItem>(),
+                            DeviceBrand = _deviceBrands.ZkTeco,
+                            DueDate = DateTimeOffset.Now
+                        };
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = DeviceInfo.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { fromDate = lastLogOfDevice.LogDateTime, toDate = DateTime.Now.AddHours(1) }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1
+                        });
+
+                        _taskService.InsertTask(task);
+                    }
+                }
+                else
+                {
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.GetLogs,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        DueDate = DateTimeOffset.Now
+                    };
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.GetLogs,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = DeviceInfo.DeviceId,
+                        Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+
+                    _taskService.InsertTask(task);
+                }
+
+
                 _taskManager.ProcessQueue();
-
             }
 
             Task.Run(CheckConnection, TokenSource.Token);

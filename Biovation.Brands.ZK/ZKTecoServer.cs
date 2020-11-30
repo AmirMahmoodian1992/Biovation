@@ -39,17 +39,14 @@ namespace Biovation.Brands.ZK
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public void StartServer()
+        public async Task StartServer()
         {
             Logger.Log("Service started.");
-
-            foreach (var zkDevice in _zkDevices)
-            {
-                ConnectToDevice(zkDevice);
-            }
+            var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
+            await Task.WhenAll(connectToDeviceTasks);
         }
 
-        public async void ConnectToDevice(DeviceBasicInfo deviceInfo)
+        public async Task ConnectToDevice(DeviceBasicInfo deviceInfo)
         {
             await Task.Run(() =>
             {
