@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using Biovation.CommonClasses.Manager;
-using Biovation.Server.Managers;
+﻿using Biovation.Server.Managers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -12,19 +11,14 @@ namespace Biovation.Server.Controllers.v2
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class LoginController : ControllerBase
     {
-        //private readonly CommunicationManager<DeviceBasicInfo> _communicationManager = new CommunicationManager<DeviceBasicInfo>();
-
         private readonly UserService _userService;
-        private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly TokenGenerator _generateToken;
 
-        public LoginController(UserService userService, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator generateToken)
+        public LoginController(UserService userService, TokenGenerator generateToken)
         {
-            _biovationConfigurationManager = biovationConfigurationManager;
             _userService = userService;
             _generateToken = generateToken;
         }
-
 
         [HttpGet]
         [Route("{id}")]
@@ -32,17 +26,31 @@ namespace Biovation.Server.Controllers.v2
         public IActionResult Login([FromRoute] long id = default)
         {
             IActionResult response = Unauthorized();
-            var user = _userService.GetUsers(code:id)?.Data?.Data?.FirstOrDefault();
-            if (user != null)
+            var user = _userService.GetUsers(code: id)?.Data?.Data?.FirstOrDefault();
+            if (user == null) return response;
+
+            var tokenString = _generateToken.GenerateJWTLoginToken(user);
+            response = Ok(new
             {
-                var tokenString = _generateToken.GenerateJWTLoginToken(user);
-                //var tokenString = _generateToken.GenerateToken(user);
-                response = Ok(new
-                {
-                    token = tokenString
-                    //userDetails = user,
-                });
-            }
+                token = tokenString
+            });
+            return response;
+        }
+
+        [HttpGet]
+        [Attribute.Authorize]
+        [Route("InternalLogin/{id}")]
+        public IActionResult InternalLogin([FromRoute] long id = default)
+        {
+            IActionResult response = Unauthorized();
+            var user = _userService.GetUsers(userId: id)?.Data?.Data?.FirstOrDefault();
+            if (user == null) return response;
+
+            var tokenString = _generateToken.GenerateToken(user);
+            response = Ok(new
+            {
+                token = tokenString
+            });
             return response;
         }
     }
