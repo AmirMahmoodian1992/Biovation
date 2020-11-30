@@ -37,7 +37,6 @@
     <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
-    <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>
 
 

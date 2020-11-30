@@ -10,9 +10,6 @@ using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
 using Biovation.Server.Middleware;
 using Biovation.Service.Api.v1;
-using DataAccessLayerCore;
-using DataAccessLayerCore.Domain;
-using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -132,24 +129,10 @@ namespace Biovation.Server
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
 
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             services.AddSingleton(restClient);
-            services.AddSingleton(connectionInfo);
-            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-
-            services.AddSingleton<GenericRepository, GenericRepository>();
 
             //services.AddScoped<FoodRepository, FoodRepository>();
             //services.AddScoped<MealRepository, MealRepository>();
@@ -248,24 +231,11 @@ namespace Biovation.Server
             tokenGenerator.GenerateToken(user);
 
             var serviceCollection = new ServiceCollection();
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
 
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
-            serviceCollection.AddSingleton(connectionInfo);
-            serviceCollection.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
-            serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
             serviceCollection.AddScoped<LookupRepository, LookupRepository>();
             serviceCollection.AddScoped<LookupService, LookupService>();
             serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
