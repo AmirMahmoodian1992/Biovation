@@ -50,7 +50,7 @@ namespace Biovation.Brands.Suprema.Manager
                                     /*result = (ResultViewModel)_commandFactory.Factory(CommandType.SendUsers,
                                         new List<object> { taskItem.Id, taskItem.DeviceId }).Execute();*/
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -70,7 +70,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(
                                         CommandType.RetrieveLogsOfDeviceInPeriod,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -89,7 +89,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.SendUserToDevice,
-                                     new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                     new List<object> { taskItem }).Execute();
 
                                 });
 
@@ -110,7 +110,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.SendBlackList,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -129,7 +129,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.UnlockDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
 
                                 });
 
@@ -149,7 +149,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.LockDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -167,7 +167,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -185,7 +185,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.OpenDoor,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -203,7 +203,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.SendAccessGroupToDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -222,7 +222,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.UpgradeFirmware,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
 
                             }
@@ -241,7 +241,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
                             }
                             catch (Exception exception)
@@ -260,7 +260,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.EnrollFromTerminal,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
                             }
                             catch (Exception exception)
@@ -279,7 +279,7 @@ namespace Biovation.Brands.Suprema.Manager
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.EnrollFaceFromDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
                                 });
                             }
                             catch (Exception exception)
@@ -290,6 +290,60 @@ namespace Biovation.Brands.Suprema.Manager
 
                             break;
                         }
+                    case TaskItemTypes.GetLogsCode:
+                    {
+                        try
+                        {
+                            executeTask = Task.Run(() =>
+                            {
+                                result = (ResultViewModel)_commandFactory.Factory(CommandType.GetAllLogsOfDevice,
+                            new List<object> { taskItem }).Execute();
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+
+                        }
+                        break;
+                    }
+                    case TaskItemTypes.GetLogsInPeriodCode:
+                    {
+                        try
+                        {
+                            executeTask = Task.Run(() =>
+                            {
+                                result = (ResultViewModel)_commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod,
+                                    new List<object> { taskItem }).Execute();
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+
+                        }
+
+                        break;
+                    }
+                    case TaskItemTypes.SendTimeZoneToTerminalCode:
+                    {
+                        try
+                        {
+                            executeTask = Task.Run(() =>
+                            {
+                                result = (ResultViewModel)_commandFactory.Factory(CommandType.SendTimeZoneToDevice,
+                                    new List<object> { taskItem }).Execute();
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+
+                        }
+
+                        break;
+                    }
+
                 }
 
                 executeTask?.ContinueWith(task =>
