@@ -327,9 +327,7 @@ namespace Biovation.Brands.Suprema.Controllers
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.GetLogs,
                             Priority = _taskPriorities.Medium,
-
                             DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(device.DeviceId),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1
@@ -338,7 +336,7 @@ namespace Biovation.Brands.Suprema.Controllers
                         _taskManager.ProcessQueue();
                     }
 
-                    return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
+                    return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
 
 
                 }
