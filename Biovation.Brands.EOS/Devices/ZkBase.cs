@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -683,13 +684,15 @@ namespace Biovation.Brands.EOS.Devices
             }
         }
 
-        public ResultViewModel ReadOfflineLogInPeriod(object cancelationToken, string fDate, string eDate, bool saveFile = false)
+        public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime, DateTime? endTime, bool saveFile = false)
         {
             lock (ZkTecoSdk)
             {
                 try
                 {
                     var iLogCount = 0;
+                    var fDate = startTime?.ToString(CultureInfo.InvariantCulture);
+                    var eDate = endTime?.ToString(CultureInfo.InvariantCulture);
                     Logger.Log($"Retrieving offline logs of DeviceId: {DeviceInfo.Code}.");
 
                     //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);//disable the device

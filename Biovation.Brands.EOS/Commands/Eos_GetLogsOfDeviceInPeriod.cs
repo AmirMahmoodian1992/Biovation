@@ -54,9 +54,10 @@ namespace Biovation.Brands.Eos.Commands
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
 
-            var logs = OnlineDevices[device.Code].ReadLogOfPeriod(FromDate, ToDate);
+            var result = OnlineDevices[device.Code].ReadOfflineLogInPeriod(null, FromDate, ToDate);
 
-            return logs == null ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = deviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = deviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
+            //return logs == null ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = deviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = deviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
+            return result;
         }
 
         public void Rollback()

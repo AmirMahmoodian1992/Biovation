@@ -15,14 +15,14 @@ namespace Biovation.Brands.EOS.Devices
     public class Device : IDevices
     {
         protected CancellationToken Token;
-        
+
         //protected Clock _clock;
         private readonly DeviceBasicInfo _deviceInfo;
         //public Semaphore DeviceAccessSemaphore;
         protected bool Valid;
         //private readonly LogService _commonLogService = new LogService();
 
-       // private readonly EosServer _eosServer;
+        // private readonly EosServer _eosServer;
 
         protected readonly LogEvents LogEvents;
         protected readonly LogSubEvents LogSubEvents;
@@ -32,7 +32,7 @@ namespace Biovation.Brands.EOS.Devices
         {
             Valid = true;
             _deviceInfo = deviceInfo;
-          //  _eosServer = eosServer;
+            //  _eosServer = eosServer;
             LogEvents = logEvents;
             LogSubEvents = logSubEvents;
             EosCodeMappings = eosCodeMappings;
@@ -118,8 +118,8 @@ namespace Biovation.Brands.EOS.Devices
         /// <returns></returns>
         public virtual bool DeleteUser(uint sUserId)
         {
-      return false;
-           
+            return false;
+
         }
 
         public virtual bool TransferUser(User user)
@@ -127,7 +127,7 @@ namespace Biovation.Brands.EOS.Devices
             return true;
         }
 
-        public virtual List<Log> ReadLogOfPeriod(DateTime startTime, DateTime endTime) 
+        public virtual ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime, DateTime? endTime, bool saveFile = false)
         {
             throw new NotImplementedException();
         }

@@ -781,18 +781,20 @@ namespace Biovation.Brands.EOS.Devices
             return updateFirm;
         }
 
-        public override List<Log> ReadLogOfPeriod(DateTime startTime, DateTime endTime)
+        public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
+            DateTime? endTime,
+            bool saveFile = false)
         {
             var logs = new List<string>();
             var eosLogs = new List<Log>();
             var invalidTime = false;
-            if (startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
+            if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
                 startTime = new DateTime(1921, 3, 21);
                 invalidTime = true;
             }
 
-            if (endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
+            if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
             {
                 endTime = new DateTime(2021, 3, 19);
                 invalidTime = true;
@@ -807,11 +809,11 @@ namespace Biovation.Brands.EOS.Devices
             lock (_stFace)
             {
                 var command =
-                    $"GetRecord(start_time= \"{_stFace.FormatDateTime(startTime)}\" end_time=\"{_stFace.FormatDateTime(endTime)}\" )";
+                    $"GetRecord(start_time= \"{_stFace.FormatDateTime((DateTime)startTime)}\" end_time=\"{_stFace.FormatDateTime((DateTime)endTime)}\" )";
                 flag = _stFace.SendCommandAndGetResult(command, out text);
             }
 
-            if (!flag) return eosLogs;
+            if (!flag) return new ResultViewModel { Success = false, Message = "Can't communicate with device" };
             var num = text.IndexOf("time=", 0, StringComparison.Ordinal);
             while (num > 0 && num + "time=".Length < text.Length)
             {
@@ -826,7 +828,7 @@ namespace Biovation.Brands.EOS.Devices
                 num = num2;
             }
 
-            if (logs.Count <= 0) return eosLogs;
+            if (logs.Count <= 0) return new ResultViewModel { Success = false, Message = "Can't communicate with device" };
             var records = logs.Select(FaceIdRecord.Parse).Cast<Record>().ToList();
 
             foreach (var record in records)
@@ -866,7 +868,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             _logService.AddLog(eosLogs);
-            return eosLogs;
+            return new ResultViewModel { Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}" };
         }
     }
 }
