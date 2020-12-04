@@ -46,6 +46,10 @@ namespace Biovation.Domain
 
         public const int SendBlackList = 11601;
 
+        #region Tools
+        public const int UserAdaptation = 11701;
+        #endregion
+
         #region Restaurant
         public const int SendUsers = 12001;
         public const int RetrieveDevices = 12101;
