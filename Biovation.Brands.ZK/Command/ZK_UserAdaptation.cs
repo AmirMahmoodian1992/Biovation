@@ -6,10 +6,11 @@ using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RestSharp;
+using System.Net;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -82,10 +83,9 @@ namespace Biovation.Brands.ZK.Command
             catch (Exception e)
             {
                 Logger.Log($"The Data of device {Code} is not valid.");
-                Logger.Log(e,logType:LogType.Error);
+                Logger.Log(e, logType: LogType.Error);
                 return new ResultViewModel { Success = false, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
-
 
             var device = _deviceService.GetDevice(deviceId);
             if (device is null)
@@ -112,8 +112,6 @@ namespace Biovation.Brands.ZK.Command
                 try
                 {
                     var correctedUser = onlineDevice.GetUser(userCode);
-
-
 
                     if (correctedUser == null)
                     {
@@ -143,7 +141,7 @@ namespace Biovation.Brands.ZK.Command
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new {userCode }),
+                        Data = JsonConvert.SerializeObject(new { userCode }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -182,20 +180,8 @@ namespace Biovation.Brands.ZK.Command
                         CurrentIndex = 0,
                         TotalCount = 1
                     });
+
                     _taskService.InsertTask(task);
-
-                    restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                    return new ResultViewModel
-                    {
-                        Success = true,
-                        Id = deviceId,
-                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
-                        Message = $"The Delete and send User operations for User{userCode}  on Device {device.DeviceId} successfully started"
-                    };
-
-
                 }
                 catch (Exception exception)
                 {
@@ -207,12 +193,30 @@ namespace Biovation.Brands.ZK.Command
             try
             {
                 restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
-                    restRequest.AddUrlSegment("id", device.DeviceId.ToString());
-                    restRequest.AddHeader("Authorization", Token ?? string.Empty);
-                    restRequest.ReadWriteTimeout = 3600000;
-                    restRequest.Timeout = 3600000;
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                
+                restRequest.AddUrlSegment("id", device.DeviceId.ToString());
+                restRequest.AddHeader("Authorization", Token ?? string.Empty);
+                restRequest.ReadWriteTimeout = 3600000;
+                restRequest.Timeout = 3600000;
+                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
+
+            try
+            {
+                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                var result = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                if (!result.Result.IsSuccessful || result.Result.StatusCode != HttpStatusCode.OK)
+                    return new ResultViewModel
+                    {
+                        Success = false,
+                        Id = deviceId,
+                        Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                        Message = $"Failed to start the Delete and send User operations for Users on Device {device.DeviceId}"
+                    };
             }
             catch (Exception exception)
             {
