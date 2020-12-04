@@ -6,6 +6,7 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using System.Collections.Generic;
+using RestSharp;
 
 namespace Biovation.Brands.EOS.Commands
 {
@@ -38,6 +39,15 @@ namespace Biovation.Brands.EOS.Commands
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly FingerTemplateService _fingerTemplateService;
         //private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly RestClient _restClient;
+
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+
+
         //private static ClientConnection Connection { get; set; }
 
         // <summary>
@@ -56,15 +66,19 @@ namespace Biovation.Brands.EOS.Commands
         //    UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
         //    AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager)
         //{
-        public CommandFactory(UserService userService, DeviceService deviceService, UserCardService userCardService,
-            AccessGroupService accessGroupService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService, FaceTemplateService faceTemplateService)
+        public CommandFactory(UserService userService, DeviceService deviceService, UserCardService userCardService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, AdminDeviceService adminDeviceService, TaskService taskService, FaceTemplateService faceTemplateService, RestClient restClient, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             //_logService = logService;
             _userService = userService;
             _taskService = taskService;
             _faceTemplateService = faceTemplateService;
+            _restClient = restClient;
+            _taskTypes = taskTypes;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
             _deviceService = deviceService;
             _userCardService = userCardService;
+            _taskStatuses = taskStatuses;
             // _blackListService = blackListService;
             _adminDeviceService = adminDeviceService;
             //_accessGroupService = accessGroupService;
@@ -112,6 +126,11 @@ namespace Biovation.Brands.EOS.Commands
             {
                 #region DatabaseRequests(NoResponces)
 
+                #endregion
+
+                #region Tools
+                case CommandType.UserAdaptation:
+                    return new EosUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient);
                 #endregion
 
                 #region WebClientRequests(WithResponse)

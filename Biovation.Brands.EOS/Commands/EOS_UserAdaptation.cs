@@ -1,20 +1,21 @@
-﻿using Biovation.Brands.ZK.Devices;
+﻿using Biovation.Brands.EOS.Devices;
 using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RestSharp;
+using Biovation.CommonClasses.Interface;
 
-namespace Biovation.Brands.ZK.Command
+namespace Biovation.Brands.EOS.Commands
 {
-    public class ZkUserAdaptation : ICommand
+    public class EosUserAdaptation: ICommand
     {
+
         /// <summary>
         /// All connected devices
         /// </summary>
@@ -34,9 +35,9 @@ namespace Biovation.Brands.ZK.Command
         private Dictionary<uint, uint> EquivalentCodes { get; set; }
         private uint CreatorUserId { get; set; }
         private string Token { get; set; }
-        private uint Code { get; set; }
+        private long Code { get; set; }
         private TaskItem TaskItem { get; }
-        public ZkUserAdaptation(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskTypes taskTypes, TaskService taskService,
+        public EosUserAdaptation(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskTypes taskTypes, TaskService taskService,
             TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, UserService userService, RestClient restClient)
         {
             var taskItem = (TaskItem)items[0];
@@ -61,7 +62,7 @@ namespace Biovation.Brands.ZK.Command
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode)?.Data?.Data?.FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
             if (OnlineDevices.All(dev => dev.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
@@ -82,19 +83,19 @@ namespace Biovation.Brands.ZK.Command
             catch (Exception e)
             {
                 Logger.Log($"The Data of device {Code} is not valid.");
-                Logger.Log(e,logType:LogType.Error);
+                Logger.Log(e, logType: LogType.Error);
                 return new ResultViewModel { Success = false, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
 
-            var device = _deviceService.GetDevice(deviceId);
+            var device = _deviceService.GetDevice(deviceId).Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
-            var creatorUser = _userService.GetUsers(userId: CreatorUserId).FirstOrDefault();
+            var creatorUser = _userService.GetUsers(userId: CreatorUserId)?.Data?.Data?.FirstOrDefault();
             var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
 
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
@@ -143,7 +144,7 @@ namespace Biovation.Brands.ZK.Command
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new {userCode }),
+                        Data = JsonConvert.SerializeObject(new { userCode }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,
@@ -204,21 +205,6 @@ namespace Biovation.Brands.ZK.Command
                 }
             }
 
-            try
-            {
-                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
-                    restRequest.AddUrlSegment("id", device.DeviceId.ToString());
-                    restRequest.AddHeader("Authorization", Token ?? string.Empty);
-                    restRequest.ReadWriteTimeout = 3600000;
-                    restRequest.Timeout = 3600000;
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-            }
-
             return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
         }
 
@@ -236,5 +222,6 @@ namespace Biovation.Brands.ZK.Command
         {
             return $"Adapt users' code for device {Code}";
         }
+
     }
 }

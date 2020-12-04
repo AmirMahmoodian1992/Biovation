@@ -5,6 +5,7 @@ using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
+using RestSharp;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -38,6 +39,7 @@ namespace Biovation.Brands.ZK.Command
         private readonly AdminDeviceService _adminDeviceService;
         private readonly AccessGroupService _accessGroupService;
         private readonly Dictionary<uint, Device> _onlineDevices;
+        private readonly RestClient _restClient;
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
@@ -47,7 +49,7 @@ namespace Biovation.Brands.ZK.Command
 
         public CommandFactory(LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, AdminDeviceService adminDeviceService,
             AccessGroupService accessGroupService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, Dictionary<uint, Device> onlineDevices,
-            TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+            TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient)
         {
             _logService = logService;
             _userService = userService;
@@ -64,6 +66,7 @@ namespace Biovation.Brands.ZK.Command
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
+            _restClient = restClient;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -215,7 +218,7 @@ namespace Biovation.Brands.ZK.Command
 
                 #region Tools
                 case CommandType.UserAdaptation:
-                    return new ZkUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService,_taskTypes,_taskService, _taskStatuses, _taskItemTypes,_taskPriorities,_userService);
+                    return new ZkUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService,_taskTypes,_taskService, _taskStatuses, _taskItemTypes,_taskPriorities,_userService,_restClient);
                 #endregion
 
                 #endregion
