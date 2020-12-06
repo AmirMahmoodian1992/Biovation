@@ -1,6 +1,7 @@
 ﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using EosClocks;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -12,7 +13,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v2;
 using Log = Biovation.Domain.Log;
 
 namespace Biovation.Brands.EOS.Devices
@@ -503,23 +503,24 @@ namespace Biovation.Brands.EOS.Devices
 
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
-                        var successfullyEnrolled = false;
-                        for (var i = 0; i < 5; i++)
+                        var sendTemplateResult = false;
+                        for (var i = 0; i < 5;)
                         {
-                            if (successfullyEnrolled)
-                                break;
-
                             try
                             {
-                                Thread.Sleep((i + 1) * 100);
-                                _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Continue);
-                                successfullyEnrolled = true;
+                                var enrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Add_New);
+                                sendTemplateResult = enrollResult.ScanState == ScanState.Success || enrollResult.ScanState == ScanState.Scan_Success || enrollResult.ScanState == ScanState.Data_Ok || enrollResult.ID > 0;
+                                break;
                             }
-                            catch (Exception innerException)
+                            catch (Exception exception)
                             {
-                                _logger.Debug(innerException, innerException.Message);
+                                _logger.Warning(exception, exception.Message);
+                                Thread.Sleep(++i * 100);
                             }
                         }
+
+                        if (!sendTemplateResult)
+                            return false;
                     }
 
                     return true;
@@ -564,21 +565,27 @@ namespace Biovation.Brands.EOS.Devices
                     //var intId = checked((int)userId);
                     //  var x = _clock.Sensor.GetUserIDList();
 
-                    List<byte[]> fingerTemplates;
+                    List<byte[]> fingerTemplates = null;
 
-                    try
+                    for (var i = 0; i < 5;)
                     {
-                        fingerTemplates = _clock.Sensor.GetUserTemplates((int)userId);
+                        try
+                        {
+                            fingerTemplates = _clock.Sensor.GetUserTemplates((int)userId);
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Debug(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                        }
                     }
-                    catch (Exception exception)
+
+                    if (fingerTemplates is null || fingerTemplates.Count <= 0)
                     {
-                        _logger.Debug(exception, exception.Message);
                         _logger.Debug($"Error in retrieving user {userId} from device {_deviceInfo.DeviceId}, user may be not available on device.");
                         return null;
                     }
-
-
-                    if (fingerTemplates is null || fingerTemplates.Count <= 0) return null;
 
                     var retrievedUser = new User
                     {
@@ -832,7 +839,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (isConnectToSensor)
-                _logger.Debug("Successfully disconnected from sensor of device:{deviceId}", _deviceInfo.DeviceId);
+                _logger.Debug("Successfully connected to sensor of device:{deviceId}", _deviceInfo.DeviceId);
 
             return isConnectToSensor;
         }
