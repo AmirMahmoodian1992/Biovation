@@ -1,6 +1,7 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -13,7 +14,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -156,7 +156,7 @@ namespace Biovation.Server.Controllers.v1
                         user.FullName = string.IsNullOrWhiteSpace(user.FullName)
                             ? existingUser.FullName
                             : user.FullName;
-                        user.IdentityCard = user.IdentityCard ?? existingUser.IdentityCard;
+                        user.IdentityCard ??= existingUser.IdentityCard;
                         user.Image = user.Image is null || user.Image.Length < 1 ? existingUser.Image : user.Image;
                         user.Type = user.Type == default ? existingUser.Type : user.Type;
                         user.TelNumber = string.IsNullOrWhiteSpace(user.TelNumber)
@@ -166,19 +166,22 @@ namespace Biovation.Server.Controllers.v1
 
                     var result = _userService.ModifyUser(user, _kasraAdminToken);
 
-                    await Task.Run(async () =>
+                    if (result.Success)
                     {
-                        var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
-                        foreach (var deviceBrand in deviceBrands)
+#pragma warning disable 4014
+                        Task.Run(async () =>
+#pragma warning restore 4014
                         {
-                            //_communicationManager.CallRest($"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", "Post", null, $"{JsonConvert.SerializeObject(user)}");
-                            var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
-                            restRequest.AddJsonBody(user);
-                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        }
-                    });
-
+                            var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                            foreach (var deviceBrand in deviceBrands)
+                            {
+                                var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
+                                restRequest.AddJsonBody(user);
+                                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            }
+                        });
+                    }
 
                     return result;
                 }
@@ -224,7 +227,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("SendUserToDevice")]
-        public List<ResultViewModel> SendUserToDevice(string deviceId, string userId)
+        public async Task<List<ResultViewModel>> SendUserToDevice(string deviceId, string userId)
         {
             try
             {
@@ -253,7 +256,10 @@ namespace Biovation.Server.Controllers.v1
                     restRequest.AddParameter("code", deviceBasic.Code);
                     restRequest.AddParameter("userId", userId);
                     restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                    result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                    var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                    if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
+                        result.Add(_restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data);
                 }
 
                 return result;
