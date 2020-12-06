@@ -103,7 +103,7 @@ namespace Biovation.Brands.EOS.Devices
 
                 case StShineL:
                     {
-                        return new StShineDevice(ProtocolType.Hdlc, device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices, _logger);
+                        return new StShineDevice(ProtocolType.Suprema, device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _taskManager, _restClient, _onlineDevices, _logger);
                     }
 
                 case StShineM:

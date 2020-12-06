@@ -134,7 +134,7 @@ namespace Biovation.Brands.EOS.Devices
             connection.RetryCount = 1;
 
             lock (_clockInstantiationLock)
-                _clock = new Clock(connection, _protocolType, 1, ProtocolType.Suprema);
+                _clock = new Clock(connection, ProtocolType.Hdlc, 1, _protocolType);
 
             lock (_clock)
                 if (_clock.TestConnection())
@@ -501,7 +501,7 @@ namespace Biovation.Brands.EOS.Devices
                         return false;
                     }
 
-                    foreach (var fingerTemplate in user.FingerTemplates)
+                    foreach (var fingerTemplate in user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == (_protocolType == ProtocolType.Suprema ? FingerTemplateTypes.SU384Code : FingerTemplateTypes.VX10Code)))
                     {
                         var sendTemplateResult = false;
                         for (var i = 0; i < 5;)
@@ -603,7 +603,7 @@ namespace Biovation.Brands.EOS.Devices
                         var fingerTemplate = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            FingerTemplateType = _fingerTemplateTypes.SU384,
+                            FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                             UserId = retrievedUser.Id,
                             Template = firstTemplateBytes,
                             CheckSum = firstTemplateBytes.Sum(b => b),
@@ -624,7 +624,7 @@ namespace Biovation.Brands.EOS.Devices
                         var secondFingerTemplateSample = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            FingerTemplateType = _fingerTemplateTypes.SU384,
+                            FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                             UserId = retrievedUser.Id,
                             Template = secondTemplateBytes,
                             CheckSum = secondTemplateBytes.Sum(b => b),
@@ -722,7 +722,7 @@ namespace Biovation.Brands.EOS.Devices
                                 var fingerTemplate = new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                                     Template = firstTemplateBytes,
                                     CheckSum = firstTemplateBytes.Sum(b => b),
                                     Size = firstTemplateBytes.ToList()
@@ -742,7 +742,7 @@ namespace Biovation.Brands.EOS.Devices
                                 var secondFingerTemplateSample = new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                                     Template = secondTemplateBytes,
                                     CheckSum = secondTemplateBytes.Sum(b => b),
                                     Size = secondTemplateBytes.ToList()
