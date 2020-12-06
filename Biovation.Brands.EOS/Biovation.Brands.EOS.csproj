@@ -58,6 +58,9 @@
     <Reference Include="Interop.zkemkeeper">
       <HintPath>Libraries\Interop.zkemkeeper.dll</HintPath>
     </Reference>
+    <Reference Include="Suprema.UFMatcher">
+      <HintPath>Libraries\Suprema.UFMatcher.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
