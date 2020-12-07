@@ -374,26 +374,11 @@ namespace Biovation.Brands.EOS.Devices
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
-            try
+            if (_deviceInfo.TimeSync)
             {
-                if (_deviceInfo.TimeSync)
-                    lock (_clock)
-                        _clock.SetDateTime(DateTime.Now);
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-                Thread.Sleep(500);
-                try
-                {
-                    if (_deviceInfo.TimeSync)
-                        lock (_clock)
-                            _clock.SetDateTime(DateTime.Now);
-                }
-                catch (Exception innerException)
-                {
-                    Logger.Log(innerException);
-                }
+                var setDateTimeResult = SetDateTime();
+                if (!setDateTimeResult)
+                    Logger.Log($"Could not set the time of device {_deviceInfo.Code}");
             }
 
             _taskManager.ProcessQueue();
@@ -435,6 +420,27 @@ namespace Biovation.Brands.EOS.Devices
             Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
+        }
+
+        private bool SetDateTime()
+        {
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_clock)
+                        _clock.SetDateTime(DateTime.Now);
+
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    Thread.Sleep(++i * 200);
+                }
+            }
+
+            return false;
         }
 
         private bool IsConnected()
@@ -642,35 +648,22 @@ namespace Biovation.Brands.EOS.Devices
                         deviceConnected = _clock.TestConnection();
                 }
 
-                //_clock?.Disconnect();
-                // _clock?.Dispose();
-                //Disconnect();
                 if (Valid)
                     Connect();
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
-
             }
-
             catch (Exception ex)
             {
                 Logger.Log(ex, "Clock " + _deviceInfo.Code);
             }
 
             Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
-            //}
 
-
-            //_clock?.Disconnect();
-            //_clock?.Dispose();
             if (Valid)
-            {
                 Connect();
-            }
 
-            //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
             return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-
         }
         public override bool Disconnect()
         {
@@ -777,11 +770,12 @@ namespace Biovation.Brands.EOS.Devices
                     foreach (var fingerTemplate in user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.SU384Code))
                     {
                         var sendTemplateResult = false;
+                        supremaMatcher.RotateTemplate(fingerTemplate.Template, fingerTemplate.Template.Length);
+
                         for (var i = 0; i < 5;)
                         {
                             try
                             {
-                                supremaMatcher.RotateTemplate(fingerTemplate.Template, fingerTemplate.Template.Length);
                                 var enrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Add_New);
                                 sendTemplateResult = enrollResult.ScanState == ScanState.Success || enrollResult.ScanState == ScanState.Scan_Success || enrollResult.ScanState == ScanState.Data_Ok || enrollResult.ID > 0;
                                 break;
@@ -789,7 +783,7 @@ namespace Biovation.Brands.EOS.Devices
                             catch (Exception exception)
                             {
                                 Logger.Log(exception);
-                                Thread.Sleep(++i * 100);
+                                Thread.Sleep(++i * 200);
                             }
                         }
 
@@ -848,7 +842,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception);
-                            Thread.Sleep(++i * 100);
+                            Thread.Sleep(++i * 200);
                         }
                     }
 
@@ -1165,7 +1159,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (disconnectedFromSensor)
                     break;
 
-                Thread.Sleep((i + 1) * 100);
+                Thread.Sleep((i + 1) * 200);
                 try
                 {
                     lock (_clock)
