@@ -133,7 +133,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("ModifyUser")]
         public Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 try
                 {
@@ -259,7 +259,7 @@ namespace Biovation.Server.Controllers.v1
                     var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
-                        result.Add(_restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data);
+                        result.Add(requestResult.Data);
                 }
 
                 return result;
