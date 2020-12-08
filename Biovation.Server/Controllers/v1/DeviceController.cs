@@ -263,9 +263,9 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("ModifyDeviceInfo")]
-        public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
+        public async Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
-            return Task.Run(async () =>
+            return await Task.Run(() =>
             {
                 var result = _deviceService.ModifyDevice(device, _kasraAdminToken);
                 if (result.Validate != 1) return result;
@@ -275,7 +275,7 @@ namespace Biovation.Server.Controllers.v1
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
                 restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return result;
             });

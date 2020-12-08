@@ -1565,7 +1565,7 @@ namespace Biovation.Brands.ZK.Devices
             try
             {
                 _logger.Debug($" Downloading user photos of device {DeviceInfo.Code}");
-                var outputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZkDeviceUserPhotos",
+                var outputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory!, "ZkDeviceUserPhotos",
                     DeviceInfo.Code.ToString());
 
                 _logger.Debug($" Downloading user photos of device {DeviceInfo.Code} in path {outputFolder}");
@@ -1607,7 +1607,7 @@ namespace Biovation.Brands.ZK.Devices
         {
             try
             {
-                var outputFolder = string.IsNullOrWhiteSpace(photosFolderPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZkDeviceUserPhotos",
+                var outputFolder = string.IsNullOrWhiteSpace(photosFolderPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory!, "ZkDeviceUserPhotos",
                     DeviceInfo.Code.ToString()) : photosFolderPath;
 
                 if (!Directory.Exists(outputFolder))
