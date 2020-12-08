@@ -270,7 +270,7 @@ namespace Biovation.Server.Controllers.v1
                 var result = _deviceService.ModifyDevice(device, _kasraAdminToken);
                 if (result.Validate != 1) return result;
 
-                device = _deviceService.GetDevice(device.DeviceId, token: _kasraAdminToken);
+                device = _deviceService.GetDevice(result.Id, token: _kasraAdminToken);
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
