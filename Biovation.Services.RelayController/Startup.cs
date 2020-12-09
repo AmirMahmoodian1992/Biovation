@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using RestSharp;
 using Serilog;
 using System.Reflection;
+using Biovation.Services.RelayController.Services;
 
 namespace Biovation.Services.RelayController
 {
@@ -66,7 +67,7 @@ namespace Biovation.Services.RelayController
             ConfigureConstantValues(services);
             //ConfigureRelayServices(services);
 
-            //services.AddHostedService<PingCollectorHostedService>();
+            services.AddHostedService<PingCollectorHostedService>();
             //services.AddHostedService<BroadcastMetricsHostedService>();
         }
 
