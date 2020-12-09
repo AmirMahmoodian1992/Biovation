@@ -878,6 +878,89 @@ namespace Biovation.Brands.EOS.Devices
                     ? "Successfully disconnected from sensor of device:{deviceId}"
                     : "Could not disconnect from sensor of device:{deviceId}", _deviceInfo.DeviceId);
         }
+        public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
+         DateTime? endTime,
+         bool saveFile = false)
+        {
+            var logs = new List<string>();
+            var eosLogs = new List<Log>();
+            var invalidTime = false;
+            if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
+            {
+                startTime = new DateTime(1921, 3, 21);
+                invalidTime = true;
+            }
+
+            if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
+            {
+                endTime = new DateTime(2021, 3, 19);
+                invalidTime = true;
+            }
+
+            if (invalidTime)
+                _logger.Debug("The chosen Time Period is wrong.");
+
+            Thread.Sleep(1000);
+
+            string text;
+            bool flag;
+            int logCount = 250000;////////////////////////
+            bool successSetpointer = true;
+            string eosDeviceType;
+            lock (_clock)
+                eosDeviceType = _clock.GetModel();
+
+            _logger.Debug($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+
+            bool deviceConnected;
+            int step = 2;
+
+            lock (_clock)
+                deviceConnected = _clock.TestConnection();
+
+
+            ClockRecord clockRecord = null;
+
+            if (deviceConnected && Valid)
+            {
+
+                lock (_clock)
+                    _clock.SetReadPointer(_clock.GetWritePointer());
+
+                var currentIndex = (_clock.GetReadPointer() + (logCount / step)) % logCount;
+                lock (_clock)
+                    successSetpointer = _clock.SetReadPointer(currentIndex);
+
+                while (currentIndex < logCount && successSetpointer && step < logCount)
+                {
+                    step *= 2;
+                    if (successSetpointer)
+                    {
+                        lock (_clock)
+                        {
+                            clockRecord = (ClockRecord)_clock.GetRecord();
+                        }
+                        if (clockRecord != null)
+                        {
+                            if (clockRecord.DateTime > startTime)
+                                currentIndex += logCount / step;
+                            else if (clockRecord.DateTime < startTime)
+                                currentIndex -= logCount / step;
+                            else
+                                break;
+                            lock (_clock)
+                                successSetpointer = _clock.SetReadPointer(currentIndex);
+                        }
+
+                    }
+                }
+
+
+                return ReadOnlineLog(token: null);
+            }
+
+            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+        }
     }
 }
 

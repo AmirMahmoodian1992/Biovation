@@ -48,6 +48,7 @@ namespace Biovation.Brands.EOS.Devices
             _restClient = restClient;
             _onlineDevices = onlineDevices;
             _biometricTemplateManager = biometricTemplateManager;
+            TotalLogCount = 20000;
         }
 
         ///// <summary>
@@ -1186,6 +1187,116 @@ namespace Biovation.Brands.EOS.Devices
                 disconnectedFromSensor
                     ? "Successfully disconnected from sensor of device:{deviceId}"
                     : $"Could not disconnect from sensor of device:{_deviceInfo.DeviceId}");
+        }
+
+        public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
+         DateTime? endTime,
+         bool saveFile = false)
+        {
+            var invalidTime = false;
+            if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
+            {
+                startTime = new DateTime(1921, 3, 21);
+                invalidTime = true;
+            }
+
+            if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
+            {
+                endTime = new DateTime(2021, 3, 19);
+                invalidTime = true;
+            }
+
+            if (invalidTime)
+                Logger.Log("The chosen Time Period is wrong.");
+
+            Thread.Sleep(1000);
+            string eosDeviceType;
+            lock (_clock)
+                eosDeviceType = _clock.GetModel();
+
+            Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+
+            bool deviceConnected;
+            var step = 2;
+
+            lock (_clock)
+                deviceConnected = _clock.TestConnection();
+
+            var threshold = Convert.ToInt32(Math.Log2(TotalLogCount));
+            int writePointer;
+            lock (_clock)
+                writePointer = _clock.GetWritePointer();
+            if (deviceConnected && Valid)
+            {
+
+                lock (_clock)
+                    _clock.SetReadPointer(writePointer);
+
+                int currentIndex;
+                lock (_clock)
+                    currentIndex = (_clock.GetReadPointer() + (TotalLogCount / step)) % TotalLogCount;
+                var previousIndex = writePointer;
+                bool successSetPointer;
+                ClockRecord clockRecord;
+                lock (_clock)
+                {
+                    successSetPointer = _clock.SetReadPointer(currentIndex);
+                    clockRecord = (ClockRecord)_clock.GetRecord();
+                }
+
+                var startPeriod = new DateTime(2000,1,1);
+                var endPeriod = DateTime.Today;
+
+                while (successSetPointer && step < threshold)
+                {
+                    step *= 2;
+                    if (clockRecord is null || clockRecord.DateTime < startTime)
+                    {
+                        currentIndex = (currentIndex + TotalLogCount / step) % TotalLogCount;
+
+                    }
+                    else if (clockRecord.DateTime > startTime)
+                    {
+                        currentIndex -= TotalLogCount / step;
+                        currentIndex = currentIndex < 0 ? (TotalLogCount - currentIndex) : currentIndex;
+                    }
+                    else
+                        break;
+                    lock (_clock)
+                    {
+                        successSetPointer = _clock.SetReadPointer(currentIndex);
+                        clockRecord = (ClockRecord)_clock.GetRecord();
+                    }
+
+                    if (clockRecord != null)
+                    {
+                        if (clockRecord.DateTime >= startPeriod && endPeriod >= clockRecord.DateTime)
+                        {
+                            if (previousIndex < currentIndex)
+                                endPeriod = clockRecord.DateTime;
+                            else
+                                startPeriod = clockRecord.DateTime > startTime ? Convert.ToDateTime(startTime)  : clockRecord.DateTime;
+                        }
+                        else
+                        {
+                            for (var i = 0; (clockRecord.DateTime >= startPeriod && endPeriod >= clockRecord.DateTime) || i < Math.Log2(TotalLogCount); i++)
+                            {
+                                var random = new Random();
+                                currentIndex = random.Next(previousIndex, currentIndex);
+                                lock (_clock)
+                                    clockRecord = (ClockRecord)_clock.GetRecord();
+                                if (clockRecord is null)
+                                    break;
+                            }
+                        }
+                    }
+
+                }
+
+                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1 };
+            }
+
+            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
         }
     }
 }
