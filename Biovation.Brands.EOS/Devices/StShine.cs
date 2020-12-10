@@ -410,7 +410,7 @@ namespace Biovation.Brands.EOS.Devices
                         try
                         {
                             userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
-                            if (userFingerTemplates != null)
+                            if (userFingerTemplates != null && userFingerTemplates.Count > 0)
                                 break;
                         }
                         catch (Exception exception)
@@ -419,7 +419,6 @@ namespace Biovation.Brands.EOS.Devices
                             Thread.Sleep(100 * ++i);
                         }
                     }
-
 
                     if (userFingerTemplates == null)
                     {
