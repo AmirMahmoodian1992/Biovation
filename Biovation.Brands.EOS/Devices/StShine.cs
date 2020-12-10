@@ -108,7 +108,7 @@ namespace Biovation.Brands.EOS.Devices
 
             _taskManager.ProcessQueue();
 
-            //Valid = true;
+            Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }
