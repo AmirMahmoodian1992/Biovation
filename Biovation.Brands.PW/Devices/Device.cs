@@ -7,7 +7,9 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using xLink;
@@ -258,7 +260,7 @@ namespace Biovation.Brands.PW.Devices
                         var newGateNumber = _deviceInfo.Code;
                         var newBonesFn = "";
                         var newRecords = new NetTypes.IN_OUT_RECORD_TYPE[100000]; //for 10000 records.
-                        var newFilePath = @"";
+                        var newFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + '\\';
                         var newTextFile = "";
                         var userId = 0;
                         //Task.Run(() =>
@@ -373,7 +375,7 @@ namespace Biovation.Brands.PW.Devices
 
                 var gateNumber = _deviceInfo.Code;
 
-                var filePath = @"";
+                var filePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + '\\';
                 var textFile = "";
                 short result;
 
@@ -384,6 +386,7 @@ namespace Biovation.Brands.PW.Devices
                         _linkParam.clearPW = true;
 
                     result = _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber, textFile);
+
                     _linkParam.clearPW = false;
                     if (recordsCount > 0 && _lastLogReadCount == recordsCount)
                         _offlineLogReadCount++;
@@ -397,7 +400,7 @@ namespace Biovation.Brands.PW.Devices
                 DeletePhysicalFile(bonesFn);
                 if (result == 0)
                 {
-                    lock (LockObject)//make the object exclusive 
+                    lock (LockObject) //make the object exclusive 
                     {
                         try
                         {
@@ -496,19 +499,145 @@ namespace Biovation.Brands.PW.Devices
                         }
                     }
 
-                    Logger.Log($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
-                }
-                //else if (result == 1001)
-                //{
-                //    Logger.Log($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
-                //    Disconnect();
-                //}
-                else
-                {
-                    Logger.Log($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
-                }
-                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
+                    //recovering deleted logs
+                    lock (_pwSdk)
+                    {
+                        if (_offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
+                            _linkParam.clearPW = true;
 
+                        result = _pwSdk.recoverIOs(_linkParam, filePath, new NetTypes.DATE_TYPE { y = 1, m = 1, d = 1 },
+                            new NetTypes.DATE_TYPE { y = (short)(DateTime.Now.Year % 100), m = 12, d = 30 },
+                            ref recordsCount, ref bonesFn,
+                            ref records, gateNumber);
+
+                        _linkParam.clearPW = false;
+                        if (recordsCount > 0 && _lastLogReadCount == recordsCount)
+                            _offlineLogReadCount++;
+                        else
+                            _offlineLogReadCount = 1;
+
+                        _lastLogReadCount = recordsCount;
+                    }
+
+                    //var userId = 0;
+                    DeletePhysicalFile(bonesFn);
+                    if (result == 0)
+                    {
+                        lock (LockObject) //make the object exclusive 
+                        {
+                            try
+                            {
+                                var logs = new List<Log>();
+                                //var len = records.Length;
+
+                                for (var i = recordsCount - 1; i >= 0; i--)
+                                {
+                                    try
+                                    {
+                                        var userId = Convert.ToInt32(records[i].cardNo);
+
+                                        var log = new Log
+                                        {
+                                            DeviceId = _deviceInfo.DeviceId,
+                                            DeviceCode = _deviceInfo.Code,
+                                            LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
+                                                records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
+                                            EventLog = _logEvents.Authorized,
+                                            UserId = userId,
+                                            MatchingType =
+                                                _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
+                                            InOutMode = _deviceInfo.DeviceTypeId,
+                                            TnaEvent = 0,
+                                            SubEvent = _logSubEvents.Normal
+                                        };
+
+                                        //_commonLogService.AddLog(log);
+                                        logs.Add(log);
+                                        ////                                Logger.Log($@"<--
+                                        ////+TerminalID:{_deviceInfo.Code}
+                                        ////+UserID:{userId}
+                                        ////+DateTime:{log.LogDateTime}
+                                        ////+AuthType:{log.MatchingType}
+                                        ////+Progress:{recordsCount - i}/{recordsCount}");
+                                        //                            }
+                                        //                            catch (Exception exception)
+                                        //                            {
+                                        //                                Logger.Log(exception);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        //ignore
+                                    }
+                                }
+
+                                //var logs = records.Take(recordsCount).Select(rec =>
+                                //{
+                                //    try
+                                //    {
+                                //        if (rec.xDate.y < 1990 || rec.xDate.y < 2050 || rec.xDate.m < 1 || rec.xDate.m > 12 || rec.xDate.d < 1 || rec.xDate.d > 31 || rec.hh < 1 || rec.hh > 24 || rec.mn < 1 || rec.mn > 60 || rec.ss < 1 || rec.ss > 60)
+                                //            return null;
+
+                                //        return new Log
+                                //        {
+                                //            DeviceId = _deviceInfo.DeviceId,
+                                //            DeviceCode = _deviceInfo.Code,
+                                //            LogDateTime = new DateTime(rec.xDate.y, rec.xDate.m, rec.xDate.d, rec.hh, rec.mn,
+                                //                rec.ss),
+                                //            UserId = Convert.ToInt32(rec.cardNo),
+                                //            MatchingType = rec.ioType,
+                                //            TnaEvent = 0,
+                                //            SubEvent = LogSubEvents.Normal
+                                //        };
+                                //    }
+                                //    catch (Exception)
+                                //    {
+                                //        //Logger.Log(exception);
+                                //        return null;
+                                //    }
+                                //}).Where(log => log != null).ToList();
+
+                                Task.Run(() =>
+                                {
+                                    for (var i = 0; i < logs.Count;)
+                                    {
+                                        var log = logs[i];
+                                        Logger.Log($@"<--
+                                    +TerminalID:{_deviceInfo.Code}
+                                    +UserID:{log.UserId}
+                                    +DateTime:{log.LogDateTime}
+                                    +AuthType:{log.MatchingType}
+                                    +Progress:{++i}/{recordsCount}");
+                                    }
+                                }, Token.Token);
+
+                                //Task.Run(() =>
+                                //{
+                                _logService.AddLog(logs);
+                                //});
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                                //Logger.Log($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                            }
+                        }
+
+                        Logger.Log($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
+                    }
+                    //else if (result == 1001)
+                    //{
+                    //    Logger.Log($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
+                    //    Disconnect();
+                    //}
+                    else
+                    {
+                        Logger.Log(
+                            $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
+                    }
+                }
+
+                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
             }
             catch (Exception exception)
             {
