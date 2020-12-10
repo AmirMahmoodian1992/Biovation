@@ -51,6 +51,8 @@ namespace Biovation.Brands.PW.Devices
             _pwCodeMappings = pwCodeMappings;
             _clearLogAfterRetrieving = biovationConfigurationManager.ClearLogAfterRetrieving;
             Token = new CancellationTokenSource();
+            
+            _logger = logger.ForContext<Device>();
         }
 
         //public void UpdateDeviceInfo(DeviceBasicInfo deviceInfo)
