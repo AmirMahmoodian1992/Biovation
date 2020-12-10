@@ -41,6 +41,9 @@ namespace Biovation.Constants
         public const string DeleteReservationsCode = "11510";
         public const string DeleteMealTimingsCode = "11511";
 
+        //Tools
+        public const string UserAdaptationCode = "11701";
+
         public TaskTypes(Lookups lookups)
         {
             SendUsers = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendUsersCode));
@@ -78,6 +81,8 @@ namespace Biovation.Constants
 
 
             SendBlackList = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendBlackListCode));
+
+            UserAdaptation = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UserAdaptationCode));
         }
 
 
@@ -115,6 +120,9 @@ namespace Biovation.Constants
         public Lookup GetLogs { get; set; }
 
         public Lookup SendBlackList { get; set; }
+
+        //Tools
+        public Lookup UserAdaptation { get; set; }
 
     }
 }

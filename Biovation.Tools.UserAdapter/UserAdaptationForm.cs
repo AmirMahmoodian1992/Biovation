@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace Biovation.Tools.UserAdapter
 {
@@ -92,8 +93,17 @@ namespace Biovation.Tools.UserAdapter
                 {
                     var filePath = openFileDialog.FileName;
 
-                    var connectionString =
-                        $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={filePath}; Extended Properties=Excel 12.0;";
+                    var registrySoftwareKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Classes");
+                    var oleDbKey = registrySoftwareKey?.GetSubKeyNames().LastOrDefault(subKey => subKey.Contains("Microsoft.ACE.OLEDB"));
+                    if (oleDbKey is null)
+                    {
+                        MessageBox.Show(
+                            @"No OleDb found on device, please install appropriate version of OleDb (12.0, 14.0 or newer)");
+                        return;
+                    }
+
+                    var connectionString = $"Provider={oleDbKey};Data Source='{filePath}'; Extended Properties='Excel 12.0;IMEX=1;';";
+
 
                     var dataSet = new DataSet();
                     var adapter = new OleDbDataAdapter("SELECT * FROM [sheet1$]", connectionString);
@@ -172,7 +182,7 @@ namespace Biovation.Tools.UserAdapter
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
                 restRequest.AddJsonBody(_userCodeMappings);
-                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEyMzQ1Njc4OSIsInVuaXF1ZUlkIjoiMTIzNDU2Nzg5IiwianRpIjoiODJmM2UwYTEtYzNkYy00NjM3LWJjMGMtNWZhYzE3NGIwODY0IiwiZXhwIjoxNjA2OTIwOTIyfQ.VMxm2hb2qkle39JWtMxFaQHILh1d3NJapcx19dI-j48");
+                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEyMzQ1Njc4OSIsInVuaXF1ZUlkIjoiMTIzNDU2Nzg5IiwianRpIjoiZmVmOTVkZDAtZDFmNy00MjYxLTllNTEtZjU3M2M5NmU2MTljIiwiZXhwIjoxNjA4NDA5MTQ5fQ._WO8v8kYJQRPIPRWxa-oC-vDSCYOUSZQG2XlB_BPu9s");
 
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 

@@ -40,6 +40,8 @@ namespace Biovation.Constants
         public const string GetLogsInPeriodCode = "12402";
         public const string GetLogsCode = "12403";
 
+        //Tools
+        public const string UserAdaptationCode = "12701";
 
         public TaskItemTypes(Lookups lookups)
         {
@@ -76,6 +78,8 @@ namespace Biovation.Constants
             GetLogs = lookups.TaskItemTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsCode));
             ClearLog = lookups.TaskItemTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, ClearLogCode));
             GetLogsInPeriod = lookups.TaskItemTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsInPeriodCode));
+
+            UserAdaptation = lookups.TaskItemTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UserAdaptationCode));
         }
 
         public Lookup SendUser;
@@ -111,6 +115,9 @@ namespace Biovation.Constants
         public Lookup GetLogs;
         public Lookup ClearLog;
         public Lookup GetLogsInPeriod;
+
+        //Tools
+        public Lookup UserAdaptation;
 
     }
 }
