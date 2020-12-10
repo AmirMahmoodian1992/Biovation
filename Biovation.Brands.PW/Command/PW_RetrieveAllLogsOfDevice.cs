@@ -1,12 +1,12 @@
 ﻿using Biovation.Brands.PW.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Biovation.Brands.PW.Command
 {
@@ -20,20 +20,11 @@ namespace Biovation.Brands.PW.Command
         private int Code { get; }
         private int DeviceId { get; }
 
-        private int TaskItemId { get; }
-
-        public PwRetrieveAllLogsOfDevice(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
+        public PwRetrieveAllLogsOfDevice(TaskItem taskItem, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
-            if (items.Count == 1)
-            { DeviceId = Convert.ToInt32(items[0]); }
-            else
-            {
-                DeviceId = Convert.ToInt32(items[0]);
-                TaskItemId = Convert.ToInt32(items[1]);
-            }
-
-            Code = (int)(deviceService.GetDevices(code: (uint)DeviceId, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault()?.Code ?? 0);
             OnlineDevices = devices;
+            DeviceId = taskItem.DeviceId;
+            Code = (int)(deviceService.GetDevices(code: (uint)DeviceId, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault()?.Code ?? 0);
         }
 
         public object Execute()

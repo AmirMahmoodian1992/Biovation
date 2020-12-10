@@ -1,13 +1,13 @@
 ﻿using Biovation.Brands.PW.Command;
 using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.PW.Manager
 {
@@ -39,15 +39,36 @@ namespace Biovation.Brands.PW.Manager
 
                 switch (taskItem.TaskItemType.Code)
                 {
-
-                    case TaskItemTypes.GetServeLogsCode:
+                    case TaskItemTypes.GetLogsCode:
                         {
                             try
                             {
                                 executeTask = Task.Run(() =>
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                        new List<object> { taskItem }).Execute();
+
+                                    return result;
+                                });
+
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
+
+                    case TaskItemTypes.GetLogsInPeriodCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod,
+                                        new List<object> { taskItem }).Execute();
 
                                     return result;
                                 });
