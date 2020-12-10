@@ -763,16 +763,20 @@ namespace Biovation.Brands.EOS.Devices
         {
             lock (_clock)
             {
+                var userTemplates = user.FingerTemplates?.Where(fingerTemplate =>
+                    fingerTemplate.FingerTemplateType.Code == (FingerTemplateTypes.SU384Code)).ToList();
+
+                if (userTemplates is null || !userTemplates.Any())
+                    return true;
+
                 try
                 {
                     var isConnectToSensor = ConnectToSensor();
                     if (!isConnectToSensor)
                         return false;
 
-                    if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
-
                     var supremaMatcher = new UFMatcher();
-                    foreach (var fingerTemplate in user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == FingerTemplateTypes.SU384Code))
+                    foreach (var fingerTemplate in userTemplates)
                     {
                         var sendTemplateResult = false;
                         supremaMatcher.RotateTemplate(fingerTemplate.Template, fingerTemplate.Template.Length);

@@ -464,11 +464,17 @@ namespace Biovation.Brands.EOS.Devices
         {
             lock (_clock)
             {
+                var userTemplates = user.FingerTemplates?.Where(fingerTemplate =>
+                    fingerTemplate.FingerTemplateType.Code == (_protocolType == ProtocolType.Suprema
+                        ? FingerTemplateTypes.SU384Code
+                        : FingerTemplateTypes.VX10Code)).ToList();
+
+                if (userTemplates is null || !userTemplates.Any())
+                    return true;
+
                 var isConnectToSensor = false;
                 try
                 {
-                    if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
-
                     bool addUserResult;
                     try
                     {
@@ -503,7 +509,7 @@ namespace Biovation.Brands.EOS.Devices
                         return false;
                     }
 
-                    foreach (var fingerTemplate in user.FingerTemplates.Where(fingerTemplate => fingerTemplate.FingerTemplateType.Code == (_protocolType == ProtocolType.Suprema ? FingerTemplateTypes.SU384Code : FingerTemplateTypes.VX10Code)))
+                    foreach (var fingerTemplate in userTemplates)
                     {
                         var sendTemplateResult = false;
                         for (var i = 0; i < 5;)
