@@ -698,48 +698,53 @@ namespace Biovation.Brands.EOS.Devices
                     }
 
                     var userId = Convert.ToInt32(sUserId);
-                    List<byte[]> userFingerTemplates;
-                    try
+                    List<byte[]> userFingerTemplates = null;
+
+                    for (var i = 0; i < 3; i++)
                     {
-                        userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
-                    }
-                    catch (Exception exception)
-                    {
-                        Logger.Log(exception);
-                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
                         try
                         {
-                            _clock.Sensor.DeleteByID(userId);
+                            userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
+                            if (userFingerTemplates.Count > 0)
+                                break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+                            //Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        }
+                    }
+
+                    SensorRecord deletionResult;
+                    if (userFingerTemplates == null || userFingerTemplates.Count == 0)
+                    {
+                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        deletionResult = null;
+                        try
+                        {
+                            deletionResult = _clock.Sensor.DeleteByID(userId);
                         }
                         catch (Exception innerException)
                         {
                             Logger.Log(innerException);
                         }
-                        return true;
+
+                        return deletionResult?.ScanState == ScanState.Success ||
+                               deletionResult?.ScanState == ScanState.Scan_Success;
                     }
 
-                    if (userFingerTemplates == null)
+                    for (var i = 0; i < userFingerTemplates.Count; i++)
                     {
-                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
-                        try
-                        {
-                            _clock.Sensor.DeleteByID(userId);
-                        }
-                        catch (Exception innerException)
-                        {
-                            Logger.Log(innerException);
-                        }
-                        return true;
+                        var fingerTemplate = userFingerTemplates[i];
+                        var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
+                        if (templateDeletionResult.ScanState == ScanState.Not_Found)
+                            _clock.Sensor.DeleteTemplate(userId, i);
                     }
 
-                    foreach (var fingerTemplate in userFingerTemplates)
-                    {
-                        _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
-                    }
+                    deletionResult = _clock.Sensor.DeleteByID(userId);
 
-                    _clock.Sensor.DeleteByID(userId);
-
-                    return true;
+                    return deletionResult?.ScanState == ScanState.Success ||
+                           deletionResult?.ScanState == ScanState.Scan_Success;
                 }
                 catch (Exception exception)
                 {
