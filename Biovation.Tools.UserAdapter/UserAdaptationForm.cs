@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace Biovation.Tools.UserAdapter
 {
@@ -92,8 +93,17 @@ namespace Biovation.Tools.UserAdapter
                 {
                     var filePath = openFileDialog.FileName;
 
-                    var connectionString =
-                        $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={filePath}; Extended Properties=Excel 12.0;";
+                    var registrySoftwareKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Classes");
+                    var oleDbKey = registrySoftwareKey?.GetSubKeyNames().LastOrDefault(subKey => subKey.Contains("Microsoft.ACE.OLEDB"));
+                    if (oleDbKey is null)
+                    {
+                        MessageBox.Show(
+                            @"No OleDb found on device, please install appropriate version of OleDb (12.0, 14.0 or newer)");
+                        return;
+                    }
+
+                    var connectionString = $"Provider={oleDbKey};Data Source='{filePath}'; Extended Properties='Excel 12.0;IMEX=1;';";
+
 
                     var dataSet = new DataSet();
                     var adapter = new OleDbDataAdapter("SELECT * FROM [sheet1$]", connectionString);
