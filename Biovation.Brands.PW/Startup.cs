@@ -68,6 +68,7 @@ namespace Biovation.Brands.PW
 
             services.AddHealthChecks();
 
+            services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
