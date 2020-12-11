@@ -20,6 +20,8 @@ namespace Biovation.Brands.EOS.Devices
         private readonly DeviceBasicInfo _deviceInfo;
         //public Semaphore DeviceAccessSemaphore;
         protected bool Valid;
+
+        protected int TotalLogCount;
         //private readonly LogService _commonLogService = new LogService();
 
         // private readonly EosServer _eosServer;
@@ -36,6 +38,7 @@ namespace Biovation.Brands.EOS.Devices
             LogEvents = logEvents;
             LogSubEvents = logSubEvents;
             EosCodeMappings = eosCodeMappings;
+            TotalLogCount = 0;
         }
         public virtual bool Connect()
         {
