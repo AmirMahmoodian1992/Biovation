@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Biovation.Brands.EOS.Helper;
 using Log = Biovation.Domain.Log;
+using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -879,12 +880,11 @@ namespace Biovation.Brands.EOS.Devices
                     ? "Successfully disconnected from sensor of device:{deviceId}"
                     : "Could not disconnect from sensor of device:{deviceId}", _deviceInfo.DeviceId);
         }
+
         public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
-         DateTime? endTime,
-         bool saveFile = false)
+        DateTime? endTime,
+        bool saveFile = false)
         {
-            var logs = new List<string>();
-            var eosLogs = new List<Log>();
             var invalidTime = false;
             if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
@@ -899,70 +899,198 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (invalidTime)
-                _logger.Debug("The chosen Time Period is wrong.");
+                Logger.Log("The chosen Time Period is wrong.");
 
             Thread.Sleep(1000);
-
-            string text;
-            bool flag;
-            int logCount = 250000;////////////////////////
-            bool successSetpointer = true;
             string eosDeviceType;
             lock (_clock)
                 eosDeviceType = _clock.GetModel();
-            eosDeviceType = 2.Attempt(_logger,() => _clock.GetModel(),_clock);
 
-            _logger.Debug($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+            lock (_onlineDevices)
+            {
+                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+            }
 
             bool deviceConnected;
-            int step = 2;
 
             lock (_clock)
                 deviceConnected = _clock.TestConnection();
 
+            var writePointer = -1;
+            var successSetPointer = false;
 
-            ClockRecord clockRecord = null;
-
-            if (deviceConnected && Valid)
+            for (var i = 0; i < 5; i++)
             {
-
-                lock (_clock)
-                    _clock.SetReadPointer(_clock.GetWritePointer());
-
-                var currentIndex = (_clock.GetReadPointer() + (logCount / step)) % logCount;
-                lock (_clock)
-                    successSetpointer = _clock.SetReadPointer(currentIndex);
-
-                while (currentIndex < logCount && successSetpointer && step < logCount)
+                try
                 {
-                    step *= 2;
-                    if (successSetpointer)
+                    lock (_clock)
                     {
-                        lock (_clock)
+                        Thread.Sleep(500);
+                        writePointer = _clock.GetWritePointer();
+                    }
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, exception.Message);
+                    Thread.Sleep(++i * 100);
+                }
+
+            }
+
+            lock (_clock)
+
+                if (deviceConnected && Valid && writePointer != -1)
+                {
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
                         {
-                            clockRecord = (ClockRecord)_clock.GetRecord();
-                        }
-                        if (clockRecord != null)
-                        {
-                            if (clockRecord.DateTime > startTime)
-                                currentIndex += logCount / step;
-                            else if (clockRecord.DateTime < startTime)
-                                currentIndex -= logCount / step;
-                            else
-                                break;
                             lock (_clock)
-                                successSetpointer = _clock.SetReadPointer(currentIndex);
+                            {
+                                Thread.Sleep(500);
+                                successSetPointer = _clock.SetReadPointer(writePointer);
+                            }
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
                         }
 
                     }
+
+
+                    if (successSetPointer)
+                    {
+                        (int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
+                        BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
+                            (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
+
+
+                        for (var i = 0; i < 5; i++)
+                        {
+                            try
+                            {
+                                lock (_clock)
+                                {
+                                    Thread.Sleep(500);
+                                    successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                                }
+                                break;
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception, exception.Message);
+                                Thread.Sleep(++i * 100);
+                            }
+
+                        }
+
+                    }
+
+                    lock (_onlineDevices)
+                    {
+                        return new ResultViewModel { Id = _deviceInfo.DeviceId, Success = successSetPointer };
+                    }
                 }
 
+            lock (_onlineDevices)
+            {
+                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+            }
+        }
 
-                return ReadOnlineLog(token: null);
+
+        private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
+        {
+            if (Math.Abs(right - left) < 1)
+            {
+                return;
+            }
+            var successSetPointer = false;
+            ClockRecord clockRecord = null;
+            var flag = false;
+
+            var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
+            var mid = (left + interval / 2);
+
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_clock)
+                    {
+                        if (!successSetPointer)
+                        {
+                            Thread.Sleep(500);
+                            successSetPointer = _clock.SetReadPointer(mid);
+                        }
+                        Thread.Sleep(500);
+                        clockRecord = (ClockRecord)_clock.GetRecord();
+                    }
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, exception.Message);
+                    Thread.Sleep(++i * 100);
+                }
+
             }
 
-            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+            if (clockRecord == null)
+                BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
+            else
+            {
+
+                if (previousDateTimes.Item1 != new DateTime(1900, 1, 1) &&
+                    previousDateTimes.Item2 != new DateTime(1900, 1, 1) &&
+                    previousDateTimes.Item3 != new DateTime(1900, 1, 1) &&
+                    ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
+                     (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)))
+                {
+                    flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
+                           (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
+                            Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
+                }
+
+                if (!(flag && !previousFlag))
+                {
+                    previousDateTimes.Item3 = previousDateTimes.Item2;
+                    previousDateTimes.Item2 = previousDateTimes.Item1;
+                    previousDateTimes.Item1 = clockRecord.DateTime;
+                }
+
+                if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
+                {
+                    nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
+                }
+
+                if (flag && !(previousFlag))
+                {
+                    if (previousmid > mid)
+                    {
+                        BinarySearch(right, right + (right - left), goalDateTime, ref nearestIndex,
+                            previousDateTimes, previousmid, true);
+                    }
+
+                    BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
+                        previousmid, true);
+                }
+                else if (clockRecord.DateTime > goalDateTime)
+                {
+                    BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
+                }
+                else if (clockRecord.DateTime < goalDateTime)
+                {
+                    BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
+                }
+            }
         }
+
     }
 }
 
