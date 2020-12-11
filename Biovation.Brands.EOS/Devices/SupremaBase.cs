@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Brands.EOS.Helper;
 using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
@@ -1222,19 +1223,27 @@ namespace Biovation.Brands.EOS.Devices
             lock (_clock)
                 deviceConnected = _clock.TestConnection();
 
-            var threshold = Convert.ToInt32(Math.Log2(TotalLogCount));
+            var threshold = Convert.ToInt32(Math.Log2(TotalLogCount)) * 8; //8 generate based on experience
+            var SearchInterval = TotalLogCount;
             int writePointer;
+            bool flag = false;
             lock (_clock)
                 writePointer = _clock.GetWritePointer();
             if (deviceConnected && Valid)
             {
+
+                var startPeriod = new DateTime(2000, 1, 1);
+                var endPeriod = new DateTime(DateTime.Today.Year + 10, 1, 1);
+
 
                 lock (_clock)
                     _clock.SetReadPointer(writePointer);
 
                 int currentIndex;
                 lock (_clock)
-                    currentIndex = (_clock.GetReadPointer() + (TotalLogCount / step)) % TotalLogCount;
+                    currentIndex = (_clock.GetReadPointer() - (SearchInterval / step)) % SearchInterval;
+                currentIndex = currentIndex < 0 ? (SearchInterval + currentIndex) : currentIndex;//note: current index is minus
+                (int, long) nearestIndex = (currentIndex, endPeriod.Ticks);
                 var previousIndex = writePointer;
                 bool successSetPointer;
                 ClockRecord clockRecord;
@@ -1244,21 +1253,20 @@ namespace Biovation.Brands.EOS.Devices
                     clockRecord = (ClockRecord)_clock.GetRecord();
                 }
 
-                var startPeriod = new DateTime(2000,1,1);
-                var endPeriod = DateTime.Today;
 
                 while (successSetPointer && step < threshold)
                 {
                     step *= 2;
+
                     if (clockRecord is null || clockRecord.DateTime < startTime)
                     {
-                        currentIndex = (currentIndex + TotalLogCount / step) % TotalLogCount;
+                        currentIndex = (currentIndex + SearchInterval / step) % SearchInterval;
 
                     }
                     else if (clockRecord.DateTime > startTime)
                     {
-                        currentIndex -= TotalLogCount / step;
-                        currentIndex = currentIndex < 0 ? (TotalLogCount - currentIndex) : currentIndex;
+                        currentIndex -= SearchInterval / step;
+                        currentIndex = currentIndex < 0 ? (SearchInterval + currentIndex) : currentIndex;//note: current index is minus
                     }
                     else
                         break;
@@ -1270,34 +1278,109 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (clockRecord != null)
                     {
+                        if ((Math.Abs((clockRecord.DateTime - Convert.ToDateTime(startTime)).Ticks) < nearestIndex.Item2))
+                        {
+
+                            nearestIndex = (currentIndex, (clockRecord.DateTime - Convert.ToDateTime(startTime)).Ticks);
+                        }
+
                         if (clockRecord.DateTime >= startPeriod && endPeriod >= clockRecord.DateTime)
                         {
                             if (previousIndex < currentIndex)
                                 endPeriod = clockRecord.DateTime;
                             else
-                                startPeriod = clockRecord.DateTime > startTime ? Convert.ToDateTime(startTime)  : clockRecord.DateTime;
+                                startPeriod = clockRecord.DateTime > startTime ? Convert.ToDateTime(startTime) : clockRecord.DateTime;
                         }
                         else
                         {
-                            for (var i = 0; (clockRecord.DateTime >= startPeriod && endPeriod >= clockRecord.DateTime) || i < Math.Log2(TotalLogCount); i++)
+                            var random = new Random();
+                            var randomIndex = 0;
+                            var i = 0;
+
+                            if (previousIndex < currentIndex)
                             {
-                                var random = new Random();
-                                currentIndex = random.Next(previousIndex, currentIndex);
-                                lock (_clock)
-                                    clockRecord = (ClockRecord)_clock.GetRecord();
-                                if (clockRecord is null)
-                                    break;
+
+                                for (i = 0; !(clockRecord.DateTime >= startPeriod && endPeriod >= clockRecord.DateTime) && i < Convert.ToInt32(Math.Log2(threshold)); i++)
+                                {
+                                    randomIndex = random.Next(previousIndex, currentIndex);
+                                    lock (_clock)
+                                    {
+                                        successSetPointer = _clock.SetReadPointer(randomIndex);
+                                        clockRecord = (ClockRecord)_clock.GetRecord();
+                                    }
+
+                                    if (clockRecord is null)
+                                        break;
+                                }
+
+                                if (randomIndex > 0 && i < Convert.ToInt32(Math.Log2(threshold)))
+                                {
+                                    currentIndex = randomIndex;
+                                }
+                                else
+                                {
+                                    step = 1;
+                                    SearchInterval = Math.Abs(currentIndex - previousIndex);
+                                    threshold = Convert.ToInt32(Math.Log2(SearchInterval));
+                                    flag = true;
+                                }
                             }
+                            else
+                            {
+                                for (i = 0; !(clockRecord.DateTime >= startPeriod && endPeriod >= clockRecord.DateTime) && i < Convert.ToInt32(Math.Log2(threshold)); i++)
+                                {
+                                    randomIndex = random.Next(currentIndex, previousIndex);
+                                    lock (_clock)
+                                    {
+                                        successSetPointer = _clock.SetReadPointer(randomIndex);
+                                        clockRecord = (ClockRecord)_clock.GetRecord();
+                                    }
+                                    if (clockRecord is null)
+                                        break;
+                                }
+                                currentIndex = randomIndex > 0 && i < Convert.ToInt32(Math.Log2(threshold))
+                                    ? randomIndex
+                                    : previousIndex;
+                                if (randomIndex > 0 && i < Convert.ToInt32(Math.Log2(threshold)))
+                                {
+                                    currentIndex = randomIndex;
+                                }
+                                else
+                                {
+                                    step = 1;
+                                    SearchInterval = Math.Abs(currentIndex - previousIndex)/2;
+                                    threshold = Convert.ToInt32(Math.Log2(SearchInterval));
+                                    flag = true;
+                                    
+                                }
+                            }
+
+                            
                         }
                     }
 
+                    if (flag)
+                    {
+                        currentIndex = previousIndex + SearchInterval/2;
+                        flag = false;
+                    }
+                    else
+                    {
+                        previousIndex = currentIndex;
+                    }
+                   
+
                 }
 
+                successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1 };
             }
 
             return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
         }
+
+
+       
     }
 }
 

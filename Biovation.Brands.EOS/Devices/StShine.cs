@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Brands.EOS.Helper;
 using Log = Biovation.Domain.Log;
 
 namespace Biovation.Brands.EOS.Devices
@@ -909,6 +910,7 @@ namespace Biovation.Brands.EOS.Devices
             string eosDeviceType;
             lock (_clock)
                 eosDeviceType = _clock.GetModel();
+            eosDeviceType = 2.Attempt(_logger,() => _clock.GetModel(),_clock);
 
             _logger.Debug($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
 
