@@ -1358,7 +1358,7 @@ namespace Biovation.Brands.EOS.Devices
                     previousDateTimes.Item2 != new DateTime(1900, 1, 1) &&
                     previousDateTimes.Item3 != new DateTime(1900, 1, 1) &&
                     ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
-                     (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)))
+                     (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)) && nearestIndex.Item2 > (previousDateTimes.Item2.Ticks - goalDateTime.Ticks))
                 {
                     flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
                            (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=

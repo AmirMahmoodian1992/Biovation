@@ -13,7 +13,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Brands.EOS.Helper;
 using Log = Biovation.Domain.Log;
 using Logger = Biovation.CommonClasses.Logger;
 
@@ -52,6 +51,7 @@ namespace Biovation.Brands.EOS.Devices
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
 
+            TotalLogCount = 250000;
             _logger = logger.ForContext<StShineDevice>();
         }
 
@@ -907,6 +907,14 @@ namespace Biovation.Brands.EOS.Devices
         DateTime? endTime,
         bool saveFile = false)
         {
+            //lock (_clock)
+            //{
+            //    _logger.Information("dumping device");
+            //    var records = _clock.Dump(TotalLogCount, (DateTime)startTime, (DateTime)endTime, out var badRecords);
+            //    _logger.Information("Dumping finished, {recordsCount} records and {badRecordsCount} bad records retrieved", records.Count, badRecords.Count);
+            //    return new ResultViewModel { Success = true };
+            //}
+
             var invalidTime = false;
             if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
@@ -964,7 +972,8 @@ namespace Biovation.Brands.EOS.Devices
 
                 if (deviceConnected && Valid && writePointer != -1)
                 {
-
+                    var initialReadPointer = writePointer;
+                    _logger.Information("The initial pointer is: {initialPointer}", initialReadPointer);
                     for (var i = 0; i < 5; i++)
                     {
                         try
@@ -972,7 +981,7 @@ namespace Biovation.Brands.EOS.Devices
                             lock (_clock)
                             {
                                 Thread.Sleep(500);
-                                successSetPointer = _clock.SetReadPointer(writePointer);
+                                initialReadPointer = _clock.GetReadPointer();
                             }
                             break;
                         }
@@ -984,14 +993,84 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
+                    var rightBoundary = writePointer;
+                    var leftBoundary = writePointer + 2;
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            lock (_clock)
+                            {
+                                Thread.Sleep(500);
+                                successSetPointer = _clock.SetReadPointer(leftBoundary);
+                            }
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                        }
+
+                    }
+
+                    ClockRecord record = null;
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            lock (_clock)
+                            {
+                                Thread.Sleep(500);
+                                record = (ClockRecord)_clock.GetRecord();
+                            }
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                            if (i == 4)
+                            {
+                                leftBoundary = 1;
+                            }
+                        }
+                    }
+                    if (record is null)
+                    {
+                        leftBoundary = 1;
+                    }
 
                     if (successSetPointer)
                     {
                         (int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
-                        BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
+                        BinarySearch(leftBoundary, rightBoundary, Convert.ToDateTime(startTime), ref nearestIndex,
                             (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
 
+                        if (nearestIndex.Item1 < initialReadPointer)
+                            for (var i = 0; i < 5; i++)
+                            {
+                                try
+                                {
+                                    lock (_clock)
+                                    {
+                                        Thread.Sleep(500);
+                                        successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                                    }
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception, exception.Message);
+                                    Thread.Sleep(++i * 100);
+                                }
 
+                            }
+                    }
+
+                    if (!successSetPointer)
+                    {
                         for (var i = 0; i < 5; i++)
                         {
                             try
@@ -999,7 +1078,7 @@ namespace Biovation.Brands.EOS.Devices
                                 lock (_clock)
                                 {
                                     Thread.Sleep(500);
-                                    successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                                    successSetPointer = _clock.SetReadPointer(initialReadPointer);
                                 }
                                 break;
                             }
@@ -1010,7 +1089,6 @@ namespace Biovation.Brands.EOS.Devices
                             }
 
                         }
-
                     }
 
                     lock (_onlineDevices)
@@ -1028,16 +1106,21 @@ namespace Biovation.Brands.EOS.Devices
 
         private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
         {
-            if (Math.Abs(right - left) < 1)
+            if (Math.Abs(right - left) <= 1)
             {
                 return;
             }
+
+            _logger.Debug("Searching for appropriate log pointer value.");
+
             var successSetPointer = false;
             ClockRecord clockRecord = null;
             var flag = false;
 
             var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
             var mid = (left + interval / 2);
+
+            _logger.Debug("The interval is: {interval} and the mid pointer is: {mid}", interval, mid);
 
             for (var i = 0; i < 5; i++)
             {
@@ -1049,9 +1132,11 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             Thread.Sleep(500);
                             successSetPointer = _clock.SetReadPointer(mid);
+                            _logger.Debug("The read pointer is successfully set to {mid}", mid);
                         }
                         Thread.Sleep(500);
                         clockRecord = (ClockRecord)_clock.GetRecord();
+                        _logger.Debug("The log date is: {dateTime}", clockRecord.DateTime);
                     }
                     break;
                 }
@@ -1064,7 +1149,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (clockRecord == null)
-                BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
+                BinarySearch(0, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
             else
             {
 
@@ -1074,13 +1159,15 @@ namespace Biovation.Brands.EOS.Devices
                     ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
                      (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)))
                 {
+                    _logger.Warning("Wrong value detected");
                     flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
-                           (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
-                            Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
+                   (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
+                    Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
                 }
 
                 if (!(flag && !previousFlag))
                 {
+                    _logger.Debug("Trying to handling the situation");
                     previousDateTimes.Item3 = previousDateTimes.Item2;
                     previousDateTimes.Item2 = previousDateTimes.Item1;
                     previousDateTimes.Item1 = clockRecord.DateTime;
@@ -1089,6 +1176,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
                 {
                     nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
+                    _logger.Debug("The nearest value has been changes to: {nearestIndex} with date of: {dateTime}, and the difference is: {difference}", nearestIndex.Item1, clockRecord.DateTime, new DateTime(nearestIndex.Item2));
                 }
 
                 if (flag && !(previousFlag))
@@ -1099,15 +1187,18 @@ namespace Biovation.Brands.EOS.Devices
                             previousDateTimes, previousmid, true);
                     }
 
+                    _logger.Debug("Searching, considering the wrong values");
                     BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
                         previousmid, true);
                 }
                 else if (clockRecord.DateTime > goalDateTime)
                 {
+                    _logger.Debug("Searching left side of mid");
                     BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
                 }
                 else if (clockRecord.DateTime < goalDateTime)
                 {
+                    _logger.Debug("Searching right side of mid");
                     BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
                 }
             }
