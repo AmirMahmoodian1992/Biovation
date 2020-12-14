@@ -716,11 +716,10 @@ namespace Biovation.Brands.EOS.Devices
                         }
                     }
 
-                    SensorRecord deletionResult;
+                    SensorRecord deletionResult = null;
                     if (userFingerTemplates == null || userFingerTemplates.Count == 0)
                     {
                         Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
-                        deletionResult = null;
                         try
                         {
                             deletionResult = _clock.Sensor.DeleteByID(userId);
@@ -734,15 +733,65 @@ namespace Biovation.Brands.EOS.Devices
                                deletionResult?.ScanState == ScanState.Scan_Success;
                     }
 
-                    for (var i = 0; i < userFingerTemplates.Count; i++)
+                    var deletedTemplatesCount = 0;
+
+                    foreach (var fingerTemplate in userFingerTemplates)
                     {
-                        var fingerTemplate = userFingerTemplates[i];
-                        var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
-                        if (templateDeletionResult.ScanState == ScanState.Not_Found)
-                            _clock.Sensor.DeleteTemplate(userId, i);
+                        for (var j = 0; j < 5; j++)
+                        {
+                            try
+                            {
+                                var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
+                                if (templateDeletionResult.ScanState != ScanState.Success &&
+                                    templateDeletionResult.ScanState != ScanState.Scan_Success) continue;
+                                Logger.Log($"A finger print of user {userId} deleted");
+                                deletedTemplatesCount++;
+                                break;
+
+                                //if (templateDeletionResult.ScanState == ScanState.Not_Found)
+                                //    _clock.Sensor.DeleteTemplate(userId, i);
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+                        }
                     }
 
-                    deletionResult = _clock.Sensor.DeleteByID(userId);
+                    for (var i = 0; i < 3; i++)
+                    {
+                        for (var index = 0; index < 10; index++)
+                        {
+                            try
+                            {
+                                var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, index);
+                                if (templateDeletionResult.ScanState != ScanState.Success &&
+                                    templateDeletionResult.ScanState != ScanState.Scan_Success) continue;
+                                Logger.Log($"A finger print of user {userId} deleted");
+                                deletedTemplatesCount++;
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+                        }
+
+                        if (deletedTemplatesCount >= userFingerTemplates.Count)
+                            break;
+                    }
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            deletionResult = _clock.Sensor.DeleteByID(userId);
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+                        }
+                    }
 
                     return deletionResult?.ScanState == ScanState.Success ||
                            deletionResult?.ScanState == ScanState.Scan_Success;
@@ -776,24 +825,191 @@ namespace Biovation.Brands.EOS.Devices
                     if (!isConnectToSensor)
                         return false;
 
-                    var supremaMatcher = new UFMatcher();
-                    foreach (var fingerTemplate in userTemplates)
-                    {
-                        var sendTemplateResult = false;
-                        supremaMatcher.RotateTemplate(fingerTemplate.Template, fingerTemplate.Template.Length);
+                    Logger.Log($"Transferring user {user.Code} to device {_deviceInfo.Code},  the user has {userTemplates.Count} valid templates");
 
+                    //List<byte[]> fingerTemplates = null;
+
+                    //for (var i = 0; i < 5;)
+                    //{
+                    //    try
+                    //    {
+                    //        fingerTemplates = _clock.Sensor.GetUserTemplates((int)user.Code);
+                    //        break;
+                    //    }
+                    //    catch (Exception exception)
+                    //    {
+                    //        Logger.Log(exception);
+                    //        Thread.Sleep(++i * 200);
+                    //    }
+                    //}
+
+                    //var retrievedUser = new User
+                    //{
+                    //    Code = user.Code,
+                    //    FingerTemplates = new List<FingerTemplate>(),
+                    //    StartDate = default,
+                    //    EndDate = default
+                    //};
+
+                    var supremaMatcher = new UFMatcher();
+
+                    //for (var i = 0; i < fingerTemplates?.Count; i += 2)
+                    //{
+                    //    var firstTemplateBytes = fingerTemplates[i];
+
+                    //    supremaMatcher.RotateTemplate(firstTemplateBytes, firstTemplateBytes.Length);
+
+                    //    var fingerTemplate = new FingerTemplate
+                    //    {
+                    //        FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                    //        FingerTemplateType = _fingerTemplateTypes.SU384,
+                    //        UserId = retrievedUser.Id,
+                    //        Template = firstTemplateBytes,
+                    //        CheckSum = firstTemplateBytes.Sum(b => b),
+                    //        Size = firstTemplateBytes.ToList()
+                    //            .LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
+                    //        Index = i / 2,
+                    //        CreateAt = DateTime.Now,
+                    //        TemplateIndex = 0
+                    //    };
+
+                    //    retrievedUser.FingerTemplates.Add(fingerTemplate);
+
+                    //    if (fingerTemplates.Count <= i + 1)
+                    //        continue;
+
+                    //    var secondTemplateBytes = fingerTemplates[i + 1];
+
+                    //    supremaMatcher.RotateTemplate(secondTemplateBytes, secondTemplateBytes.Length);
+
+                    //    var secondFingerTemplateSample = new FingerTemplate
+                    //    {
+                    //        FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                    //        FingerTemplateType = _fingerTemplateTypes.SU384,
+                    //        UserId = retrievedUser.Id,
+                    //        Template = secondTemplateBytes,
+                    //        CheckSum = secondTemplateBytes.Sum(b => b),
+                    //        Size = secondTemplateBytes.ToList()
+                    //            .LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
+                    //        Index = i / 2,
+                    //        EnrollQuality = 0,
+                    //        SecurityLevel = 0,
+                    //        Duress = true,
+                    //        CreateAt = DateTime.Now,
+                    //        TemplateIndex = 1
+                    //    };
+
+                    //    retrievedUser.FingerTemplates.Add(secondFingerTemplateSample);
+                    //}
+
+                    for (var index = 0; index < userTemplates.Count; index += 2)
+                    {
+                        var firstFingerTemplate = userTemplates[index];
+                        //if (retrievedUser.FingerTemplates.Any(template => template.CheckSum == fingerTemplate.CheckSum))
+                        //    continue;
+
+                        Thread.Sleep(1000);
+                        var sendTemplateResult = false;
+                        supremaMatcher.RotateTemplate(firstFingerTemplate.Template, firstFingerTemplate.Template.Length);
+
+                        var checkExistenceResult = new SensorRecord { ScanState = ScanState.Unsupported };
                         for (var i = 0; i < 5;)
                         {
                             try
                             {
-                                var enrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Add_New);
-                                sendTemplateResult = enrollResult.ScanState == ScanState.Success || enrollResult.ScanState == ScanState.Scan_Success || enrollResult.ScanState == ScanState.Data_Ok || enrollResult.ID > 0;
+                                try
+                                {
+                                    _clock.Connection.ClearInputBuffer(false);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+
+                                checkExistenceResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                    firstFingerTemplate.Template, EnrollOptions.Check_Finger);
+                                if (checkExistenceResult.ScanState != ScanState.Exist_Finger) continue;
+                                Logger.Log($"The {index + 1} of {userTemplates.Count} finger template of user {user.Code} exists on device");
+                                sendTemplateResult = true;
+                                index++;
                                 break;
                             }
                             catch (Exception exception)
                             {
                                 Logger.Log(exception);
                                 Thread.Sleep(++i * 200);
+                            }
+                        }
+
+                        if (checkExistenceResult.ScanState == ScanState.Exist_Finger) continue;
+
+                        for (var i = 0; i < 5;)
+                        {
+                            try
+                            {
+                                try
+                                {
+                                    _clock.Connection.ClearInputBuffer(false);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+
+                                var templateEnrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                    firstFingerTemplate.Template, EnrollOptions.Add_New);
+                                sendTemplateResult = templateEnrollResult.ScanState == ScanState.Success ||
+                                                     templateEnrollResult.ScanState == ScanState.Scan_Success ||
+                                                     templateEnrollResult.ScanState == ScanState.Data_Ok || templateEnrollResult.ID > 0;
+
+                                Logger.Log($"The {index + 1} finger template of user {user.Code} has been sent to device");
+                                break;
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                                Thread.Sleep(++i * 200);
+                            }
+                        }
+
+                        if (sendTemplateResult && userTemplates.Count > index + 1)
+                        {
+                            var secondFingerTemplate = userTemplates[index + 1];
+                            //if (retrievedUser.FingerTemplates.Any(template => template.CheckSum == fingerTemplate.CheckSum))
+                            //    continue;
+
+                            Thread.Sleep(1000);
+                            supremaMatcher.RotateTemplate(secondFingerTemplate.Template, secondFingerTemplate.Template.Length);
+
+                            for (var i = 0; i < 5;)
+                            {
+                                try
+                                {
+                                    try
+                                    {
+                                        _clock.Connection.ClearInputBuffer(false);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        //ignore
+                                    }
+
+                                    var templateEnrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                        secondFingerTemplate.Template, EnrollOptions.Add_New);
+                                    sendTemplateResult = templateEnrollResult.ScanState == ScanState.Success ||
+                                                         templateEnrollResult.ScanState == ScanState.Scan_Success ||
+                                                         templateEnrollResult.ScanState == ScanState.Data_Ok ||
+                                                         templateEnrollResult.ID > 0;
+
+                                    Logger.Log(
+                                        $"The {index + 2} finger template of user {user.Code} has been sent to device");
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception);
+                                    Thread.Sleep(++i * 200);
+                                }
                             }
                         }
 
@@ -1144,7 +1360,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (isConnectToSensor)
-                //_logger.Debug("Successfully connected to sensor of device:{deviceId}", _deviceInfo.DeviceId);
+                //Logger.Log("Successfully connected to sensor of device:{deviceId}", _deviceInfo.DeviceId);
                 Logger.Log($"Successfully connected to sensor of device:{_deviceInfo.DeviceId}");
 
             return isConnectToSensor;
@@ -1181,7 +1397,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
-            //_logger.Debug(
+            //Logger.Log(
             //    disconnectedFromSensor
             //        ? "Successfully disconnected from sensor of device:{deviceId}"
             //        : "Could not disconnect from sensor of device:{deviceId}", _deviceInfo.DeviceId);
@@ -1193,9 +1409,17 @@ namespace Biovation.Brands.EOS.Devices
         }
 
         public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
-         DateTime? endTime,
-         bool saveFile = false)
+        DateTime? endTime,
+        bool saveFile = false)
         {
+            //lock (_clock)
+            //{
+            //    _logger.Information("dumping device");
+            //    var records = _clock.Dump(TotalLogCount, (DateTime)startTime, (DateTime)endTime, out var badRecords);
+            //    _logger.Information("Dumping finished, {recordsCount} records and {badRecordsCount} bad records retrieved", records.Count, badRecords.Count);
+            //    return new ResultViewModel { Success = true };
+            //}
+
             var invalidTime = false;
             if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
@@ -1217,7 +1441,10 @@ namespace Biovation.Brands.EOS.Devices
             lock (_clock)
                 eosDeviceType = _clock.GetModel();
 
-            Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+            lock (_onlineDevices)
+            {
+                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+            }
 
             bool deviceConnected;
 
@@ -1250,7 +1477,8 @@ namespace Biovation.Brands.EOS.Devices
 
                 if (deviceConnected && Valid && writePointer != -1)
                 {
-
+                    var initialReadPointer = writePointer;
+                    Logger.Log($"The initial pointer is: {initialReadPointer}");
                     for (var i = 0; i < 5; i++)
                     {
                         try
@@ -1258,7 +1486,7 @@ namespace Biovation.Brands.EOS.Devices
                             lock (_clock)
                             {
                                 Thread.Sleep(500);
-                                successSetPointer = _clock.SetReadPointer(writePointer);
+                                initialReadPointer = _clock.GetReadPointer();
                             }
                             break;
                         }
@@ -1270,14 +1498,84 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
-                    
+                    var rightBoundary = writePointer;
+                    var leftBoundary = writePointer + 2;
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            lock (_clock)
+                            {
+                                Thread.Sleep(500);
+                                successSetPointer = _clock.SetReadPointer(leftBoundary);
+                            }
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                        }
+
+                    }
+
+                    ClockRecord record = null;
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            lock (_clock)
+                            {
+                                Thread.Sleep(500);
+                                record = (ClockRecord)_clock.GetRecord();
+                            }
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                            if (i == 4)
+                            {
+                                leftBoundary = 1;
+                            }
+                        }
+                    }
+                    if (record is null)
+                    {
+                        leftBoundary = 1;
+                    }
+
                     if (successSetPointer)
                     {
                         (int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
-                        BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
+                        BinarySearch(leftBoundary, rightBoundary, Convert.ToDateTime(startTime), ref nearestIndex,
                             (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
 
+                        if (nearestIndex.Item1 < initialReadPointer)
+                            for (var i = 0; i < 5; i++)
+                            {
+                                try
+                                {
+                                    lock (_clock)
+                                    {
+                                        Thread.Sleep(500);
+                                        successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                                    }
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception, exception.Message);
+                                    Thread.Sleep(++i * 100);
+                                }
 
+                            }
+                    }
+
+                    if (!successSetPointer)
+                    {
                         for (var i = 0; i < 5; i++)
                         {
                             try
@@ -1285,7 +1583,7 @@ namespace Biovation.Brands.EOS.Devices
                                 lock (_clock)
                                 {
                                     Thread.Sleep(500);
-                                    successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                                    successSetPointer = _clock.SetReadPointer(initialReadPointer);
                                 }
                                 break;
                             }
@@ -1294,36 +1592,33 @@ namespace Biovation.Brands.EOS.Devices
                                 Logger.Log(exception, exception.Message);
                                 Thread.Sleep(++i * 100);
                             }
-
                         }
-
                     }
 
-                    lock (_onlineDevices)
-                    {
-                        return new ResultViewModel { Id = _deviceInfo.DeviceId, Success = successSetPointer };
-                    }
+                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Success = successSetPointer, Code = Convert.ToInt32(TaskStatuses.DoneCode) };
                 }
 
-            lock (_onlineDevices)
-            {
-                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-            }
+            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
         }
 
 
         private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
         {
-            if (Math.Abs(right - left) < 1)
+            if (Math.Abs(right - left) <= 1)
             {
                 return;
             }
+
+            Logger.Log("Searching for appropriate log pointer value.");
+
             var successSetPointer = false;
             ClockRecord clockRecord = null;
             var flag = false;
 
             var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
             var mid = (left + interval / 2);
+
+            Logger.Log($"The interval is: {interval} and the mid pointer is: {mid}");
 
             for (var i = 0; i < 5; i++)
             {
@@ -1335,9 +1630,11 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             Thread.Sleep(500);
                             successSetPointer = _clock.SetReadPointer(mid);
+                            Logger.Log($"The read pointer is successfully set to {mid}");
                         }
                         Thread.Sleep(500);
                         clockRecord = (ClockRecord)_clock.GetRecord();
+                        Logger.Log($"The log date is: {clockRecord.DateTime}");
                     }
                     break;
                 }
@@ -1350,7 +1647,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (clockRecord == null)
-                BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
+                BinarySearch(0, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
             else
             {
 
@@ -1360,13 +1657,15 @@ namespace Biovation.Brands.EOS.Devices
                     ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
                      (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)))
                 {
+                    Logger.Log("Wrong value detected", string.Empty, LogType.Warning);
                     flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
-                           (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
-                            Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
+                   (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
+                    Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
                 }
 
                 if (!(flag && !previousFlag))
                 {
+                    Logger.Log("Trying to handling the situation");
                     previousDateTimes.Item3 = previousDateTimes.Item2;
                     previousDateTimes.Item2 = previousDateTimes.Item1;
                     previousDateTimes.Item1 = clockRecord.DateTime;
@@ -1375,6 +1674,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
                 {
                     nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
+                    Logger.Log($"The nearest value has been changes to: {nearestIndex.Item1} with date of: {clockRecord.DateTime}, and the difference is: {nearestIndex.Item2}");
                 }
 
                 if (flag && !(previousFlag))
@@ -1385,15 +1685,18 @@ namespace Biovation.Brands.EOS.Devices
                             previousDateTimes, previousmid, true);
                     }
 
+                    Logger.Log("Searching, considering the wrong values");
                     BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
                         previousmid, true);
                 }
                 else if (clockRecord.DateTime > goalDateTime)
                 {
+                    Logger.Log("Searching left side of mid");
                     BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
                 }
                 else if (clockRecord.DateTime < goalDateTime)
                 {
+                    Logger.Log("Searching right side of mid");
                     BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
                 }
             }
