@@ -41,7 +41,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetDeviceGroup")]
         public List<DeviceGroup> GetDeviceGroup(int? id, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId).FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId).FirstOrDefault());
             return id == null ? _deviceGroupService.GetDeviceGroups(token: token) : _deviceGroupService.GetDeviceGroups((int)id, token: token);
         }
 

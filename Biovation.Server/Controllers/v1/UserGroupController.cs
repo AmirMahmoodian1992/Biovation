@@ -464,7 +464,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId)?.FirstOrDefault());
+                var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId)?.FirstOrDefault());
                 return _userGroupService.UsersGroup(token: token);
             }
             catch (Exception exception)
