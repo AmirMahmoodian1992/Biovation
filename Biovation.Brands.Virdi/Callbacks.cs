@@ -1489,7 +1489,7 @@ namespace Biovation.Brands.Virdi
                     dynamic matchedFpInfo = fastSearch.MatchedFpInfo;
                     int userId = matchedFpInfo.UserId;
 
-                    var user = _commonUserService.GetUsers(userId)?.FirstOrDefault();
+                    var user = _commonUserService.GetUsers(code: userId)?.FirstOrDefault();
 
                     if (user is null)
                     {
@@ -1585,7 +1585,7 @@ namespace Biovation.Brands.Virdi
                 var szCapturedFir = FpData.TextFIR;
                 var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+                var user = _commonUserService.GetUsers(code: userId).FirstOrDefault();
                 if (user is null)
                 {
                     isAuthorized = 0;
@@ -2521,7 +2521,7 @@ namespace Biovation.Brands.Virdi
                     //{
                     var taskItem = taskItemAwaiter;
                     var userId = Convert.ToInt64(JsonConvert.DeserializeObject<JObject>(taskItem.Data)["UserId"]);
-                    var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+                    var user = _commonUserService.GetUsers(code: userId).FirstOrDefault();
                     //var userFaceTemplates = _faceTemplateService.FaceTemplates(userId: userId);
 
                     if (user is null)
@@ -2630,7 +2630,7 @@ namespace Biovation.Brands.Virdi
                    +Antipassback Level:{antipassbackLevel}
                    +Password:{password}");
 
-                var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+                var user = _commonUserService.GetUsers(code: userId).FirstOrDefault();
 
 
                 var isAuthorized = string.Equals(user?.Password, password, StringComparison.InvariantCultureIgnoreCase) ? 1 : 0;
@@ -2941,7 +2941,7 @@ namespace Biovation.Brands.Virdi
             var isCardID = 0;
             var isFinger = 1;
 
-            var user = _commonUserService.GetUsers(userId).FirstOrDefault();
+            var user = _commonUserService.GetUsers(code: userId).FirstOrDefault();
             //var isVisitor = user!= null && user.IsAdmin ? 0 : 1;
             var hasAccess = user != null && (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? 1 : 0;
 
