@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Biovation.Services.RelayController.Commands;
 using Biovation.Services.RelayController.Domain;
-using Biovation.Services.RelayController.Models;
-using Biovation.Services.RelayController.Relays;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -14,30 +12,26 @@ namespace Biovation.Services.RelayController.Controllers
     public class RelayController : ControllerBase
     {
         private readonly CommandFactory _commandFactory;
-        private readonly RelayFactory _relayFactory;
 
         public RelayController()
         {
             _commandFactory = new CommandFactory();
-            _relayFactory = new RelayFactory();
         }
 
         /// <summary>
         /// it contacts the relay with passed id
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="relayId"></param>
         /// <returns></returns>
-        [Route("Contact/{id}")]
+        [Route("Contact/{relayId}")]
         [HttpGet]
-        public string Contact(int id)
+        public string Contact(int relayId)
         {
             try
             {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.Contact, relay);
+                var command = _commandFactory.Factory(CommandType.Contact, relayId);
                 command.Execute();
-                return $"relay {id} contacted successfully :) ";
+                return $"relay {relayId} contacted successfully :) ";
             }
             catch (Exception e)
             {
@@ -48,19 +42,17 @@ namespace Biovation.Services.RelayController.Controllers
         /// <summary>
         /// it turns on the relay with passed id
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="relayId"></param>
         /// <returns></returns>
-        [Route("TurnOn/{id}")]
+        [Route("TurnOn/{relayId}")]
         [HttpGet]
-        public string TurnOn(int id)
+        public string TurnOn(int relayId)
         {
             try
             {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.TurnOn, relay);
+                var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
                 command.Execute();
-                return $"relay {id} turned on successfully :) ";
+                return $"relay {relayId} turned on successfully :) ";
             }
             catch (Exception e)
             {
@@ -71,19 +63,17 @@ namespace Biovation.Services.RelayController.Controllers
         /// <summary>
         /// it turns on the relay with passed id
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="relayId"></param>
         /// <returns></returns>
-        [Route("TurnOff/{id}")]
+        [Route("TurnOff/{relayId}")]
         [HttpGet]
-        public string TurnOff(int id)
+        public string TurnOff(int relayId)
         {
             try
             {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.TurnOff, relay);
+                var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
                 command.Execute();
-                return $"relay {id} turned off successfully :) ";
+                return $"relay {relayId} turned off successfully :) ";
             }
             catch (Exception e)
             {
@@ -94,19 +84,17 @@ namespace Biovation.Services.RelayController.Controllers
         /// <summary>
         /// it turns the relay flashing on
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="relayId"></param>
         /// <returns></returns>
-        [Route("FlashOn/{id}")]
+        [Route("FlashOn/{relayId}")]
         [HttpGet]
-        public string FlashOn(int id)
+        public string FlashOn(int relayId)
         {
             try
             {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.FlashOn, relay);
+                var command = _commandFactory.Factory(CommandType.FlashOn, relayId);
                 command.Execute();
-                return $"relay {id} started flashing successfully :) ";
+                return $"relay {relayId} started flashing successfully :) ";
             }
             catch (Exception e)
             {
@@ -117,65 +105,17 @@ namespace Biovation.Services.RelayController.Controllers
         /// <summary>
         /// it turns the relay flashing off
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="relayId"></param>
         /// <returns></returns>
-        [Route("FlashOff/{id}")]
+        [Route("FlashOff/{relayId}")]
         [HttpGet]
-        public string FlashOff(int id)
+        public string FlashOff(int relayId)
         {
             try
             {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.FlashOff, relay);
+                var command = _commandFactory.Factory(CommandType.FlashOff, relayId);
                 command.Execute();
-                return $"relay {id} stoped flashing successfully :) ";
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-        }
-
-        /// <summary>
-        /// it returns the data of the relay (it does not work)
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns> [string] serialized data </returns>
-        [Route("GetData/{id}")]
-        [HttpGet]
-        public string GetData(int id)
-        {
-            try
-            {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.GetData, relay);
-                var data = command.Execute();
-                return $"relay {id} information: \n {data}";
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-        }
-
-        /// <summary>
-        /// it returns the status of the relay (it does not work)
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns> [string] relay status </returns>
-        [Route("GetStatus/{id}")]
-        [HttpGet]
-        public string GetStatus(int id)
-        {
-            try
-            {
-                var relayInfo = new Relay(ip: "192.168.1.200", port: 23, id: id, brand: RelayBrands.Behsan);
-                var relay = _relayFactory.Factory(relayInfo);
-                var command = _commandFactory.Factory(CommandType.GetStatus, relay);
-                var data = command.Execute();
-                return $"relay {id} status: \n {data}";
+                return $"relay {relayId} stopped flashing successfully :) ";
             }
             catch (Exception e)
             {

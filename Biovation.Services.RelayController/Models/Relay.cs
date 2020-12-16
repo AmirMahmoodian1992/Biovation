@@ -1,18 +1,17 @@
-﻿namespace Biovation.Services.RelayController.Models
+﻿using System;
+using System.Collections.Generic;
+
+namespace Biovation.Services.RelayController.Models
 {
     public class Relay
     {
-        public string Ip { get; set; }
-        public int Port { get; set; }
         public int Id { get; set; }
-        public string Brand { get; set; }
-
-        public Relay(string ip, int port, int id, string brand)
-        {
-            Ip = ip;
-            Port = port;
-            Id = id;
-            Brand = brand;
-        }
+        public string Name { get; set; }
+        public int NodeNumber { get; set; }
+        //public Tuple<Enum, DateTime> LastState { get; set; }
+        public RelayHub Hub { get; set; }
+        public Entrance Entrance { get; set; }
+        //public List<Scheduling> Schedulings { get; set; }
+        public string Description { get; set; }
     }
 }

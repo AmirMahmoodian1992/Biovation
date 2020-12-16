@@ -67,7 +67,7 @@ namespace Biovation.Services.RelayController
             ConfigureConstantValues(services);
             //ConfigureRelayServices(services);
 
-            services.AddHostedService<PingCollectorHostedService>();
+            //services.AddHostedService<PingCollectorHostedService>();
             //services.AddHostedService<BroadcastMetricsHostedService>();
         }
 
