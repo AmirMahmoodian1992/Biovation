@@ -422,36 +422,93 @@ namespace Biovation.Brands.EOS.Devices
                         }
                     }
 
-                    if (userFingerTemplates == null)
+                    if (userFingerTemplates == null || userFingerTemplates.Count == 0)
                     {
+                        var deleteUser = false;
                         _logger.Debug($"User {userId} may not be on device {_deviceInfo.DeviceId}");
                         try
                         {
                             DisconnectFromSensor();
-                            _clock.DeleteUser(userCode);
+                            deleteUser = _clock.DeleteUser(userCode);
                         }
                         catch (Exception innerException)
                         {
                             _logger.Debug(innerException, innerException.Message);
                         }
 
-                        return true;
+                        return deleteUser;
                     }
+
+                    var deletedTemplatesCount = 0;
 
                     foreach (var fingerTemplate in userFingerTemplates)
                     {
-                        _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
+                        for (var j = 0; j < 5; j++)
+                        {
+                            try
+                            {
+                                var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
+                                if (templateDeletionResult.ScanState != ScanState.Success &&
+                                    templateDeletionResult.ScanState != ScanState.Scan_Success) continue;
+                                _logger.Debug($"A finger print of user {userId} deleted");
+                                deletedTemplatesCount++;
+                                break;
+
+                                //if (templateDeletionResult.ScanState == ScanState.Not_Found)
+                                //    _clock.Sensor.DeleteTemplate(userId, i);
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.Warning(exception, exception.Message);
+                            }
+                        }
+                    }
+
+                    for (var i = 0; i < 3; i++)
+                    {
+                        for (var index = 0; index < 10; index++)
+                        {
+                            try
+                            {
+                                var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, index);
+                                if (templateDeletionResult.ScanState != ScanState.Success &&
+                                    templateDeletionResult.ScanState != ScanState.Scan_Success) continue;
+                                Logger.Log($"A finger print of user {userId} deleted");
+                                deletedTemplatesCount++;
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.Warning(exception, exception.Message);
+                            }
+                        }
+
+                        if (deletedTemplatesCount >= userFingerTemplates.Count)
+                            break;
                     }
 
                     //_clock.Sensor.DeleteByID(userId);
 
                     DisconnectFromSensor();
-                    _clock.DeleteUser(userCode);
-                    return true;
+
+                    var deletionResult = false;
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            deletionResult = _clock.DeleteUser(userCode);
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                        }
+                    }
+
+                    return deletionResult;
                 }
                 catch (Exception exception)
                 {
-                    _logger.Debug(exception, exception.Message);
+                    _logger.Warning(exception, exception.Message);
                 }
                 //finally
                 //{
@@ -511,21 +568,75 @@ namespace Biovation.Brands.EOS.Devices
                         return false;
                     }
 
-                    foreach (var fingerTemplate in userTemplates)
+                    for (var index = 0; index < userTemplates.Count; index += 2)
                     {
                         var sendTemplateResult = false;
+                        var firstFingerTemplate = userTemplates[index];
+                        var checkExistenceResult = new SensorRecord { ScanState = ScanState.Unsupported };
+
                         for (var i = 0; i < 5;)
                         {
                             try
                             {
-                                var enrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Add_New);
-                                sendTemplateResult = enrollResult.ScanState == ScanState.Success || enrollResult.ScanState == ScanState.Scan_Success || enrollResult.ScanState == ScanState.Data_Ok || enrollResult.ID > 0;
+                                try
+                                {
+                                    _clock.Connection.ClearInputBuffer(false);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+
+                                checkExistenceResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                    firstFingerTemplate.Template, EnrollOptions.Check_Finger);
+                                sendTemplateResult = checkExistenceResult.ScanState == ScanState.Success ||
+                                                     checkExistenceResult.ScanState == ScanState.Scan_Success ||
+                                                     checkExistenceResult.ScanState == ScanState.Data_Ok || checkExistenceResult.ID > 0;
+                                if (checkExistenceResult.ScanState != ScanState.Exist_Finger) break;
+                                _logger.Debug($"The {index + 1} of {userTemplates.Count} finger template of user {user.Code} exists on device");
                                 break;
                             }
                             catch (Exception exception)
                             {
                                 _logger.Warning(exception, exception.Message);
                                 Thread.Sleep(++i * 200);
+                            }
+                        }
+
+                        if (checkExistenceResult.ScanState == ScanState.Exist_Finger) continue;
+
+                        if (userTemplates.Count > index + 1)
+                        {
+                            var secondFingerTemplate = userTemplates[index + 1];
+                            for (var i = 0; i < 5;)
+                            {
+                                try
+                                {
+                                    try
+                                    {
+                                        _clock.Connection.ClearInputBuffer(false);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        //ignore
+                                    }
+
+                                    var templateEnrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                        secondFingerTemplate.Template, EnrollOptions.Add_New);
+                                    sendTemplateResult = templateEnrollResult.ScanState == ScanState.Success ||
+                                                         templateEnrollResult.ScanState == ScanState.Scan_Success ||
+                                                         templateEnrollResult.ScanState == ScanState.Data_Ok ||
+                                                         templateEnrollResult.ID > 0;
+
+                                    _logger.Debug(
+                                        $"The {index + 2} finger template of user {user.Code} has been sent to device");
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.Warning(exception, exception.Message);
+                                    Thread.Sleep(++i * 200);
+                                }
                             }
                         }
 
@@ -607,7 +718,6 @@ namespace Biovation.Brands.EOS.Devices
 
                     for (var i = 0; i < fingerTemplates.Count; i += 2)
                     {
-
                         var firstTemplateBytes = fingerTemplates[i];
 
                         var fingerTemplate = new FingerTemplate
