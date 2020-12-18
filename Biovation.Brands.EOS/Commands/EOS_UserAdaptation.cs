@@ -171,17 +171,6 @@ namespace Biovation.Brands.EOS.Commands
                     });
 
                     _taskService.InsertTask(task);
-
-                    restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                    return new ResultViewModel
-                    {
-                        Success = true,
-                        Id = deviceId,
-                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
-                        Message = $"The Delete and send User operations for User{userCode}  on Device {device.DeviceId} successfully started"
-                    };
                 }
                 catch (Exception exception)
                 {
@@ -190,7 +179,16 @@ namespace Biovation.Brands.EOS.Commands
                 }
             }
 
-            return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+            restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+            return new ResultViewModel
+            {
+                Success = true,
+                Id = deviceId,
+                Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                Message = $"The Delete and send User operations for Users  on Device {device.DeviceId} successfully started"
+            };
         }
 
         public void Rollback()
