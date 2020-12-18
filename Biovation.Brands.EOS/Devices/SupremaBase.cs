@@ -839,7 +839,7 @@ namespace Biovation.Brands.EOS.Devices
 
                         Thread.Sleep(1000);
                         var sendTemplateResult = false;
-                        supremaMatcher.RotateTemplate(firstFingerTemplate.Template, firstFingerTemplate.Template.Length);
+                        supremaMatcher.RotateTemplate(firstFingerTemplate.Template, 384);
 
                         var checkExistenceResult = new SensorRecord { ScanState = ScanState.Unsupported };
                         for (var i = 0; i < 5;)
@@ -880,7 +880,7 @@ namespace Biovation.Brands.EOS.Devices
                             //    continue;
 
                             Thread.Sleep(1000);
-                            supremaMatcher.RotateTemplate(secondFingerTemplate.Template, secondFingerTemplate.Template.Length);
+                            supremaMatcher.RotateTemplate(secondFingerTemplate.Template, 384);
 
                             for (var i = 0; i < 5;)
                             {
@@ -993,7 +993,7 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         var firstTemplateBytes = fingerTemplates[i];
 
-                        supremaMatcher.RotateTemplate(firstTemplateBytes, firstTemplateBytes.Length);
+                        supremaMatcher.RotateTemplate(firstTemplateBytes, 384);
 
                         var fingerTemplate = new FingerTemplate
                         {
@@ -1016,7 +1016,7 @@ namespace Biovation.Brands.EOS.Devices
 
                         var secondTemplateBytes = fingerTemplates[i + 1];
 
-                        supremaMatcher.RotateTemplate(secondTemplateBytes, secondTemplateBytes.Length);
+                        supremaMatcher.RotateTemplate(secondTemplateBytes, 384);
 
                         var secondFingerTemplateSample = new FingerTemplate
                         {
