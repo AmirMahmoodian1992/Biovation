@@ -31,7 +31,7 @@ namespace Biovation.Brands.EOS
             _restClient = restClient;
             _logEvents = logEvents;
             _deviceFactory = deviceFactory;
-            _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode)?.Data?.Data?.Where(x => x.Active).ToList();
+            _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode)?.Data?.Data?.Where(x => x.Active).ToList() ?? new List<DeviceBasicInfo>();
         }
 
         public async void ConnectToDevice(DeviceBasicInfo deviceInfo)
