@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Biovation.Services.RelayController.Commands;
 using Biovation.Services.RelayController.Domain;
+using Biovation.Services.RelayController.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -13,9 +14,9 @@ namespace Biovation.Services.RelayController.Controllers
     {
         private readonly CommandFactory _commandFactory;
 
-        public RelayController()
+        public RelayController(TcpClientGetterService tcpClientGetter)
         {
-            _commandFactory = new CommandFactory();
+            _commandFactory = new CommandFactory(tcpClientGetter);
         }
 
         /// <summary>

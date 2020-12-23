@@ -14,15 +14,15 @@ namespace Biovation.Services.RelayController.Commands
 
         public object Execute()
         {
-            if (!Relay.IsConnected())
-                if (!Relay.Connect())
-                    throw new Exception("connection error !");
+         //   if (!Relay.IsConnected())
+         //       if (!Relay.Connect())
+         //           throw new Exception("connection error !");
 
             if (!Relay.TurnOn())
                 throw new Exception("Contact command failed !");
 
-            if (!Relay.Disconnect())
-                throw new Exception("relay could not disconnect successfully!");
+         //   if (!Relay.Disconnect())
+         //       throw new Exception("relay could not disconnect successfully!");
 
             return 1;
         }

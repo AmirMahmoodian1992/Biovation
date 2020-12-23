@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using Biovation.Services.RelayController.Common;
@@ -18,12 +16,12 @@ namespace Biovation.Services.RelayController.Relays
         private readonly bool _autoReconnect = true;
         private readonly int _readBufferSize = 300;
 
-        public BehsanRelay(Relay relayInfo)
+        public BehsanRelay(Relay relayInfo, TcpClient tcpClient)
         {
             RelayInfo = relayInfo;
-            _tcpClient = new TcpClient();
+            _tcpClient = tcpClient;
             _asciiEncoding = new ASCIIEncoding();
-            _stream = null;
+            _stream = _tcpClient.GetStream();
         }
 
         public bool Connect()
@@ -31,7 +29,7 @@ namespace Biovation.Services.RelayController.Relays
             try
             {
                 _tcpClient.ConnectAsync(RelayInfo.Hub.IpAddress, RelayInfo.Hub.Port).Wait(2000);
-                _stream = _tcpClient.GetStream();
+                //_stream = _tcpClient.GetStream();
                 _tcpClient.ReceiveTimeout = 2000;
                 return true;
             }
@@ -58,15 +56,38 @@ namespace Biovation.Services.RelayController.Relays
         {
             try
             {
-                var ipProperties = IPGlobalProperties.GetIPGlobalProperties();
-                var tcpConnections = ipProperties.GetActiveTcpConnections();
-                return (from tcpConnection in tcpConnections
-                    let stateOfConnection = tcpConnection.State
-                    where tcpConnection.LocalEndPoint.Equals(_tcpClient.Client.LocalEndPoint) &&
-                          tcpConnection.RemoteEndPoint.Equals(_tcpClient.Client.RemoteEndPoint)
-                    select stateOfConnection == TcpState.Established).FirstOrDefault();
+                if (_tcpClient != null && _tcpClient.Client != null && _tcpClient.Client.Connected)
+                {
+                    /* pear to the documentation on Poll:
+                    * When passing SelectMode.SelectRead as a parameter to the Poll method it will return 
+                    * -either- true if Socket.Listen(Int32) has been called and a connection is pending;
+                    * -or- true if data is available for reading; 
+                    * -or- true if the connection has been closed, reset, or terminated; 
+                    * otherwise, returns false
+                    */
+                    // Detect if client disconnected
+                    if (_tcpClient.Client.Poll(0, SelectMode.SelectRead))
+                    {
+                        byte[] buff = new byte[1];
+                        if (_tcpClient.Client.Receive(buff, SocketFlags.Peek) == 0)
+                        {
+                            // Client disconnected
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
