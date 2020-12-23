@@ -1,12 +1,12 @@
 ﻿using System;
 
-namespace Biovation.Services.RelayController.Models
+namespace Biovation.Domain.RelayControllerModels
 {
     public class Scheduling
     {
         public int Id { get; set; }
         public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTiem { get; set; }
+        public TimeSpan EndTime { get; set; }
         public Enum Mode { get; set; }
     }
 }

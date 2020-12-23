@@ -1,11 +1,10 @@
-﻿using Biovation.Services.RelayController.Domain;
+﻿using Biovation.Domain;
+using Biovation.Domain.RelayControllerModels;
 using Biovation.Services.RelayController.Common;
-using System;
-using Biovation.Services.RelayController.Models;
 using Biovation.Services.RelayController.Relays;
 using Biovation.Services.RelayController.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
+using System;
+using CommandType = Biovation.Services.RelayController.Domain.CommandType;
 
 namespace Biovation.Services.RelayController.Commands
 {
@@ -33,7 +32,7 @@ namespace Biovation.Services.RelayController.Commands
                     IpAddress = "192.168.1.200",
                     Port = 23,
                     Capacity = 4,
-                    RelayHubModel = "Behsan",
+                    RelayHubModel = new DeviceModel { Name = "Behsan" },
                     Description = "Blah Blah Blah"
                 },
                 Entrance = new Entrance
@@ -53,7 +52,7 @@ namespace Biovation.Services.RelayController.Commands
 
             var relay = _relayFactory.Factory(relayInfo, tcpClient);
 
-            if(relay.RelayInfo.NodeNumber > relay.RelayInfo.Hub.Capacity)
+            if (relay.RelayInfo.NodeNumber > relay.RelayInfo.Hub.Capacity)
                 throw new Exception("the relay node number is out of range!");
 
             return commandId switch
@@ -63,7 +62,7 @@ namespace Biovation.Services.RelayController.Commands
                 CommandType.TurnOff => new TurnOff(relay: relay),
                 CommandType.FlashOn => new FlashOn(relay: relay),
                 CommandType.FlashOff => new FlashOff(relay: relay),
-                _ => throw new ArgumentException(message:$"No command matches with the id {commandId}")
+                _ => throw new ArgumentException(message: $"No command matches with the id {commandId}")
             };
         }
     }

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Net.Sockets;
+﻿using Biovation.Domain.RelayControllerModels;
 using Biovation.Services.RelayController.Common;
 using Biovation.Services.RelayController.Domain;
-using Biovation.Services.RelayController.Models;
+using System;
+using System.Net.Sockets;
 
 namespace Biovation.Services.RelayController.Relays
 {
@@ -13,10 +13,11 @@ namespace Biovation.Services.RelayController.Relays
         /// attributes are held in the Relay object passed to this function
         /// </summary>
         /// <param name="relay"> a model containing the relay's attributes </param>
+        /// <param name="tcpClient"></param>
         /// <returns> IRelay object </returns>
         public IRelay Factory(Relay relay, TcpClient tcpClient)
         {
-            return relay.Hub.RelayHubModel switch
+            return relay.Hub.RelayHubModel.Name switch
             {
                 RelayBrands.Behsan => new BehsanRelay(relay, tcpClient),
                 _ => throw new ArgumentException(message: $"{relay.Hub.RelayHubModel} is not defined as a relay's brand")

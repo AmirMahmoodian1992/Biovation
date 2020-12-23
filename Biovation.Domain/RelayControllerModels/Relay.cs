@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Biovation.Services.RelayController.Models
+namespace Biovation.Domain.RelayControllerModels
 {
     public class Relay
     {
@@ -11,7 +10,7 @@ namespace Biovation.Services.RelayController.Models
         //public Tuple<Enum, DateTime> LastState { get; set; }
         public RelayHub Hub { get; set; }
         public Entrance Entrance { get; set; }
-        //public List<Scheduling> Schedulings { get; set; }
+        public List<Scheduling> Schedulings { get; set; }
         public string Description { get; set; }
     }
 }

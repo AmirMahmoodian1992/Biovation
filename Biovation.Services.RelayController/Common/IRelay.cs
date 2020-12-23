@@ -1,4 +1,4 @@
-﻿using Biovation.Services.RelayController.Models;
+﻿using Biovation.Domain.RelayControllerModels;
 
 namespace Biovation.Services.RelayController.Common
 {
