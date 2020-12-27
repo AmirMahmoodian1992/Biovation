@@ -55,13 +55,13 @@
 
   <ItemGroup>
     <Reference Include="Interop.UCBioBSPCOMLib">
-      <HintPath>Libraries\Interop.UCBioBSPCOMLib.dll</HintPath>
+      <HintPath>Libraries\SDK\Interop.UCBioBSPCOMLib.dll</HintPath>
     </Reference>
     <Reference Include="Interop.UCSAPICOMLib">
-      <HintPath>Libraries\Interop.UCSAPICOMLib.dll</HintPath>
+      <HintPath>Libraries\SDK\Interop.UCSAPICOMLib.dll</HintPath>
     </Reference>
     <Reference Include="UNIONCOMM.SDK.UCBioBSP">
-      <HintPath>Libraries\UNIONCOMM.SDK.UCBioBSP.dll</HintPath>
+      <HintPath>Libraries\SDK\UNIONCOMM.SDK.UCBioBSP.dll</HintPath>
     </Reference>
   </ItemGroup>
 
@@ -78,7 +78,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>UCBioBSP.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\UCBioBSPCOM.dll">
+    <ContentWithTargetPath Include="Libraries\SDK\UCBioBSPCOM.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>UCBioBSPCOM.dll</TargetPath>
     </ContentWithTargetPath>
@@ -86,7 +86,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>UCSAPI40.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\UCSAPICOM.dll">
+    <ContentWithTargetPath Include="Libraries\SDK\UCSAPICOM.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>UCSAPICOM.dll</TargetPath>
     </ContentWithTargetPath>
