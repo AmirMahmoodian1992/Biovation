@@ -28,7 +28,7 @@ namespace Biovation.Service.Api.v2
             int deviceModelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default, string token = default)
         {
             return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
-                deviceIoTypeId, pageNumber, pageSize);
+                deviceIoTypeId, pageNumber, pageSize,token:token);
         }
 
         public ResultViewModel<DeviceBasicInfo> GetDevice(long id = default, long adminUserId = default, string token = default)

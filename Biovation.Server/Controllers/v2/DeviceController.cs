@@ -335,9 +335,11 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("OnlineDevices")]
+        [Attribute.Authorize]
         public Task<List<DeviceBasicInfo>> OnlineDevices()
         {
-            //var token = (string)HttpContext.Items["Token"];
+            var token = (string)HttpContext.Items["Token"];
+            var onlineUser = (int)HttpContext.GetUser().Id;
             return Task.Run(() =>
             {
                 var resultList = new List<DeviceBasicInfo>();
@@ -357,10 +359,18 @@ namespace Biovation.Server.Controllers.v2
                     var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK)
-                        resultList.AddRange(result.Data);
+                        resultList.AddRange(resultList);
                 });
-
-                return resultList;
+             
+                var permissibleDevices = Task.Run(() => _deviceService.GetDevices(0, 0, 0, 0.ToString(), String.Empty,
+                        0, 0, 0, 0, HttpContext.Items["Token"].ToString())).Result?.Data?.Data;
+               
+          
+                if (permissibleDevices != null)
+                {
+                   permissibleDevices = resultList.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
+                }
+                return permissibleDevices;
             });
         }
 
