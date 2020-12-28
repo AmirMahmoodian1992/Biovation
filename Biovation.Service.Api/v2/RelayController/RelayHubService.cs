@@ -5,11 +5,11 @@ using Biovation.Repository.Sql.v2.RelayController;
 
 namespace Biovation.Service.Api.v2.RelayController
 {
-    public class RelayHubServices
+    public class RelayHubService
     {
         private readonly RelayHubRepository _relayHubRepository;
 
-        public RelayHubServices(RelayHubRepository relayHubRepository)
+        public RelayHubService(RelayHubRepository relayHubRepository)
         {
             _relayHubRepository = relayHubRepository;
         }
