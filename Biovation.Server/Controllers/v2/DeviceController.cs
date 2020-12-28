@@ -359,7 +359,7 @@ namespace Biovation.Server.Controllers.v2
                     var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK)
-                        resultList.AddRange(resultList);
+                        resultList.AddRange(result.Data);
                 });
              
                 var permissibleDevices = Task.Run(() => _deviceService.GetDevices(0, 0, 0, 0.ToString(), String.Empty,
