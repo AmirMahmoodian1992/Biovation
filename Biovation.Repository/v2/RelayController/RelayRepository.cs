@@ -19,7 +19,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
         }
 
 
-        public ResultViewModel<PagingResult<RelayHub>> GetRelay(List<Scheduling> schedulings, int id = 0,
+        public ResultViewModel<PagingResult<Relay>> GetRelay(List<Scheduling> schedulings, int id = 0,
            string name = null, int nodeNumber = 0, int relayHubId =0, int entranceId = 0, string description = null,
            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
@@ -36,7 +36,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
 
             };
-            return _repository.ToResultList<PagingResult<RelayHub>>($"SelectRelayHubByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<Relay>>($"SelectRelayHubByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
 
         }
 

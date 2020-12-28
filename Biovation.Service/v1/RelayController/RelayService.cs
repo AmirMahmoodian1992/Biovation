@@ -17,7 +17,7 @@ namespace Biovation.Service.Sql.v1.RelayController
             _relayRepository = relayRepository;
         }
 
-        public Task<ResultViewModel<PagingResult<RelayHub>>> GetRelay(List<Scheduling> schedulings, int id = 0,
+        public Task<ResultViewModel<PagingResult<Relay>>> GetRelay(List<Scheduling> schedulings, int id = 0,
             string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null,
             int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
