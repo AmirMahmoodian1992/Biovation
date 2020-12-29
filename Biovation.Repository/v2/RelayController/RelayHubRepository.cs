@@ -18,8 +18,6 @@ namespace Biovation.Repository.Sql.v2.RelayController
             _repository = repository;
         }
 
-
-
         public ResultViewModel CreateRelayHubs(RelayHub relayHub)
         {
             var parameters = new List<SqlParameter>
@@ -28,12 +26,12 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@Port", SqlDbType.Int) {Value = relayHub.Port},
                 new SqlParameter("@Capacity", SqlDbType.Int) {Value = relayHub.Capacity},
                 new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = relayHub.RelayHubModel},
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description},
-
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
-            return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
 
+            return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
         }
+
         public ResultViewModel<PagingResult<RelayHub>> GetRelayHubs(int id = 0, string ipAddress = null, int port = 0,
             int capacity = 0, string relayHubModel = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
@@ -47,11 +45,10 @@ namespace Biovation.Repository.Sql.v2.RelayController
                     new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = relayHubModel},
                     new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
                     new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                    new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
-
+                    new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
                 };
-            return _repository.ToResultList<PagingResult<RelayHub>>($"SelectRelayHubByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
 
+            return _repository.ToResultList<PagingResult<RelayHub>>("SelectRelayHubByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel UpdateRelayHubs(RelayHub relayHub)
@@ -63,11 +60,10 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@Port", SqlDbType.Int) {Value = relayHub.Port},
                 new SqlParameter("@Capacity", SqlDbType.Int) {Value = relayHub.Capacity},
                 new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = relayHub.RelayHubModel},
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description},
-
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
-            return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
 
+            return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
         }
 
 
@@ -77,10 +73,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id }
             };
+
             return _repository.ToResultList<ResultViewModel>("DeleteRelayHub", parameters).Data.FirstOrDefault();
-
         }
-
-
     }
 }
