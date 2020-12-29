@@ -1,8 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Domain.RelayControllerModels;
-using Biovation.Repository.Sql.v2.RelayController;
+using Biovation.Repository.Api.v2.RelayController;
+using System;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2.RelayController
 {
@@ -15,28 +15,27 @@ namespace Biovation.Service.Api.v2.RelayController
             _schedulingRepository = schedulingRepository;
         }
 
-        public Task<ResultViewModel> CreateScheduling(Scheduling scheduling)
+        public async Task<ResultViewModel> CreateScheduling(Scheduling scheduling, string token = default)
         {
-            return Task.Run(() => _schedulingRepository.CreateScheduling(scheduling));
+            return await _schedulingRepository.CreateScheduling(scheduling, token);
         }
 
-        public Task<ResultViewModel<PagingResult<Scheduling>>> GetSchedulings(int id = 0,
+        public async Task<ResultViewModel<PagingResult<Scheduling>>> GetSchedulings(int id = 0,
             TimeSpan startTime = default, TimeSpan endTime = default, string mode = null, int pageNumber = 0,
-            int pageSize = 0, int nestingDepthLevel = 4)
+            int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
-            return Task.Run(() =>
-                _schedulingRepository.GetScheduling(id, startTime, endTime, mode, pageNumber, pageSize,
-                    nestingDepthLevel));
+            return await _schedulingRepository.GetScheduling(id, startTime, endTime, mode, pageNumber, pageSize,
+                    nestingDepthLevel, token);
         }
 
-        public Task<ResultViewModel> UpdateScheduling(Scheduling scheduling)
+        public async Task<ResultViewModel> UpdateScheduling(Scheduling scheduling, string token = default)
         {
-            return Task.Run(() => _schedulingRepository.UpdateScheduling(scheduling));
+            return await _schedulingRepository.UpdateScheduling(scheduling, token);
         }
 
-        public Task<ResultViewModel> DeleteScheduling(int id)
+        public async Task<ResultViewModel> DeleteScheduling(int id, string token = default)
         {
-            return Task.Run(() => _schedulingRepository.DeleteScheduling(id));
+            return await _schedulingRepository.DeleteScheduling(id, token);
         }
     }
 }

@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Domain.RelayControllerModels;
-using Biovation.Repository.Sql.v2.RelayController;
-using Confluent.Kafka;
+using Biovation.Repository.Api.v2.RelayController;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2.RelayController
 {
@@ -16,12 +15,12 @@ namespace Biovation.Service.Api.v2.RelayController
             _relayRepository = relayRepository;
         }
 
-        public Task<ResultViewModel<PagingResult<Relay>>> GetRelay(int id = 0,
+        public async Task<ResultViewModel<PagingResult<Relay>>> GetRelay(int id = 0,
             string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null,
-            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, List<Scheduling> schedulings = null)
+            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, List<Scheduling> schedulings = null, string token = default)
         {
-            return Task.Run(() => _relayRepository.GetRelay(schedulings, id, name, nodeNumber, relayHubId, entranceId,
-                description, pageNumber, pageSize, nestingDepthLevel));
+            return await _relayRepository.GetRelay(id, name, nodeNumber, relayHubId, entranceId,
+                description, pageNumber, pageSize, nestingDepthLevel, schedulings, token);
         }
 
     }

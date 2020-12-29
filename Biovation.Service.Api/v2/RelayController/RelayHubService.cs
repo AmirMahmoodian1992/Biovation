@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Domain.RelayControllerModels;
-using Biovation.Repository.Sql.v2.RelayController;
+using Biovation.Repository.Api.v2.RelayController;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2.RelayController
 {
@@ -14,27 +14,27 @@ namespace Biovation.Service.Api.v2.RelayController
             _relayHubRepository = relayHubRepository;
         }
 
-        public Task<ResultViewModel> CreateRelayHub(RelayHub relayHub)
+        public async Task<ResultViewModel> CreateRelayHub(RelayHub relayHub, string token = default)
         {
-            return Task.Run(() => _relayHubRepository.CreateRelayHubs(relayHub));
+            return await _relayHubRepository.CreateRelayHub(relayHub, token);
         }
 
-        public Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, string ipAddress = null, int port = 0,
+        public async Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, string ipAddress = null, int port = 0,
             int capacity = 0, string relayHubModel = null, string description = null, int pageNumber = 0,
-            int pageSize = 0, int nestingDepthLevel = 4)
+            int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
-            return Task.Run(() => _relayHubRepository.GetRelayHubs(id, ipAddress, port, capacity, relayHubModel,
-                description, pageNumber, pageSize, nestingDepthLevel));
+            return await _relayHubRepository.GetRelayHubs(id, ipAddress, port, capacity, relayHubModel,
+                description, pageNumber, pageSize, nestingDepthLevel, token);
         }
 
-        public Task<ResultViewModel> UpdateRelayHub(RelayHub relayHub)
+        public async Task<ResultViewModel> UpdateRelayHub(RelayHub relayHub, string token = default)
         {
-            return Task.Run(() => _relayHubRepository.UpdateRelayHubs(relayHub));
+            return await _relayHubRepository.UpdateRelayHub(relayHub, token);
         }
 
-        public Task<ResultViewModel> DeleteRelayHub(int id)
+        public async Task<ResultViewModel> DeleteRelayHub(int id, string token = default)
         {
-            return Task.Run(() => _relayHubRepository.DeleteRelayHubs(id));
+            return await _relayHubRepository.DeleteRelayHub(id, token);
         }
     }
 }
