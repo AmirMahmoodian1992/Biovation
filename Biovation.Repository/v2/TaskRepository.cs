@@ -45,7 +45,7 @@ namespace Biovation.Repository.Sql.v2
             return _repository.ToResultList<TaskItem>("SelectTaskItems", parameters, fetchCompositions: true, compositionDepthLevel: 3).FetchFromResultList();
         }
 
-        public ResultViewModel InsertTask(TaskInfo task)
+        public ResultViewModel InsertTask(TaskInfo task,int onlineUserId = 0)
         {
             /*var taskItemsDataTable =JsonConvert.SerializeObject(task.TaskItems?.Select(item => new
                 {
@@ -69,7 +69,7 @@ namespace Biovation.Repository.Sql.v2
             {
                 new SqlParameter("@taskTypeCode", task.TaskType?.Code),
                 new SqlParameter("@priorityLevelCode", task.Priority?.Code),
-                new SqlParameter("@createdBy", task.CreatedBy?.Id),
+                new SqlParameter("@createdBy", onlineUserId),
                 new SqlParameter("@createdAt", task.CreatedAt == default ? DateTime.Now : task.CreatedAt.DateTime),
                 new SqlParameter("@updatedBy", task.UpdatedBy),
                 new SqlParameter("@queuedAt", task.QueuedAt),

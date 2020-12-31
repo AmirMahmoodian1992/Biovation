@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -28,7 +29,8 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() =>
             {
-                var taskInsertionResult = _taskRepository.InsertTask(task);
+                var onlineUser = HttpContext.GetUser();
+                var taskInsertionResult = _taskRepository.InsertTask(task,(int)onlineUser.Id);
                 if (!taskInsertionResult.Success) return taskInsertionResult;
                 task.Id = (int)taskInsertionResult.Id;
                 //integration
