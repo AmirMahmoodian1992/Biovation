@@ -110,7 +110,6 @@ namespace Biovation.Data.Commands
             }
 
             //app.UseHttpsRedirection();
-
             app.UseRouting();
 
             // app.UseAuthorization();
