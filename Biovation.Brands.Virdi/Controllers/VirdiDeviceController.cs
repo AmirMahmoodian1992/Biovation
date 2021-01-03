@@ -939,7 +939,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userId, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
@@ -969,7 +969,8 @@ namespace Biovation.Brands.Virdi.Controllers
                         DueDate = DateTime.Today
                     };
 
-                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                   // var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    var userIds = userId;
                     foreach (var id in userIds)
                     {
 
