@@ -58,6 +58,7 @@ namespace Biovation.Brands.Virdi
         private readonly TaskService _taskService;
         private readonly AccessGroupService _accessGroupService;
         private readonly ILogger<Callbacks> _logger;
+        public static int UserCount = 0;
 
         ////===========================
         //Todo: Find better solution
@@ -289,7 +290,7 @@ namespace Biovation.Brands.Virdi
             UcsApi.EventGetAccessLog += GetAccessLogCallback;
             UcsApi.EventGetAccessLogCount += GetAccessLogCount;
             //ucsAPI.EventGetTAFunction += new GetTAFunctionEventHandler(ucsAPI_EventGetTAFunction);
-            //ucsAPI.EventGetUserCount += new GetUserCountEventHandler(ucsAPI_EventGetUserCount);
+            UcsApi.EventGetUserCount += GetUserCount;
             UcsApi.EventGetUserData += GetUserDataCallback;
             UcsApi.EventGetUserInfoList += GetUserListCallback;
             //ucsAPI.EventOpenDoor += new OpenDoorEventHandler(ucsAPI_EventOpenDoor);
@@ -2994,6 +2995,12 @@ namespace Biovation.Brands.Virdi
 
             UpgradeFirmwareTaskFinished = true;
         }
+
+        private void GetUserCount(int clientId, int terminalId, int AdminNumber, int UserNumber)
+        {
+
+        }
+
     }
 }
 

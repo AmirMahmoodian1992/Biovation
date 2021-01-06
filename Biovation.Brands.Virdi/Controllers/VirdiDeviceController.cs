@@ -1006,5 +1006,20 @@ namespace Biovation.Brands.Virdi.Controllers
                 }
             });
         }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        {
+            return await Task.Run(() =>
+            {
+                var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                    new List<object> { code });
+
+                var result = getAdditionalData.Execute();
+
+                return (Dictionary<string, string>)result;
+            });
+        }
     }
 }
