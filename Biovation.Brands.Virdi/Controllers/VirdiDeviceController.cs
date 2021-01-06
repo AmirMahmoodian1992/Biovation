@@ -1014,7 +1014,7 @@ namespace Biovation.Brands.Virdi.Controllers
             return await Task.Run(() =>
             {
 
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 var creatorUser = HttpContext.GetUser();
@@ -1034,21 +1034,35 @@ namespace Biovation.Brands.Virdi.Controllers
                 task.TaskItems.Add(new TaskItem
                 {
                     Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.LockDevice,
+                    TaskItemType = _taskItemTypes.GetAdditionalData,
                     Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(device.DeviceId),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1
                 });
 
-                _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
+                var resultTask = _taskService.InsertTask(task);
+                //_taskManager.ProcessQueue();
                 var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-                    new List<object> { code });
+                    new List<object> { device.DeviceId, resultTask.Id });
 
                 var result = getAdditionalData.Execute();
+
+                task.TaskItems.FirstOrDefault().ExecutionAt = DateTimeOffset.Now;
+                task.TaskItems.FirstOrDefault().Result = JsonConvert.SerializeObject(result);
+                if (result != null)
+                {
+                    task.TaskItems.FirstOrDefault().Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.DoneCode);
+                    _taskService.UpdateTaskStatus(task.TaskItems.FirstOrDefault());
+                }
+                else
+                {
+                    task.TaskItems.FirstOrDefault().Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.FailedCode);
+                    _taskService.UpdateTaskStatus(task.TaskItems.FirstOrDefault());
+                }
+
 
                 return (Dictionary<string, string>)result;
             });

@@ -16,7 +16,7 @@ namespace Biovation.Brands.Virdi.Command
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
         private readonly UCSAPI _ucsApi;
         private readonly ITerminalUserData _terminalUserData;
-        private readonly AutoResetEvent _doneEvent;
+        private readonly ManualResetEventSlim _doneEventUserCount;
         private int DeviceId { get; }
         private uint Code { get; }
         private int TaskItemId { get; }
@@ -24,18 +24,19 @@ namespace Biovation.Brands.Virdi.Command
         private Dictionary<string, string> InfoDictionary { get; set; }
         private int UserCount { get; set; }
         private int AdminCount { get; set; }
+        private DeviceBasicInfo deviceBasicInfo;
 
         public VirdiGetAdditionalData(IReadOnlyList<object> items, UCSAPI ucsApi, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, DeviceService deviceService)
         {
             _ucsApi = ucsApi;
             _terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;
 
-            _doneEvent = new AutoResetEvent(false);
+            _doneEventUserCount = new ManualResetEventSlim(false);
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
-
+            deviceBasicInfo = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId);
+            Code = deviceBasicInfo?.Code ?? 0;
             OnlineDevices = virdiServer.GetOnlineDevices();
 
             InfoDictionary = new Dictionary<string, string>();
@@ -49,7 +50,7 @@ namespace Biovation.Brands.Virdi.Command
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetrieveUser,The device: {Code} is not connected.");
-                return new ResultViewModel<List<User>> { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 0, Data = new List<User>() };
+                return InfoDictionary;
             }
             try
             {
@@ -57,46 +58,53 @@ namespace Biovation.Brands.Virdi.Command
                 //Callbacks.RetrieveUsers = new List<User>();
                 lock (_ucsApi)
                     _ucsApi.EventGetUserCount += GetUserCount;
-
-                //Logger.Log(GetDescription());
-                InfoDictionary.Add("AdminCount", AdminCount.ToString());
-                InfoDictionary.Add("UserCount", UserCount.ToString());
-                lock (_ucsApi)
+                lock (_terminalUserData)
                 {
+                    _terminalUserData.GetUserCountFromTerminal(TaskItemId, (int)Code);
+                }
+                //Logger.Log(GetDescription());
+                lock (_terminalUserData)
+                {
+
                     if (_terminalUserData.ErrorCode == 0)
                     {
                         Logger.Log($"  +Retrieving Infos from device: {Code} started successful.\n");
-                        _doneEvent.WaitOne(1);
-
-                        return new ResultViewModel<Dictionary<string, string>> { Data = InfoDictionary, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                        _doneEventUserCount.Wait(TimeSpan.FromSeconds(5));
+                        _ucsApi.EventGetUserCount -= GetUserCount;
+                    }
+                    else
+                    {
+                        Logger.Log($"  +Cannot retrieve Infos from device: {Code}. Error code = {_terminalUserData.ErrorCode}\n");
                     }
                 }
+                _ucsApi.EventGetUserCount -= GetUserCount;
 
-                lock (_ucsApi)
+
+                if (deviceBasicInfo.FirmwareVersion != null)
                 {
-                    Logger.Log($"  +Cannot retrieve Infos from device: {Code}. Error code = {_terminalUserData.ErrorCode}\n");
+                    InfoDictionary.Add("Firmware Version", deviceBasicInfo.FirmwareVersion);
                 }
-                return new ResultViewModel<List<User>> { Code = Convert.ToInt64(TaskStatuses.FailedCode), Data = new List<User>(), Id = DeviceId, Message = "0", Validate = 1 };
+
+                return InfoDictionary;
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel<List<User>> { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = "0", Validate = 0 };
+                _ucsApi.EventGetUserCount -= GetUserCount;
+                return InfoDictionary;
             }
         }
 
         private void GetUserCount(int clientId, int terminalId, int adminNumber, int userNumber)
         {
-            if (_terminalUserData.UserID == 0 || clientId != TaskItemId)
+            if (clientId != TaskItemId)
                 return;
-            lock (_ucsApi)
-            {
-                UserCount = userNumber;
-                AdminCount = adminNumber;
-            }
-            if (_terminalUserData.CurrentIndex != _terminalUserData.TotalNumber) return;
-            _doneEvent.Set();
-            _ucsApi.EventGetUserCount += GetUserCount;
+
+            UserCount = userNumber;
+            AdminCount = adminNumber;
+            InfoDictionary.Add("AdminCount", AdminCount.ToString());
+            InfoDictionary.Add("UserCount", UserCount.ToString());
+            _doneEventUserCount.Set();
         }
 
         public string GetDescription()
