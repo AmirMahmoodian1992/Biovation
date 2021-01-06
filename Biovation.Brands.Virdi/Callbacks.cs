@@ -290,7 +290,7 @@ namespace Biovation.Brands.Virdi
             UcsApi.EventGetAccessLog += GetAccessLogCallback;
             UcsApi.EventGetAccessLogCount += GetAccessLogCount;
             //ucsAPI.EventGetTAFunction += new GetTAFunctionEventHandler(ucsAPI_EventGetTAFunction);
-            UcsApi.EventGetUserCount += GetUserCount;
+            //UcsApi.EventGetUserCount += GetUserCount;
             UcsApi.EventGetUserData += GetUserDataCallback;
             UcsApi.EventGetUserInfoList += GetUserListCallback;
             //ucsAPI.EventOpenDoor += new OpenDoorEventHandler(ucsAPI_EventOpenDoor);
@@ -2994,11 +2994,6 @@ namespace Biovation.Brands.Virdi
                +TerminalID: {terminalId}");
 
             UpgradeFirmwareTaskFinished = true;
-        }
-
-        private void GetUserCount(int clientId, int terminalId, int AdminNumber, int UserNumber)
-        {
-
         }
 
     }
