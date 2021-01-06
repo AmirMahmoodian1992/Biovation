@@ -9,6 +9,7 @@ using RestSharp;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -1487,6 +1488,12 @@ namespace Biovation.Brands.ZK.Devices
                 var pwdCnt = 0;
                 var opLogCnt = 0;
                 var faceCnt = 0;
+                var dwYear = 0;
+                var dwMonth = 0;
+                var dwDay = 0;
+                var dwHour = 0;
+                var dwMinute = 0;
+                var dwSecond = 0;
                 ZkTecoSdk.EnableDevice(code, false); //disable the device
 
                 ZkTecoSdk.GetDeviceStatus(code, 2, ref userCount);
@@ -1496,6 +1503,8 @@ namespace Biovation.Brands.ZK.Devices
                 ZkTecoSdk.GetDeviceStatus(code, 5, ref opLogCnt);
                 ZkTecoSdk.GetDeviceStatus(code, 6, ref recordCnt);
                 ZkTecoSdk.GetDeviceStatus(code, 21, ref faceCnt);
+                ZkTecoSdk.GetDeviceTime(code, ref dwYear, ref dwMonth, ref dwDay, ref dwHour, ref dwMinute, ref dwSecond);
+                var deviceDateTime = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
                 dic.Add("UserCount", userCount.ToString());
                 dic.Add("AdminCount", adminCnt.ToString());
                 dic.Add("FPCount", fpCnt.ToString());
@@ -1503,6 +1512,8 @@ namespace Biovation.Brands.ZK.Devices
                 dic.Add("OpLogCount", opLogCnt.ToString());
                 dic.Add("RecordCount", recordCnt.ToString());
                 dic.Add("FaceCount", faceCnt.ToString());
+                dic.Add("Date", deviceDateTime.Date.ToString(CultureInfo.InvariantCulture));
+                dic.Add("Time", deviceDateTime.TimeOfDay.ToString());
 
                 var sFirmwareVersion = "";
                 var sMac = "";
