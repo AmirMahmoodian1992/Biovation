@@ -4,6 +4,7 @@ using Biovation.Domain;
 using System;
 using System.Collections.Generic;
 using Biovation.Service.Api.v1;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -14,7 +15,7 @@ namespace Biovation.Brands.Virdi.Command
     {
         private readonly VirdiServer _virdiServer;
         private readonly Callbacks _callbacks;
-
+        private readonly UCSAPI _ucsApi;
         private readonly LogEvents _logEvents;
         private readonly LogService _logService;
         private readonly UserService _userService;
@@ -34,7 +35,7 @@ namespace Biovation.Brands.Virdi.Command
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, Callbacks callbacks, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, Callbacks callbacks, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -51,6 +52,7 @@ namespace Biovation.Brands.Virdi.Command
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
+            _ucsApi = ucsApi;
         }
         //private EventDispatcher _eventDispatcherObj;
 
@@ -229,9 +231,8 @@ namespace Biovation.Brands.Virdi.Command
                 case CommandType.GetDeviceAdditionalData:
                     //Unlocks the device
                 {
-                    return new VirdiUpgradeDeviceFirmware(transferModelData.Items, _virdiServer, _callbacks, _taskService, _deviceService);
-                        //return new VirdiGetAdditionalData(transferModelData.Items, _virdiServer, _callbacks, _taskService, _deviceService);
-                    }
+                    return new VirdiGetAdditionalData(transferModelData.Items, _ucsApi, _virdiServer, _callbacks, _taskService, _deviceService);
+                }
                 #endregion
 
                 #region WebClientRequests(WithResponse)

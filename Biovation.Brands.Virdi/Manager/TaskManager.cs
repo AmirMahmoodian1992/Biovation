@@ -289,6 +289,24 @@ namespace Biovation.Brands.Virdi.Manager
 
                             break;
                         }
+                    case TaskItemTypes.GetAdditionalDataCode:
+                    {
+                        try
+                        {
+                            executeTask = Task.Run(() =>
+                            {
+                                result = (ResultViewModel)_commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+
+                        }
+
+                        break;
+                    }
                 }
 
                 executeTask?.ContinueWith(task =>

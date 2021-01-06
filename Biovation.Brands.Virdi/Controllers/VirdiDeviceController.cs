@@ -1013,6 +1013,38 @@ namespace Biovation.Brands.Virdi.Controllers
         {
             return await Task.Run(() =>
             {
+
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.GetAdditionalData,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Virdi,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.LockDevice,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = devices.DeviceId,
+                    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1
+                });
+
+                _taskService.InsertTask(task);
+                _taskManager.ProcessQueue();
                 var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
                     new List<object> { code });
 
