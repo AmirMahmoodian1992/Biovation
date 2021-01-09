@@ -81,6 +81,7 @@ namespace Biovation.Brands.Virdi
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+            services.AddSingleton(Serilog.Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
