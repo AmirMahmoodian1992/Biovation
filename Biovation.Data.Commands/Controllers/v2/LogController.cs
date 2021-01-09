@@ -43,10 +43,10 @@ namespace Biovation.Data.Commands.Controllers.v2
             //log.Image = filePath;
 
             //integration
-            var broadcastApiAwaiter = _logMessageBusRepository.SendLog(new List<Log> { log });
-            var broadcastMessageBusAwaiter = Task.CompletedTask;
+            var broadcastMessageBusAwaiter = _logMessageBusRepository.SendLog(new List<Log> { log });
+            var broadcastApiAwaiter = Task.CompletedTask;
             if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
-                broadcastMessageBusAwaiter = _logApiSink.TransferLog(log);
+                broadcastApiAwaiter = _logApiSink.TransferLog(log);
 
             await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastMessageBusAwaiter);
             return await logInsertionAwaiter;
@@ -74,7 +74,7 @@ namespace Biovation.Data.Commands.Controllers.v2
             }));
 
             var logsDataTable = JsonConvert.DeserializeObject<DataTable>(json);
-            var logInsertionAwaiter = _logRepository.AddLog(logsDataTable);
+            var logInsertionResult = await _logRepository.AddLog(logsDataTable);
 
             foreach (var deviceId in logs.GroupBy(g => g.DeviceId).Select(s => s.Key).Where(s => s > 0))
             {
@@ -107,7 +107,7 @@ namespace Biovation.Data.Commands.Controllers.v2
                 });
             }
 
-            return await logInsertionAwaiter;
+            return logInsertionResult;
         }
 
         [HttpPost]
