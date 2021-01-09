@@ -8,8 +8,10 @@ namespace Biovation.Brands.PW.Manager
 {
     public class PwCodeMappings
     {
-        public PwCodeMappings(GenericCodeMappings genericCodeMappings)
+        private readonly MatchingTypes _matchingTypes;
+        public PwCodeMappings(GenericCodeMappings genericCodeMappings, MatchingTypes matchingTypes)
         {
+            _matchingTypes = matchingTypes;
             _pwMatchingTypeMappings = genericCodeMappings.MatchingTypeMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.ProcessingWorldCode).ToList();
         }
@@ -18,7 +20,7 @@ namespace Biovation.Brands.PW.Manager
 
         public Lookup GetMatchingTypeGenericLookup(int pwCode)
         {
-            return _pwMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, pwCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+            return _pwMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, pwCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
     }
 }

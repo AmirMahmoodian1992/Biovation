@@ -8,8 +8,10 @@ namespace Biovation.Brands.ZK.Manager
 {
     public class ZkCodeMappings
     {
-        public ZkCodeMappings(GenericCodeMappings genericCodeMappings)
+        private readonly MatchingTypes _matchingTypes;
+        public ZkCodeMappings(GenericCodeMappings genericCodeMappings, MatchingTypes matchingTypes)
         {
+            _matchingTypes = matchingTypes;
 
             _zkLogSubEventMappings = genericCodeMappings.LogSubEventMappings.Where(
                  genericCode => genericCode.Brand.Code == DeviceBrands.ZkTecoCode).ToList();
@@ -40,7 +42,7 @@ namespace Biovation.Brands.ZK.Manager
 
         public Lookup GetMatchingTypeGenericLookup(int zkCode)
         {
-            return _zkMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, zkCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? new Lookup { Code = zkCode.ToString(), Category = _zkMatchingTypeMappings.FirstOrDefault()?.GenericValue.Category };
+            return _zkMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, zkCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
     }
 }
