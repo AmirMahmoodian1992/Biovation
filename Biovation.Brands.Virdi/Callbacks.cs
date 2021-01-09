@@ -1073,7 +1073,7 @@ namespace Biovation.Brands.Virdi
             //});
         }
 
-        private void RealTimeAccessLogCallback(int terminalId)
+        private async void RealTimeAccessLogCallback(int terminalId)
         {
             Logger.Log($@"<--EventRealTimeAccessLog
     +TerminalID:{terminalId}
@@ -1124,7 +1124,6 @@ namespace Biovation.Brands.Virdi
 
             var log = new Log
             {
-
                 DeviceCode = (uint)terminalId,
                 EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
                 UserId = AccessLogData.UserID,
@@ -1133,12 +1132,13 @@ namespace Biovation.Brands.Virdi
                 AuthResult = AccessLogData.AuthResult,
                 //MatchingType = AccessLogData.AuthType,
                 //MatchingType = authMode?.BioCode,
-                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthMode),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
                 SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                 TnaEvent = 0,
                 PicByte = picture
             };
-            _virdiLogService.AddLog(log);
+
+            await _virdiLogService.AddLog(log);
         }
 
         private void TerminalStatus(int clientId, int terminalId, int terminalStatus, int doorStatus, int coverStatus)
@@ -2573,7 +2573,7 @@ namespace Biovation.Brands.Virdi
             });
         }
 
-        private void PictureLog(int terminalId)
+        private async void PictureLog(int terminalId)
         {
             Logger.Log($@"<--EventPictureLog
     +TerminalID: {terminalId}
@@ -2615,7 +2615,7 @@ namespace Biovation.Brands.Virdi
                 PicByte = picture
             };
 
-            _virdiLogService.AddLog(log);
+            await _virdiLogService.AddLog(log);
         }
 
         private void VerifyPassword(int terminalId, int userId, int authMode, int antipassbackLevel, string password)
