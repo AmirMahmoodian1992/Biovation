@@ -1648,14 +1648,14 @@ namespace Biovation.Brands.Virdi
             });
         }
 
-        private void GetAccessLogCallback(int clientId, int terminalId)
+        private async void GetAccessLogCallback(int clientId, int terminalId)
         {
             if (string.Equals(AccessLogData.DateTime, "0000-00-00 00:00:00", StringComparison.InvariantCultureIgnoreCase))
                 return;
 
-            Task<List<TaskInfo>> taskAwaiter = null;
-            if (!_tasks.ContainsKey(clientId))
-                taskAwaiter = _taskService.GetTasks(excludedTaskStatusCodes: string.Empty, taskItemId: clientId);
+            //Task<List<TaskInfo>> taskAwaiter = null;
+            //if (!_tasks.ContainsKey(clientId))
+            //    taskAwaiter = _taskService.GetTasks(excludedTaskStatusCodes: string.Empty, taskItemId: clientId);
 
             byte[] picture = null;
             try
@@ -1697,52 +1697,52 @@ namespace Biovation.Brands.Virdi
     +IsAuthorized:{log.EventLog.Code == LogEvents.AuthorizedCode}
     +Result:{log.EventLog.Code == LogEvents.AuthorizedCode}
     +RFID:{AccessLogData.RFID}
-    +PictureDataLength:{log.PicByte.Length}
+    +PictureDataLength:{log.PicByte?.Length}
     +Progress:{currentIndex}/{totalCount}/Total:{_logCount}");
 
-            Task.Run(async () =>
+            //Task.Run(async () =>
+            //{
+            if (!RetrievedLogs.ContainsKey(clientId))
+                RetrievedLogs[clientId] = new List<Log>();
+
+            RetrievedLogs[clientId].Add(log);
+
+            if (currentIndex == totalCount)
             {
-                if (!RetrievedLogs.ContainsKey(clientId))
-                    RetrievedLogs[clientId] = new List<Log>();
+                Logger.Log($"Retrieving logs from device: {terminalId} is finished. {currentIndex} logs retrieved and total {totalCount} and {currentIndex}/{totalCount} in progress");
 
-                RetrievedLogs[clientId].Add(log);
-
-                if (currentIndex == totalCount)
+                await Task.Run(async () =>
                 {
-                    Logger.Log($"Retrieving logs from device: {terminalId} is finished. {currentIndex} logs retrieved and total {totalCount} and {currentIndex}/{totalCount} in progress");
+                    var logInsertion = await _virdiLogService.AddLog(RetrievedLogs[clientId]);
 
-                    await Task.Run(async () =>
-                    {
-                        var logInsertion = await _virdiLogService.AddLog(RetrievedLogs[clientId]);
+                    var taskItem = _taskService.GetTaskItem(clientId);
+                    taskItem.Status = logInsertion is null || !logInsertion.Success ? _taskStatuses.Failed : _taskStatuses.Done;
+                    taskItem.Result = logInsertion is null || !logInsertion.Success ? JsonConvert.SerializeObject(logInsertion) : taskItem.Result;
+                    _taskService.UpdateTaskStatus(taskItem);
+                }).ContinueWith(_ => { RetrievedLogs.Remove(clientId); });
+            }
 
-                        var taskItem = _taskService.GetTaskItem(clientId);
-                        taskItem.Status = logInsertion is null || !logInsertion.Success ? _taskStatuses.Failed : _taskStatuses.Done;
-                        taskItem.Result = logInsertion is null || !logInsertion.Success ? JsonConvert.SerializeObject(logInsertion) : taskItem.Result;
-                        _taskService.UpdateTaskStatus(taskItem);
-                    }).ContinueWith(_ => { RetrievedLogs.Remove(clientId); });
-                }
+            //var task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
 
-                //var task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
+            //if (task != null)
+            //{
+            //    _tasks.Add(clientId, task);
+            //    task.TotalCount = totalCount;
+            //    task.CurrentIndex = currentIndex;
+            //    var taskList = new List<TaskInfo> { task };
 
-                //if (task != null)
-                //{
-                //    _tasks.Add(clientId, task);
-                //    task.TotalCount = totalCount;
-                //    task.CurrentIndex = currentIndex;
-                //    var taskList = new List<TaskInfo> { task };
+            //    var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
+            //    {
+            //        new DataChangeMessage<TaskInfo>
+            //        {
+            //            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+            //            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = taskList
+            //        }
+            //    };
 
-                //    var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
-                //    {
-                //        new DataChangeMessage<TaskInfo>
-                //        {
-                //            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
-                //            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = taskList
-                //        }
-                //    };
-
-                //    _biovationInternalSource.PushData(biovationBrokerMessageData);
-                //}
-            });
+            //    _biovationInternalSource.PushData(biovationBrokerMessageData);
+            //}
+            //});
         }
 
         private void TerminalDisconnectedCallback(int terminalId)
