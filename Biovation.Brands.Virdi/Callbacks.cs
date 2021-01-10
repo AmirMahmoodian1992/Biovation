@@ -360,17 +360,16 @@ namespace Biovation.Brands.Virdi
 
         }
 
-        private void GetAccessLogCount(int clientId, int terminalId, int logCount)
+        private async void GetAccessLogCount(int clientId, int terminalId, int logCount)
         {
             if (logCount > 0)
             {
-
-                Logger.Log($"Retrieving {logCount} logs from device {terminalId}");
+                Logger.Log($"Retrieving {logCount} logs from device {terminalId}, with type {GetAccessLogType}");
                 _logCount = logCount;
                 if (GetAccessLogType == (int)VirdiDeviceLogType.Period)
                 {
                     AccessLogData.SetPeriod(AccessLogPeriodFromDateTime.Year, AccessLogPeriodFromDateTime.Month, AccessLogPeriodFromDateTime.Day, AccessLogPeriodToDateTime.Year, AccessLogPeriodToDateTime.Month, AccessLogPeriodToDateTime.Day);
-                    Task.Run(() =>
+                    await Task.Run(() =>
                     {
                         //try
                         //{
@@ -397,7 +396,7 @@ namespace Biovation.Brands.Virdi
                 }
                 else if (GetAccessLogType == (int)VirdiDeviceLogType.New)
                 {
-                    Task.Run(() =>
+                    await Task.Run(() =>
                     {
                         //try
                         //{
@@ -413,7 +412,7 @@ namespace Biovation.Brands.Virdi
                 }
                 else
                 {
-                    Task.Run(() =>
+                    await Task.Run(() =>
                     {
                         //try
                         //{
@@ -1687,9 +1686,7 @@ namespace Biovation.Brands.Virdi
                 TnaEvent = 0
             };
 
-            Task.Run(async () =>
-            {
-                _logger.LogDebug($@"<--EventGetAccessLog
+            _logger.LogDebug($@"<--EventGetAccessLog
     +ClientID:{clientId}
     +TerminalID:{terminalId}
     +ErrorCode:{UcsApi.ErrorCode}
@@ -1703,6 +1700,8 @@ namespace Biovation.Brands.Virdi
     +PictureDataLength:{log.PicByte.Length}
     +Progress:{currentIndex}/{totalCount}/Total:{_logCount}");
 
+            Task.Run(async () =>
+            {
                 if (!RetrievedLogs.ContainsKey(clientId))
                     RetrievedLogs[clientId] = new List<Log>();
 
@@ -1723,26 +1722,26 @@ namespace Biovation.Brands.Virdi
                     }).ContinueWith(_ => { RetrievedLogs.Remove(clientId); });
                 }
 
-                var task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
+                //var task = _tasks.ContainsKey(clientId) ? _tasks[clientId] : (taskAwaiter != null ? (await taskAwaiter).FirstOrDefault() : null);
 
-                if (task != null)
-                {
-                    _tasks.Add(clientId, task);
-                    task.TotalCount = totalCount;
-                    task.CurrentIndex = currentIndex;
-                    var taskList = new List<TaskInfo> { task };
+                //if (task != null)
+                //{
+                //    _tasks.Add(clientId, task);
+                //    task.TotalCount = totalCount;
+                //    task.CurrentIndex = currentIndex;
+                //    var taskList = new List<TaskInfo> { task };
 
-                    var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
-                    {
-                        new DataChangeMessage<TaskInfo>
-                        {
-                            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
-                            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = taskList
-                        }
-                    };
+                //    var biovationBrokerMessageData = new List<DataChangeMessage<TaskInfo>>
+                //    {
+                //        new DataChangeMessage<TaskInfo>
+                //        {
+                //            Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                //            TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = taskList
+                //        }
+                //    };
 
-                    _biovationInternalSource.PushData(biovationBrokerMessageData);
-                }
+                //    _biovationInternalSource.PushData(biovationBrokerMessageData);
+                //}
             });
         }
 

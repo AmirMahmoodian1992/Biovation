@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MoreLinq.Extensions;
 
 namespace Biovation.Brands.Virdi.Manager
 {
@@ -17,7 +18,7 @@ namespace Biovation.Brands.Virdi.Manager
         private readonly TaskStatuses _taskStatuses;
         private readonly CommandFactory _commandFactory;
 
-        private List<TaskInfo> _tasks = new List<TaskInfo>();
+        private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
         public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
@@ -307,17 +308,22 @@ namespace Biovation.Brands.Virdi.Manager
 
         public void ProcessQueue()
         {
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
+            
             lock (_tasks)
             {
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                        excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })
-                    .Result;
+                var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
+
+                Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
+                _tasks.AddRange(newTasks);
 
                 if (_processingQueueInProgress)
                     return;
 
                 _processingQueueInProgress = true;
             }
+
 
             Task.Run(() =>
             {
@@ -335,9 +341,13 @@ namespace Biovation.Brands.Virdi.Manager
                         taskInfo = _tasks.First();
                     }
 
+                    Logger.Log($"The task {taskInfo.Id} execution is started");
                     ExecuteTask(taskInfo);
+                    Logger.Log($"The task {taskInfo.Id} is executed");
+
                     lock (_tasks)
-                        _tasks.Remove(taskInfo);
+                        if (_tasks.Any(task => task.Id == taskInfo.Id))
+                            _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
                 }
             });
         }
