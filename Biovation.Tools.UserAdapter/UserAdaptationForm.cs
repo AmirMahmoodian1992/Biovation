@@ -185,7 +185,7 @@ namespace Biovation.Tools.UserAdapter
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
                 restRequest.AddJsonBody(_userCodeMappings);
-                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6Ijk4NzY1NDMyMSIsInVuaXF1ZUlkIjoiOTg3NjU0MzIxIiwianRpIjoiY2YyNzUzMWQtYmM5OS00ODVkLTk4NDktZTg0OTdkZjU3MTIwIiwiZXhwIjoxNjA5OTQzMTg0fQ.AmZmo7oTJFum8j-bn3kir8FKbCcaB_VHYvLuthLMlZs");
+                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6Ijk4NzY1NDMyMSIsInVuaXF1ZUlkIjoiOTg3NjU0MzIxIiwianRpIjoiMGM1NjVjMzctNjE0Yi00MTIyLWE3ZTAtMzRjNjY2OWM0ZjI5IiwiZXhwIjoxNjExNjY5OTI0fQ.yk-5b2W4mFxaUBQBHHcHhSTFG_ZCNUOuemQNyWwfdHs");
 
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
