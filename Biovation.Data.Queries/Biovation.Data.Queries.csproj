@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Scripts\00.Schema\0000-Pre Migrate-UP.sql" />
     <None Remove="Scripts\00.Schema\0001-Create RestaurantSchema-UP.sql" />
     <None Remove="Scripts\01.Tables\0001-Create DeviceBrand-UP.sql" />
     <None Remove="Scripts\01.Tables\0002-Create DeviceModel-UP.sql" />
@@ -308,7 +307,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Scripts\00.Schema\0000-Pre Migrate-UP.sql" />
     <EmbeddedResource Include="Scripts\00.Schema\0001-Create RestaurantSchema-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0001-Create DeviceBrand-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0002-Create DeviceModel-UP.sql" />

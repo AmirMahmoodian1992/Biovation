@@ -18,6 +18,7 @@ namespace Biovation.Data.Queries
 
             try
             {
+                EnsureDatabase.For.SqlDatabase(databaseConnectionInfo.GetConnectionString());
                 var everyTimeUpgrader =
                     DeployChanges.To
                         .SqlDatabase(databaseConnectionInfo.GetConnectionString())
