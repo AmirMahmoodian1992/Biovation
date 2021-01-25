@@ -43,37 +43,38 @@ namespace Biovation.Brands.ZK
         {
             Logger.Log("Service started.");
             var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
-            await Task.WhenAll(connectToDeviceTasks);
+            if (connectToDeviceTasks.Count == 0)
+                return;
+            
+            await Task.WhenAny(connectToDeviceTasks);
         }
 
         public async Task ConnectToDevice(DeviceBasicInfo deviceInfo)
         {
-            await Task.Run(() =>
+            lock (_onlineDevices)
             {
-                lock (_onlineDevices)
+                if (_onlineDevices.ContainsKey(deviceInfo.Code))
                 {
-                    if (_onlineDevices.ContainsKey(deviceInfo.Code))
+                    try
                     {
-                        try
-                        {
-                            _onlineDevices[deviceInfo.Code].Disconnect();
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                        }
+                        _onlineDevices[deviceInfo.Code].Disconnect();
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
                     }
                 }
+            }
 
-                if (!deviceInfo.Active) return;
+            if (!deviceInfo.Active) return;
 
-                var device = _deviceFactory.Factory(deviceInfo);
-                var connectResult = device.Connect();
-                if (!connectResult)
-                    Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
-            });
+            var device = _deviceFactory.Factory(deviceInfo);
+            var connectResult = await device.Connect();
+            if (!connectResult)
+                Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
         }
-        public async void DisconnectFromDevice(DeviceBasicInfo deviceInfo)
+
+        public async Task DisconnectFromDevice(DeviceBasicInfo deviceInfo)
         {
             await Task.Run(() =>
             {
