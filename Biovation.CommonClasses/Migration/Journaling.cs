@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
 
 namespace Biovation.CommonClasses.Migration
 {
@@ -90,8 +92,12 @@ namespace Biovation.CommonClasses.Migration
                     }
                 }
 
+                var entryAssemblyName = Assembly.GetEntryAssembly()?.GetName().Name;
+                var newScriptNames = scripts.Select(sc => sc.Replace("Biovation.Server.SQL_Scripts", $"{entryAssemblyName ?? "Biovation.Data.Queries"}.Scripts")).ToList();
+                scripts.AddRange(newScriptNames);
                 result = scripts.ToArray();
             }
+
             return result;
         }
 
