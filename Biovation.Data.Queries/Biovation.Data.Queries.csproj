@@ -263,7 +263,7 @@
     <None Remove="Scripts\03.SPs\0173-Create InsertLicensePlate-UP.sql" />
     <None Remove="Scripts\03.SPs\0174-Create InsertPlateDetectionLog-UP.sql" />
     <None Remove="Scripts\03.SPs\0175-Create InsertPlateDetectionPictureLog-UP.sql" />
-    <None Remove="Scripts\03.SPs\0176-Create SelectPlateDetectoionLogs-UP.sql" />
+    <None Remove="Scripts\03.SPs\0176-Create SelectPlateDetectionLogs-UP.sql" />
     <None Remove="Scripts\03.SPs\0177-Create SelectDeviceByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0178-Create SelectLicensePlateByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0179-Create SelecFingerTemplateByFilter-UP.sql" />
@@ -564,7 +564,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0173-Create InsertLicensePlate-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0174-Create InsertPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0175-Create InsertPlateDetectionPictureLog-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0176-Create SelectPlateDetectoionLogs-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0176-Create SelectPlateDetectionLogs-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0177-Create SelectDeviceByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0178-Create SelectLicensePlateByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0179-Create SelecFingerTemplateByFilter-UP.sql" />
