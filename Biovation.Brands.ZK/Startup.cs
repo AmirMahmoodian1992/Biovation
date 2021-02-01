@@ -56,7 +56,7 @@ namespace Biovation.Brands.ZK
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public async void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
                 .AddJsonOptions(options =>
@@ -75,7 +75,7 @@ namespace Biovation.Brands.ZK
 
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
-            await ConfigureZkServices(services);
+            ConfigureZkServices(services);
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
@@ -164,10 +164,10 @@ namespace Biovation.Brands.ZK
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
-            Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
-                fingerIndexNamesQuery, deviceBrandsQuery, logEventsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
-                faceTemplateTypeQuery, matchingTypeQuery, logEventMappingsQuery, logSubEventMappingsQuery,
-                fingerTemplateTypeMappingsQuery, matchingTypeMappingsQuery);
+            //Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
+            //    fingerIndexNamesQuery, deviceBrandsQuery, logEventsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
+            //    faceTemplateTypeQuery, matchingTypeQuery, logEventMappingsQuery, logSubEventMappingsQuery,
+            //    fingerTemplateTypeMappingsQuery, matchingTypeMappingsQuery);
 
             var lookups = new Lookups
             {
@@ -209,7 +209,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 
-        private async Task ConfigureZkServices(IServiceCollection services)
+        private void ConfigureZkServices(IServiceCollection services)
         {
             services.AddSingleton(OnlineDevices);
 
@@ -223,7 +223,8 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
             var serviceProvider = services.BuildServiceProvider();
             _zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
-            await _zkTecoServer.StartServer();
+            //await _zkTecoServer.StartServer();
+            Task.Run(() => _zkTecoServer.StartServer());
         }
 
 

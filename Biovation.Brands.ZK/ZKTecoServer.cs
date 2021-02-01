@@ -39,14 +39,15 @@ namespace Biovation.Brands.ZK
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public async Task StartServer()
+        public void StartServer()
         {
             Logger.Log("Service started.");
-            var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
-            if (connectToDeviceTasks.Count == 0)
-                return;
+            Parallel.ForEach(_zkDevices, device => ConnectToDevice(device));
+            //var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
+            //if (connectToDeviceTasks.Count == 0)
+            //    return;
             
-            await Task.WhenAny(connectToDeviceTasks);
+            //await Task.WhenAny(connectToDeviceTasks).Result;
         }
 
         public async Task ConnectToDevice(DeviceBasicInfo deviceInfo)
@@ -69,7 +70,7 @@ namespace Biovation.Brands.ZK
             if (!deviceInfo.Active) return;
 
             var device = _deviceFactory.Factory(deviceInfo);
-            var connectResult = await device.Connect();
+            var connectResult = device.Connect();
             if (!connectResult)
                 Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
         }
