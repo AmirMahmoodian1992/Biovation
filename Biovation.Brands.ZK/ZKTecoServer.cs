@@ -1,12 +1,12 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
+using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Constants;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK
 {
@@ -42,37 +42,53 @@ namespace Biovation.Brands.ZK
         public void StartServer()
         {
             Logger.Log("Service started.");
-            Parallel.ForEach(_zkDevices, device => ConnectToDevice(device));
+            Parallel.ForEach(_zkDevices, ConnectToDevice);
             //var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
             //if (connectToDeviceTasks.Count == 0)
             //    return;
-            
+
             //await Task.WhenAny(connectToDeviceTasks).Result;
         }
 
-        public async Task ConnectToDevice(DeviceBasicInfo deviceInfo)
+        public void ConnectToDevice(DeviceBasicInfo deviceInfo)
         {
-            lock (_onlineDevices)
+            Task.Run(() =>
             {
-                if (_onlineDevices.ContainsKey(deviceInfo.Code))
+                lock (_onlineDevices)
+                {
+                    if (_onlineDevices.ContainsKey(deviceInfo.Code))
+                    {
+                        try
+                        {
+                            _onlineDevices[deviceInfo.Code].Disconnect();
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+                        }
+                    }
+                }
+
+                if (!deviceInfo.Active) return;
+
+                var device = _deviceFactory.Factory(deviceInfo);
+
+                var connectResult = false;
+
+                while (!connectResult)
                 {
                     try
                     {
-                        _onlineDevices[deviceInfo.Code].Disconnect();
+                        connectResult = device.Connect();
+                        if (!connectResult)
+                            Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
                     }
                     catch (Exception exception)
                     {
-                        Logger.Log(exception);
+                        Logger.Log(exception, $"Exception on connection to device {deviceInfo.Code}", LogType.Fatal);
                     }
                 }
-            }
-
-            if (!deviceInfo.Active) return;
-
-            var device = _deviceFactory.Factory(deviceInfo);
-            var connectResult = device.Connect();
-            if (!connectResult)
-                Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
+            });
         }
 
         public async Task DisconnectFromDevice(DeviceBasicInfo deviceInfo)

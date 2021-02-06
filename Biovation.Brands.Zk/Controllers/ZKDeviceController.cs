@@ -118,7 +118,7 @@ namespace Biovation.Brands.ZK.Controllers
                         OrderIndex = 1
                     });
 
-                    await _zkTecoServer.ConnectToDevice(device);
+                    await Task.Run(() => _zkTecoServer.ConnectToDevice(device));
                     _taskService.InsertTask(task);
                     _taskManager.ProcessQueue();
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };

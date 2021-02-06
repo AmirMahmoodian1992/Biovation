@@ -685,14 +685,16 @@ namespace Biovation.Brands.ZK.Devices
                     }
 
                     var iWorkCode = 0;
-                    var lstLogs = new List<Log>();
+                    var thousandIndex = 0;
+                    var logInsertionTasks = new List<Task>();
+                    var retrievedLogs = new List<Log>();
                     var recordCnt = 0;
                     while (ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
                     {
-                        if (iLogCount > 100000)
-                            break;
+                        //if (iLogCount > 100000)
+                        //    break;
 
                         iLogCount++; //increase the number of attendance records
 
@@ -716,7 +718,7 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 //_zkLogService.AddLog(log);
-                                lstLogs.Add(log);
+                                retrievedLogs.Add(log);
                                 _logger.Debug($@"<--
        +TerminalID: {DeviceInfo.Code}
        +UserID: {userId}
@@ -724,6 +726,24 @@ namespace Biovation.Brands.ZK.Devices
        +AuthType: {iVerifyMethod}
        +TnaEvent: {(ushort)iInOutMode}
        +Progress: {iLogCount}/{recordCnt}");
+
+                                if (retrievedLogs.Count % 1000 == 0)
+                                {
+                                    var partedLogs = retrievedLogs.Skip(thousandIndex * 1000).Take(1000).ToList();
+
+                                    try
+                                    {
+                                        logInsertionTasks.Add(LogService.AddLog(partedLogs));
+                                        if (saveFile) LogService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        _logger.Warning(exception, exception.Message);
+                                        return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                    }
+
+                                    thousandIndex++;
+                                }
                             }
                             catch (Exception)
                             {
@@ -734,8 +754,9 @@ namespace Biovation.Brands.ZK.Devices
 
                     try
                     {
-                        LogService.AddLog(lstLogs).Wait();
-                        if (saveFile) LogService.SaveLogsInFile(lstLogs, "ZK", DeviceInfo.Code);
+                        var partedLogs = retrievedLogs.Skip(thousandIndex * 1000).Take(1000).ToList();
+                        logInsertionTasks.Add(LogService.AddLog(partedLogs));
+                        if (saveFile) LogService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
                     }
                     catch (Exception exception)
                     {
@@ -743,6 +764,7 @@ namespace Biovation.Brands.ZK.Devices
                         return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                     }
 
+                    Task.WaitAll(logInsertionTasks.ToArray());
                     _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
 
 
@@ -800,20 +822,28 @@ namespace Biovation.Brands.ZK.Devices
                             //Connect();
                             _logger.Information(
                                 $"Could not retrieve offline logs from DeviceId:{DeviceInfo.Code} General Log Data Count:0 ErrorCode={idwErrorCode}");
-                            return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                            return new ResultViewModel
+                            {
+                                Id = DeviceInfo.DeviceId,
+                                Validate = 0,
+                                Message = "0",
+                                Code = Convert.ToInt32(TaskStatuses.FailedCode)
+                            };
                         }
 
 
                     var iWorkCode = 0;
 
-                    var lstLogs = new List<Log>();
+                    var thousandIndex = 0;
+                    var logInsertionTasks = new List<Task>();
+                    var retrievedLogs = new List<Log>();
                     var recordsCount = 0;
                     while (ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
                     {
-                        if (iLogCount > 100000)
-                            break;
+                        //if (iLogCount > 100000)
+                        //    break;
 
                         iLogCount++; //increase the number of attendance records
                         lock (LockObject) //make the object exclusive 
@@ -836,7 +866,7 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 //_zkLogService.AddLog(log);
-                                lstLogs.Add(log);
+                                retrievedLogs.Add(log);
                                 _logger.Debug($@"<--
     +TerminalID:{DeviceInfo.Code}
     +UserID:{userId}
@@ -844,6 +874,24 @@ namespace Biovation.Brands.ZK.Devices
     +AuthType:{iVerifyMethod}
     +TnaEvent:{(ushort)iInOutMode}
     +Progress:{iLogCount}/{recordsCount}");
+
+                                if (retrievedLogs.Count % 1000 == 0)
+                                {
+                                    var partedLogs = retrievedLogs.Skip(thousandIndex * 1000).Take(1000).ToList();
+
+                                    try
+                                    {
+                                        logInsertionTasks.Add(LogService.AddLog(partedLogs));
+                                        if (saveFile) LogService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        _logger.Warning(exception, exception.Message);
+                                        return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                    }
+
+                                    thousandIndex++;
+                                }
                             }
                             catch (Exception)
                             {
@@ -854,8 +902,9 @@ namespace Biovation.Brands.ZK.Devices
 
                     try
                     {
-                        LogService.AddLog(lstLogs).Wait();
-
+                        var partedLogs = retrievedLogs.Skip(thousandIndex * 1000).Take(1000).ToList();
+                        logInsertionTasks.Add(LogService.AddLog(partedLogs));
+                        if (saveFile) LogService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
                     }
                     catch (Exception exception)
                     {
@@ -863,6 +912,7 @@ namespace Biovation.Brands.ZK.Devices
                         return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                     }
 
+                    Task.WaitAll(logInsertionTasks.ToArray());
                     _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
 
                     //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);//enable the device
