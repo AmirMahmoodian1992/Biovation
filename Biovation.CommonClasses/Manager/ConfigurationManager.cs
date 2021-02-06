@@ -289,7 +289,7 @@ namespace Biovation.CommonClasses.Manager
                 }
             }
 
-            set => Configuration.GetSection("AppSettings")["MigrateUp"] = value.ToString();
+            set => Configuration.GetSection("AppSettings")["ReplaceScriptsOnMigration"] = value.ToString();
         }
 
         public int SupremaDevicesConnectionPort

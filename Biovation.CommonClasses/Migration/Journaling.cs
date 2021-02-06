@@ -8,6 +8,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using Biovation.CommonClasses.Manager;
 
 namespace Biovation.CommonClasses.Migration
 {
@@ -17,7 +18,7 @@ namespace Biovation.CommonClasses.Migration
         private string TableName { get; }
         private string ModuleName { get; }
         private DatabaseConnectionInfo ConnectionInfo { get; }
-
+        private static BiovationConfigurationManager _biovationConfigurationManager;
         /// <summary>
         /// برای ایجاد کانکشن به دیتابیس
         /// </summary>
@@ -25,12 +26,13 @@ namespace Biovation.CommonClasses.Migration
 
         private static SqlServerObjectParser _sqlServerObjectParser;
 
-        public Journaling(string moduleName, DatabaseConnectionInfo connectionInfo)
+        public Journaling(string moduleName, DatabaseConnectionInfo connectionInfo, BiovationConfigurationManager biovationConfigurationManager)
         {
             Schema = "dbo";
             TableName = "_MigrationHistory";
             ModuleName = moduleName;
             ConnectionInfo = connectionInfo;
+            _biovationConfigurationManager = biovationConfigurationManager;
             _connectionFactory = ConnectionHelper.GetConnection(ConnectionInfo);
             _sqlServerObjectParser = new SqlServerObjectParser();
         }
@@ -64,7 +66,9 @@ namespace Biovation.CommonClasses.Migration
 
         private static string GetExecutedScriptsSql(string schema, string table)
         {
-            return $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' ORDER BY [ScriptName]";
+            return _biovationConfigurationManager.ReplaceScriptsOnMigration
+                ? $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' ORDER BY [ScriptName]"
+                : $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} ORDER BY [ScriptName]";
         }
 
         public string[] GetExecutedScripts()

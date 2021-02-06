@@ -23,7 +23,7 @@ namespace Biovation.Data.Queries
                     DeployChanges.To
                         .SqlDatabase(databaseConnectionInfo.GetConnectionString())
                         .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-                        .WithExecutionTimeout(TimeSpan.FromSeconds(180))
+                        .WithExecutionTimeout(TimeSpan.FromMinutes(5))
                         .WithPreprocessor(new ScriptPreprocessor())
                         .JournalTo(new Journaling("Main", databaseConnectionInfo))
                         //.WithTransactionPerScript()
