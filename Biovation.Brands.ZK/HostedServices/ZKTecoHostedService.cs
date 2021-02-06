@@ -1,18 +1,11 @@
-﻿using Biovation.Brands.ZK.Devices;
-using Biovation.CommonClasses;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Biovation.Brands.ZK
+namespace Biovation.Brands.ZK.HostedServices
 {
-    public class ZkTecoService : IHostedService, IDisposable
+    public class ZKTecoHostedService : IHostedService, IDisposable
     {
         /// <summary>
         /// نمونه ی ساخته شده از سرور
@@ -20,7 +13,7 @@ namespace Biovation.Brands.ZK
         private readonly ZkTecoServer _zkTecoServer;
 
 
-        public ZkTecoService(ZkTecoServer zkTecoServer)
+        public ZKTecoHostedService(ZkTecoServer zkTecoServer)
         {
             _zkTecoServer = zkTecoServer;
         }

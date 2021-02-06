@@ -2,6 +2,7 @@ using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
+using Biovation.Brands.ZK.HostedServices;
 using Biovation.Brands.ZK.Manager;
 using Biovation.Brands.ZK.Middleware;
 using Biovation.CommonClasses;
@@ -21,13 +22,12 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK
 {
     public class Startup
     {
-        private ZkTecoServer _zkTecoServer;
+        //private readonly ZkTecoServer _zkTecoServer;
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
@@ -222,7 +222,7 @@ namespace Biovation.Brands.ZK
 
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
 
-            services.AddHostedService<ZkTecoService>();
+            services.AddHostedService<ZKTecoHostedService>();
 
             //var serviceProvider = services.BuildServiceProvider();
             //_zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
