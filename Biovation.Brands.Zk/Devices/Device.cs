@@ -47,8 +47,6 @@ namespace Biovation.Brands.ZK.Devices
 
         private readonly bool _isGetLogEnable;
 
-
-
         private readonly LogEvents _logEvents;
         private readonly ZkCodeMappings _zkCodeMappings;
 
@@ -102,187 +100,223 @@ namespace Biovation.Brands.ZK.Devices
             return DeviceInfo;
         }
 
-        public bool Connect()
+        public async Task<bool> Connect(CancellationToken cancellationToken)
         {
-            //return await Task.Run(async () =>
-            //{
-            lock (ZkTecoSdk)
+            return await Task.Run(async () =>
             {
-                if (!string.IsNullOrEmpty(DeviceInfo.DeviceLockPassword))
+                lock (ZkTecoSdk)
                 {
-                    ZkTecoSdk.SetCommPassword(Convert.ToInt32(DeviceInfo.DeviceLockPassword));
-                }
+                    if (!string.IsNullOrEmpty(DeviceInfo.DeviceLockPassword))
+                    {
+                        ZkTecoSdk.SetCommPassword(Convert.ToInt32(DeviceInfo.DeviceLockPassword));
+                    }
 
-                var connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
-                while (!connectResult)
-                {
-                    _logger.Debug(
-                        $"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
+                    var connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
+                    while (!connectResult && !cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.Debug(
+                            $"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
-                    Thread.Sleep(20000);
-                    connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
-                }
+                        //Thread.Sleep(20000);
+                        Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).Wait(cancellationToken);
+                        connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
+                    }
 
-                Thread.Sleep(500);
+                    //Thread.Sleep(500);
+                    Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
 
-                //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
-                if (_reconnecting)
-                {
+                    //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
+                    if (_reconnecting)
+                    {
+                        if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
+                        {
+                            //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
+                            //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
+                            //Thread.Sleep(500);
+                    Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                            ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
+                            ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
+                            //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
+                            ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
+                            //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
+                            //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
+                            //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
+                            //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
+                            //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
+                            //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
+                            //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
+                            //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
+                            ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                        }
+                    }
+
                     if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
                     {
-                        //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
-                        //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
-                        Thread.Sleep(500);
-                        ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
-                        ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
-                        //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
-                        ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
-                        //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
-                        //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
-                        //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
-                        //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
-                        //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
-                        //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
-                        //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
-                        //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
-                        ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                        //_zkTecoSdk.OnFinger += _zkTecoSdk_OnFinger;
+                        //_zkTecoSdk.OnVerify += _zkTecoSdk_OnVerify;
+                        //Thread.Sleep(500);
+                    Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        ZkTecoSdk.OnAttTransaction += OnAttendanceTransactionCallback;
+                        ZkTecoSdk.OnAttTransactionEx += OnAttendanceTransactionExCallback;
+                        //_zkTecoSdk.OnFingerFeature += _zkTecoSdk_OnFingerFeature;
+                        ZkTecoSdk.OnKeyPress += OnKeyPressCallback;
+                        //_zkTecoSdk.OnEnrollFinger += _zkTecoSdk_OnEnrollFinger;
+                        //_zkTecoSdk.OnDeleteTemplate += _zkTecoSdk_OnDeleteTemplate;
+                        //_zkTecoSdk.OnNewUser += _zkTecoSdk_OnNewUser;
+                        //_zkTecoSdk.OnHIDNum += _zkTecoSdk_OnHIDNum;
+                        //_zkTecoSdk.OnAlarm += _zkTecoSdk_OnAlarm;
+                        //_zkTecoSdk.OnDoor += _zkTecoSdk_OnDoor;
+                        //_zkTecoSdk.OnWriteCard += _zkTecoSdk_OnWriteCard;
+                        //_zkTecoSdk.OnEmptyCard += _zkTecoSdk_OnEmptyCard;
+                        ZkTecoSdk.OnDisConnected += OnDisconnectedCallback;
                     }
-                }
 
-                if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
-                {
-                    //_zkTecoSdk.OnFinger += _zkTecoSdk_OnFinger;
-                    //_zkTecoSdk.OnVerify += _zkTecoSdk_OnVerify;
-                    Thread.Sleep(500);
-                    ZkTecoSdk.OnAttTransaction += OnAttendanceTransactionCallback;
-                    ZkTecoSdk.OnAttTransactionEx += OnAttendanceTransactionExCallback;
-                    //_zkTecoSdk.OnFingerFeature += _zkTecoSdk_OnFingerFeature;
-                    ZkTecoSdk.OnKeyPress += OnKeyPressCallback;
-                    //_zkTecoSdk.OnEnrollFinger += _zkTecoSdk_OnEnrollFinger;
-                    //_zkTecoSdk.OnDeleteTemplate += _zkTecoSdk_OnDeleteTemplate;
-                    //_zkTecoSdk.OnNewUser += _zkTecoSdk_OnNewUser;
-                    //_zkTecoSdk.OnHIDNum += _zkTecoSdk_OnHIDNum;
-                    //_zkTecoSdk.OnAlarm += _zkTecoSdk_OnAlarm;
-                    //_zkTecoSdk.OnDoor += _zkTecoSdk_OnDoor;
-                    //_zkTecoSdk.OnWriteCard += _zkTecoSdk_OnWriteCard;
-                    //_zkTecoSdk.OnEmptyCard += _zkTecoSdk_OnEmptyCard;
-                    ZkTecoSdk.OnDisConnected += OnDisconnectedCallback;
-                }
-
-                try
-                {
-                    var firmwareVersion = "";
-                    var macAddress = "";
-
-                    Thread.Sleep(500);
-                    ZkTecoSdk.GetDeviceFirmwareVersion((int)DeviceInfo.Code, ref firmwareVersion);
-                    Thread.Sleep(500);
-                    ZkTecoSdk.GetDeviceMAC((int)DeviceInfo.Code, ref macAddress);
-                    Thread.Sleep(500);
-                    ZkTecoSdk.GetSerialNumber((int)DeviceInfo.Code, out var serialNumber);
-
-                    DeviceInfo.FirmwareVersion = firmwareVersion;
-                    DeviceInfo.MacAddress = macAddress;
-                    DeviceInfo.SerialNumber = serialNumber;
-                }
-                catch (Exception exception)
-                {
-                    _logger.Warning(exception, exception.Message);
-                }
-
-                _deviceService.ModifyDevice(DeviceInfo);
-
-                if (DeviceInfo.TimeSync)
-                {
                     try
                     {
-                        try
-                        {
-                            var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year,
-                                DateTime.Now.Month,
-                                DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                            if (result)
-                                _logger.Debug($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
-                            else
-                            {
-                                result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
-                                _logger.Debug(result
-                                    ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
-                                    : $"Could not set time for device {DeviceInfo.Code}");
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.Warning(exception, exception.Message);
-                            ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
-                            _logger.Debug(
-                                $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
-                        }
+                        var firmwareVersion = "";
+                        var macAddress = "";
+
+                        //Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        ZkTecoSdk.GetDeviceFirmwareVersion((int)DeviceInfo.Code, ref firmwareVersion);
+                        //Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        ZkTecoSdk.GetDeviceMAC((int)DeviceInfo.Code, ref macAddress);
+                        //Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        ZkTecoSdk.GetSerialNumber((int)DeviceInfo.Code, out var serialNumber);
+
+                        DeviceInfo.FirmwareVersion = firmwareVersion;
+                        DeviceInfo.MacAddress = macAddress;
+                        DeviceInfo.SerialNumber = serialNumber;
                     }
                     catch (Exception exception)
                     {
                         _logger.Warning(exception, exception.Message);
                     }
+
+                    _deviceService.ModifyDevice(DeviceInfo);
+
+                    if (DeviceInfo.TimeSync)
+                    {
+                        try
+                        {
+                            try
+                            {
+                                var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year,
+                                    DateTime.Now.Month,
+                                    DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                                if (result)
+                                    _logger.Debug($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
+                                else
+                                {
+                                    result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                                    _logger.Debug(result
+                                        ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
+                                        : $"Could not set time for device {DeviceInfo.Code}");
+                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.Warning(exception, exception.Message);
+                                ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                                _logger.Debug(
+                                    $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                        }
+                    }
                 }
-            }
 
-            if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
-            {
-                _onlineDevices.Add(DeviceInfo.Code, this);
-            }
-
-            var connectionStatus = new ConnectionStatus
-            {
-                DeviceId = DeviceInfo.DeviceId,
-                IsConnected = true
-            };
-
-            try
-            {
-                //_communicationManager.CallRest(
-                //    "/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
-                //    new List<object> { data });
-                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
-
-            LogService.AddLog(new Log
-            {
-                DeviceId = DeviceInfo.DeviceId,
-                LogDateTime = DateTime.Now,
-                EventLog = _logEvents.Connect
-
-            });
-
-            if (_isGetLogEnable)
-            {
-                //Task.Run(() => { ReadOfflineLog(Token); }, Token);
-                //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(TokenSource.Token), TokenSource.Token));
-                //ZKTecoServer.StartReadLogs();
-                var creatorUser = _userService.GetUsers(code: 123456789).FirstOrDefault();
-                var lastLogsOfDevice = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
-
-                if (lastLogsOfDevice != null)
+                if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
                 {
-                    foreach (var log in lastLogsOfDevice)
-                        _logger.Information(
-                            "Last logs of device {deviceId}: LogTime: {logDateTime}, eventId: {eventId}",
-                            DeviceInfo.Code, log.LogDateTime, log.EventLog.Code);
+                    _onlineDevices.Add(DeviceInfo.Code, this);
+                }
 
-                    var lastLogOfDevice = lastLogsOfDevice.LastOrDefault();
-                    if (lastLogOfDevice != null)
+                var connectionStatus = new ConnectionStatus
+                {
+                    DeviceId = DeviceInfo.DeviceId,
+                    IsConnected = true
+                };
+
+                try
+                {
+                    //_communicationManager.CallRest(
+                    //    "/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
+                    //    new List<object> { data });
+                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest, cancellationToken);
+
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+
+                await LogService.AddLog(new Log
+                {
+                    DeviceId = DeviceInfo.DeviceId,
+                    LogDateTime = DateTime.Now,
+                    EventLog = _logEvents.Connect
+
+                });
+
+                if (_isGetLogEnable)
+                {
+                    //Task.Run(() => { ReadOfflineLog(Token); }, Token);
+                    //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(TokenSource.Token), TokenSource.Token));
+                    //ZKTecoServer.StartReadLogs();
+                    var creatorUser = _userService.GetUsers(code: 123456789).FirstOrDefault();
+                    var lastLogsOfDevice = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
+
+                    if (lastLogsOfDevice != null)
+                    {
+                        foreach (var log in lastLogsOfDevice)
+                            _logger.Information(
+                                "Last logs of device {deviceId}: LogTime: {logDateTime}, eventId: {eventId}",
+                                DeviceInfo.Code, log.LogDateTime, log.EventLog.Code);
+
+                        var lastLogOfDevice = lastLogsOfDevice.LastOrDefault();
+                        if (lastLogOfDevice != null)
+                        {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                TaskItems = new List<TaskItem>(),
+                                DeviceBrand = _deviceBrands.ZkTeco,
+                                DueDate = DateTimeOffset.Now
+                            };
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = DeviceInfo.DeviceId,
+                                Data = JsonConvert.SerializeObject(new
+                                { fromDate = lastLogOfDevice.LogDateTime, toDate = DateTime.Now.AddHours(1) }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1
+                            });
+
+                            _taskService.InsertTask(task);
+                        }
+                    }
+                    else
                     {
                         var task = new TaskInfo
                         {
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogsInPeriod,
+                            TaskType = _taskTypes.GetLogs,
                             Priority = _taskPriorities.Medium,
                             TaskItems = new List<TaskItem>(),
                             DeviceBrand = _deviceBrands.ZkTeco,
@@ -292,11 +326,10 @@ namespace Biovation.Brands.ZK.Devices
                         task.TaskItems.Add(new TaskItem
                         {
                             Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                            TaskItemType = _taskItemTypes.GetLogs,
                             Priority = _taskPriorities.Medium,
                             DeviceId = DeviceInfo.DeviceId,
-                            Data = JsonConvert.SerializeObject(new
-                            { fromDate = lastLogOfDevice.LogDateTime, toDate = DateTime.Now.AddHours(1) }),
+                            Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1
@@ -304,47 +337,19 @@ namespace Biovation.Brands.ZK.Devices
 
                         _taskService.InsertTask(task);
                     }
-                }
-                else
-                {
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.GetLogs,
-                        Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>(),
-                        DeviceBrand = _deviceBrands.ZkTeco,
-                        DueDate = DateTimeOffset.Now
-                    };
 
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.GetLogs,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = DeviceInfo.DeviceId,
-                        Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1
-                    });
-
-                    _taskService.InsertTask(task);
                 }
 
-            }
+                _taskManager.ProcessQueue();
+                await CheckConnection(cancellationToken);
+                _logger.Debug(
+                    $"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
-            _taskManager.ProcessQueue();
-            Task.Run(CheckConnection, TokenSource.Token);
-            _logger.Debug(
-                $"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
-
-            return true;
-            //});
+                return true;
+            }, cancellationToken);
         }
 
-        public void CheckConnection()
+        public async Task CheckConnection(CancellationToken cancellationToken)
         {
             int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
 
@@ -352,17 +357,19 @@ namespace Biovation.Brands.ZK.Devices
 
             do
             {
-                if (TokenSource.IsCancellationRequested)
-                    return;
+                //if (TokenSource.IsCancellationRequested)
+                //    return;
                 lock (ZkTecoSdk)
                     deviceConnectionStatus = ZkTecoSdk.GetDeviceTime((int)DeviceInfo.Code, ref year, ref month,
                         ref day,
                         ref hour, ref minute, ref second);
 
-                Thread.Sleep(5000);
-                if (TokenSource.IsCancellationRequested)
-                    return;
-            } while (deviceConnectionStatus);
+                Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).Wait(cancellationToken);
+                //cancellationToken.WaitHandle.WaitOne(TimeSpan.FromSeconds(5));
+                //Thread.Sleep(5000);
+                //if (TokenSource.IsCancellationRequested)
+                //    return;
+            } while (deviceConnectionStatus && !cancellationToken.IsCancellationRequested);
 
             _logger.Debug($"Connection lost on device {DeviceInfo.Code}");
             Disconnect(false);
@@ -370,7 +377,7 @@ namespace Biovation.Brands.ZK.Devices
             if (TokenSource.IsCancellationRequested) return;
             _reconnecting = true;
 
-            Connect();
+            await Connect(cancellationToken);
             //Task.Run(() => { Connect(); }, TokenSource.Token);
         }
 

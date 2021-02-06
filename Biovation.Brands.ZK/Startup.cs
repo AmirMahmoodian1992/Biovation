@@ -221,10 +221,13 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<DeviceFactory, DeviceFactory>();
 
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
-            var serviceProvider = services.BuildServiceProvider();
-            _zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
+
+            services.AddHostedService<ZkTecoService>();
+
+            //var serviceProvider = services.BuildServiceProvider();
+            //_zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
             //await _zkTecoServer.StartServer();
-            Task.Run(() => _zkTecoServer.StartServer());
+            //Task.Run(() => _zkTecoServer.StartServer());
         }
 
 
@@ -236,7 +239,7 @@ namespace Biovation.Brands.ZK
                 app.UseDeveloperExceptionPage();
             }
 
-            applicationLifetime.ApplicationStopping.Register(OnServiceStopping);
+            //applicationLifetime.ApplicationStopping.Register(OnServiceStopping);
             //app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -254,12 +257,12 @@ namespace Biovation.Brands.ZK
             });
         }
 
-        private async void OnServiceStopping()
-        {
-            if (_zkTecoServer is null)
-                return;
+        //private async void OnServiceStopping()
+        //{
+        //    if (_zkTecoServer is null)
+        //        return;
 
-            await _zkTecoServer.StopServer();
-        }
+        //    await _zkTecoServer.StopServer();
+        //}
     }
 }
