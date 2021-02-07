@@ -45,7 +45,7 @@ namespace Biovation.Repository.Sql.v2
                 var parameters = new List<SqlParameter>// { new SqlParameter("@PersonId", personId) };
             { new SqlParameter("@UserId", SqlDbType.Int) { Value = userId }};
 
-                return _repository.ToResultList<PagingResult<AdminDevice>>("SelectAdminDevicesByUserId", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+                return _repository.ToResultList<PagingResult<AdminDevice>>("SelectAdminDevicesByUserIdByPaging", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
             }
 
         }
