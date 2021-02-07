@@ -41,6 +41,7 @@ namespace Biovation.Brands.Virdi
         private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
         private readonly LogEvents _logEvents;
+        private readonly TaskManager _taskManager;
         private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
@@ -59,12 +60,10 @@ namespace Biovation.Brands.Virdi
         private readonly AccessGroupService _accessGroupService;
         private readonly ILogger<Callbacks> _logger;
 
-        ////===========================
         //Todo: Find better solution
-        private readonly Dictionary<int, TaskInfo> _tasks = new Dictionary<int, TaskInfo>();
+        //private readonly Dictionary<int, TaskInfo> _tasks = new Dictionary<int, TaskInfo>();
 
-
-        private BiovationConfigurationManager BiovationConfiguration { get; set; }
+        private BiovationConfigurationManager BiovationConfiguration { get; }
 
         public int GetAccessLogType;
         public DateTime AccessLogPeriodFromDateTime;
@@ -141,8 +140,6 @@ namespace Biovation.Brands.Virdi
         //integration
 
 
-
-        private readonly ISource<DataChangeMessage<TaskInfo>> _biovationInternalSource;
         private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
 
         private readonly ISource<DataChangeMessage<ConnectionStatus>> _deviceConnectionStateInternalSource;
@@ -213,7 +210,7 @@ namespace Biovation.Brands.Virdi
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService
             , VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, DeviceBrands deviceBrands
             , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , ILogger<Callbacks> logger, TaskStatuses taskStatuses)
+            , ILogger<Callbacks> logger, TaskStatuses taskStatuses, TaskManager taskManager)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -225,6 +222,7 @@ namespace Biovation.Brands.Virdi
             _faceTemplateService = faceTemplateService;
             _taskService = taskService;
             _taskStatuses = taskStatuses;
+            _taskManager = taskManager;
             _accessGroupService = accessGroupService;
             BiovationConfiguration = biovationConfiguration;
             _virdiLogService = virdiLogService;
@@ -339,13 +337,13 @@ namespace Biovation.Brands.Virdi
 
             //integration 
             var kafkaServerAddress = BiovationConfiguration.KafkaServerAddress;
-            _biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
-               .Build<DataChangeMessage<TaskInfo>>();
+            var biovationInternalSource = InternalSourceBuilder.Start().SetPriorityLevel(PriorityLevel.Medium)
+                .Build<DataChangeMessage<TaskInfo>>();
 
             var biovationKafkaTarget = KafkaTargetBuilder.Start().SetBootstrapServer(kafkaServerAddress).SetTopicName(BiovationTopicName)
                 .BuildTarget<DataChangeMessage<TaskInfo>>();
 
-            var biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(_biovationInternalSource, biovationKafkaTarget);
+            var biovationTaskConnectorNode = new ConnectorNode<DataChangeMessage<TaskInfo>>(biovationInternalSource, biovationKafkaTarget);
             biovationTaskConnectorNode.StartProcess();
 
             //DeviceStatus integration 
@@ -1032,41 +1030,11 @@ namespace Biovation.Brands.Virdi
                 }
             });
 
-            //Task.Run(() =>
-            //{
-            //try
-            //{
-            //    GetLogSemaphore.WaitOne(120000);
-            //}
-            //catch (Exception exception)
-            //{
-            //    Logger.Log(exception);
-            //}
+
             GetAccessLogType = (int)VirdiDeviceLogType.New;
             AccessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
 
-            //Todo: !important Implement oflline events
-
-            //var offlineTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: device.DeviceId,
-            //    taskStatusCodes: new List<string> { TaskStatuses.DeviceDisconnectedCode }).Result;
-
-            //foreach (var offlineTask in offlineTasks)
-            //{
-            //    bool existenceCheck;
-
-            //    lock (Tasks)
-            //        existenceCheck = Tasks.Any(t => t.Id == offlineTask.Id);
-
-            //    if (!existenceCheck)
-            //        lock (Tasks)
-            //        {
-            //            Tasks.Add(offlineTask);
-            //        }
-            //}
-
-            //_taskManager.ProcessQueue();
-
-            //Todo: !important Implement oflline events
+            _taskManager.ProcessQueue(device.DeviceId);
 
             //AccessLogData.GetAccessLogFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
             //});
@@ -1220,7 +1188,7 @@ namespace Biovation.Brands.Virdi
                 Logger.Log("<--EventVerifyFinger1toN");
 
                 const int isFinger = 1;
-                var authErrorCode = 0;
+                int authErrorCode;
                 int isAuthorized;
                 var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -1466,7 +1434,7 @@ namespace Biovation.Brands.Virdi
                 //            }
 
 
-                if (fpData is null || fastSearch is null || authErrorCode == 770)
+                if (fpData is null || fastSearch is null /*|| authErrorCode == 770*/)
                 {
                     isAuthorized = 0;
                     authErrorCode = 770; //Matching failed
@@ -2266,7 +2234,7 @@ namespace Biovation.Brands.Virdi
 
                                     foreach (var device in devices)
                                     {
-                                        AddUserToDeviceFastSearch(device.Code, (int)user.Code);
+                                        AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
                                     }
                                 }
 
@@ -2278,7 +2246,7 @@ namespace Biovation.Brands.Virdi
                                         {
                                             foreach (var device in deviceGroup.Devices)
                                             {
-                                                AddUserToDeviceFastSearch(device.Code, (int)user.Code);
+                                                AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
                                             }
                                         }
                                     }
