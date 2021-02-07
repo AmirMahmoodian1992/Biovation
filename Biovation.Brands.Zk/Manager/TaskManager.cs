@@ -368,7 +368,7 @@ namespace Biovation.Brands.ZK.Manager
             }
         }
 
-        public void ProcessQueue(int deviceId = 0)
+        public void ProcessQueue(int deviceId = default)
         {
             var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
