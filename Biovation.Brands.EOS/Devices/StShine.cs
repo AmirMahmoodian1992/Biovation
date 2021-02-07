@@ -108,7 +108,7 @@ namespace Biovation.Brands.EOS.Devices
                     _logger.Warning("Could not set the time of device {deviceCode}", _deviceInfo.Code);
             }
 
-            _taskManager.ProcessQueue();
+            _taskManager.ProcessQueue(_deviceInfo.DeviceId);
 
             Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);

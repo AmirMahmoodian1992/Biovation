@@ -328,9 +328,9 @@ namespace Biovation.Brands.EOS.Manager
             }
         }
 
-        public void ProcessQueue()
+        public void ProcessQueue(int deviceId = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode,
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode })?.Data?.Data;
 
             lock (_tasks)
