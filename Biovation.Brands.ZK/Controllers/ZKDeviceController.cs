@@ -120,7 +120,7 @@ namespace Biovation.Brands.ZK.Controllers
 
                     await _zkTecoServer.ConnectToDevice(device);
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskManager.ProcessQueue(device.DeviceId);
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
                 catch (Exception exception)
@@ -159,7 +159,7 @@ namespace Biovation.Brands.ZK.Controllers
                 });
 
                 _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
+                _taskManager.ProcessQueue(device.DeviceId);
                 await _zkTecoServer.DisconnectFromDevice(device);
                 return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
             }

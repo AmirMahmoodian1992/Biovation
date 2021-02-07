@@ -333,7 +333,7 @@ namespace Biovation.Brands.ZK.Devices
                         _taskService.InsertTask(task);
                     }
 
-                    _taskManager.ProcessQueue();
+                    _taskManager.ProcessQueue(DeviceInfo.DeviceId);
                 }
 
                 await Task.Run(CheckConnection, TokenSource.Token);
