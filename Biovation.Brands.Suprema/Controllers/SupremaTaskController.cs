@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Biovation.Brands.ZK.Manager;
+using Biovation.Brands.Suprema.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Biovation.Brands.ZK.Controllers
+namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[Controller]")]
-    public class ZkTaskController : ControllerBase
+    public class SupremaTaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public ZkTaskController(TaskManager taskManager)
+        public SupremaTaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

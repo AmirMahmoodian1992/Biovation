@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses.Migration;
 using DataAccessLayerCore.Domain;
 using DbUp;
@@ -12,7 +13,7 @@ namespace Biovation.Data.Queries
 {
     public static class Migration
     {
-        public static bool MigrateUp(DatabaseConnectionInfo databaseConnectionInfo)
+        public static bool MigrateUp(DatabaseConnectionInfo databaseConnectionInfo, BiovationConfigurationManager biovationConfigurationManager)
         {
             //var connectionString = ConfigurationManager.ConnectionStrings["CONNECTIONSTRING".ToUpper()].ConnectionString;
 
@@ -23,9 +24,9 @@ namespace Biovation.Data.Queries
                     DeployChanges.To
                         .SqlDatabase(databaseConnectionInfo.GetConnectionString())
                         .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
-                        .WithExecutionTimeout(TimeSpan.FromSeconds(180))
+                        .WithExecutionTimeout(TimeSpan.FromMinutes(5))
                         .WithPreprocessor(new ScriptPreprocessor())
-                        .JournalTo(new Journaling("Main", databaseConnectionInfo))
+                        .JournalTo(new Journaling("Main", databaseConnectionInfo, biovationConfigurationManager))
                         //.WithTransactionPerScript()
                         .LogToAutodetectedLog()
                         .LogToConsole()

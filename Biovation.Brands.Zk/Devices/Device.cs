@@ -340,7 +340,7 @@ namespace Biovation.Brands.ZK.Devices
 
                 }
 
-                _taskManager.ProcessQueue();
+                _taskManager.ProcessQueue(DeviceInfo.DeviceId);
                 await CheckConnection(cancellationToken);
                 _logger.Debug(
                     $"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");

@@ -21,13 +21,13 @@ namespace Biovation.Brands.EOS.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("[Action]")]
-        public Task<ResultViewModel> RunProcessQueue()
+        public Task<ResultViewModel> RunProcessQueue(int deviceId = default)
         {
             return Task.Run(() =>
             {
                 try
                 {
-                    _taskManager.ProcessQueue();
+                    _taskManager.ProcessQueue(deviceId);
                     return new ResultViewModel { Success = true };
                 }
                 catch (Exception exception)

@@ -274,6 +274,24 @@ namespace Biovation.CommonClasses.Manager
             set => Configuration.GetSection("AppSettings")["MigrateUp"] = value.ToString();
         }
 
+        public bool ReplaceScriptsOnMigration
+        {
+            get
+            {
+                try
+                {
+                    return string.Equals(Configuration.GetSection("AppSettings")["ReplaceScriptsOnMigration"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return false;
+                }
+            }
+
+            set => Configuration.GetSection("AppSettings")["ReplaceScriptsOnMigration"] = value.ToString();
+        }
+
         public int SupremaDevicesConnectionPort
         {
             get

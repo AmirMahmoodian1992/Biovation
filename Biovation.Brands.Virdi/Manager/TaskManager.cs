@@ -306,9 +306,9 @@ namespace Biovation.Brands.Virdi.Manager
             }
         }
 
-        public void ProcessQueue()
+        public void ProcessQueue(int deviceId = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
             
             lock (_tasks)

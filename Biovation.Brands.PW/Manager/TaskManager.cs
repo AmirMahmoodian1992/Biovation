@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using MoreLinq.Extensions;
 
 namespace Biovation.Brands.PW.Manager
 {
@@ -17,7 +18,7 @@ namespace Biovation.Brands.PW.Manager
         private readonly CommandFactory _commandFactory;
         private readonly TaskStatuses _taskStatuses;
 
-        private List<TaskInfo> _tasks = new List<TaskInfo>();
+        private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
         public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
@@ -77,34 +78,50 @@ namespace Biovation.Brands.PW.Manager
             }
         }
 
-        public void ProcessQueue()
+        public void ProcessQueue(int deviceId = default)
         {
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.ProcessingWorldCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
+
             lock (_tasks)
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.ProcessingWorldCode,
-                    excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
-
-            if (_processingQueueInProgress)
-                return;
-
-            _processingQueueInProgress = true;
-            while (true)
             {
-                TaskInfo taskInfo;
-                lock (_tasks)
+                var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
+
+                Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
+                _tasks.AddRange(newTasks);
+
+                if (_processingQueueInProgress)
+                    return;
+
+                _processingQueueInProgress = true;
+            }
+
+
+            Task.Run(() =>
+            {
+                while (true)
                 {
-                    if (_tasks.Count <= 0)
+                    TaskInfo taskInfo;
+                    lock (_tasks)
                     {
-                        _processingQueueInProgress = false;
-                        return;
+                        if (_tasks.Count <= 0)
+                        {
+                            _processingQueueInProgress = false;
+                            return;
+                        }
+
+                        taskInfo = _tasks.First();
                     }
 
-                    taskInfo = _tasks.First();
-                }
+                    Logger.Log($"The task {taskInfo.Id} execution is started");
+                    ExecuteTask(taskInfo);
+                    Logger.Log($"The task {taskInfo.Id} is executed");
 
-                ExecuteTask(taskInfo);
-                lock (_tasks)
-                    _tasks.Remove(taskInfo);
-            }
+                    lock (_tasks)
+                        if (_tasks.Any(task => task.Id == taskInfo.Id))
+                            _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+                }
+            });
         }
     }
 }
