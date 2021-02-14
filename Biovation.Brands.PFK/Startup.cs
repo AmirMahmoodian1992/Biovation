@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.PFK.HostedServices;
@@ -17,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
 using System.Reflection;
+using Biovation.Brands.PFK.Devices;
 
 namespace Biovation.Brands.PFK
 {
@@ -25,7 +27,7 @@ namespace Biovation.Brands.PFK
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
-        //public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
+        public readonly Dictionary<uint, Camera> OnlineDevices = new Dictionary<uint, Camera>();
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
@@ -196,15 +198,15 @@ namespace Biovation.Brands.PFK
 
         private void ConfigurePfkServices(IServiceCollection services)
         {
-            //services.AddSingleton(OnlineDevices);
+            services.AddSingleton(OnlineDevices);
 
-            //services.AddSingleton<DeviceFactory, DeviceFactory>();
-            //services.AddSingleton<PfkServer, PfkServer>();
+            services.AddSingleton<DeviceFactory, DeviceFactory>();
+            services.AddSingleton<PfkServer, PfkServer>();
 
-            //var serviceProvider = services.BuildServiceProvider();
-            //var pfkServer = serviceProvider.GetService<ShahabServer>();
+            var serviceProvider = services.BuildServiceProvider();
+            var pfkServer = serviceProvider.GetService<PfkServer>();
 
-            //shahabServer.StartServer();
+            pfkServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
