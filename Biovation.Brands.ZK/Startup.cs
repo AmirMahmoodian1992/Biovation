@@ -223,6 +223,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
 
             services.AddHostedService<ZKTecoHostedService>();
+            services.AddHostedService<TaskManagerHostedService>();
 
             //var serviceProvider = services.BuildServiceProvider();
             //_zkTecoServer = serviceProvider.GetService<ZkTecoServer>();

@@ -120,7 +120,8 @@ namespace Biovation.Brands.ZK.Controllers
 
                     await Task.Run(() => _zkTecoServer.ConnectToDevice(device));
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue(device.DeviceId);
+                    await _taskService.ProcessQueue(_deviceBrands.ZkTeco, device.DeviceId).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue(device.DeviceId);
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
                 catch (Exception exception)
@@ -159,7 +160,8 @@ namespace Biovation.Brands.ZK.Controllers
                 });
 
                 _taskService.InsertTask(task);
-                _taskManager.ProcessQueue(device.DeviceId);
+                await _taskService.ProcessQueue(_deviceBrands.ZkTeco, device.DeviceId).ConfigureAwait(false);
+                //_taskManager.ProcessQueue(device.DeviceId);
                 await _zkTecoServer.DisconnectFromDevice(device);
                 return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
             }
@@ -245,7 +247,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1,
                             });
                             _taskService.InsertTask(task);
-                            _taskManager.ProcessQueue();
+                            _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                            //_taskManager.ProcessQueue();
                             return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
                         }
 
@@ -274,7 +277,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1
                             });
                             _taskService.InsertTask(task);
-                            _taskManager.ProcessQueue();
+                            _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                            //_taskManager.ProcessQueue();
                         }
 
                         return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
@@ -335,7 +339,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
                     return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
@@ -442,7 +447,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
                     var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
                     return result;
