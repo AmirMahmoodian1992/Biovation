@@ -1,0 +1,38 @@
+﻿using Biovation.Domain;
+using Biovation.Domain.RelayControllerModels;
+using Biovation.Service.Api.v2.RelayController;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+namespace Biovation.Server.Controllers.v2.Relay
+{
+    [Attribute.Authorize]
+    [ApiController]
+    [ApiVersion("2.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class RelayController : ControllerBase
+    {
+        private readonly RelayService _relayService;
+
+
+        public RelayController(RelayService relayService)
+        {
+            _relayService = relayService;
+        }
+
+        [HttpGet]
+        [Route("{id:int}")]
+        [AllowAnonymous]
+        public Task<ResultViewModel<PagingResult<Domain.RelayControllerModels.Relay>>> Relay([FromRoute] int id = 0,
+            string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null,
+            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, [FromBody] List<Scheduling> schedulings = null)
+        {
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(async () => await _relayService.GetRelay(id, name, nodeNumber, relayHubId, entranceId, description, pageNumber, pageSize,
+                nestingDepthLevel, schedulings, token));
+        }
+
+    }
+}
