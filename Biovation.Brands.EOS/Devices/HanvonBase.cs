@@ -809,6 +809,7 @@ namespace Biovation.Brands.EOS.Devices
             var logs = new List<string>();
             var eosLogs = new List<Log>();
             var invalidTime = false;
+            Logger.Log("StartTime reado");
             if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
                 startTime = new DateTime(1921, 3, 21);
@@ -829,13 +830,20 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_stFace)
             {
+               var dateeee =  _stFace.GetDateTime();
+               Logger.Log("");
+            }
+            lock (_stFace)
+            {
                 var command =
-                    $"GetRecord(start_time= \"1380-11-01 03:30:00\" end_time = \"1399-12-29 02:00:00\" )";
+                    //$"GetRecord(start_time= \"1380-11-01 03:30:00\" end_time = \"1399-12-29 02:00:00\" )";
+                    $"GetRecord(start_time= \"{_stFace.FormatDateTime((DateTime)startTime)}\" end_time=\"{_stFace.FormatDateTime((DateTime)endTime)}\" )";
                 Logger.Log(command);
                 flag = _stFace.SendCommandAndGetResult(command, out text);
                 Logger.Log("firstOutText : " + text);
                 command =
-                    $"GetRecord(start_time= \"2020-01-01 01:30:00\" end_time=\"2021-12-01 01:30:00\" )";
+                    //$"GetRecord(start_time= \"2020-01-01 01:30:00\" end_time=\"2021-12-01 01:30:00\" )";
+                    $"GetRecord(start_time= \"{FormatDateTime((DateTime)startTime)}\" end_time=\"{FormatDateTime((DateTime)endTime)}\" )";
                 Logger.Log(command);
                 flag = _stFace.SendCommandAndGetResult(command, out text);
                 Logger.Log("secondOutText : " + text);
