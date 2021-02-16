@@ -116,6 +116,8 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
+            TimeZone(); //It should be called for the Format DateTime Func. (Knows work with Georgian or persian calender)
+
             _taskManager.ProcessQueue();
             Valid = true;
 
@@ -809,7 +811,6 @@ namespace Biovation.Brands.EOS.Devices
             var logs = new List<string>();
             var eosLogs = new List<Log>();
             var invalidTime = false;
-            Logger.Log("StartTime reado");
             if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
             {
                 startTime = new DateTime(1921, 3, 21);
@@ -830,38 +831,15 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_stFace)
             {
-               var dateeee =  _stFace.GetDateTime();
-               Logger.Log("");
-            }
-            lock (_stFace)
-            {
                 var command =
-                    //$"GetRecord(start_time= \"1380-11-01 03:30:00\" end_time = \"1399-12-29 02:00:00\" )";
                     $"GetRecord(start_time= \"{_stFace.FormatDateTime((DateTime)startTime)}\" end_time=\"{_stFace.FormatDateTime((DateTime)endTime)}\" )";
-                Logger.Log(command);
                 flag = _stFace.SendCommandAndGetResult(command, out text);
-                Logger.Log("firstOutText : " + text);
-                command =
-                    //$"GetRecord(start_time= \"2020-01-01 01:30:00\" end_time=\"2021-12-01 01:30:00\" )";
-                    $"GetRecord(start_time= \"{FormatDateTime((DateTime)startTime)}\" end_time=\"{FormatDateTime((DateTime)endTime)}\" )";
-                Logger.Log(command);
-                flag = _stFace.SendCommandAndGetResult(command, out text);
-                Logger.Log("secondOutText : " + text);
-                command =
-                        $"GetRecord(start_time= \"\" end_time=\"\")";
-                    Logger.Log(command);
-                    flag = _stFace.SendCommandAndGetResult(command, out text);
-                    Logger.Log("ThirdOutText : " + text);
-             command =
-                        $"GetRecord()";
-                    Logger.Log(command);
-                    flag = _stFace.SendCommandAndGetResult(command, out text);
-                    Logger.Log("FourthOutText : " + text);
+                //Logger.Log("OutText : " + text);
             }
 
             if (!flag)
                 return new ResultViewModel
-                    {Success = false, Message = "Can't communicate with device with message" + text};
+                    {Success = false, Message = "Can't communicate with device with message" + text, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             var num = text.IndexOf("time=", 0, StringComparison.Ordinal);
             while (num > 0 && num + "time=".Length < text.Length)
             {
@@ -878,7 +856,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (logs.Count <= 0)
-                return new ResultViewModel {Success = false, Message = "Can't communicate with device"};
+                return new ResultViewModel {Success = false, Message = "Can't communicate with device", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             var records = logs.Select(FaceIdRecord.Parse).Cast<Record>().ToList();
 
             foreach (var record in records)
@@ -919,39 +897,7 @@ namespace Biovation.Brands.EOS.Devices
 
             _logService.AddLog(eosLogs);
             return new ResultViewModel
-                {Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}"};
-        }
-
-        private string FormatDateTime(DateTime dateTime)
-        {
-            var persianCalendar = new PersianCalendar();
-            var flag2 = dateTime != DateTime.MinValue;
-            int num;
-            int num2;
-            int num3;
-            if (flag2)
-            {
-                num = persianCalendar.GetYear(dateTime);
-                num2 = persianCalendar.GetMonth(dateTime);
-                num3 = persianCalendar.GetDayOfMonth(dateTime);
-            }
-            else
-            {
-                num = 1300;
-                num2 = 1;
-                num3 = 1;
-            }
-
-            var result = string.Format("{0:D4}-{1:D2}-{2:D2} {3}", new object[]
-            {
-                num,
-                num2,
-                num3,
-                dateTime.ToString("HH:mm:ss")
-            });
-
-            return result;
-
+                {Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
         }
     }
 }
