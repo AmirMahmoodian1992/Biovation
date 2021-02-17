@@ -15,6 +15,7 @@ namespace Biovation.Brands.PFK
     public class PfkServer
     {
         private readonly Dictionary<uint, Camera> _onlineCameras;
+        private readonly PFKParkingLibrary.Data.Logger _pfkLogger = new PFKParkingLibrary.Data.Logger();
 
         private readonly List<DeviceBasicInfo> _cameras;
         private readonly PlateDetectionService _plateDetectionService;
@@ -38,7 +39,8 @@ namespace Biovation.Brands.PFK
             _plateDetectionService = plateDetectionService;
             _logExternalSubmissionRestClient = logExternalSubmissionRestClient;
 
-            _cameras = deviceService.GetDevices(brandId: DeviceBrands.ShahabCode).Where(x => x.Active).ToList();
+            _cameras = deviceService.GetDevices(brandId: DeviceBrands.PfkCode).Where(x => x.Active).ToList();
+            _pfkLogger.LogArose += OnLogHappened;
         }
 
         //public static Dictionary<uint, Device> GetOnlineDevices()
@@ -112,6 +114,24 @@ namespace Biovation.Brands.PFK
                     }
                 }
             });
+        }
+
+
+        public void OnLogHappened(object source, PFKParkingLibrary.Data.Log log)
+        {
+            Logger.Log($@"Log write by :   {source} 
+    Log detail:
+[ Log Id ] = {log.ID}
+[ Log DateTime ] = {log.DateTime}
+[ Log Comment ] = {log.Comment}
+[ Log Item ] = {log.Item}
+", string.Empty,
+                log.Type switch
+                {
+                    PFKParkingLibrary.Data.LogType.Errore => LogType.Error,
+                    PFKParkingLibrary.Data.LogType.Warning => CommonClasses.LogType.Warning,
+                    _ => CommonClasses.LogType.Information
+                });
         }
     }
 }
