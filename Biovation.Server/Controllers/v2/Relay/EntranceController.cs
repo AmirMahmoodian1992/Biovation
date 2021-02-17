@@ -22,17 +22,17 @@ namespace Biovation.Server.Controllers.v2.Relay
             _entranceService = entranceService;
         }
 
-        [HttpGet]
-        [Route("{id:int}")]
-        [AllowAnonymous]
-        public Task<ResultViewModel<PagingResult<Entrance>>> Entrances([FromRoute] int id = default, string name = null, string description = null, int pageNumber = 0,
-        int pageSize = 0, int nestingDepthLevel = 4, [FromBody] List<DeviceBasicInfo> devices = null, [FromBody] List<Scheduling> schedulings = null)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            var result = Task.Run(async () => await _entranceService.GetEntrances(id, name, description, pageNumber, pageSize,
-                nestingDepthLevel, devices, schedulings, token));
-            return result;
-        }
+        //[HttpGet] TODO Model binding for 2 from body attribute
+        //[Route("{id:int}")]
+        //[AllowAnonymous]
+        //public Task<ResultViewModel<PagingResult<Entrance>>> Entrances([FromRoute] int id = default, string name = null, string description = null, int pageNumber = 0,
+        //int pageSize = 0, int nestingDepthLevel = 4, [FromBody] List<DeviceBasicInfo> devices = null, [FromBody] List<Scheduling> schedulings = null)
+        //{
+        //    var token = (string)HttpContext.Items["Token"];
+        //    var result = Task.Run(async () => await _entranceService.GetEntrances(id, name, description, pageNumber, pageSize,
+        //        nestingDepthLevel, devices, schedulings, token));
+        //    return result;
+        //}
 
         [HttpPost]
         [Attribute.Authorize]
