@@ -210,6 +210,7 @@ namespace Biovation.Brands.PW
             services.AddSingleton<CommandFactory, CommandFactory>();
 
             services.AddSingleton<PwServer, PwServer>();
+            services.AddHostedService<TaskManagerHostedService>();
 
             var serviceProvider = services.BuildServiceProvider();
             var pwServer = serviceProvider.GetService<PwServer>();
