@@ -295,8 +295,7 @@ namespace Biovation.Brands.PW.Devices
                                 {
                                     //var len = records.Length;
                                     var logs = new List<Log>();
-                                    for (var i = _lastLogReadCount > 10 ? _lastLogReadCount - 10 : 0;
-                                        i < newRecordsCount; i++)
+                                    for (var i = 0; i < newRecordsCount; i++)
                                     {
                                         try
                                         {
