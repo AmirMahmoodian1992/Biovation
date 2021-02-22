@@ -76,14 +76,13 @@ namespace Biovation.Brands.PW.Command
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == deviceInfo.Code).Value;
                 device.ReadOfflineLogInPeriod(new object(), fromDate, toDate);
 
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = $@"تخلیه دستگاه {device.GetDeviceInfo().Code} شروع شد", Validate = 1 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $@"تخلیه دستگاه {device.GetDeviceInfo().Code} شروع شد", Validate = 1 };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, {exception}.{Environment.NewLine}", Validate = 0 };
             }
-
-            return false;
         }
 
         public void Rollback()

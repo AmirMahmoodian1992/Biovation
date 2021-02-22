@@ -333,7 +333,7 @@ namespace Biovation.Brands.PW.Devices
                                         }
                                     }
 
-                                    _logService.AddLog(logs);
+                                    _logService.AddLog(logs).ConfigureAwait(false);
 
                                     Task.Run(() =>
                                     {
@@ -485,7 +485,7 @@ namespace Biovation.Brands.PW.Devices
 
                         //Task.Run(() =>
                         //{
-                        _logService.AddLog(logs);
+                        _logService.AddLog(logs).ConfigureAwait(false);
                         //});
 
                     }
@@ -570,7 +570,7 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }, Token.Token);
 
-                            _logService.AddLog(logs);
+                            _logService.AddLog(logs).ConfigureAwait(false);
                         }
                         catch (Exception exception)
                         {
@@ -691,7 +691,7 @@ namespace Biovation.Brands.PW.Devices
 
                         //Task.Run(() =>
                         //{
-                        _logService.AddLog(logs);
+                        _logService.AddLog(logs).ConfigureAwait(false);
                         //});
 
                     }
@@ -768,7 +768,7 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }, Token.Token);
 
-                            _logService.AddLog(logs);
+                            _logService.AddLog(logs).ConfigureAwait(false);
                         }
                         catch (Exception exception)
                         {
