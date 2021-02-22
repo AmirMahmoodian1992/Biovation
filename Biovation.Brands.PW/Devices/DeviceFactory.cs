@@ -12,18 +12,22 @@ namespace Biovation.Brands.PW.Devices
         private readonly ILogger _logger;
         private readonly LogEvents _logEvents;
         private readonly LogService _logService;
-        private readonly TaskManager _taskManager;
+        private readonly TaskService _taskService;
         private readonly LogSubEvents _logSubEvents;
+        private readonly DeviceBrands _deviceBrands;
         private readonly PwCodeMappings _pwCodeMappings;
 
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public DeviceFactory(LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, BiovationConfigurationManager biovationConfigurationManager, LogService logService, TaskManager taskManager, ILogger logger)
+        public DeviceFactory(LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings,
+            BiovationConfigurationManager biovationConfigurationManager, LogService logService, ILogger logger,
+            DeviceBrands deviceBrands, TaskService taskService)
         {
             _logger = logger;
+            _deviceBrands = deviceBrands;
+            _taskService = taskService;
             _logEvents = logEvents;
             _logService = logService;
-            _taskManager = taskManager;
             _logSubEvents = logSubEvents;
             _pwCodeMappings = pwCodeMappings;
             _biovationConfigurationManager = biovationConfigurationManager;
@@ -40,7 +44,8 @@ namespace Biovation.Brands.PW.Devices
             switch (device.Model.Id)
             {
                 default:
-                    return new Device(device, _biovationConfigurationManager, _logEvents, _logSubEvents, _pwCodeMappings, _logService, _taskManager, _logger);
+                    return new Device(device, _biovationConfigurationManager, _logEvents, _logSubEvents,
+                        _pwCodeMappings, _logService, _deviceBrands, _taskService, _logger);
             }
         }
     }

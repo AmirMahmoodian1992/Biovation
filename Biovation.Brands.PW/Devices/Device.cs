@@ -34,14 +34,15 @@ namespace Biovation.Brands.PW.Devices
 
         private readonly ILogger _logger;
         private readonly LogEvents _logEvents;
-        private readonly TaskManager _taskManager;
         private readonly LogSubEvents _logSubEvents;
+        private readonly DeviceBrands _deviceBrands;
         private readonly PwCodeMappings _pwCodeMappings;
 
         private readonly LogService _logService;
+        private readonly TaskService _taskService;
         private readonly DeviceBasicInfo _deviceInfo;
 
-        internal Device(DeviceBasicInfo deviceInfo, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, LogService logService, TaskManager taskManager, ILogger logger)
+        internal Device(DeviceBasicInfo deviceInfo, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, PwCodeMappings pwCodeMappings, LogService logService, DeviceBrands deviceBrands, TaskService taskService, ILogger logger)
         {
             _valid = true;
             _logger = logger;
@@ -50,7 +51,9 @@ namespace Biovation.Brands.PW.Devices
             _logService = logService;
             _logSubEvents = logSubEvents;
             _pwCodeMappings = pwCodeMappings;
-            _taskManager = taskManager;
+            _logService = logService;
+            _deviceBrands = deviceBrands;
+            _taskService = taskService;
             _clearLogAfterRetrieving = biovationConfigurationManager.ClearLogAfterRetrieving;
             Token = new CancellationTokenSource();
             
@@ -144,7 +147,8 @@ namespace Biovation.Brands.PW.Devices
                 //}
             }
 
-            _taskManager.ProcessQueue(_deviceInfo.DeviceId);
+            //_taskManager.ProcessQueue(_deviceInfo.DeviceId);
+            _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, _deviceInfo.DeviceId).ConfigureAwait(false);
             return isConnect;
         }
 
