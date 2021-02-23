@@ -5,6 +5,7 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
 using Biovation.Server.Middleware;
@@ -12,7 +13,6 @@ using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
 using DataAccessLayerCore.Domain;
 using DataAccessLayerCore.Repositories;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -21,14 +21,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
-using Biovation.Server.HostedServices;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Log = Serilog.Log;
-using Biovation.Servers;
 
 namespace Biovation.Server
 {
@@ -75,26 +75,15 @@ namespace Biovation.Server
                 config.DefaultApiVersion = new ApiVersion(1, 0);
                 config.AssumeDefaultVersionWhenUnspecified = true;
                 config.ReportApiVersions = true;  //the clients of the API know all supported versions
-                //config.ApiVersionReader = new HeaderApiVersionReader("api-version"); //if Pass version information in the HTTP headers
                 //config.Conventions.Add(new VersionByNamespaceConvention());
-                config.ApiVersionReader = new UrlSegmentApiVersionReader();
+                config.ApiVersionReader = ApiVersionReader.Combine(new UrlSegmentApiVersionReader(), new HeaderApiVersionReader("api-version"));
                 config.ApiVersionSelector = new CurrentImplementationApiVersionSelector(config);
-                config.RegisterMiddleware = false;
-                //config.ReportApiVersions = true;
+                config.RegisterMiddleware = true;
             });
 
-            services.AddSwaggerGen(options =>
-            {
-                options.CustomSchemaIds(type => type.ToString());
+            services.AddVersionedApiExplorer();
 
-                options.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Version = "v1",
-                    Title = "Biovation Swagger",
-                    Description = "Swagger for API version 1,2"
-                });
-
-            });
+            services.AddSwaggerGen();
 
             services.AddQuartz(config =>
             {
@@ -116,17 +105,14 @@ namespace Biovation.Server
                 config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
             });
 
-
-            
             services.AddMvc();
-            
             //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
-
 
             services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
             var serviceStatuses = new SystemInfo();
             services.AddSingleton(serviceStatuses);
@@ -157,7 +143,7 @@ namespace Biovation.Server
                 Password = BiovationConfiguration.ConnectionStringPassword()
             };
 
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             services.AddSingleton(restClient);
             services.AddSingleton(connectionInfo);
@@ -263,8 +249,8 @@ namespace Biovation.Server
         public void ConfigureConstantValues(IServiceCollection services)
         {
             var user = new User { Id = 0 };
-            var _tokenGenerator = new TokenGenerator(BiovationConfiguration);
-            _tokenGenerator.GenerateToken(user);
+            var tokenGenerator = new TokenGenerator(BiovationConfiguration);
+            tokenGenerator.GenerateToken(user);
 
             var serviceCollection = new ServiceCollection();
             var connectionInfo = new DatabaseConnectionInfo
@@ -278,7 +264,7 @@ namespace Biovation.Server
                 Password = BiovationConfiguration.ConnectionStringPassword()
             };
 
-            var restClient = (RestClient)new RestClient($"http://localhost:{BiovationConfigurationManager.BiovationWebServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
             serviceCollection.AddSingleton(restClient);
             serviceCollection.AddSingleton(connectionInfo);
@@ -359,7 +345,7 @@ namespace Biovation.Server
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -371,7 +357,7 @@ namespace Biovation.Server
 
             //app.UseAuthorization();
             //app.UseAuthentication();
-            app.UseApiVersioning();
+            //app.UseApiVersioning();
             app.UseMiddleware<JwtMiddleware>();
 
             app.UseRouting();
@@ -390,7 +376,10 @@ namespace Biovation.Server
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Biovation API");
+                foreach (var description in provider.ApiVersionDescriptions)
+                {
+                    c.SwaggerEndpoint($"{description.GroupName}/swagger.json", $"Biovation API V{description.GroupName.ToUpperInvariant()}");
+                }
             });
 
 

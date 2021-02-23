@@ -5,7 +5,7 @@ using Biovation.CommonClasses.Interface;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -41,7 +41,7 @@ namespace Biovation.Brands.ZK.Devices
         private readonly RestClient _restClient;
         protected CancellationTokenSource TokenSource = new CancellationTokenSource();
 
-        protected readonly CZKEMClass ZKTecoSdk = new CZKEMClass(); //create Standalone _zkTecoSdk class dynamically
+        protected readonly CZKEMClass ZkTecoSdk = new CZKEMClass(); //create Standalone _zkTecoSdk class dynamically
         private bool _reconnecting;
 
         private readonly bool _isGetLogEnable;
@@ -52,7 +52,6 @@ namespace Biovation.Brands.ZK.Devices
         private readonly LogSubEvents _logSubEvents;
         private readonly ZkCodeMappings _zkCodeMappings;
 
-        private readonly ZkLogService _zkLogService;
         private readonly TaskManager _taskManager;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
@@ -69,7 +68,6 @@ namespace Biovation.Brands.ZK.Devices
         internal Device(DeviceBasicInfo info, ZkLogService zkLogService, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
         {
             DeviceInfo = info;
-            _zkLogService = zkLogService;
             ZkLogService = zkLogService;
             _taskService = taskService;
             UserService = userService;
@@ -105,21 +103,21 @@ namespace Biovation.Brands.ZK.Devices
 
         public bool Connect()
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 if (!string.IsNullOrEmpty(DeviceInfo.DeviceLockPassword))
                 {
-                    ZKTecoSdk.SetCommPassword(Convert.ToInt32(DeviceInfo.DeviceLockPassword));
+                    ZkTecoSdk.SetCommPassword(Convert.ToInt32(DeviceInfo.DeviceLockPassword));
                 }
 
-                var connectResult = ZKTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
+                var connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
                 while (!connectResult)
                 {
                     Logger.Log(
                         $"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
                     Thread.Sleep(20000);
-                    connectResult = ZKTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
+                    connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
                 }
 
                 Thread.Sleep(500);
@@ -127,15 +125,15 @@ namespace Biovation.Brands.ZK.Devices
                 //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
                 if (_reconnecting)
                 {
-                    if (ZKTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
+                    if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
                     {
                         //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
                         //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
                         Thread.Sleep(500);
-                        ZKTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
-                        ZKTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
+                        ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
+                        ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
                         //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
-                        ZKTecoSdk.OnKeyPress -= OnKeyPressCallback;
+                        ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
                         //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
                         //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
                         //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
@@ -144,19 +142,19 @@ namespace Biovation.Brands.ZK.Devices
                         //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
                         //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
                         //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
-                        ZKTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                        ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
                     }
                 }
 
-                if (ZKTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
+                if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
                 {
                     //_zkTecoSdk.OnFinger += _zkTecoSdk_OnFinger;
                     //_zkTecoSdk.OnVerify += _zkTecoSdk_OnVerify;
                     Thread.Sleep(500);
-                    ZKTecoSdk.OnAttTransaction += OnAttendanceTransactionCallback;
-                    ZKTecoSdk.OnAttTransactionEx += OnAttendanceTransactionExCallback;
+                    ZkTecoSdk.OnAttTransaction += OnAttendanceTransactionCallback;
+                    ZkTecoSdk.OnAttTransactionEx += OnAttendanceTransactionExCallback;
                     //_zkTecoSdk.OnFingerFeature += _zkTecoSdk_OnFingerFeature;
-                    ZKTecoSdk.OnKeyPress += OnKeyPressCallback;
+                    ZkTecoSdk.OnKeyPress += OnKeyPressCallback;
                     //_zkTecoSdk.OnEnrollFinger += _zkTecoSdk_OnEnrollFinger;
                     //_zkTecoSdk.OnDeleteTemplate += _zkTecoSdk_OnDeleteTemplate;
                     //_zkTecoSdk.OnNewUser += _zkTecoSdk_OnNewUser;
@@ -165,7 +163,7 @@ namespace Biovation.Brands.ZK.Devices
                     //_zkTecoSdk.OnDoor += _zkTecoSdk_OnDoor;
                     //_zkTecoSdk.OnWriteCard += _zkTecoSdk_OnWriteCard;
                     //_zkTecoSdk.OnEmptyCard += _zkTecoSdk_OnEmptyCard;
-                    ZKTecoSdk.OnDisConnected += OnDisconnectedCallback;
+                    ZkTecoSdk.OnDisConnected += OnDisconnectedCallback;
                 }
 
                 try
@@ -174,11 +172,11 @@ namespace Biovation.Brands.ZK.Devices
                     var macAddress = "";
 
                     Thread.Sleep(500);
-                    ZKTecoSdk.GetDeviceFirmwareVersion((int)DeviceInfo.Code, ref firmwareVersion);
+                    ZkTecoSdk.GetDeviceFirmwareVersion((int)DeviceInfo.Code, ref firmwareVersion);
                     Thread.Sleep(500);
-                    ZKTecoSdk.GetDeviceMAC((int)DeviceInfo.Code, ref macAddress);
+                    ZkTecoSdk.GetDeviceMAC((int)DeviceInfo.Code, ref macAddress);
                     Thread.Sleep(500);
-                    ZKTecoSdk.GetSerialNumber((int)DeviceInfo.Code, out var serialNumber);
+                    ZkTecoSdk.GetSerialNumber((int)DeviceInfo.Code, out var serialNumber);
 
                     DeviceInfo.FirmwareVersion = firmwareVersion;
                     DeviceInfo.MacAddress = macAddress;
@@ -197,13 +195,13 @@ namespace Biovation.Brands.ZK.Devices
                     {
                         try
                         {
-                            var result = ZKTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year, DateTime.Now.Month,
+                            var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year, DateTime.Now.Month,
                                 DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                             if (result)
                                 Logger.Log($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
                             else
                             {
-                                result = ZKTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                                result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
                                 Logger.Log(result
                                     ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
                                     : $"Could not set time for device {DeviceInfo.Code}");
@@ -212,7 +210,7 @@ namespace Biovation.Brands.ZK.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception);
-                            ZKTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                            ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
                             Logger.Log($"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
                         }
                     }
@@ -253,7 +251,7 @@ namespace Biovation.Brands.ZK.Devices
                 DeviceId = DeviceInfo.DeviceId,
                 LogDateTime = DateTime.Now,
                 EventLog = _logEvents.Connect
-              
+
             });
 
             if (_isGetLogEnable)
@@ -261,7 +259,7 @@ namespace Biovation.Brands.ZK.Devices
                 //Task.Run(() => { ReadOfflineLog(Token); }, Token);
                 //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(TokenSource.Token), TokenSource.Token));
                 //ZKTecoServer.StartReadLogs();
-                var creatorUser = _userService.GetUsers(123456789, false).FirstOrDefault();
+                var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 var task = new TaskInfo
                 {
                     CreatedAt = DateTimeOffset.Now,
@@ -305,8 +303,8 @@ namespace Biovation.Brands.ZK.Devices
             {
                 if (TokenSource.IsCancellationRequested)
                     return;
-                lock (ZKTecoSdk)
-                    deviceConnectionStatus = ZKTecoSdk.GetDeviceTime((int)DeviceInfo.Code, ref year, ref month,
+                lock (ZkTecoSdk)
+                    deviceConnectionStatus = ZkTecoSdk.GetDeviceTime((int)DeviceInfo.Code, ref year, ref month,
                         ref day,
                         ref hour, ref minute, ref second);
 
@@ -325,7 +323,7 @@ namespace Biovation.Brands.ZK.Devices
 
         public bool Disconnect(bool cancelReconnecting = true)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 ////_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
                 ////_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
@@ -343,7 +341,7 @@ namespace Biovation.Brands.ZK.Devices
                 ////_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
                 //_zkTecoSdk.RegEvent((int)_deviceInfo.Code, 0);
 
-                ZKTecoSdk.Disconnect();
+                ZkTecoSdk.Disconnect();
 
                 if (cancelReconnecting)
                     TokenSource.Cancel(false);
@@ -359,15 +357,8 @@ namespace Biovation.Brands.ZK.Devices
                 IsConnected = false
             };
 
-            var data = JsonConvert.SerializeObject(connectionStatus);
-
-            data = "jsoninput=" + data;
-
             try
             {
-                //_communicationManager.CallRest(
-                //    "/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
-                //    new List<object> { data });
                 var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
                 restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -399,8 +390,8 @@ namespace Biovation.Brands.ZK.Devices
      ...inOutMode: {iInOutMode}
      ...VerifyMethod: {iVerifyMethod}
      ...Time: {iYear}-{iMonth}-{iDay}  {iHour}:{iMinute}:{iSecond}");
-          
-       
+
+
             var log = new Log
             {
                 DeviceId = DeviceInfo.DeviceId,
@@ -409,7 +400,7 @@ namespace Biovation.Brands.ZK.Devices
                 EventLog = _logEvents.Authorized,
                 UserId = iUserId,
                 MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
-                    
+
                 TnaEvent = (ushort)iInOutMode,
                 SubEvent = _logSubEvents.Normal
             };
@@ -433,7 +424,7 @@ namespace Biovation.Brands.ZK.Devices
             try
             {
                 var userId = Convert.ToInt64(iUserId);
-                
+
                 var log = new Log
                 {
                     DeviceId = DeviceInfo.DeviceId,
@@ -473,15 +464,8 @@ namespace Biovation.Brands.ZK.Devices
                 IsConnected = false
             };
 
-            var data = JsonConvert.SerializeObject(connectionStatus);
-
-            data = "jsoninput=" + data;
-
             try
             {
-                //_communicationManager.CallRest(
-                //    "/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
-                //    new List<object> { data });
                 var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
                 restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -505,27 +489,24 @@ namespace Biovation.Brands.ZK.Devices
 
         public virtual bool TransferUser(User user)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 var errorCode = 0;
                 // _zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);
-                var card = UserCardService.GetCardsByFilter(user.Id).FirstOrDefault(c => c.IsActive);
-                if (card != null)
+                //var card = UserCardService.GetCardsByFilter(user.Id).FirstOrDefault(c => c.IsActive);
+                if (user.IdentityCard != null && user.IdentityCard.IsActive)
                 {
-                    if (ZKTecoSdk.SetStrCardNumber(card.CardNum))
-                    {
-                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
+                    if (ZkTecoSdk.SetStrCardNumber(user.IdentityCard.Number))
                         Logger.Log($"Successfully set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                    }
                     else
                     {
-                        ZKTecoSdk.GetLastError(ref errorCode);
+                        ZkTecoSdk.GetLastError(ref errorCode);
                         Logger.Log($"Cannot set card for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                     }
                 }
 
                 var name = user.FirstName + " " + user.SurName;
-                if (ZKTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Id.ToString(), name.Trim(), user.Password,
+                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
                     Logger.Log($"UserId {user.Id} successfully added to DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
@@ -540,7 +521,7 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 for (var i = 0; i < 9; i++)
                                 {
-                                    if (ZKTecoSdk.SetUserTmpExStr((int)DeviceInfo.Code, user.Id.ToString(), finger.Index,
+                                    if (ZkTecoSdk.SetUserTmpExStr((int)DeviceInfo.Code, user.Code.ToString(), finger.Index,
                                         1,
                                         Encoding.ASCII.GetString(finger.Template)))
                                     {
@@ -550,7 +531,7 @@ namespace Biovation.Brands.ZK.Devices
                                         break;
                                     }
 
-                                    ZKTecoSdk.GetLastError(ref errorCode);
+                                    ZkTecoSdk.GetLastError(ref errorCode);
                                     Thread.Sleep(50);
                                     Logger.Log(
                                         $"Cannot set template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
@@ -558,47 +539,48 @@ namespace Biovation.Brands.ZK.Devices
                             }
                         }
 
-                        var faceZk = FaceTemplateService.FaceTemplates(userId:user.Id, index:50);
-                        if (faceZk.Any())
+                        //var faceZk = FaceTemplateService.FaceTemplates(userId: user.Id, index: 50);
+                        if (user.FaceTemplates.Any(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
                         {
-                            foreach (var face in faceZk)
+                            var faceTemplate = user.FaceTemplates.First(template =>
+                                template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code);
+                            //foreach (var face in user.FaceTemplates.Where(template => template.FaceTemplateType.Code == FaceTemplateTypes.ZKVX7Code))
+                            //{
+                            for (var i = 0; i < 9; i++)
                             {
-                                for (var i = 0; i < 9; i++)
+                                if (ZkTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
+                                    Encoding.ASCII.GetString(faceTemplate.Template), faceTemplate.Size))
                                 {
-                                    if (ZKTecoSdk.SetUserFaceStr((int)DeviceInfo.Code, user.Id.ToString(), 50,
-                                        Encoding.ASCII.GetString(face.Template), face.Size))
-                                    {
-                                        //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
-                                        Logger.Log(
-                                            $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
-                                        break;
-                                    }
-
-                                    ZKTecoSdk.GetLastError(ref errorCode);
-                                    Thread.Sleep(50);
+                                    //_zkTecoSdk.RefreshData((int)_deviceInfo.Code);
                                     Logger.Log(
-                                        $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                                        $"Successfully set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
+                                    break;
                                 }
-                            }
 
+                                ZkTecoSdk.GetLastError(ref errorCode);
+                                Thread.Sleep(50);
+                                Logger.Log(
+                                    $"Cannot set face template for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
+                            }
+                            //}
                         }
 
-                        var userAccessGroups = _accessGroupService.GetAccessGroups(user.Id);
+                        var userAccessGroups = user.Id == default ? null : _accessGroupService.GetAccessGroups(user.Id);
                         var validAccessGroup =
-                            userAccessGroups.FirstOrDefault(ag =>
+                            userAccessGroups?.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
-                        if (ZKTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Id,
+                        if (ZkTecoSdk.SetUserGroup((int)DeviceInfo.Code, (int)user.Code,
                             validAccessGroup?.Id ?? 1))
                         {
-                            ZKTecoSdk.RefreshData((int)DeviceInfo.Code);
+                            ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
                             Logger.Log(
                                 $"Successfully set access group for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
                             //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
                             return true;
                         }
 
-                        ZKTecoSdk.RefreshData((int)DeviceInfo.Code);
-                        ZKTecoSdk.GetLastError(ref errorCode);
+                        ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
+                        ZkTecoSdk.GetLastError(ref errorCode);
                         //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
 
                         Logger.Log($"Cannot set access group for UserId {user.Id} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
@@ -613,7 +595,7 @@ namespace Biovation.Brands.ZK.Devices
                 }
 
                 errorCode = 0;
-                ZKTecoSdk.GetLastError(ref errorCode);
+                ZkTecoSdk.GetLastError(ref errorCode);
                 //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);
 
                 Logger.Log($"Cannot add user {user.Id} to device {DeviceInfo.Code}. ErrorCode={errorCode}",
@@ -624,7 +606,7 @@ namespace Biovation.Brands.ZK.Devices
 
         public virtual ResultViewModel ReadOfflineLog(object cancelationToken, bool saveFile = false)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 try
                 {
@@ -634,13 +616,13 @@ namespace Biovation.Brands.ZK.Devices
                     //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);//disable the device
                     var idwErrorCode = 0;
 
-                    if (!ZKTecoSdk.ReadNewGLogData((int)DeviceInfo.Code))
+                    if (!ZkTecoSdk.ReadNewGLogData((int)DeviceInfo.Code))
                     {
-                        ZKTecoSdk.GetLastError(ref idwErrorCode);
+                        ZkTecoSdk.GetLastError(ref idwErrorCode);
                         if (idwErrorCode != 0)
-                            if (!ZKTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
+                            if (!ZkTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
                             {
-                                ZKTecoSdk.GetLastError(ref idwErrorCode);
+                                ZkTecoSdk.GetLastError(ref idwErrorCode);
                                 //Thread.Sleep(2000);
                                 //Connect();
                                 Logger.Log(
@@ -653,7 +635,7 @@ namespace Biovation.Brands.ZK.Devices
                     var iWorkCode = 0;
                     var lstLogs = new List<Log>();
                     var recordCnt = 0;
-                    while (ZKTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
+                    while (ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
                     {
@@ -667,7 +649,7 @@ namespace Biovation.Brands.ZK.Devices
                             try
                             {
                                 var userId = Convert.ToInt32(iUserId);
-                                
+
                                 var log = new Log
                                 {
                                     DeviceId = DeviceInfo.DeviceId,
@@ -724,7 +706,7 @@ namespace Biovation.Brands.ZK.Devices
 
         public ResultViewModel ReadOfflineLogInPeriod(object cancelationToken, string fDate, string eDate, bool saveFile = false)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 try
                 {
@@ -735,10 +717,10 @@ namespace Biovation.Brands.ZK.Devices
                     //if (_zkTecoSdk.ReadTimeGLogData((int)_deviceInfo.Code, fDate, eDate))
                     if (fDate == default && eDate == default)
                     {
-                        if (!ZKTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
+                        if (!ZkTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
                         {
                             var idwErrorCode = 0;
-                            ZKTecoSdk.GetLastError(ref idwErrorCode);
+                            ZkTecoSdk.GetLastError(ref idwErrorCode);
                             //Thread.Sleep(2000);
                             //Connect();
                             Logger.Log(
@@ -754,11 +736,11 @@ namespace Biovation.Brands.ZK.Devices
                         }
                     }
 
-                    else if (!ZKTecoSdk.ReadTimeGLogData((int)DeviceInfo.Code, fDate, eDate))
-                        if (!ZKTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
+                    else if (!ZkTecoSdk.ReadTimeGLogData((int)DeviceInfo.Code, fDate, eDate))
+                        if (!ZkTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
                         {
                             var idwErrorCode = 0;
-                            ZKTecoSdk.GetLastError(ref idwErrorCode);
+                            ZkTecoSdk.GetLastError(ref idwErrorCode);
                             //Thread.Sleep(2000);
                             //Connect();
                             Logger.Log(
@@ -771,7 +753,7 @@ namespace Biovation.Brands.ZK.Devices
 
                     var lstLogs = new List<Log>();
                     var recordsCount = 0;
-                    while (ZKTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
+                    while (ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
                     {
@@ -784,7 +766,7 @@ namespace Biovation.Brands.ZK.Devices
                             try
                             {
                                 var userId = Convert.ToInt32(iUserId);
-                               
+
                                 var log = new Log
                                 {
                                     DeviceId = DeviceInfo.DeviceId,
@@ -846,21 +828,21 @@ namespace Biovation.Brands.ZK.Devices
                 Logger.Log(exception);
             }
 
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 //int iGroupNo = Convert.ToInt32(cbGroupNo.Text.Trim());
                 var validHoliday = 0;
                 var verifyStyle = 0;
 
-                if (ZKTecoSdk.SSR_SetGroupTZ((int)DeviceInfo.Code, accessGroup.Id, accessGroup.TimeZone.Id, 0, 0,
+                if (ZkTecoSdk.SSR_SetGroupTZ((int)DeviceInfo.Code, accessGroup.Id, accessGroup.TimeZone.Id, 0, 0,
                     validHoliday, verifyStyle))
                 {
-                    ZKTecoSdk.RefreshData((int)DeviceInfo.Code); //the data in the device should be refreshed
+                    ZkTecoSdk.RefreshData((int)DeviceInfo.Code); //the data in the device should be refreshed
                     Logger.Log($"Group Number: {accessGroup.Id} VerifyStyle: {verifyStyle} Success");
                     return true;
                 }
 
-                ZKTecoSdk.GetLastError(ref errorCode);
+                ZkTecoSdk.GetLastError(ref errorCode);
                 Logger.Log($"Operation failed, ErrorCode = {errorCode}, Error");
                 return false;
             }
@@ -881,16 +863,16 @@ namespace Biovation.Brands.ZK.Devices
             timeZoneString += timeZone.Details.FirstOrDefault(tz => tz.DayNumber == 1)?.FromTime.ToString("hhmm");
             timeZoneString += timeZone.Details.FirstOrDefault(tz => tz.DayNumber == 1)?.ToTime.ToString("hhmm");
 
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
-                if (ZKTecoSdk.SetTZInfo((int)DeviceInfo.Code, timeZone.Id, timeZoneString))
+                if (ZkTecoSdk.SetTZInfo((int)DeviceInfo.Code, timeZone.Id, timeZoneString))
                 {
-                    ZKTecoSdk.RefreshData((int)DeviceInfo.Code); //the data in the device should be refreshed
+                    ZkTecoSdk.RefreshData((int)DeviceInfo.Code); //the data in the device should be refreshed
                     Logger.Log($"SetTZInfo, TimeZone Index: {timeZone.Id} TimeZone: {timeZoneString}, Success", logType: LogType.Information);
                     return true;
                 }
 
-                ZKTecoSdk.GetLastError(ref errorCode);
+                ZkTecoSdk.GetLastError(ref errorCode);
                 Logger.Log($"Operation failed, ErrorCode= {errorCode}, Error.", logType: LogType.Warning);
                 return false;
             }
@@ -907,10 +889,10 @@ namespace Biovation.Brands.ZK.Devices
             {
                 Task.Run(() =>
                 {
-                    lock (ZKTecoSdk)
+                    lock (ZkTecoSdk)
                     {
-                        ZKTecoSdk.SSR_DeleteEnrollData((int)DeviceInfo.Code, sUserId.ToString(), 12);
-                        ZKTecoSdk.RefreshData((int)DeviceInfo.Code);
+                        ZkTecoSdk.SSR_DeleteEnrollData((int)DeviceInfo.Code, sUserId.ToString(), 12);
+                        ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
                     }
                 }, TokenSource.Token);
 
@@ -929,7 +911,7 @@ namespace Biovation.Brands.ZK.Devices
             try
             {
                 Logger.Log($"Locking the Device: {DeviceInfo.Code}.", logType: LogType.Information);
-                ZKTecoSdk.EnableDevice((int)DeviceInfo.Code, false); //disable the device
+                ZkTecoSdk.EnableDevice((int)DeviceInfo.Code, false); //disable the device
 
                 return true;
             }
@@ -944,7 +926,7 @@ namespace Biovation.Brands.ZK.Devices
             try
             {
                 Logger.Log($"UnLocking the Device: {DeviceInfo.Code}.", logType: LogType.Information);
-                ZKTecoSdk.EnableDevice((int)DeviceInfo.Code, false);//disable the device
+                ZkTecoSdk.EnableDevice((int)DeviceInfo.Code, false);//disable the device
                 return true;
             }
             catch (Exception exception)
@@ -954,28 +936,134 @@ namespace Biovation.Brands.ZK.Devices
             }
         }
 
-        public List<User> GetAllUserInfo()
+        public List<User> GetAllUserInfo(bool template = false)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
-                if (ZKTecoSdk.ReadAllUserID((int)DeviceInfo.Code))
+                if (ZkTecoSdk.ReadAllUserID((int)DeviceInfo.Code))
                 {
                     var lstUsers = new List<User>();
 
-                    while (ZKTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out _,
-                        out var privilege, out var enable))
+                    var index = 0;
+
+                    while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
+                            out var privilege, out var enable))
                     {
                         lock (LockObject) //make the object exclusive 
                         {
                             try
                             {
+                                Logger.Log($"Retrieved user {iUserId}, index: {index}");
+
                                 var user = new User
                                 {
-                                    Id = Convert.ToInt32(iUserId),
+                                    Code = Convert.ToInt32(iUserId),
                                     UserName = name,
                                     IsActive = enable,
-                                    AdminLevel = privilege
+                                    AdminLevel = privilege,
+                                    Password = password,
+                                    SurName = name.Split(' ').LastOrDefault(),
+                                    FirstName = name.Split(' ').FirstOrDefault(),
+                                    StartDate = DateTime.Parse("1970/01/01"),
+                                    EndDate = DateTime.Parse("2050/01/01")
                                 };
+
+                                if (template)
+                                {
+                                    index++;
+                                    Logger.Log($"Retrieving templates of user {iUserId}, index: {index}");
+
+                                    try
+                                    {
+                                        if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
+                                        {
+                                            user.IdentityCard = new IdentityCard
+                                            {
+                                                Number = cardNumber,
+                                                IsActive = true
+                                                //Id = (int)user.Id
+                                            };
+                                        }
+
+                                        Logger.Log($"Retried user card of user {iUserId}, index: {index}");
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Log(e);
+                                    }
+
+
+                                    var retrievedFingerTemplates = new List<FingerTemplate>();
+                                    var retrievedFaceTemplates = new List<FaceTemplate>();
+
+                                    try
+                                    {
+                                        for (var i = 0; i <= 9; i++)
+                                        {
+                                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
+                                                out var tempData, out var tempLength))
+                                            {
+                                                Thread.Sleep(50);
+                                                continue;
+                                            }
+
+                                            var fingerTemplate = new FingerTemplate
+                                            {
+                                                FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
+                                                FingerTemplateType = _fingerTemplateTypes.VX10,
+                                                UserId = user.Id,
+                                                Template = Encoding.ASCII.GetBytes(tempData),
+                                                CheckSum = Encoding.ASCII.GetBytes(tempData).Sum(x => x),
+                                                Size = tempLength,
+                                                Index = i
+                                            };
+
+                                            retrievedFingerTemplates.Add(fingerTemplate);
+                                        }
+
+                                        user.FingerTemplates = retrievedFingerTemplates;
+                                        Logger.Log($"Retrieving finger templates of user {iUserId}, index: {index}");
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Log(e);
+                                    }
+
+                                    try
+                                    {
+                                        var faceStr = "";
+                                        var faceLen = 0;
+                                        for (var i = 0; i < 9; i++)
+                                        {
+                                            if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
+                                                ref faceStr, ref faceLen))
+                                            {
+                                                Thread.Sleep(50);
+                                                continue;
+                                            }
+
+                                            var faceTemplate = new FaceTemplate
+                                            {
+                                                Index = 50,
+                                                FaceTemplateType = _faceTemplateTypes.ZKVX7,
+                                                UserId = user.Id,
+                                                Template = Encoding.ASCII.GetBytes(faceStr),
+                                                CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
+                                                Size = faceLen,
+                                            };
+
+                                            retrievedFaceTemplates.Add(faceTemplate);
+                                            Logger.Log($"Retrieving face templates of user {iUserId}, index: {index}");
+                                            break;
+                                        }
+
+                                        user.FaceTemplates = retrievedFaceTemplates;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Log(e);
+                                    }
+                                }
 
                                 //_zkLogService.AddLog(log);
                                 lstUsers.Add(user);
@@ -991,25 +1079,25 @@ namespace Biovation.Brands.ZK.Devices
                 }
 
                 var error = 0;
-                ZKTecoSdk.GetLastError(ref error);
+                ZkTecoSdk.GetLastError(ref error);
                 Logger.Log($"Cannot Get Users Of Device {DeviceInfo.Code}, ErrorCode : {error}", logType: LogType.Warning);
                 return new List<User>();
             }
         }
         public virtual bool GetAndSaveUser(long userId)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 try
                 {
                     Logger.Log("<--EventGetUserData");
 
-                    if (ZKTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
+                    if (ZkTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
                         out var password, out var privilege, out var enabled))
                     {
                         var user = new User
                         {
-                            Id = userId,
+                            Code = userId,
                             AdminLevel = privilege,
                             IsActive = enabled,
                             SurName = name.Split(' ').LastOrDefault(),
@@ -1019,12 +1107,13 @@ namespace Biovation.Brands.ZK.Devices
                             Password = password,
                             UserName = name,
                         };
-                        var existUser = UserService.GetUsers(userId).FirstOrDefault();
+                        var existUser = UserService.GetUsers(code: userId).FirstOrDefault();
                         if (existUser != null)
                         {
                             user = new User
                             {
-                                Id = userId,
+                                Id = existUser.Id,
+                                Code = userId,
                                 AdminLevel = privilege,
                                 IsActive = existUser.IsActive,
                                 SurName = existUser.SurName,
@@ -1041,15 +1130,19 @@ namespace Biovation.Brands.ZK.Devices
                             };
                         }
 
-                        UserService.ModifyUser(user);
+                        var userInsertionResult = UserService.ModifyUser(user);
+                        if (!userInsertionResult.Success)
+                            return false;
+
                         Logger.Log("<--User is Modified");
+                        user.Id = userInsertionResult.Id;
 
                         user.FingerTemplates = new List<FingerTemplate>();
                         user.FaceTemplates = new List<FaceTemplate>();
 
                         try
                         {
-                            if (ZKTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
+                            if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
                             {
                                 var card = new UserCard
                                 {
@@ -1075,7 +1168,7 @@ namespace Biovation.Brands.ZK.Devices
                         {
                             for (var i = 0; i <= 9; i++)
                             {
-                                if (!ZKTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Id.ToString(), i,
+                                if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
                                     out var tempData, out var tempLength))
                                 {
                                     Thread.Sleep(50);
@@ -1135,7 +1228,7 @@ namespace Biovation.Brands.ZK.Devices
                             var faceLen = 0;
                             for (var i = 0; i < 9; i++)
                             {
-                                if (!ZKTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
+                                if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
                                     ref faceStr, ref faceLen))
                                 {
                                     Thread.Sleep(50);
@@ -1195,9 +1288,140 @@ namespace Biovation.Brands.ZK.Devices
                 }
             }
         }
+
+        public virtual User GetUser(long userId)
+        {
+            lock (ZkTecoSdk)
+            {
+                try
+                {
+                    Logger.Log("<--EventGetUserData");
+
+                    if (!ZkTecoSdk.SSR_GetUserInfo((int) DeviceInfo.Code, userId.ToString(), out var name,
+                        out var password, out var privilege, out var enabled)) return new User();
+                    var user = new User
+                    {
+                        Code = userId,
+                        AdminLevel = privilege,
+                        IsActive = enabled,
+                        SurName = name.Split(' ').LastOrDefault(),
+                        FirstName = name.Split(' ').FirstOrDefault(),
+                        StartDate = DateTime.Parse("1970/01/01"),
+                        EndDate = DateTime.Parse("2050/01/01"),
+                        Password = password,
+                        UserName = name,
+                        FingerTemplates = new List<FingerTemplate>(),
+                        FaceTemplates = new List<FaceTemplate>(),
+                    };
+
+
+                    try
+                    {
+                        if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
+                        {
+                            user.IdentityCard = new IdentityCard
+                            {
+                                Number = cardNumber,
+                                IsActive = true
+                                //Id = (int)user.Id
+                            };
+
+
+                            Logger.Log("<--User card Fetched");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                        //ignore
+                    }
+
+                    var retrievedFingerTemplates = new List<FingerTemplate>();
+                    var retrievedFaceTemplates = new List<FaceTemplate>();
+
+                    try
+                    {
+                        for (var i = 0; i <= 9; i++)
+                        {
+                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
+                                out var tempData, out var tempLength))
+                            {
+                                Thread.Sleep(50);
+                                continue;
+                            }
+                            var fingerTemplate = new FingerTemplate
+                            {
+                                FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
+                                FingerTemplateType = _fingerTemplateTypes.VX10,
+                                UserId = user.Id,
+                                Template = Encoding.ASCII.GetBytes(tempData),
+                                CheckSum = Encoding.ASCII.GetBytes(tempData).Sum(x => x),
+                                Size = tempLength,
+                                Index = i
+                            };
+
+                            retrievedFingerTemplates.Add(fingerTemplate);
+
+                               
+                            user.FingerTemplates.Add(fingerTemplate);
+                            Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Id}");
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception, $"Error in getting finger template from device: {DeviceInfo.Code}");
+                    }
+
+                    try
+                    {
+                        var faceStr = "";
+                        var faceLen = 0;
+                        for (var i = 0; i < 9; i++)
+                        {
+                            if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
+                                ref faceStr, ref faceLen))
+                            {
+                                Thread.Sleep(50);
+                                continue;
+                            }
+                            var faceTemplate = new FaceTemplate
+                            {
+                                Index = 50,
+                                FaceTemplateType = _faceTemplateTypes.ZKVX7,
+                                UserId = user.Id,
+                                Template = Encoding.ASCII.GetBytes(faceStr),
+                                CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
+                                Size = faceLen,
+                            };
+
+                            retrievedFaceTemplates.Add(faceTemplate);
+
+                            user.FaceTemplates.Add(faceTemplate);
+                            break;
+                        }
+
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception, $"Error in getting face template from device: {DeviceInfo.Code}");
+                    }
+
+                    Logger.Log($@" The user: {userId} is retrieved from device:{DeviceInfo.Code}
+    Info: Finger retrieved count: {retrievedFingerTemplates.Count}, inserted count: {user.FingerTemplates.Count}, 
+          Face retrieved count: {retrievedFaceTemplates.Count}, inserted count: {user.FaceTemplates.Count}");
+                    return user;
+
+                }
+                catch (Exception e)
+                {
+                    Logger.Log($" --> Error On GetUserData {e.Message}", logType: LogType.Warning);
+                    return new User();
+                }
+            }
+        }
         public Dictionary<string, string> GetAdditionalData(int code)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 var dic = new Dictionary<string, string>();
                 var adminCnt = 0;
@@ -1207,15 +1431,15 @@ namespace Biovation.Brands.ZK.Devices
                 var pwdCnt = 0;
                 var opLogCnt = 0;
                 var faceCnt = 0;
-                ZKTecoSdk.EnableDevice(code, false); //disable the device
+                ZkTecoSdk.EnableDevice(code, false); //disable the device
 
-                ZKTecoSdk.GetDeviceStatus(code, 2, ref userCount);
-                ZKTecoSdk.GetDeviceStatus(code, 1, ref adminCnt);
-                ZKTecoSdk.GetDeviceStatus(code, 3, ref fpCnt);
-                ZKTecoSdk.GetDeviceStatus(code, 4, ref pwdCnt);
-                ZKTecoSdk.GetDeviceStatus(code, 5, ref opLogCnt);
-                ZKTecoSdk.GetDeviceStatus(code, 6, ref recordCnt);
-                ZKTecoSdk.GetDeviceStatus(code, 21, ref faceCnt);
+                ZkTecoSdk.GetDeviceStatus(code, 2, ref userCount);
+                ZkTecoSdk.GetDeviceStatus(code, 1, ref adminCnt);
+                ZkTecoSdk.GetDeviceStatus(code, 3, ref fpCnt);
+                ZkTecoSdk.GetDeviceStatus(code, 4, ref pwdCnt);
+                ZkTecoSdk.GetDeviceStatus(code, 5, ref opLogCnt);
+                ZkTecoSdk.GetDeviceStatus(code, 6, ref recordCnt);
+                ZkTecoSdk.GetDeviceStatus(code, 21, ref faceCnt);
                 dic.Add("UserCount", userCount.ToString());
                 dic.Add("AdminCount", adminCnt.ToString());
                 dic.Add("FPCount", fpCnt.ToString());
@@ -1229,18 +1453,18 @@ namespace Biovation.Brands.ZK.Devices
                 var sPlatform = "";
                 var sProducer = "";
 
-                ZKTecoSdk.GetSysOption(code, "~ZKFPVersion", out var iFPAlg);
-                ZKTecoSdk.GetSysOption(code, "ZKFaceVersion", out var iFaceAlg);
-                ZKTecoSdk.GetVendor(ref sProducer);
-                ZKTecoSdk.GetProductCode(code, out var sDeviceName);
-                ZKTecoSdk.GetDeviceMAC(code, ref sMac);
-                ZKTecoSdk.GetFirmwareVersion(code, ref sFirmwareVersion);
-                ZKTecoSdk.GetPlatform(code, ref sPlatform);
-                ZKTecoSdk.GetSerialNumber(code, out var sn);
-                ZKTecoSdk.GetDeviceStrInfo(code, 1, out var sProductTime);
+                ZkTecoSdk.GetSysOption(code, "~ZKFPVersion", out var iFpAlg);
+                ZkTecoSdk.GetSysOption(code, "ZKFaceVersion", out var iFaceAlg);
+                ZkTecoSdk.GetVendor(ref sProducer);
+                ZkTecoSdk.GetProductCode(code, out var sDeviceName);
+                ZkTecoSdk.GetDeviceMAC(code, ref sMac);
+                ZkTecoSdk.GetFirmwareVersion(code, ref sFirmwareVersion);
+                ZkTecoSdk.GetPlatform(code, ref sPlatform);
+                ZkTecoSdk.GetSerialNumber(code, out var sn);
+                ZkTecoSdk.GetDeviceStrInfo(code, 1, out var sProductTime);
 
-                ZKTecoSdk.EnableDevice(code, true); //enable the device
-                dic.Add("FPAlg", iFPAlg);
+                ZkTecoSdk.EnableDevice(code, true); //enable the device
+                dic.Add("FPAlg", iFpAlg);
                 dic.Add("FaceAlg", iFaceAlg);
                 dic.Add("Producer", sProducer);
                 dic.Add("DeviceName", sDeviceName);
@@ -1254,22 +1478,22 @@ namespace Biovation.Brands.ZK.Devices
         }
         public bool ClearLog(int code, string fDate, string eDate)
         {
-            lock (ZKTecoSdk)
+            lock (ZkTecoSdk)
             {
                 try
                 {
-                    ZKTecoSdk.EnableDevice(code, false); //disable the device
+                    ZkTecoSdk.EnableDevice(code, false); //disable the device
 
                     if (string.IsNullOrEmpty(fDate) && string.IsNullOrEmpty(eDate))
                     {
-                        if (!ZKTecoSdk.ClearGLog(code)) return false;
+                        if (!ZkTecoSdk.ClearGLog(code)) return false;
                     }
                     else
                     {
-                        if (!ZKTecoSdk.DeleteAttlogBetweenTheDate(code, fDate, eDate)) return false;
+                        if (!ZkTecoSdk.DeleteAttlogBetweenTheDate(code, fDate, eDate)) return false;
                     }
 
-                    ZKTecoSdk.RefreshData(code);
+                    ZkTecoSdk.RefreshData(code);
                     return true;
                 }
                 catch (Exception)
@@ -1277,6 +1501,89 @@ namespace Biovation.Brands.ZK.Devices
                     Logger.Log($"Error in Clear Log device code: {code}", logType: LogType.Warning);
                     return false;
                 }
+            }
+        }
+
+        public ResultViewModel DownloadUserPhotos()
+        {
+            try
+            {
+                Logger.Log($" Downloading user photos of device {DeviceInfo.Code}");
+                var outputFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZkDeviceUserPhotos",
+                    DeviceInfo.Code.ToString());
+
+                Logger.Log($" Downloading user photos of device {DeviceInfo.Code} in path {outputFolder}");
+
+                if (!Directory.Exists(outputFolder))
+                    Directory.CreateDirectory(outputFolder);
+
+                if (ZkTecoSdk.GetAllUserPhoto((int)DeviceInfo.Code, outputFolder.Trim('/') + '/'))
+                    return new ResultViewModel
+                    {
+                        Success = true,
+                        Id = DeviceInfo.Code,
+                        Message = $" All user photos of device {DeviceInfo.Code} are downloaded",
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode)
+                    };
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't download user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't download user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+        }
+
+        public ResultViewModel UploadUserPhotos(string photosFolderPath = default)
+        {
+            try
+            {
+                var outputFolder = string.IsNullOrWhiteSpace(photosFolderPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ZkDeviceUserPhotos",
+                    DeviceInfo.Code.ToString()) : photosFolderPath;
+
+                if (!Directory.Exists(outputFolder))
+                    Directory.CreateDirectory(outputFolder);
+
+                if (ZkTecoSdk.UploadUserPhoto((int)DeviceInfo.Code, outputFolder))
+                    return new ResultViewModel
+                    {
+                        Success = true,
+                        Id = DeviceInfo.Code,
+                        Message = $" All user photos of device {DeviceInfo.Code} are uploaded",
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode)
+                    };
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't upload user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Id = DeviceInfo.Code,
+                    Message = $" Couldn't upload user photos of device {DeviceInfo.Code}",
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
             }
         }
     }

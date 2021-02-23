@@ -48,23 +48,21 @@ namespace Biovation.Domain
         public byte[] ImageBytes
         {
             get => _imageBytes;
-
-            set =>
-                // ImageBytes = value ;
-                _imageBytes = value;
-        }
-
-        public string Image
-        {
-             get => _imageBytes!=null?Convert.ToBase64String(_imageBytes):_image;
-            //get => _image;
             set
             {
-                _imageBytes = ImageBytes != null ? Convert.FromBase64String(value) : null;
+                if (string.IsNullOrWhiteSpace(_image) && value != null)
+                    _image = Convert.ToBase64String(value);
+                _imageBytes = value;
+            }
+        }
+        public string Image
+        {
+            get => _image;
+            set
+            {
+                _imageBytes = ImageBytes is null && !string.IsNullOrWhiteSpace(value) ? Convert.FromBase64String(value) : null;
                 _image = value;
             }
-            //Image = value;
-            // _image =  value;
         }
 
         /// <summary>

@@ -43,7 +43,7 @@ namespace Biovation.Brands.ZK.Command
             Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (uint)(data["userId"]);
+            UserId = (uint)(data["userCode"]);
         }
         public object Execute()
         {

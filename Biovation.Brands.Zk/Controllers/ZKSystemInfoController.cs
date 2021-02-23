@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.ZK.Controllers
 {
-    [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkSystemInfoController : Controller
+    [ApiController]
+    [Route("Biovation/Api/[controller]")]
+    public class ZkSystemInfoController : ControllerBase
     {
         [HttpGet]
         public ResultViewModel<ServiceInfo> GetInfo()

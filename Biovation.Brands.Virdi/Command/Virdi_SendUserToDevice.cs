@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using UNIONCOMM.SDK.UCBioBSP;
 using Encoding = System.Text.Encoding;
 
@@ -43,6 +42,12 @@ namespace Biovation.Brands.Virdi.Command
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
 
+        private readonly List<char> _persianLetters = new List<char>
+        {
+            'آ', 'ا', 'ب', 'پ', 'ت', 'ث', 'ج', 'چ', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'ژ', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ',
+            'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی', 'ي', 'ء', 'إ', 'أ', 'ؤ', 'ئ', 'ة', 'ك'
+        };
+
         public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _callbacks = callbacks;
@@ -61,7 +66,7 @@ namespace Biovation.Brands.Virdi.Command
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["UserId"];
-            UserObj = userService.GetUsers(code: UserId, withPicture: true).FirstOrDefault();
+            UserObj = userService.GetUsers(UserId, withPicture: true).FirstOrDefault();
 
             var blackList = blackListService.GetBlacklist(id: default, userId: UserId, deviceId: DeviceId, startDate: DateTime.Now, endDate: DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
@@ -99,18 +104,22 @@ namespace Biovation.Brands.Virdi.Command
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
                 //var windowsEncoding = Encoding.UTF32;
-                var replacements = new Dictionary<string, string> { { "ک","~"}, {  "ژ" , "Z" } };
-
-                var userName = replacements.Aggregate(UserObj.UserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-
-                //userName = string.IsNullOrEmpty(UserObj.UserName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(UserObj.UserName));
+                var userName = UserObj.UserName ?? string.Empty;
                 userName = string.IsNullOrEmpty(userName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(userName));
 
-                _callbacks.ServerUserData.UserID = (int)UserObj.Id;
-                _callbacks.ServerUserData.UniqueID = UserObj.Id.ToString();
+                if (UserObj.UserName?.Count(c => _persianLetters.Contains(c)) > 3)
+                {
+                    var replacements = new Dictionary<string, string> { { "\u0098", "˜" }, { "\u008e", "Ž" } };
+                    userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                }
+
+                _callbacks.ServerUserData.UserID = (int)UserObj.Code;
+                _callbacks.ServerUserData.UniqueID = Math.Abs(UserObj.UniqueId).ToString();
                 _callbacks.ServerUserData.UserName = userName;
-                _callbacks.ServerUserData.SetPictureData(UserObj.ImageBytes.Length,"3",UserObj.ImageBytes);
-              
+
+                if (UserObj.ImageBytes != null && UserObj.ImageBytes.Length > 0)
+                    _callbacks.ServerUserData.SetPictureData(UserObj.ImageBytes.Length, "JPG", UserObj.ImageBytes);
+
                 var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(personId: UserId);
                 _callbacks.ServerUserData.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId) ? 1 : 0;
 

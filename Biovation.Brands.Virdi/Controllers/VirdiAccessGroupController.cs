@@ -14,8 +14,9 @@ using DeviceBrands = Biovation.Constants.DeviceBrands;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiAccessGroupController : Controller
+    public class VirdiAccessGroupController : ControllerBase
     {
         private readonly Callbacks _callbacks;
         private readonly TaskService _taskService;

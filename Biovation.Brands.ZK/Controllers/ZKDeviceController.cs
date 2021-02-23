@@ -9,7 +9,6 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +16,9 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkDeviceController : Controller
+    public class ZkDeviceController : ControllerBase
     {
         private readonly DeviceService _deviceService;
         private readonly AccessGroupService _accessGroupService;
@@ -260,8 +260,9 @@ namespace Biovation.Brands.ZK.Controllers
 
                         return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
                     }
-                    catch (Exception)
+                    catch (Exception exception)
                     {
+                        Logger.Log(exception);
                         return new ResultViewModel { Validate = 0, Id = code, Message = "Retriving Log not queued" };
 
                     }
@@ -276,7 +277,7 @@ namespace Biovation.Brands.ZK.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] JArray userId)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
             return Task.Run(() =>
             {
@@ -296,7 +297,7 @@ namespace Biovation.Brands.ZK.Controllers
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                     var deviceId = devices.DeviceId;
 
-                    var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
 
                     foreach (var numericUserId in userIds)
                     {
@@ -331,9 +332,66 @@ namespace Biovation.Brands.ZK.Controllers
                 }
             });
         }
+
+        [HttpGet]
+        [Authorize]
+        public Task<ResultViewModel<User>> RetrieveCompleteUserFromDevice(uint code, int userId)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+
+                    var creatorUser = HttpContext.GetUser();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel<User> {Success = false, Message = "Device is null" };
+                    
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        TaskType = _taskTypes.RetrieveUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    
+
+                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { userId, saving = false }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+
+                    });
+
+                    var result = (ResultViewModel<User>)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                    new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
+                    return result;
+                }
+
+                catch (Exception exception)
+                {
+                    return new ResultViewModel<User>
+                    { Validate = 0, Message = exception.ToString() };
+                }
+            });
+
+
+        }
+
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] JArray userId, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
             return Task.Run(() =>
             {
@@ -353,9 +411,9 @@ namespace Biovation.Brands.ZK.Controllers
                         DeviceBrand = _deviceBrands.ZkTeco,
                         TaskItems = new List<TaskItem>()
                     };
-                    var userIds = JsonConvert.DeserializeObject<List<uint>>(JsonConvert.SerializeObject(userId));
+                    //var userIds = JsonConvert.DeserializeObject<List<uint>>(JsonConvert.SerializeObject(userId));
 
-                    foreach (var id in userIds)
+                    foreach (var userCode in userCodes)
                     {
 
                         task.TaskItems.Add(new TaskItem
@@ -365,7 +423,7 @@ namespace Biovation.Brands.ZK.Controllers
                             Priority = _taskPriorities.Medium,
 
                             DeviceId = devices.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = id }),
+                            Data = JsonConvert.SerializeObject(new { userCode }),
                             IsParallelRestricted = true,
                             IsScheduled = false,
                             OrderIndex = 1,
@@ -389,7 +447,7 @@ namespace Biovation.Brands.ZK.Controllers
         }
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             /*var retrieveUserFromTerminalCommand = _commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
                 new List<object> { code });
@@ -422,7 +480,7 @@ namespace Biovation.Brands.ZK.Controllers
                     Priority = _taskPriorities.Medium,
 
                     DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new { deviceId }),
+                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1,
@@ -431,7 +489,7 @@ namespace Biovation.Brands.ZK.Controllers
                 //_taskService.InsertTask(task);
                 // ZKTecoServer.ProcessQueue();
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                    new List<object> { task.TaskItems.FirstOrDefault().DeviceId, task.TaskItems.FirstOrDefault().Id }).Execute();
+                    new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
                 return result;
             }
             catch (Exception exception)
@@ -441,6 +499,10 @@ namespace Biovation.Brands.ZK.Controllers
 
 
         }
+
+
+        
+
 
         [HttpGet]
         [Authorize]
@@ -475,6 +537,24 @@ namespace Biovation.Brands.ZK.Controllers
             }
 
             return resultList;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{id:int}/DownloadAllUserPhotos")]
+        public ResultViewModel DownloadAllUserPhotos([FromRoute] int id)
+        {
+            var result = (ResultViewModel)_commandFactory.Factory(CommandType.DownloadUserPhotos, new List<object> { id })?.Execute();
+            return result;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{id:int}/UploadAllUserPhotos")]
+        public ResultViewModel UploadAllUserPhotos([FromRoute] int id, string folderPath = default)
+        {
+            var result = (ResultViewModel)_commandFactory.Factory(CommandType.UploadUserPhotos, new List<object> { id, folderPath })?.Execute();
+            return result;
         }
     }
 }

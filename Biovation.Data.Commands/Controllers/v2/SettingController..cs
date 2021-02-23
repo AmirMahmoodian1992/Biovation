@@ -5,12 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-    public class SettingController : Controller
+    public class SettingController : ControllerBase
     {
         private readonly SettingRepository _settingRepository;
-
-
+        
         public SettingController(SettingRepository settingRepository)
         {
             _settingRepository = settingRepository;
@@ -24,6 +24,5 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() => _settingRepository.ModifySetting(value, key));
         }
-
-    }
+        }
 }

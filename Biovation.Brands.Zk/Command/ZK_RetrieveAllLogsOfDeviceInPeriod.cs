@@ -35,11 +35,32 @@ namespace Biovation.Brands.ZK.Command
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
-            var startDate = (DateTime)data["fromDate"];
-            var endDate = (DateTime)data["toDate"];
+            DateTime startDate;
+            try
+            {
+                startDate = (DateTime)data["fromDate"];
+            }
+            catch (Exception)
+            {
+                startDate = new DateTime(1970, 1, 1);
+            }
 
-            StartDate = startDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
-            EndDate = endDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
+            DateTime endDate;
+            try
+            {
+                endDate = (DateTime)data["toDate"];
+            }
+            catch (Exception)
+            {
+                endDate = DateTime.Now.AddYears(5);
+            }
+
+            //StartDate = startDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            //EndDate = endDate == default ? new DateTime(1990, 0, 0).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+            StartDate = startDate < new DateTime(1970,1,1) ? new DateTime(1970, 1, 1).ToString("yyyy-MM-dd HH:mm:ss") : startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            EndDate = endDate > DateTime.Now.AddYears(5) ? DateTime.Now.AddYears(5).ToString("yyyy-MM-dd HH:mm:ss") : endDate.ToString("yyyy-MM-dd HH:mm:ss");
+
         }
 
         public object Execute()

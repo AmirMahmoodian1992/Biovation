@@ -12,8 +12,9 @@ using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkLogController : Controller
+    public class ZkLogController : ControllerBase
     {
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;

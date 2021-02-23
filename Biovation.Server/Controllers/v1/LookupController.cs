@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
-    public class LookupController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class LookupController : ControllerBase
     {
-
         private readonly LookupService _lookupService;
 
         public LookupController(LookupService lookupService)

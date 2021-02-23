@@ -6,12 +6,11 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
-
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
-    public class PlateDetectionController : Controller
+    public class PlateDetectionController : ControllerBase
     {
-
         private readonly PlateDetectionRepository _plateDetectionRepository;
 
         public PlateDetectionController(PlateDetectionRepository plateDetectionRepository)

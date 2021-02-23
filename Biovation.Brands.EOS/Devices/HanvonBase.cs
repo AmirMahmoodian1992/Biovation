@@ -24,18 +24,15 @@ namespace Biovation.Brands.EOS.Devices
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly EosLogService _eosLogService;
 
-        private readonly LogEvents _logEvents;
         private readonly RestClient _restClient;
         private readonly TaskManager _taskManager;
-        private readonly LogSubEvents _logSubEvents;
         private readonly UserCardService _userCardService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        private bool _valid;
         private int _counter;
 
-        //private readonly EosCodeMappings _eosCodeMappings;
+        //private readonly EosCodeMappings EosCodeMappings;
         //private readonly DateTime _startDateTimeThreshold;
         //private readonly DateTime _endDateTimeThreshold;
 
@@ -43,13 +40,10 @@ namespace Biovation.Brands.EOS.Devices
             LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
             UserCardService userCardService, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices) : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
-            _valid = false;
-            _logEvents = logEvents;
             _restClient = restClient;
             _onlineDevices = onlineDevices;
             _deviceInfo = deviceInfo;
             _taskManager = taskManager;
-            _logSubEvents = logSubEvents;
             _eosLogService = eosLogService;
             _userCardService = userCardService;
             _faceTemplateTypes = faceTemplateTypes;
@@ -83,7 +77,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             DeviceId = _deviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
-                            EventLog = _logEvents.Disconnect
+                            EventLog = LogEvents.Disconnect
                         });
                     }
                     catch (Exception)
@@ -122,7 +116,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             _taskManager.ProcessQueue();
-            _valid = true;
+            Valid = true;
 
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
@@ -201,18 +195,26 @@ namespace Biovation.Brands.EOS.Devices
             {
                 StFaceUserInfo terminalUserData;
                 lock (_stFace)
-                {
                     terminalUserData = _stFace.GetUserInfo(userId);
-                }
+
                 if (terminalUserData is null) return new User();
-                var user = new User()
+                var user = new User
                 {
                     UserName = terminalUserData.UserName,
                     Password = terminalUserData.Password,
                     Code = terminalUserData.Id,
+                    IsActive = true,
                     // UniqueId = (- long.Parse(terminalUserData.PersonalNumber)),
-                    IsAdmin = terminalUserData.Privilege == 1
+                    IsAdmin = terminalUserData.Privilege == 1,
+                    SurName = terminalUserData.UserName?.Split(' ').LastOrDefault(),
+                    FirstName = terminalUserData.UserName?.Split(' ').FirstOrDefault(),
+                    StartDate = DateTime.Parse("1970/01/01"),
+                    EndDate = DateTime.Parse("2050/01/01")
                 };
+
+                var parseResult = long.TryParse(terminalUserData.PersonalNumber, NumberStyles.Number, CultureInfo.InvariantCulture, out var uniqueId);
+                if (parseResult)
+                    user.UniqueId = -uniqueId;
 
                 if (!(terminalUserData.CardNumber is null || string.Equals(terminalUserData.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)))
                 {
@@ -263,7 +265,7 @@ namespace Biovation.Brands.EOS.Devices
                 _stFace?.Disconnect();
                 _stFace?.Dispose();
             }
-            _valid = false;
+            Valid = false;
             return true;
         }
 
@@ -305,7 +307,7 @@ namespace Biovation.Brands.EOS.Devices
                     UserName = user.UserName,
                     Id = user.Code,
                     //PersonalNumber = (-user.UniqueId).ToString(),
-                    Privilege = 1,
+                    Privilege = user.IsAdmin == true ? 1:0 ,
                     VerifyStyle = ZkVerifyStyle.FaceOrPasswordOrCard,
                 };
                 // pwd
@@ -321,16 +323,14 @@ namespace Biovation.Brands.EOS.Devices
                 try
                 {
 
-                    var userCards = _userCardService.GetCardsByFilter(user.Id, true)?.Data?.Data;
-                    if (userCards != null)
+
+                    var userCard = user.IdentityCard;
+                    if (userCard != null)
                     {
-                        var userCard = userCards.FirstOrDefault();
-                        if (userCard != null)
-                        {
-                            hasCard = true;
-                            transfereeUser.CardNumber = userCard.CardNum;
-                        }
+                        hasCard = true;
+                        transfereeUser.CardNumber = userCard.Number;
                     }
+
                     else
                     {
                         transfereeUser.CardNumber = "0Xffffffff";
@@ -415,7 +415,7 @@ namespace Biovation.Brands.EOS.Devices
             return false;
         }
 
-        public override List<User> GetAllUsers()
+        public override List<User> GetAllUsers(bool embedTemplate = false)
         {
             var usersList = new List<User>();
             try
@@ -432,48 +432,62 @@ namespace Biovation.Brands.EOS.Devices
                         Password = retrievedUser.Password,
                         Code = retrievedUser.Id,
                         // UniqueId = (- long.Parse(user.PersonalNumber)),
-                        IsAdmin = retrievedUser.Privilege == 1
+                        IsAdmin = retrievedUser.Privilege == 1,
+                        IsActive = true,
+                        // UniqueId = (- long.Parse(terminalUserData.PersonalNumber)),
+                        SurName = retrievedUser.UserName?.Split(' ').LastOrDefault(),
+                        FirstName = retrievedUser.UserName?.Split(' ').FirstOrDefault(),
+                        StartDate = DateTime.Parse("1970/01/01"),
+                        EndDate = DateTime.Parse("2050/01/01")
                     };
 
-                    if (!(retrievedUser.CardNumber is null || string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)))
+                    if (embedTemplate)
                     {
-                        user.IdentityCard = new IdentityCard
-                        {
-                            Id = (int)retrievedUser.Id,
-                            Number = retrievedUser.CardNumber,
-                            DataCheck = 0,
-                            IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff", StringComparison.InvariantCultureIgnoreCase)
-                        };
-                    }
 
-                    //Face
-                    try
-                    {
-                        user.FaceTemplates ??= new List<FaceTemplate>();
-                        var faceData = retrievedUser.FaceData.SelectMany(s =>
+
+                        if (!(retrievedUser.CardNumber is null || string.Equals(retrievedUser.CardNumber, "0xffffffff",
+                            StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            user.IdentityCard = new IdentityCard
+                            {
+                                Id = (int)retrievedUser.Id,
+                                Number = retrievedUser.CardNumber,
+                                DataCheck = 0,
+                                IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff",
+                                    StringComparison.InvariantCultureIgnoreCase)
+                            };
+                        }
+
+                        //Face
+                        try
+                        {
+                            user.FaceTemplates ??= new List<FaceTemplate>();
+                            var faceData = retrievedUser.FaceData.SelectMany(s =>
                                 Encoding.UTF8.GetBytes(s + Environment.NewLine)).ToArray();
-                        var faceTemplate = new FaceTemplate
-                        {
-                            Index = 1,
-                            FaceTemplateType = _faceTemplateTypes.EOSHanvon,
-                            UserId = retrievedUser.Id,
-                            Template = faceData,
-                            CheckSum = faceData.Sum(x => x),
-                            Size = faceData.Length
-                        };
+                            var faceTemplate = new FaceTemplate
+                            {
+                                Index = 1,
+                                FaceTemplateType = _faceTemplateTypes.EOSHanvon,
+                                UserId = retrievedUser.Id,
+                                Template = faceData,
+                                CheckSum = faceData.Sum(x => x),
+                                Size = faceData.Length
+                            };
 
-                        user.FaceTemplates.Add(faceTemplate);
+                            user.FaceTemplates.Add(faceTemplate);
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        Logger.Log(e);
-                    }
+
                     usersList.Add(user);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //ignore
+                Logger.Log((e));
             }
 
             return usersList;
@@ -498,7 +512,7 @@ namespace Biovation.Brands.EOS.Devices
             return false;
         }
 
-        public override ResultViewModel ReadOnlineLog(object token)
+        public virtual ResultViewModel ReadOnlineLog(object token)
         {
             Thread.Sleep(1000);
 
@@ -515,7 +529,7 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_stFace)
                     deviceConnected = _stFace.Connected;
 
-                while (deviceConnected && _valid)
+                while (deviceConnected && Valid)
                 {
                     try
                     {
@@ -523,11 +537,11 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_stFace)
                             empty = _stFace.IsEmpty();
 
-                        while (!empty && _valid)
+                        while (!empty && Valid)
                         {
                             var test = true;
                             var exceptionTester = false;
-                            while (test && _valid)
+                            while (test && Valid)
                             {
                                 Record record = null;
 
@@ -578,8 +592,8 @@ namespace Biovation.Brands.EOS.Devices
                                                         DeviceId = _deviceInfo.DeviceId,
                                                         DeviceCode = _deviceInfo.Code,
                                                         //RawData = generatedRecord,
-                                                        EventLog = _logEvents.Authorized,
-                                                        SubEvent = _logSubEvents.Normal,
+                                                        EventLog = LogEvents.Authorized,
+                                                        SubEvent = LogSubEvents.Normal,
                                                         TnaEvent = 0,
                                                     };
 
@@ -628,9 +642,9 @@ namespace Biovation.Brands.EOS.Devices
                                             UserId = (int)record.ID,
                                             DeviceId = _deviceInfo.DeviceId,
                                             DeviceCode = _deviceInfo.Code,
-                                            //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                                            //SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
                                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                                            EventLog = _logEvents.Authorized,
+                                            EventLog = LogEvents.Authorized,
                                             TnaEvent = 0,
                                         };
 
@@ -678,7 +692,7 @@ namespace Biovation.Brands.EOS.Devices
                 //_stFace?.Disconnect();
                 // _stFace?.Dispose();
                 //Disconnect();
-                if (_valid)
+                if (Valid)
                     Connect();
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
@@ -690,7 +704,7 @@ namespace Biovation.Brands.EOS.Devices
 
             Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
 
-            if (_valid)
+            if (Valid)
                 Connect();
 
             //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
@@ -831,9 +845,9 @@ namespace Biovation.Brands.EOS.Devices
                             UserId = (int)record.ID,
                             DeviceId = _deviceInfo.DeviceId,
                             DeviceCode = _deviceInfo.Code,
-                            //SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                            //SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                            EventLog = _logEvents.Authorized,
+                            EventLog = LogEvents.Authorized,
                             TnaEvent = 0,
                         };
                         eosLogs.Add(receivedLog);

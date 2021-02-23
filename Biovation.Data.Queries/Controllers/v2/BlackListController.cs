@@ -6,18 +6,17 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-    public class BlackListController : Controller
+    public class BlackListController : ControllerBase
     {
         private readonly BlackListRepository _blackListRepository;
-
-
+        
         public BlackListController(BlackListRepository blackListRepository)
         {
             _blackListRepository = blackListRepository;
         }
-
-
+        
         [HttpGet]
         [Authorize]
         public Task<ResultViewModel<PagingResult<BlackList>>> GetBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default, int pageNumber = default, int pageSize = default)
@@ -26,8 +25,8 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("ActiveBlacklist")]
         [Authorize]
+        [Route("ActiveBlacklist")]
 
         public Task<ResultViewModel<PagingResult<BlackList>>> GetActiveBlacklist(int id = default, int userId = default, int deviceId = 0, DateTime? today = null, bool isDeleted = default, int pageNumber = default, int pageSize = default)
         {

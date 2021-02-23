@@ -8,9 +8,10 @@ namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("1.0")]
-    public class AccessGroupController : Controller
+    public class AccessGroupController : ControllerBase
     {
         private readonly AccessGroupRepository _accessGroupRepository;
 
@@ -21,7 +22,6 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-
         public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
         {
             return Task.Run(() => _accessGroupRepository.AccessGroups(userId, (int)HttpContext.GetUser().Id, userGroupId, id, deviceId, deviceGroupId,
@@ -30,7 +30,6 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-
         [Route("{id}")]
         public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 4)
         {

@@ -21,23 +21,26 @@ namespace Biovation.Brands.ZK.Command
 
         private int DeviceId { get; }
         private int UserId { get; }
+        private bool Saving { get; }
         private uint Code { get; }
-        private int TaskItemId { get; }
-        private readonly TaskService _taskService;
-        private readonly DeviceService _deviceService;
 
-        public ZkRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, TaskService taskService, DeviceService deviceService)
+        public ZkRetrieveUserFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
-            OnlineDevices = devices;
-            _taskService = taskService;
-            _deviceService = deviceService;
-
-            DeviceId = Convert.ToInt32(items[0]);
-            TaskItemId = Convert.ToInt32(items[1]);
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            var taskItem = _taskService.GetTaskItem(TaskItemId);
+            var taskItem = (TaskItem)items[0];
+            DeviceId = taskItem.DeviceId;
+            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
+            
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (int)(data["userId"]);
+            if (data != null)
+            {
+                UserId = (int)data["userId"];
+                if (data.ContainsKey("saving"))
+                    Saving = (bool)data["saving"];
+                else
+                    Saving = true;
+            }
+            
+            OnlineDevices = devices;
             DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
         }
         public object Execute()
@@ -52,13 +55,39 @@ namespace Biovation.Brands.ZK.Command
             try
             {
                 var device = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
-                var result = device.GetAndSaveUser(UserId);
-                return new ResultViewModel { Validate = result ? 1 : 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                if (Saving)
+                {
+                    var result = device.GetAndSaveUser(UserId);
+                    return new ResultViewModel
+                    { Validate = result ? 1 : 0, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                }
+                else
+                {
+                    var result = device.GetUser(UserId);
+                    return new ResultViewModel<User>
+                    { Success = result is { }, Data = result, Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                }
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = DeviceId, Message = exception.Message, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                if (Saving)
+                {
+                    return new ResultViewModel
+                    {
+                        Success = false,
+                        Id = DeviceId,
+                        Message = exception.Message,
+                        Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                    };
+                }
+                return new ResultViewModel<User>
+                {
+                    Success = false,
+                    Id = DeviceId,
+                    Message = exception.Message,
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
             }
         }
 

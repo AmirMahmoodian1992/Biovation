@@ -7,9 +7,9 @@ using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
-    public class UserController : Controller
+    public class UserController : ControllerBase
     {
         private readonly UserRepository _userRepository;
 

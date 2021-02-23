@@ -1,8 +1,7 @@
-﻿using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,14 +11,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Server.Controllers.v2
 {
-    //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
+    [ApiController]
     [ApiVersion("2.0")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    [Route("biovation/api/v2/[controller]")]
-    public class DeviceController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class DeviceController : ControllerBase
     {
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
@@ -28,7 +29,13 @@ namespace Biovation.Server.Controllers.v2
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
-        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _userService = userService;
@@ -36,13 +43,18 @@ namespace Biovation.Server.Controllers.v2
             _lookups = lookups;
             _restClient = restClient;
             _userCardService = userCardService;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
 
 
         [HttpGet]
         [Route("{id:int}")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel<DeviceBasicInfo>> Device(long id = default, long adminUserId = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -50,7 +62,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
@@ -81,7 +93,7 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPut]
-        [Authorize]
+        [Attribute.Authorize]
         //[Route("ModifyDeviceInfo")]
         public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
@@ -102,7 +114,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -110,7 +122,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteDevice([FromRoute] uint id = default)
         {
@@ -119,7 +131,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/RetrieveLogs")]
         public Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, string fromDate, string toDate)
         {
@@ -165,7 +177,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("RetrieveLogs")]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
@@ -222,7 +234,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/ClearLogs")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel> ClearLogOfDevice(int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -230,34 +242,34 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
-                        var device = _deviceService.GetDevice(id, token: token)?.Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {id} does not exist.");
-                            return new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
-                        }
+                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    if (device == null)
+                    {
+                        Logger.Log($"DeviceId {id} does not exist.");
+                        return new ResultViewModel
+                        { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                    }
 
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
+                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                    restRequest.AddQueryParameter("code", device.Code.ToString());
+                    restRequest.AddQueryParameter("fromDate", fromDate);
+                    restRequest.AddQueryParameter("toDate", toDate);
 
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
-                            return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                        return restResult.Data;
+                    var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
+                        return new ResultViewModel { Validate = 0, Message = "error", Id = id };
+                    return restResult.Data;
                 }
                 catch (Exception)
                 {
-                    return new ResultViewModel { Validate = 0, Message = "error", Id = id};
+                    return new ResultViewModel { Validate = 0, Message = "error", Id = id };
                 }
             });
         }
 
         [HttpPost]
         [Route("ClearLogsOfDevices")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -305,7 +317,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -314,8 +326,8 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{Id}/cardNumber")]
-        [Authorize]
-        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute]int id = default)
+        [Attribute.Authorize]
+        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _userCardService.ReadCardNumber(id, token));
@@ -359,7 +371,7 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/RetrieveUsers")]
         public Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userId = default)
         {
@@ -388,7 +400,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/FetchUsersList")]
-        [Authorize]
+        [Attribute.Authorize]
         public Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -428,7 +440,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/RemoveUser/{userId}")]
         public Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
         {
@@ -452,7 +464,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
+        [Attribute.Authorize]
         [Route("{id}/SendUsers")]
         public Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
         {
@@ -616,6 +628,52 @@ namespace Biovation.Server.Controllers.v2
         //    });
         //}
 
+        [HttpPost]
+        [Attribute.Authorize]
+        //[AllowAnonymous]
+        [Route("{id}/UserAdaptation")]
+        public Task<ResultViewModel> UserAdaptation([FromRoute] int id, [FromBody] object equivalentCodesObject)
+        {
+            var token = (string)HttpContext.Items["Token"];
+            var creatorUser = HttpContext.GetUser();
 
+            return Task.Run(async () =>
+            {
+                var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
+                var device = _deviceService.GetDevice(id).Data;
+
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.UserAdaptation,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.UserAdaptation,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { serializedEquivalentCodes, token, creatorUserId = creatorUser.Id }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0,
+                    TotalCount = 1
+                });
+
+                _taskService.InsertTask(task);
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
+            });
+        }
     }
 }

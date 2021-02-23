@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
 using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -13,10 +14,10 @@ using RestSharp;
 namespace Biovation.Server.Controllers.v2
 {
     [Authorize]
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class UserGroupController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class UserGroupController : ControllerBase
     {
         private readonly RestClient _restClient;
 

@@ -8,7 +8,7 @@
     "**/platforms"
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:9002",
+    "BaseUrl": "http://localhost:9038",
     "UseServiceDiscovery": false
   },
   "Routes": [
@@ -39,12 +39,48 @@
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/suprema/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9026
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/pw/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9028
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/eos/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
           "Port": 9030
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/shahab/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9032
         }
       ]
     },

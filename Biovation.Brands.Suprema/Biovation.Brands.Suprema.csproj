@@ -7,11 +7,17 @@
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<Prefer32Bit>true</Prefer32Bit>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<PlatformTarget>x86</PlatformTarget>
-	</PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Prefer32Bit>true</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
@@ -22,12 +28,14 @@
 		<PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
 		<PackageReference Include="App.Metrics.Reporting.Http" Version="4.1.0" />
 		<PackageReference Include="Grpc.AspNetCore" Version="2.27.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="3.1.9" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
 		<PackageReference Include="morelinq" Version="3.3.2" />
 		<PackageReference Include="RestSharp" Version="106.11.4" />
 		<PackageReference Include="Serilog" Version="2.9.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+		<PackageReference Include="Serilog.Sinks.Udp" Version="7.1.0" />
 	</ItemGroup>
 
 	<ItemGroup>

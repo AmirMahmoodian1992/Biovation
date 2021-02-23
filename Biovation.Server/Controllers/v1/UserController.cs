@@ -1,7 +1,6 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Servers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -14,12 +13,14 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
-    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [ApiVersion("1.0")]
-    public class UserController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class UserController : ControllerBase
     {
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -191,7 +192,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUser")]
-        public List<ResultViewModel> DeleteUser([FromBody] int[] ids)
+        public List<ResultViewModel> DeleteUser([FromBody] List<long> ids)
         {
             try
             {

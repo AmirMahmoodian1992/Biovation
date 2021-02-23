@@ -81,7 +81,7 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-        public ResultViewModel DeleteUser(int id = default, string token = default)
+        public ResultViewModel DeleteUser(long id = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());

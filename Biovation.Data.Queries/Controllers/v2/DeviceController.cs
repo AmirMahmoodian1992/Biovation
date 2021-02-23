@@ -4,15 +4,15 @@ using System;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Extension;
 using Biovation.Repository.Sql.v2;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
     //[Route("Biovation/Api/{controller}/{action}", Name = "Device")]
     //[Route("biovation/api/v{version:apiVersion}/[controller]")]
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
     //[ApiVersion("2.0")]
-    public class DeviceController : Controller
+    public class DeviceController : ControllerBase
     {
         private readonly DeviceRepository _deviceRepository;
         public DeviceController(DeviceRepository deviceRepository)

@@ -6,22 +6,19 @@ using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
-    public class TimeZoneController : Controller
+    public class TimeZoneController : ControllerBase
     {
-
         private readonly TimeZoneRepository _timeZoneRepository;
 
         public TimeZoneController(TimeZoneRepository timeZoneRepository)
         {
             _timeZoneRepository = timeZoneRepository;
         }
-
-
+        
         [HttpPut]
         [Authorize]
-
         public Task<ResultViewModel>AddTimeZone([FromBody]TimeZone timeZone)
         {
             return Task.Run(() => _timeZoneRepository.AddTimeZone(timeZone));

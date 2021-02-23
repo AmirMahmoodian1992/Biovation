@@ -10,7 +10,7 @@ namespace Biovation.Dashboard.Controllers
 {
     [Route("biovation/api/[controller]")]
     [ApiController]
-    public class MetricsController : Controller
+    public class MetricsController : ControllerBase
     {
         private readonly ILogger<MetricsController> _logger;
 

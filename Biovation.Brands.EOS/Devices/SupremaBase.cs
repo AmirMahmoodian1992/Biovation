@@ -4,15 +4,15 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using EosClocks;
+using MoreLinq;
+using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MoreLinq;
-using Newtonsoft.Json;
-using RestSharp;
 using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
@@ -24,18 +24,14 @@ namespace Biovation.Brands.EOS.Devices
     public class SupremaBaseDevice : Device
     {
         private Clock _clock;
-        private bool _valid;
         private int _counter;
         private readonly object _clockInstantiationLock = new object();
 
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly EosLogService _eosLogService;
 
-        private readonly LogEvents _logEvents;
         private readonly RestClient _restClient;
         private readonly TaskManager _taskManager;
-        private readonly LogSubEvents _logSubEvents;
-        private readonly EosCodeMappings _eosCodeMappings;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
@@ -43,16 +39,13 @@ namespace Biovation.Brands.EOS.Devices
         public SupremaBaseDevice(DeviceBasicInfo deviceInfo, EosLogService eosLogService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices)
          : base(deviceInfo, eosLogService, logEvents, logSubEvents, eosCodeMappings)
         {
-            _valid = true;
+            Valid = true;
             _deviceInfo = deviceInfo;
             _eosLogService = eosLogService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _taskManager = taskManager;
             _restClient = restClient;
             _onlineDevices = onlineDevices;
-            _logEvents = logEvents;
-            _logSubEvents = logSubEvents;
-            _eosCodeMappings = eosCodeMappings;
             _biometricTemplateManager = biometricTemplateManager;
         }
 
@@ -366,7 +359,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             DeviceId = _deviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
-                            EventLog = _logEvents.Disconnect
+                            EventLog = LogEvents.Disconnect
                         });
                     }
                     catch (Exception)
@@ -403,7 +396,7 @@ namespace Biovation.Brands.EOS.Devices
 
             _taskManager.ProcessQueue();
 
-            //_valid = true;
+            //Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }
@@ -438,7 +431,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
         }
-        public override ResultViewModel ReadOnlineLog(object token)
+        public virtual ResultViewModel ReadOnlineLog(object token)
         {
             Thread.Sleep(1000);
             try
@@ -452,9 +445,9 @@ namespace Biovation.Brands.EOS.Devices
                 bool deviceConnected;
 
                 lock (_clock)
-                    deviceConnected = _clock.Connected;
+                    deviceConnected = _clock.TestConnection();
 
-                while (deviceConnected && _valid)
+                while (deviceConnected && Valid)
                 {
                     try
                     {
@@ -463,11 +456,11 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists && _valid)
+                        while (newRecordExists && Valid)
                         {
                             var test = true;
                             var exceptionTester = false;
-                            while (test && _valid)
+                            while (test && Valid)
                             {
                                 ClockRecord record = null;
 
@@ -515,8 +508,8 @@ namespace Biovation.Brands.EOS.Devices
                                                         DeviceId = _deviceInfo.DeviceId,
                                                         DeviceCode = _deviceInfo.Code,
                                                         //RawData = generatedRecord,
-                                                        EventLog = _logEvents.Authorized,
-                                                        SubEvent = _logSubEvents.Normal,
+                                                        EventLog = LogEvents.Authorized,
+                                                        SubEvent = LogSubEvents.Normal,
                                                         TnaEvent = 0,
                                                     };
 
@@ -565,9 +558,9 @@ namespace Biovation.Brands.EOS.Devices
                                             UserId = (int)record.ID,
                                             DeviceId = _deviceInfo.DeviceId,
                                             DeviceCode = _deviceInfo.Code,
-                                            SubEvent = _eosCodeMappings.GetLogSubEventGenericLookup(record.RecType1),
+                                            SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RecType1),
                                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                                            EventLog = _logEvents.Authorized,
+                                            EventLog = LogEvents.Authorized,
                                             TnaEvent = 0,
                                         };
 
@@ -607,13 +600,13 @@ namespace Biovation.Brands.EOS.Devices
                     }
 
                     lock (_clock)
-                        deviceConnected = _clock.Connected;
+                        deviceConnected = _clock.TestConnection();
                 }
 
                 //_clock?.Disconnect();
                 // _clock?.Dispose();
                 //Disconnect();
-                if (_valid)
+                if (Valid)
                     Connect();
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
@@ -631,7 +624,7 @@ namespace Biovation.Brands.EOS.Devices
 
             //_clock?.Disconnect();
             //_clock?.Dispose();
-            if (_valid)
+            if (Valid)
             {
                 Connect();
             }
@@ -642,7 +635,7 @@ namespace Biovation.Brands.EOS.Devices
         }
         public override bool Disconnect()
         {
-            _valid = false;
+            Valid = false;
             lock (_clock)
             {
                 _clock?.Disconnect();
@@ -657,7 +650,7 @@ namespace Biovation.Brands.EOS.Devices
             bool deviceConnected;
 
             lock (_clock)
-                deviceConnected = _clock.Connected;
+                deviceConnected = _clock.TestConnection();
             if (!deviceConnected) return false;
 
             lock (_clock)
@@ -755,10 +748,10 @@ namespace Biovation.Brands.EOS.Devices
                         isConnectToSensor = _clock.ConnectToSensor();
                     }
 
-                    if (user.FingerTemplates.Count <= 0) return true;
+                    if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
                     foreach (var fingerTemplate in user.FingerTemplates)
                     {
-                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Check_Finger);
+                        _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Continue);
                     }
 
                     return true;
@@ -854,6 +847,9 @@ namespace Biovation.Brands.EOS.Devices
 
                         retrievedUser.FingerTemplates.Add(fingerTemplate);
 
+                        if (fingerTemplates.Count <= i + 1)
+                            continue;
+
                         var secondTemplateBytes = fingerTemplates[i + 1];
 
                         var secondFingerTemplateSample = new FingerTemplate
@@ -901,15 +897,17 @@ namespace Biovation.Brands.EOS.Devices
         }
 
 
-        public override List<User> GetAllUsers()
+        public override List<User> GetAllUsers(bool embedTemplates = false)
         {
             var usersList = new List<User>();
 
             lock (_clock)
             {
+                var isConnectToSensor = false;
+
                 try
                 {
-                    var isConnectToSensor = _clock.ConnectToSensor();
+                    isConnectToSensor = _clock.ConnectToSensor();
 
                     for (var i = 0; i < 5; i++)
                     {
@@ -929,6 +927,71 @@ namespace Biovation.Brands.EOS.Devices
                     var users = _clock.Sensor.GetUserIDList();
                     usersList.AddRange(users.Select(user => new User { Code = user.UserId, AdminLevel = user.AdministrationLevel }));
                     usersList = usersList.DistinctBy(user => user.Code).ToList();
+
+                    if (embedTemplates)
+                    {
+                        foreach (var user in usersList)
+                        {
+                            List<byte[]> fingerTemplates;
+
+                            try
+                            {
+                                fingerTemplates = _clock.Sensor.GetUserTemplates((int)user.Code);
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                                Logger.Log($"Error in retrieving user {user.Code} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                                continue;
+                            }
+
+                            if (fingerTemplates is null || fingerTemplates.Count <= 0) continue;
+
+                            user.FingerTemplates = new List<FingerTemplate>();
+                            for (var i = 0; i < fingerTemplates.Count; i += 2)
+                            {
+                                var firstTemplateBytes = fingerTemplates[i];
+
+                                var fingerTemplate = new FingerTemplate
+                                {
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    Template = firstTemplateBytes,
+                                    CheckSum = firstTemplateBytes.Sum(b => b),
+                                    Size = firstTemplateBytes.ToList()
+                                        .LastIndexOf(firstTemplateBytes.LastOrDefault(b => b != 0)),
+                                    Index = i / 2,
+                                    CreateAt = DateTime.Now,
+                                    TemplateIndex = 0
+                                };
+
+                                user.FingerTemplates.Add(fingerTemplate);
+
+                                if (fingerTemplates.Count <= i + 1)
+                                    continue; 
+                                
+                                var secondTemplateBytes = fingerTemplates[i + 1];
+
+                                var secondFingerTemplateSample = new FingerTemplate
+                                {
+                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    Template = secondTemplateBytes,
+                                    CheckSum = secondTemplateBytes.Sum(b => b),
+                                    Size = secondTemplateBytes.ToList()
+                                        .LastIndexOf(secondTemplateBytes.LastOrDefault(b => b != 0)),
+                                    Index = i / 2,
+                                    EnrollQuality = 0,
+                                    SecurityLevel = 0,
+                                    Duress = true,
+                                    CreateAt = DateTime.Now,
+                                    TemplateIndex = 1
+                                };
+
+                                user.FingerTemplates.Add(secondFingerTemplateSample);
+                            }
+                        }
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -938,7 +1001,8 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     try
                     {
-                        _clock.DisconnectFromSensor();
+                        if (isConnectToSensor)
+                            _clock.DisconnectFromSensor();
                     }
                     catch (Exception exception)
                     {
@@ -958,6 +1022,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     _clock.ConnectToSensor();
                     _clock.Sensor.DeleteAllTemplates();
+                    _clock.Sensor.DeleteAllUsers();
                     return true;
                 }
                 catch (Exception exception)

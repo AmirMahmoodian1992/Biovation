@@ -1,13 +1,13 @@
 ﻿using Biovation.Brands.Virdi.Command;
 using Biovation.CommonClasses;
-using Biovation.Domain;
 using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.Virdi.Manager
 {
@@ -289,6 +289,25 @@ namespace Biovation.Brands.Virdi.Manager
 
                             break;
                         }
+
+                    case TaskItemTypes.UserAdaptationCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UserAdaptation,
+                                        new List<object> { taskItem }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
                 }
 
                 executeTask?.ContinueWith(task =>
@@ -299,6 +318,9 @@ namespace Biovation.Brands.Virdi.Manager
 
                     _taskService.UpdateTaskStatus(taskItem);
                 });
+
+                if (taskItem.IsParallelRestricted)
+                    executeTask?.Wait();
             }
         }
 

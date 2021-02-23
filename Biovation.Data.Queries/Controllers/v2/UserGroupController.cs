@@ -7,9 +7,9 @@ using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
+    [ApiController]
     [Route("biovation/api/v2/[controller]")]
-
-    public class UserGroupController : Controller
+    public class UserGroupController : ControllerBase
     {
         private readonly UserGroupRepository _userGroupRepository;
 

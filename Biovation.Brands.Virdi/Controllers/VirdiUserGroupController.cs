@@ -6,8 +6,9 @@ using System.Collections.Generic;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiUserGroupController : Controller
+    public class VirdiUserGroupController : ControllerBase
     {
         private readonly Callbacks _callbacks;
 

@@ -6,12 +6,11 @@ namespace Biovation.CommonClasses.Manager
 {
     public class BiovationConfigurationManager
     {
-        //private readonly SettingService _settingService;
         public IConfiguration Configuration { get; set; }
         private string LoginKey { get; } = "BiovationLoginKey";
-        private string ServiceKey { get; } = "BiovationServiceKey"; 
+        //private string ServiceKey { get; } = "BiovationServiceKey"; 
 
-        public BiovationConfigurationManager(IConfiguration configuration/*, SettingService settingService*/)
+        public BiovationConfigurationManager(IConfiguration configuration)
         {
             Configuration = configuration;
             //_settingService = settingService;
@@ -27,26 +26,10 @@ namespace Biovation.CommonClasses.Manager
             return Configuration.GetSection("Jwt")["Audience"];
         }
 
-        //public string JwtKey()
-        //{
-        //    return "ThisismySecretKey";
-        //    //return Configuration.GetSection("Jwt")["Key"];
-
-        //}
-        //public string JwtLoginKey()
-        //{
-        //    return LoginKey;
-        //}
         public string JwtLoginKey()
         {
             return LoginKey;
         }
-
-
-        //public string DefaultToken
-        //{
-        //    return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiIsIklkIjoiMTIzNDU2Nzg5IiwianRpIjoiZjU5Mzk5YWItZTY5Mi00YWZlLWJmMTQtNzQ3YjZkMjIxZDRhIiwiZXhwIjoxNjA3OTI4MzUwfQ.HmxguyYPW2LF2WjAtCFf7G_ys4oO4e6VAJb8njb7S0Q";
-        //}
 
         public string ConnectionStringProviderName()
         {
@@ -61,11 +44,6 @@ namespace Biovation.CommonClasses.Manager
         public string ConnectionStringDataSource()
         {
             return Configuration["DataSource"] ?? Configuration.GetSection("ConnectionStrings")["DataSource"];
-        }
-
-        public string DataProtection_Path()
-        {
-            return Configuration["DataProtectionPath"] ?? Configuration.GetSection("DataProtection")["Path"];
         }
 
         public string ConnectionStringWorkstationId()
@@ -88,14 +66,6 @@ namespace Biovation.CommonClasses.Manager
             return Configuration["Password"] ?? Configuration.GetSection("ConnectionStrings")["Password"];
         }
 
-        public string AppSettingsDataQueriesPort()
-        {
-            return Configuration["DataQueriesPort"] ?? Configuration.GetSection("AppSettings")["DataQueriesPort"];
-        }
-
-
-
-
         public Uri LogMonitoringApiUrl
         {
             get
@@ -104,8 +74,6 @@ namespace Biovation.CommonClasses.Manager
                 {
                     try
                     {
-                        //var useHttps = ConfigurationManager.AppSettings["LegoServerAddress"]
-                        //    ?.ToLowerInvariant().Contains(@"https://") == true;
                         var useHttps = Configuration.GetSection("AppSettings")["LegoServerAddress"]
                             ?.ToLowerInvariant().Contains(@"https://") == true;
 
@@ -148,41 +116,59 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
+        public Uri BiovationServerUri
+        {
+            get
+            {
+                try
+                {
+                    try
+                    {
+                        var useHttps = Configuration.GetSection("AppSettings")["BiovationServerUrl"]
+                            ?.ToLowerInvariant().Contains(@"https://") == true;
+
+
+                        var rawUrl = Configuration.GetSection("AppSettings")["BiovationServerUrl"]?.ToLowerInvariant()
+                            .Replace(@"http://", "").Replace(@"https://", "");
+                        if (rawUrl is null)
+                            return default;
+
+                        var slashIndex = rawUrl.IndexOf("/", StringComparison.InvariantCultureIgnoreCase);
+                        if (slashIndex > 0)
+                        {
+                            var relativeUri = rawUrl.Substring(slashIndex).Trim('/');
+                            rawUrl = rawUrl.Substring(0, slashIndex).Trim('/');
+                            var baseUri = (!rawUrl.Contains(":") ? new UriBuilder(useHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp, rawUrl, useHttps ? 9039 : 9038)
+                                : new UriBuilder(useHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp, rawUrl.Split(':')[0],
+                                    Convert.ToInt32(rawUrl.Split(':')[1].Split('/')[0]))).Uri;
+
+                            return new Uri(baseUri, relativeUri + "/Biovation/api");
+                        }
+                        else
+                        {
+                            var baseUri = (!rawUrl.Contains(":") ? new UriBuilder(useHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp, rawUrl, useHttps ? 9039 : 9038)
+                                : new UriBuilder(useHttps ? Uri.UriSchemeHttps : Uri.UriSchemeHttp, rawUrl.Split(':')[0],
+                                    Convert.ToInt32(rawUrl.Split(':')[1]))).Uri;
+
+                            return new Uri(baseUri, "/Biovation/api");
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        return default;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return default;
+                }
+            }
+        }
+
         public string DefaultToken { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyIjoie1wiSWRcIjoxLFwiQ29kZVwiOjEyMzQ1Njc4OSxcIlVuaXF1ZUlkXCI6MTIzNDU2Nzg5LFwiVXNlck5hbWVcIjpcIkFkbWluXCIsXCJSZWdpc3RlckRhdGVcIjpcIjIwMjAtMTAtMjFUMTY6Mjk6MDBcIixcIkRlcGFydG1lbnROYW1lXCI6bnVsbCxcIlRlbE51bWJlclwiOm51bGwsXCJJbWFnZUJ5dGVzXCI6bnVsbCxcIkltYWdlXCI6bnVsbCxcIkZpcnN0TmFtZVwiOlwiQWRtaW5cIixcIlN1ck5hbWVcIjpcIkFkbWluaXN0cmF0b3JcIixcIkZ1bGxOYW1lXCI6XCIxX0FkbWluIEFkbWluaXN0cmF0b3JcIixcIlBhc3N3b3JkXCI6bnVsbCxcIlBhc3N3b3JkQnl0ZXNcIjpudWxsLFwiU3RhcnREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJFbmREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJBZG1pbkxldmVsXCI6MCxcIkF1dGhNb2RlXCI6MCxcIkVtYWlsXCI6bnVsbCxcIlR5cGVcIjoxLFwiRW50aXR5SWRcIjoxLFwiSXNBY3RpdmVcIjp0cnVlLFwiSXNBZG1pblwiOmZhbHNlLFwiUmVtYWluaW5nQ3JlZGl0XCI6MC4wLFwiQWxsb3dlZFN0b2NrQ291bnRcIjowLFwiRmluZ2VyVGVtcGxhdGVzXCI6W10sXCJGYWNlVGVtcGxhdGVzXCI6W10sXCJJZGVudGl0eUNhcmRcIjpudWxsfSIsImp0aSI6ImY4MWFiMzU5LTZlMjktNDVkZS1iZDNhLWFkNTEyMGRiMDFiNiIsImV4cCI6MTYzNTA3NDc4OH0.afI4VecgU50cQRhRwzae1JIVPlBd8wJpSsPt_aN-y44";
         public string KasraAdminToken { get; set; } = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyIjoie1wiSWRcIjoxLFwiQ29kZVwiOjEyMzQ1Njc4OSxcIlVuaXF1ZUlkXCI6MTIzNDU2Nzg5LFwiVXNlck5hbWVcIjpcIkFkbWluXCIsXCJSZWdpc3RlckRhdGVcIjpcIjIwMjAtMTAtMjFUMTY6Mjk6MDBcIixcIkRlcGFydG1lbnROYW1lXCI6bnVsbCxcIlRlbE51bWJlclwiOm51bGwsXCJJbWFnZUJ5dGVzXCI6bnVsbCxcIkltYWdlXCI6bnVsbCxcIkZpcnN0TmFtZVwiOlwiQWRtaW5cIixcIlN1ck5hbWVcIjpcIkFkbWluaXN0cmF0b3JcIixcIkZ1bGxOYW1lXCI6XCIxX0FkbWluIEFkbWluaXN0cmF0b3JcIixcIlBhc3N3b3JkXCI6bnVsbCxcIlBhc3N3b3JkQnl0ZXNcIjpudWxsLFwiU3RhcnREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJFbmREYXRlXCI6XCIyMDIwLTEwLTIxVDE2OjI5OjAwXCIsXCJBZG1pbkxldmVsXCI6MCxcIkF1dGhNb2RlXCI6MCxcIkVtYWlsXCI6bnVsbCxcIlR5cGVcIjoxLFwiRW50aXR5SWRcIjoxLFwiSXNBY3RpdmVcIjp0cnVlLFwiSXNBZG1pblwiOmZhbHNlLFwiUmVtYWluaW5nQ3JlZGl0XCI6MC4wLFwiQWxsb3dlZFN0b2NrQ291bnRcIjowLFwiRmluZ2VyVGVtcGxhdGVzXCI6W10sXCJGYWNlVGVtcGxhdGVzXCI6W10sXCJJZGVudGl0eUNhcmRcIjpudWxsfSIsImp0aSI6IjhjMDUxM2Y3LTk0NjktNDU2OS05ZjUzLTc0MjRiNDllNzQ2NSIsImV4cCI6MTYzNTA3NDc2OX0.Nb57Ig87eu87SPBmXv3CV9gAUMJrEa2Q9saHnt2HJj8";
-             
-
-        public static int BiovationWebServerPort
-        {
-            get
-            {
-                try
-                {
-                    return Convert.ToInt32(ConfigurationManager.AppSettings["BiovationEventWebServerPort"] ?? "9038");
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
-
-        public static int BiovationSocketServerPort
-        {
-            get
-            {
-                try
-                {
-                    return Convert.ToInt32(ConfigurationManager.AppSettings["BiovationEventServerSocketPort"] ?? "6000");
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
+        
 
         public bool UseHealthCheck
         {
@@ -220,54 +206,6 @@ namespace Biovation.CommonClasses.Manager
             set => Configuration.GetSection("AppSettings")["MigrateUp"] = value.ToString();
         }
 
-        public static bool WriteLogToDatabase
-        {
-            get
-            {
-                try
-                {
-                    return string.Equals(ConfigurationManager.AppSettings["WriteLogToDatabase"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return false;
-                }
-            }
-        }
-
-        public static bool WriteLogToFile
-        {
-            get
-            {
-                try
-                {
-                    return string.Equals(ConfigurationManager.AppSettings["WriteLogToFile"] ?? bool.FalseString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return false;
-                }
-            }
-        }
-
-        public static string LogConnectionString
-        {
-            get
-            {
-                try
-                {
-                    return ConfigurationManager.ConnectionStrings["LogConnectionString".ToUpper()]?.ConnectionString ?? ConfigurationManager.ConnectionStrings["ConnectionString".ToUpper()].ConnectionString;
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return ConfigurationManager.ConnectionStrings["ConnectionString".ToUpper()].ConnectionString;
-                }
-            }
-        }
-
         public int SupremaDevicesConnectionPort
         {
             get
@@ -300,21 +238,6 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static int MaxaDevicesConnectionPort
-        {
-            get
-            {
-                try
-                {
-                    return Convert.ToInt32(ConfigurationManager.AppSettings["MaxaDevicesConnectionPort"]);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
 
         public bool GetAllLogWhenConnect
         {
@@ -348,54 +271,6 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static string MinimumFileLogLevel
-        {
-            get
-            {
-                try
-                {
-                    return ConfigurationManager.AppSettings["MinimumFileLogLevel"]?.ToLowerInvariant();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
-
-        public static string MinimumConsoleLogLevel
-        {
-            get
-            {
-                try
-                {
-                    return ConfigurationManager.AppSettings["MinimumConsoleLogLevel"]?.ToLowerInvariant();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
-
-        public static string MinimumDatabaseLogLevel
-        {
-            get
-            {
-                try
-                {
-                    return ConfigurationManager.AppSettings["MinimumDatabaseLogLevel"]?.ToLowerInvariant();
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
-
         public bool ShowLiveImageInMonitoring
         {
             get
@@ -403,7 +278,6 @@ namespace Biovation.CommonClasses.Manager
                 try
                 {
                     return string.Equals(Configuration.GetSection("AppSettings")["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
-                    //return string.Equals(ConfigurationManager.AppSettings["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
@@ -413,7 +287,7 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static string SoftwareLockAddress
+        public string SoftwareLockAddress
         {
             get
             {
@@ -429,7 +303,7 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public static int SoftwareLockPort
+        public int SoftwareLockPort
         {
             get
             {
@@ -453,7 +327,7 @@ namespace Biovation.CommonClasses.Manager
                 {
                     try
                     {
-                        return Configuration["KafkaServerAddress"] ?? Configuration.GetSection("AppSettings")["KafkaServerAddress"]?.ToLowerInvariant()
+                        return Configuration.GetSection("AppSettings")["KafkaServerAddress"]?.ToLowerInvariant()
                             .Replace(@"http://", "").Replace(@"https://", "");
 
                     }
@@ -486,21 +360,20 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        // For EOS module to connect directly to kasra database and add records to att.attendance
-        public static bool OldRepository
-        {
-            get
-            {
-                try
-                {
-                    return string.Equals(ConfigurationManager.AppSettings["OldRepository"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return false;
-                }
-            }
-        }
+        //public static int MaxaDevicesConnectionPort
+        //{
+        //    get
+        //    {
+        //        try
+        //        {
+        //            return Convert.ToInt32(ConfigurationManager.AppSettings["MaxaDevicesConnectionPort"]);
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception);
+        //            return default;
+        //        }
+        //    }
+        //}
     }
 }

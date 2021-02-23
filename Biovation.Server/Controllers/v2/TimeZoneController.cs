@@ -5,14 +5,15 @@ using RestSharp;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {
     [Authorize]
+    [ApiController]
     [ApiVersion("2.0")]
-    [Route("biovation/api/v2/[controller]")]
-    //[Route("biovation/api/v{version:apiVersion}/[controller]")]
-    public class TimeZoneController : Controller
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class TimeZoneController : ControllerBase
     {
         //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly TimeZoneService _timeZoneService;
