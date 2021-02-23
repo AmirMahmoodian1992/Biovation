@@ -408,95 +408,98 @@ namespace Biovation.Brands.PW.Devices
                 }
 
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
-                if (result != 0)
-                    return new ResultViewModel
-                    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
+                //if (result != 0)
+                //    return new ResultViewModel
+                //    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
 
-                lock (LockObject) //make the object exclusive 
+                if (result == 0)
                 {
-                    try
+                    lock (LockObject) //make the object exclusive 
                     {
-                        var logs = new List<Log>();
-
-                        for (var i = recordsCount - 1; i >= 0; i--)
+                        try
                         {
-                            try
-                            {
-                                var userId = Convert.ToInt32(records[i].cardNo);
+                            var logs = new List<Log>();
 
-                                var log = new Log
+                            for (var i = recordsCount - 1; i >= 0; i--)
+                            {
+                                try
                                 {
-                                    DeviceId = _deviceInfo.DeviceId,
-                                    DeviceCode = _deviceInfo.Code,
-                                    LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
-                                        records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
-                                    EventLog = _logEvents.Authorized,
-                                    UserId = userId,
-                                    MatchingType = _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
-                                    InOutMode = _deviceInfo.DeviceTypeId,
-                                    TnaEvent = 0,
-                                    SubEvent = _logSubEvents.Normal
-                                };
+                                    var userId = Convert.ToInt32(records[i].cardNo);
 
-                                logs.Add(log);
+                                    var log = new Log
+                                    {
+                                        DeviceId = _deviceInfo.DeviceId,
+                                        DeviceCode = _deviceInfo.Code,
+                                        LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
+                                            records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
+                                        EventLog = _logEvents.Authorized,
+                                        UserId = userId,
+                                        MatchingType = _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
+                                        InOutMode = _deviceInfo.DeviceTypeId,
+                                        TnaEvent = 0,
+                                        SubEvent = _logSubEvents.Normal
+                                    };
+
+                                    logs.Add(log);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
                             }
-                            catch (Exception)
+
+                            //var logs = records.Take(recordsCount).Select(rec =>
+                            //{
+                            //    try
+                            //    {
+                            //        if (rec.xDate.y < 1990 || rec.xDate.y < 2050 || rec.xDate.m < 1 || rec.xDate.m > 12 || rec.xDate.d < 1 || rec.xDate.d > 31 || rec.hh < 1 || rec.hh > 24 || rec.mn < 1 || rec.mn > 60 || rec.ss < 1 || rec.ss > 60)
+                            //            return null;
+
+                            //        return new Log
+                            //        {
+                            //            DeviceId = _deviceInfo.DeviceId,
+                            //            DeviceCode = _deviceInfo.Code,
+                            //            LogDateTime = new DateTime(rec.xDate.y, rec.xDate.m, rec.xDate.d, rec.hh, rec.mn,
+                            //                rec.ss),
+                            //            UserId = Convert.ToInt32(rec.cardNo),
+                            //            MatchingType = rec.ioType,
+                            //            TnaEvent = 0,
+                            //            SubEvent = LogSubEvents.Normal
+                            //        };
+                            //    }
+                            //    catch (Exception)
+                            //    {
+                            //        //_logger.Debug(exception);
+                            //        return null;
+                            //    }
+                            //}).Where(log => log != null).ToList();
+
+                            var count = recordsCount;
+                            Task.Run(() =>
                             {
-                                //ignore
-                            }
-                        }
-
-                        //var logs = records.Take(recordsCount).Select(rec =>
-                        //{
-                        //    try
-                        //    {
-                        //        if (rec.xDate.y < 1990 || rec.xDate.y < 2050 || rec.xDate.m < 1 || rec.xDate.m > 12 || rec.xDate.d < 1 || rec.xDate.d > 31 || rec.hh < 1 || rec.hh > 24 || rec.mn < 1 || rec.mn > 60 || rec.ss < 1 || rec.ss > 60)
-                        //            return null;
-
-                        //        return new Log
-                        //        {
-                        //            DeviceId = _deviceInfo.DeviceId,
-                        //            DeviceCode = _deviceInfo.Code,
-                        //            LogDateTime = new DateTime(rec.xDate.y, rec.xDate.m, rec.xDate.d, rec.hh, rec.mn,
-                        //                rec.ss),
-                        //            UserId = Convert.ToInt32(rec.cardNo),
-                        //            MatchingType = rec.ioType,
-                        //            TnaEvent = 0,
-                        //            SubEvent = LogSubEvents.Normal
-                        //        };
-                        //    }
-                        //    catch (Exception)
-                        //    {
-                        //        //_logger.Debug(exception);
-                        //        return null;
-                        //    }
-                        //}).Where(log => log != null).ToList();
-
-                        var count = recordsCount;
-                        Task.Run(() =>
-                       {
-                           for (var i = 0; i < logs.Count;)
-                           {
-                               var log = logs[i];
-                               _logger.Debug($@"<--
+                                for (var i = 0; i < logs.Count;)
+                                {
+                                    var log = logs[i];
+                                    _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
                                     +Progress:{++i}/{count}");
-                           }
-                       }, Token.Token);
+                                }
+                            }, Token.Token);
 
-                        //Task.Run(() =>
-                        //{
-                        _logService.AddLog(logs).ConfigureAwait(false);
-                        //});
+                            //Task.Run(() =>
+                            //{
+                            _logService.AddLog(logs).ConfigureAwait(false);
+                            //});
 
-                    }
-                    catch (Exception exception)
-                    {
-                        _logger.Warning(exception, exception.Message);
-                        //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                            //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
                     }
                 }
 
@@ -522,8 +525,8 @@ namespace Biovation.Brands.PW.Devices
 
                 //var userId = 0;
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
-                //if (result == 0)
-                //{
+                if (result == 0)
+                {
                     lock (LockObject) //make the object exclusive 
                     {
                         try
@@ -617,17 +620,17 @@ namespace Biovation.Brands.PW.Devices
                     }
 
                     _logger.Debug($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
-                //}
+                }
                 //else if (result == 1001)
                 //{
                 //    _logger.Debug($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
                 //    Disconnect();
                 //}
-                //else
-                //{
-                //    _logger.Debug(
-                //        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
-                //}
+                else
+                {
+                    _logger.Debug(
+                        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
+                }
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
             }
@@ -675,68 +678,71 @@ namespace Biovation.Brands.PW.Devices
                 //    return new ResultViewModel
                 //    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
 
-                lock (LockObject) //make the object exclusive 
+                if (result == 0)
                 {
-                    try
+                    lock (LockObject) //make the object exclusive 
                     {
-                        var logs = new List<Log>();
-
-                        for (var i = recordsCount - 1; i >= 0; i--)
+                        try
                         {
-                            try
-                            {
-                                var userId = Convert.ToInt32(records[i].cardNo);
+                            var logs = new List<Log>();
 
-                                var log = new Log
+                            for (var i = recordsCount - 1; i >= 0; i--)
+                            {
+                                try
                                 {
-                                    DeviceId = _deviceInfo.DeviceId,
-                                    DeviceCode = _deviceInfo.Code,
-                                    LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
-                                        records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
-                                    EventLog = _logEvents.Authorized,
-                                    UserId = userId,
-                                    MatchingType = _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
-                                    InOutMode = _deviceInfo.DeviceTypeId,
-                                    TnaEvent = 0,
-                                    SubEvent = _logSubEvents.Normal
-                                };
+                                    var userId = Convert.ToInt32(records[i].cardNo);
 
-                                logs.Add(log);
+                                    var log = new Log
+                                    {
+                                        DeviceId = _deviceInfo.DeviceId,
+                                        DeviceCode = _deviceInfo.Code,
+                                        LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
+                                            records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
+                                        EventLog = _logEvents.Authorized,
+                                        UserId = userId,
+                                        MatchingType = _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
+                                        InOutMode = _deviceInfo.DeviceTypeId,
+                                        TnaEvent = 0,
+                                        SubEvent = _logSubEvents.Normal
+                                    };
+
+                                    logs.Add(log);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
                             }
-                            catch (Exception)
+
+                            logs = logs.Where(log => log.LogDateTime > fromDate && log.LogDateTime < toDate).ToList();
+
+                            var count = recordsCount;
+                            _logService.AddLog(logs).ConfigureAwait(false);
+
+                            Task.Run(() =>
                             {
-                                //ignore
-                            }
-                        }
-
-                        logs = logs.Where(log => log.LogDateTime > fromDate && log.LogDateTime < toDate).ToList();
-
-                        var count = recordsCount;
-                        _logService.AddLog(logs).ConfigureAwait(false);
-
-                        Task.Run(() =>
-                        {
-                            for (var i = 0; i < logs.Count;)
-                            {
-                                var log = logs[i];
-                                _logger.Debug($@"<--
+                                for (var i = 0; i < logs.Count;)
+                                {
+                                    var log = logs[i];
+                                    _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
                                     +Progress:{++i}/{count}");
-                            }
-                        }, Token.Token);
+                                }
+                            }, Token.Token);
 
-                        //Task.Run(() =>
-                        //{
-                        //});
+                            //Task.Run(() =>
+                            //{
+                            //});
 
-                    }
-                    catch (Exception exception)
-                    {
-                        _logger.Warning(exception, exception.Message);
-                        //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                            //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
                     }
                 }
 
