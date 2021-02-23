@@ -40,13 +40,14 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("AddLog")]
         public async Task<ResultViewModel> AddLog([FromBody] Log log)
         {
-            var logInsertionAwaiter = _logRepository.AddLog(log);
+           
 
             var filePath = log.PicByte is null
                 ? string.Empty
                 : SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode,log.DeviceId.ToString(),log.Time).Result;
             log.Image = filePath;
 
+            var logInsertionAwaiter = _logRepository.AddLog(log);
             //integration
             var broadcastMessageBusAwaiter = _logMessageBusRepository.SendLog(new List<Log> { log });
             var broadcastApiAwaiter = Task.CompletedTask;

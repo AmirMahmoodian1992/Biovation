@@ -246,6 +246,28 @@ namespace Biovation.Repository.Sql.v2
             });
         }
 
+
+        public Task<List<Log>> LogImage(int id = default)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var parameters = new List<SqlParameter>
+                    {
+                        new SqlParameter("@id", id),
+                    };
+                    return _repository.ToResultList<Log>("GetLog", parameters,
+                        fetchCompositions: true).Data;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new List<Log>();
+                }
+            });
+        }
+
         //TODO
         /* public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default,
              DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default)

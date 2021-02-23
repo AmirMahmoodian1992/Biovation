@@ -130,7 +130,7 @@ namespace Biovation.Service.Api.v1
         {
             return Task.Run(() =>
            {
-               var log = Logs(((int)id)).Result.FirstOrDefault();
+               var log = _logRepository.LogImage(id).Data.Data.FirstOrDefault();
                if (log == null || string.IsNullOrEmpty(log.Image)) return new byte[0];
                var path = log.Image;
                var bytes = File.ReadAllBytes(path);
