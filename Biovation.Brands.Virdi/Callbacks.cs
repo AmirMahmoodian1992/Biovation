@@ -448,7 +448,7 @@ namespace Biovation.Brands.Virdi
         {
             await Task.Run(() =>
             {
-                lock (_loadFingerTemplateLock)
+                lock (LoadFingerTemplateLock)
                 {
                     Logger.Log("Fast search initialization started.");
                     var devices = _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
