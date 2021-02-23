@@ -49,8 +49,6 @@ namespace Biovation.Brands.PW.Manager
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
                                         new List<object> { taskItem }).Execute();
-
-                                    return result;
                                 });
 
 
@@ -71,8 +69,6 @@ namespace Biovation.Brands.PW.Manager
                                 {
                                     result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
                                         new List<object> { taskItem }).Execute();
-
-                                    return result;
                                 });
 
 

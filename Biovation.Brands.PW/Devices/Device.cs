@@ -56,7 +56,7 @@ namespace Biovation.Brands.PW.Devices
             _taskService = taskService;
             _clearLogAfterRetrieving = biovationConfigurationManager.ClearLogAfterRetrieving;
             Token = new CancellationTokenSource();
-            
+
             _logger = logger.ForContext<Device>();
         }
 
@@ -522,13 +522,15 @@ namespace Biovation.Brands.PW.Devices
 
                 //var userId = 0;
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
-                if (result == 0)
-                {
+                //if (result == 0)
+                //{
                     lock (LockObject) //make the object exclusive 
                     {
                         try
                         {
                             var logs = new List<Log>();
+                            var thousandIndex = 0;
+                            var logInsertionTasks = new List<Task>();
                             //var len = records.Length;
 
                             for (var i = recordsCount - 1; i >= 0; i--)
@@ -553,6 +555,24 @@ namespace Biovation.Brands.PW.Devices
                                     };
 
                                     logs.Add(log);
+
+                                    if (logs.Count % 1000 == 0)
+                                    {
+                                        var partedLogs = logs.Skip(thousandIndex * 1000).Take(1000).ToList();
+
+                                        try
+                                        {
+                                            logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                            //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", _deviceInfo.Code);
+                                        }
+                                        catch (Exception exception)
+                                        {
+                                            _logger.Warning(exception, exception.Message);
+                                            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                        }
+
+                                        thousandIndex++;
+                                    }
                                 }
                                 catch (Exception)
                                 {
@@ -560,6 +580,20 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
+                            //_logService.AddLog(logs).ConfigureAwait(false);
+                            try
+                            {
+                                var partedLogs = logs.Skip(thousandIndex * 1000).Take(1000).ToList();
+                                logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.Warning(exception, exception.Message);
+                                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                            }
+
+                            Task.WaitAll(logInsertionTasks.ToArray());
                             Task.Run(() =>
                             {
                                 for (var i = 0; i < logs.Count;)
@@ -574,7 +608,6 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }, Token.Token);
 
-                            _logService.AddLog(logs).ConfigureAwait(false);
                         }
                         catch (Exception exception)
                         {
@@ -584,17 +617,17 @@ namespace Biovation.Brands.PW.Devices
                     }
 
                     _logger.Debug($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
-                }
+                //}
                 //else if (result == 1001)
                 //{
                 //    _logger.Debug($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
                 //    Disconnect();
                 //}
-                else
-                {
-                    _logger.Debug(
-                        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
-                }
+                //else
+                //{
+                //    _logger.Debug(
+                //        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
+                //}
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
             }
@@ -638,9 +671,9 @@ namespace Biovation.Brands.PW.Devices
                 }
 
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
-                if (result != 0)
-                    return new ResultViewModel
-                    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
+                //if (result != 0)
+                //    return new ResultViewModel
+                //    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
 
                 lock (LockObject) //make the object exclusive 
                 {
@@ -679,6 +712,8 @@ namespace Biovation.Brands.PW.Devices
                         logs = logs.Where(log => log.LogDateTime > fromDate && log.LogDateTime < toDate).ToList();
 
                         var count = recordsCount;
+                        _logService.AddLog(logs).ConfigureAwait(false);
+
                         Task.Run(() =>
                         {
                             for (var i = 0; i < logs.Count;)
@@ -695,7 +730,6 @@ namespace Biovation.Brands.PW.Devices
 
                         //Task.Run(() =>
                         //{
-                        _logService.AddLog(logs).ConfigureAwait(false);
                         //});
 
                     }
@@ -758,6 +792,27 @@ namespace Biovation.Brands.PW.Devices
 
                             logs = logs.Where(log => log.LogDateTime > fromDate && log.LogDateTime < toDate).ToList();
 
+                            var count = recordsCount;
+                            var logInsertionTasks = new List<Task>();
+                            //_logService.AddLog(logs).ConfigureAwait(false);
+
+                            for (var i = 0; i < count / 1000; i++)
+                            {
+                                try
+                                {
+                                    var partedLogs = logs.Skip(i * 1000).Take(1000).ToList();
+                                    logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                    //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.Warning(exception, exception.Message);
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                }
+                            }
+
+                            Task.WaitAll(logInsertionTasks.ToArray());
+
                             Task.Run(() =>
                             {
                                 for (var i = 0; i < logs.Count;)
@@ -772,7 +827,6 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }, Token.Token);
 
-                            _logService.AddLog(logs).ConfigureAwait(false);
                         }
                         catch (Exception exception)
                         {
