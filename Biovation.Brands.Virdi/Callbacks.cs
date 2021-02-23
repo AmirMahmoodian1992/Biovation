@@ -41,7 +41,7 @@ namespace Biovation.Brands.Virdi
         private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
         private readonly LogEvents _logEvents;
-        private readonly TaskManager _taskManager;
+        //private readonly TaskManager _taskManager;
         private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
@@ -210,7 +210,7 @@ namespace Biovation.Brands.Virdi
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService
             , VirdiServer virdiServer, FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, DeviceBrands deviceBrands
             , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , ILogger<Callbacks> logger, TaskStatuses taskStatuses, TaskManager taskManager)
+            , ILogger<Callbacks> logger, TaskStatuses taskStatuses)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -222,7 +222,7 @@ namespace Biovation.Brands.Virdi
             _faceTemplateService = faceTemplateService;
             _taskService = taskService;
             _taskStatuses = taskStatuses;
-            _taskManager = taskManager;
+            //_taskManager = taskManager;
             _accessGroupService = accessGroupService;
             BiovationConfiguration = biovationConfiguration;
             _virdiLogService = virdiLogService;
@@ -1034,7 +1034,8 @@ namespace Biovation.Brands.Virdi
             GetAccessLogType = (int)VirdiDeviceLogType.New;
             AccessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
 
-            _taskManager.ProcessQueue(device.DeviceId);
+            //_taskManager.ProcessQueue(device.DeviceId);
+            _taskService.ProcessQueue(_deviceBrands.Virdi, device.DeviceId).ConfigureAwait(false);
 
             //AccessLogData.GetAccessLogFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
             //});
