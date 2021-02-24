@@ -267,8 +267,6 @@ namespace Biovation.Brands.PW.Devices
                 {
                     try
                     {
-
-
                         var newGateNumber = _deviceInfo.Code;
                         var newBonesFn = "";
                         var newRecords = new NetTypes.IN_OUT_RECORD_TYPE[100000]; //for 10000 records.
@@ -285,6 +283,8 @@ namespace Biovation.Brands.PW.Devices
 
                             newResult = _pwSdk.getIOs(_linkParam, newFilePath, ref newRecordsCount, ref newBonesFn,
                                 ref newRecords, newGateNumber, newTextFile);
+                            _linkParam.clearPW = false; 
+                            
                             if (newRecordsCount > 0 && _lastLogReadCount == newRecordsCount)
                                 _offlineLogReadCount++;
                             else
@@ -393,18 +393,8 @@ namespace Biovation.Brands.PW.Devices
 
                 lock (_pwSdk)
                 {
-                    if (_offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
-                        _linkParam.clearPW = true;
-
-                    result = _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber, textFile);
-
                     _linkParam.clearPW = false;
-                    if (recordsCount > 0 && _lastLogReadCount == recordsCount)
-                        _offlineLogReadCount++;
-                    else
-                        _offlineLogReadCount = 1;
-
-                    _lastLogReadCount = recordsCount;
+                    result = _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber, textFile);
                 }
 
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
@@ -506,21 +496,11 @@ namespace Biovation.Brands.PW.Devices
                 //recovering deleted logs
                 lock (_pwSdk)
                 {
-                    if (_offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
-                        _linkParam.clearPW = true;
-
+                    _linkParam.clearPW = false;
                     result = _pwSdk.recoverIOs(_linkParam, filePath, new NetTypes.DATE_TYPE { y = 1, m = 1, d = 1 },
                         new NetTypes.DATE_TYPE { y = (short)(DateTime.Now.Year % 100), m = 12, d = 30 },
                         ref recordsCount, ref bonesFn,
                         ref records, gateNumber);
-
-                    _linkParam.clearPW = false;
-                    if (recordsCount > 0 && _lastLogReadCount == recordsCount)
-                        _offlineLogReadCount++;
-                    else
-                        _offlineLogReadCount = 1;
-
-                    _lastLogReadCount = recordsCount;
                 }
 
                 //var userId = 0;
@@ -659,18 +639,8 @@ namespace Biovation.Brands.PW.Devices
 
                 lock (_pwSdk)
                 {
-                    if (_offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
-                        _linkParam.clearPW = true;
-
-                    result = _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber, textFile);
-
                     _linkParam.clearPW = false;
-                    if (recordsCount > 0 && _lastLogReadCount == recordsCount)
-                        _offlineLogReadCount++;
-                    else
-                        _offlineLogReadCount = 1;
-
-                    _lastLogReadCount = recordsCount;
+                    result = _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber, textFile);
                 }
 
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
@@ -753,8 +723,6 @@ namespace Biovation.Brands.PW.Devices
                         new NetTypes.DATE_TYPE { y = (short)(DateTime.Now.Year % 100), m = 12, d = 30 },
                         ref recordsCount, ref bonesFn,
                         ref records, gateNumber);
-
-                    _lastLogReadCount = recordsCount;
                 }
 
                 //var userId = 0;
