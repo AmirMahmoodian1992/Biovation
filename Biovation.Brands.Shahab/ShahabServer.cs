@@ -1,6 +1,9 @@
 ﻿using Biovation.Brands.Shahab.Devices;
 using Biovation.Brands.Shahab.Model;
 using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -8,11 +11,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
 using static Biovation.Brands.Shahab.ShahabApi;
 
 namespace Biovation.Brands.Shahab
@@ -137,10 +138,17 @@ namespace Biovation.Brands.Shahab
         {
             try
             {
-                Device detectorInstance;
-                lock (_onlineDevices)
+                Device detectorInstance = null;
+                try
                 {
-                    detectorInstance = _onlineDevices.ElementAt(instanceId).Value;
+                    lock (_onlineDevices)
+                    {
+                        detectorInstance = _onlineDevices.ElementAt(instanceId).Value;
+                    }
+                }
+                catch (Exception)
+                {
+                    // ignored
                 }
 
                 if (detectorInstance is null)
@@ -158,6 +166,9 @@ namespace Biovation.Brands.Shahab
                             {
                                 Logger.Log("Failed to get frame info in WM_CONNECTED" + ex, logType: LogType.Warning);
                             }
+                            //set Timer for each instanceId
+                            if (!_timers.ContainsKey(instanceId))
+                                SetTimer(instanceId, _drawMethod);
 
                             if (detectorInstance.FrameWidth < 1)
                             {
@@ -165,10 +176,10 @@ namespace Biovation.Brands.Shahab
                                 Logger.Log("Could not connect to camera, Please check the configuration and try again.", logType: LogType.Warning);
 
                                 detectorInstance.ReConnect(_drawMethod);
-                                _timers[instanceId]?.Stop();
-                                _timers[instanceId]?.Start();
-                                _timers[instanceId].Enabled = false;
-                                _timers[instanceId].Enabled = true;
+                               _timers[instanceId]?.Stop();
+                               _timers[instanceId]?.Start();
+                               _timers[instanceId].Enabled = false;
+                               _timers[instanceId].Enabled = true;
                                 return;
                             }
 
@@ -179,10 +190,6 @@ namespace Biovation.Brands.Shahab
                                 if (!_onlineDevices.ContainsKey(detectorInstance.GetDeviceInfo().Code))
                                     _onlineDevices.Add(detectorInstance.GetDeviceInfo().Code, detectorInstance);
                             }
-
-                            //set Timer for each instanceId
-                            if (!_timers.ContainsKey(instanceId))
-                                SetTimer(instanceId, _drawMethod);
 
                             detectorInstance.Frame = null; // new Bitmap(FrameW, FrameH, PixelFormat.Format24bppRgb);
                             if (!detectorInstance.AnprSettings.Repeat)
@@ -195,14 +202,16 @@ namespace Biovation.Brands.Shahab
                         detectorInstance.Grabbing = 0;
                         Logger.Log("Could not connect to camera stream. Please check the Url, Username, Password or other configuration and try again.", logType: LogType.Warning);
 
+                        //set Timer for each instanceId
                         if (_timers.ContainsKey(instanceId))
                         {
                             detectorInstance.ReConnect(_drawMethod);
-                            _timers[instanceId]?.Stop();
-                            _timers[instanceId]?.Start();
-                            _timers[instanceId].Enabled = false;
-                            _timers[instanceId].Enabled = true;
+                           _timers[instanceId]?.Stop();
+                           _timers[instanceId]?.Start();
+                           _timers[instanceId].Enabled = false;
+                           _timers[instanceId].Enabled = true;
                         }
+
                         break;
 
                     case WM_NEW_FRAME:
@@ -210,6 +219,7 @@ namespace Biovation.Brands.Shahab
                         UpdateFrame(instanceId);
                         break;
                     case WM_PLATE_DETECTED:
+                        Logger.Log("WM_PLATE_DETECTED", logType: LogType.Warning);
                         //possible plate detected
                         ProcessDetectedPlateAsync(plateIndex, instanceId);
                         break;
@@ -244,10 +254,10 @@ namespace Biovation.Brands.Shahab
                         Logger.Log("End of the Video", logType: LogType.Warning);
 
                         detectorInstance.ReConnect(_drawMethod);
-                        _timers[instanceId]?.Stop();
-                        _timers[instanceId]?.Start();
-                        _timers[instanceId].Enabled = false;
-                        _timers[instanceId].Enabled = true;
+                       _timers[instanceId]?.Stop();
+                       _timers[instanceId]?.Start();
+                       _timers[instanceId].Enabled = false;
+                       _timers[instanceId].Enabled = true;
                         break;
 
                     case WM_PLATE_NOT_DETECTED:
@@ -308,6 +318,7 @@ namespace Biovation.Brands.Shahab
         {
             Task.Run(async () =>
             {
+                Logger.Log("ProcessDetectedPlateAsync", logType: LogType.Warning);
                 Device detectorInstance;
                 lock (_onlineDevices)
                 {
@@ -334,6 +345,7 @@ namespace Biovation.Brands.Shahab
                     return;
                 }
 
+                Logger.Log("check Detected Plate", logType: LogType.Warning);
                 if (!detectorInstance.AnprSettings.ReportNonStandardPlates && detectorInstance.Grabbing != 0)
                 {
                     if (plate.LettersCount > 1) //پلاک استاندارد حداکثر یک حرف دارد و بقیه رقم هستند
@@ -386,7 +398,6 @@ namespace Biovation.Brands.Shahab
                 var frameImage = frameImageMemoryStream.ToArray();
 
 
-
                 var licensePlate = _plateDetectionService.GetLicensePlate(plate.PlateData)?.Data;
 
                 if (licensePlate == null)
@@ -415,7 +426,6 @@ namespace Biovation.Brands.Shahab
                     });
                 }
 
-
                 var permission = licensePlate.StartDate.Date > DateTime.Now.Date
                                    && licensePlate.EndDate.Date < DateTime.Now.Date
                                    && licensePlate.StartTime > DateTime.Now.TimeOfDay
@@ -439,14 +449,38 @@ namespace Biovation.Brands.Shahab
                 {
                     try
                     {
+                        Logger.Log($@"UpdateMonitoring for {resultEn}", logType: LogType.Warning);
                         var restRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
+
+                        var tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
+                        try
+                        {
+                            const string correctedPattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
+                            const string basePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]-[۰-۹][۰-۹][۰-۹]";
+                            const string secondBasePattern = @"[۰-۹][۰-۹][۰-۹]-[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]";
+
+                            var regexDetect = Regex.Match(tmpPlateNumber, correctedPattern);
+                            if (regexDetect.Success)
+                                tmpPlateNumber = "تشخیص پلاک با قالب نادرست: " + (tmpPlateNumber.Substring(3, 3) + "-" + tmpPlateNumber.Substring(6, 2) + tmpPlateNumber.Substring(2, 1) + tmpPlateNumber.Substring(0, 2));
+
+                            else if (Regex.Match(tmpPlateNumber, basePattern).Success || Regex.Match(tmpPlateNumber, secondBasePattern).Success)
+                                tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
+                            else
+                            {
+                                tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
+                            }
+                        }
+                        catch
+                        {
+                            tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
+                        }
 
                         restRequest.AddJsonBody(new
                         {
                             //resultAddLog.Result.Id,
                             DeviceId = detectedLog.DetectorId,
                             DeviceCode = detectorInstance.GetDeviceInfo().Code,
-                            UserId = detectedLog.LicensePlate.LicensePlateNumber,
+                            UserId = tmpPlateNumber,
                             detectedLog.LogDateTime,
                             detectedLog.EventLog,
                             MatchingType = _matchingTypes.Car,
@@ -454,7 +488,6 @@ namespace Biovation.Brands.Shahab
                             SubEvent = _logSubEvents.Normal,
                             DeviceName = detectorInstance.GetDeviceInfo().Name,
                         });
-
                         await _logExternalSubmissionRestClient.ExecuteAsync(restRequest);
                     }
                     catch (Exception exception)
@@ -513,7 +546,7 @@ namespace Biovation.Brands.Shahab
         {
             try
             {
-
+                Logger.Log($@"IN DrawPlate", logType: LogType.Warning);
                 var imageBitmap = new Bitmap(rc.Right - rc.Left, rc.Bottom - rc.Top, PixelFormat.Format24bppRgb);
 
                 BitmapData dataSrc = null;
@@ -537,12 +570,13 @@ namespace Biovation.Brands.Shahab
                     src += step;
                     dst += dataDst.Stride;
                 }
+                Logger.Log($@"Mid DrawPlate", logType: LogType.Warning);
 
                 if (dataSrc != null)
                     imageBitmap.UnlockBits(dataSrc);
                 imageBitmap.UnlockBits(dataDst);
 
-
+                Logger.Log($@"close to the end of DrawPlate", logType: LogType.Warning);
                 var stream = new MemoryStream();
                 imageBitmap.Save(stream, ImageFormat.Jpeg);
                 var bitmapData = stream.ToArray();

@@ -1,8 +1,9 @@
-﻿using System;
-using System.Globalization;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -16,17 +17,9 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
-        {
-            var restRequest = new RestRequest("Queries/v2/PlateDetection/LicensePlate", Method.GET);
-            restRequest.AddQueryParameter("licensePlate", licensePlate);
-            restRequest.AddQueryParameter("entityId", entityId.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<LicensePlate>>(restRequest);
-            return requestResult.Result.Data;
-        }
         public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
-            int pageSize = default, string token = default)
+            int pageSize = default, string whereClause = "", string orderByClause = "", string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/PlateDetection/PlateDetectionLog", Method.GET);
             restRequest.AddQueryParameter("logId", logId.ToString());
@@ -40,6 +33,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("successTransfer", successTransfer.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            restRequest.AddQueryParameter("whereClause", whereClause);
+            restRequest.AddQueryParameter("orderByClause", orderByClause);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<PlateDetectionLog>>>(restRequest);
@@ -48,7 +43,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/PlateDetection/LicensePlate", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/PlateDetection", Method.POST);
             restRequest.AddJsonBody(licensePlate);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
@@ -65,5 +60,72 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
+
+
+
+        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId, string token = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/PlateDetection", Method.GET);
+
+            restRequest.AddQueryParameter("@LicensePlate", licensePlate);
+            restRequest.AddQueryParameter("@LicensePlateId", entityId.ToString());
+            restRequest.AddQueryParameter("@IntervalBeginningStartTime", TimeSpan.Zero.ToString());
+            restRequest.AddQueryParameter("@IntervalEndStartTime", "23:59:59");
+            restRequest.AddQueryParameter("@IntervalBeginningFinishTime", TimeSpan.Zero.ToString());
+            restRequest.AddQueryParameter("@IntervalEndFinishTime", "23:59:59");
+
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<LicensePlate>>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+
+        public ResultViewModel<List<LicensePlate>> ReadLicensePlate(string licensePlateNumber, int entityId, bool isActive, DateTime startDate, DateTime endDate, TimeSpan intervalBeginningStartTime, TimeSpan intervalEndStartTime, TimeSpan intervalBeginningFinishTime, TimeSpan intervalEndFinishTime, string token = default)
+        {
+
+            var restRequest = new RestRequest("Queries/v2/PlateDetection/LicensePlate/ReadLicensePlate", Method.GET);
+            restRequest.AddQueryParameter("@LicensePlate", licensePlateNumber);
+            restRequest.AddQueryParameter("@IsActive", isActive.ToString());
+            restRequest.AddQueryParameter("@StartDate", startDate.ToString(CultureInfo.InvariantCulture));
+            restRequest.AddQueryParameter("@EndDate", endDate.ToString(CultureInfo.InvariantCulture));
+            restRequest.AddQueryParameter("@IntervalBeginningStartTime",
+                intervalBeginningStartTime != default
+                    ? intervalBeginningStartTime.ToString()
+                    : TimeSpan.Zero.ToString());
+            restRequest.AddQueryParameter("@IntervalEndStartTime",
+                intervalEndStartTime != default ? intervalEndStartTime.ToString() : new TimeSpan(23, 59, 59).ToString());
+            restRequest.AddQueryParameter("@IntervalBeginningFinishTime",
+                intervalBeginningFinishTime != default ? intervalBeginningFinishTime.ToString(
+                    ) : TimeSpan.Zero.ToString());
+            restRequest.AddQueryParameter("@IntervalEndFinishTime",
+                intervalEndFinishTime != default
+                    ? intervalEndStartTime.ToString()
+                    : new TimeSpan(23, 59, 59).ToString());
+
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<LicensePlate>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+
+
+        public ResultViewModel DeleteLicensePlate(LicensePlate licensePlate, DateTime modifiedAt, string modifiedBy, string action, string token = default)
+        {
+
+            var restRequest = new RestRequest("Commands/v2/PlateDetection/", Method.DELETE);
+            restRequest.AddQueryParameter("@modifiedAt", modifiedAt.ToString(CultureInfo.InvariantCulture));
+            restRequest.AddQueryParameter("@modifiedBy", modifiedBy);
+            restRequest.AddQueryParameter("@action", action);
+            restRequest.AddJsonBody(licensePlate);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Result.Data;
+        }
+
     }
 }
