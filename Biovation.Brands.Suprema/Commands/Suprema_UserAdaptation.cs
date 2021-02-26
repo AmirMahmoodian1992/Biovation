@@ -3,7 +3,7 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -59,10 +59,10 @@ namespace Biovation.Brands.Suprema.Commands
         public object Execute()
         {
             if (TaskItem is null)
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
+                return new ResultViewModel { Id = TaskItem?.Id ?? 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem?.Id ?? 0}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode)?.Data?.Data?.FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
             if (OnlineDevices.All(dev => dev.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
@@ -88,14 +88,14 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var device = _deviceService.GetDevice(deviceId);
+            var device = _deviceService.GetDevice(deviceId)?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
-            var creatorUser = _userService.GetUsers(userId: CreatorUserId).FirstOrDefault();
+            var creatorUser = _userService.GetUsers(userId: CreatorUserId)?.Data?.Data?.FirstOrDefault();
             var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
 
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);

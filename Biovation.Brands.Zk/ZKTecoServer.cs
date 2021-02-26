@@ -1,12 +1,13 @@
 ﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
+using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Constants;
-using Biovation.Service.Api.v1;
 
 namespace Biovation.Brands.ZK
 {
@@ -19,8 +20,8 @@ namespace Biovation.Brands.ZK
 
         private readonly DeviceFactory _deviceFactory;
         private readonly List<DeviceBasicInfo> _zkDevices;
-        /// 
 
+        private CancellationToken _cancellationToken;
         /// <summary>
         /// <En>Make or return the unique instance of Zk Server.</En>
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
@@ -39,18 +40,24 @@ namespace Biovation.Brands.ZK
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public async Task StartServer()
+        public Task StartServer(CancellationToken cancellationToken)
         {
             Logger.Log("Service started.");
-            var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
+            _cancellationToken = cancellationToken;
+            var connectToDeviceTasks = new List<Task>();
+            Parallel.ForEach(_zkDevices, device => connectToDeviceTasks.Add(ConnectToDevice(device, cancellationToken)));
+            //var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
             if (connectToDeviceTasks.Count == 0)
-                return;
-            
-            await Task.WhenAny(connectToDeviceTasks);
+                return Task.CompletedTask;
+
+            return Task.WhenAny(connectToDeviceTasks);
         }
 
-        public async Task ConnectToDevice(DeviceBasicInfo deviceInfo)
+        public async Task ConnectToDevice(DeviceBasicInfo deviceInfo, CancellationToken cancellationToken = default)
         {
+            if (cancellationToken == default)
+                cancellationToken = _cancellationToken;
+
             lock (_onlineDevices)
             {
                 if (_onlineDevices.ContainsKey(deviceInfo.Code))
@@ -69,12 +76,25 @@ namespace Biovation.Brands.ZK
             if (!deviceInfo.Active) return;
 
             var device = _deviceFactory.Factory(deviceInfo);
-            var connectResult = await device.Connect();
-            if (!connectResult)
-                Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
+
+            var connectResult = false;
+
+            while (!connectResult && !cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    connectResult = await device.Connect(cancellationToken);
+                    if (!connectResult)
+                        Logger.Log($"Cannot connect to device {deviceInfo.Code}.", logType: LogType.Warning);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, $"Exception on connection to device {deviceInfo.Code}", LogType.Fatal);
+                }
+            }
         }
 
-        public async Task DisconnectFromDevice(DeviceBasicInfo deviceInfo)
+        public async Task DisconnectFromDevice(DeviceBasicInfo deviceInfo, CancellationToken cancellationToken = default)
         {
             await Task.Run(() =>
             {
@@ -86,10 +106,10 @@ namespace Biovation.Brands.ZK
 
                 //lock (OnlineDevices)
                 //    OnlineDevices.Remove(deviceInfo.Code);
-            });
+            }, cancellationToken);
         }
 
-        public async Task StopServer()
+        public async Task StopServer(CancellationToken cancellationToken)
         {
             await Task.Run(() =>
             {
@@ -108,7 +128,7 @@ namespace Biovation.Brands.ZK
                         // ignored
                     }
                 });
-            });
+            }, cancellationToken);
         }
     }
 }

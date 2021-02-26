@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.ZK.Devices;
+﻿using Biovation.Brands.ZK.Devices;
 using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
@@ -11,6 +7,10 @@ using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Controllers
 {
@@ -93,7 +93,8 @@ namespace Biovation.Brands.ZK.Controllers
                             _taskService.InsertTask(task);
                         }
 
-                        _taskManager.ProcessQueue();
+                        _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                        //_taskManager.ProcessQueue();
                     }
                     catch (Exception e)
                     {
@@ -162,7 +163,8 @@ namespace Biovation.Brands.ZK.Controllers
                         }
                     }
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
                     return new ResultViewModel { Id = user.Id, Validate = 1 };
                 });
         }
@@ -211,7 +213,8 @@ namespace Biovation.Brands.ZK.Controllers
                         result.Add(new ResultViewModel { Id = userCode, Validate = 1 });
                     }
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
                 }
                 return result;
             });

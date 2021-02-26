@@ -3,6 +3,7 @@ using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,10 +13,12 @@ namespace Biovation.Service.Api.v1
     public class LogService
     {
         private readonly LogRepository _logRepository;
+        private readonly PlateDetectionRepository _plateDetectionRepository;
 
-        public LogService(LogRepository logRepository)
+        public LogService(LogRepository logRepository, PlateDetectionRepository plateDetectionRepository)
         {
             _logRepository = logRepository;
+            _plateDetectionRepository = plateDetectionRepository;
         }
 
         public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
@@ -34,9 +37,67 @@ namespace Biovation.Service.Api.v1
             return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
         }
 
-        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic dTraffic, string token = default)
+        public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic deviceTraffic, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
+            // return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
+
+            var logList = new List<Log>();
+            var plateLogs = new List<PlateDetectionLog>();
+            return Task.Run( () =>
+            {
+                logList.AddRange(_logRepository.Logs(deviceTraffic.Id, (int)deviceTraffic.DeviceId, deviceTraffic.UserId, deviceTraffic.FromDate, deviceTraffic.ToDate, deviceTraffic.PageNumber, deviceTraffic.PageSize, deviceTraffic.Where, deviceTraffic.Order, deviceTraffic.State, token)?.Data?.Data ?? new List<Log>());
+                plateLogs.AddRange( _plateDetectionRepository.GetPlateDetectionLog(logId: deviceTraffic.UserId, detectorId: (int)deviceTraffic.DeviceId, fromDate: deviceTraffic.FromDate ?? new DateTime(2000, 1, 1), toDate: deviceTraffic.ToDate ?? new DateTime(2100, 1, 1)
+                , pageNumber: deviceTraffic.PageNumber, pageSize: deviceTraffic.PageSize, whereClause: string.IsNullOrWhiteSpace(deviceTraffic.Where) ? "" : deviceTraffic.Where
+                , orderByClause: string.IsNullOrWhiteSpace(deviceTraffic.Order) ? "" : deviceTraffic.Order, withPic: false).Data.Data);
+                foreach (var plateLog in plateLogs)
+                {
+                    try
+                    {
+                        var str = plateLog.LicensePlate.LicensePlateNumber;
+                        plateLog.LicensePlate.LicensePlateNumber = str.Substring(3, 3) + "-" + str.Substring(6, 2) +
+                                                                   str.Substring(2, 1) + str.Substring(0, 2);
+                    }
+                    catch (Exception)
+                    {
+                        // ignored
+                    }
+                }
+
+                logList.AddRange(plateLogs.Select(plateLog => new Log
+                {
+                    Id = plateLog.Id,
+                    UserId = plateLog.LicensePlate.EntityId,
+                    DeviceCode = (uint)plateLog.DetectorId,
+                    DeviceName = plateLog.DeviceName,
+                    EventLog = plateLog.EventLog,
+                    SurName = plateLog.LicensePlate.LicensePlateNumber,
+                    LogDateTime = plateLog.LogDateTime,
+                    PicByte = plateLog.FullImage,
+                    Time = plateLog.LogDateTime.ToString(CultureInfo.InvariantCulture),
+                    Total = plateLog.Total,
+                    SubEvent = new Lookup
+                    {
+                        Category = new LookupCategory
+                        {
+                            Id = 8
+                        },
+                        Code = "17001"
+                    },
+                    MatchingType = new Lookup
+                    {
+                        Category = new LookupCategory
+                        {
+                            Id = 11
+                        },
+                        Code = "19003",
+                        Name = "خودرو",
+                        Description = "خودرو"
+                    }
+
+                }));
+
+                return logList;
+            });
         }
 
 
@@ -130,7 +191,7 @@ namespace Biovation.Service.Api.v1
         {
             return Task.Run(() =>
            {
-               var log = Logs(((int)id)).Result.FirstOrDefault();
+               var log = _logRepository.LogImage(id).Data.Data.FirstOrDefault();
                if (log == null || string.IsNullOrEmpty(log.Image)) return new byte[0];
                var path = log.Image;
                var bytes = File.ReadAllBytes(path);

@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
 
@@ -62,6 +63,15 @@ namespace Biovation.Repository.Api.v2
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token); var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
+        }
+
+        public async Task<ResultViewModel> ProcessQueue(Lookup brand, int deviceId = default, string token = default)
+        {
+            var restRequest = new RestRequest($"{brand.Name}/{brand.Name}Task/RunProcessQueue", Method.POST);
+            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token); var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return (await requestResult).Data;
         }
     }
 }

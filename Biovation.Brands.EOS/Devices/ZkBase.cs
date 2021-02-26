@@ -258,7 +258,7 @@ namespace Biovation.Brands.EOS.Devices
                     OrderIndex = 1
                 });
                 _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
+                _taskManager.ProcessQueue(DeviceInfo.DeviceId);
 
             }
 

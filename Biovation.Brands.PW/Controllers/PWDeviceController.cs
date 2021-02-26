@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.PW.Devices;
-using Biovation.Brands.PW.Manager;
+﻿using Biovation.Brands.PW.Devices;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -11,6 +6,10 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.PW.Controllers
 {
@@ -20,7 +19,6 @@ namespace Biovation.Brands.PW.Controllers
     {
         private readonly PwServer _pwServer;
         private readonly TaskService _taskService;
-        private readonly TaskManager _taskManager;
         private readonly DeviceService _deviceService;
 
         private readonly TaskTypes _taskTypes;
@@ -31,7 +29,7 @@ namespace Biovation.Brands.PW.Controllers
 
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskManager taskManager)
+        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;
@@ -42,7 +40,6 @@ namespace Biovation.Brands.PW.Controllers
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
-            _taskManager = taskManager;
         }
 
 
@@ -68,78 +65,100 @@ namespace Biovation.Brands.PW.Controllers
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel ModifyDevice([FromBody] DeviceBasicInfo device)
+        public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
-            if (device.Active)
+            return await Task.Run(() =>
             {
-                _pwServer.ConnectToDevice(device);
-            }
+                if (device.Active)
+                    _pwServer.ConnectToDevice(device);
 
-            else
-            {
-                _pwServer.DisconnectFromDevice(device);
-            }
+                else
+                    _pwServer.DisconnectFromDevice(device);
 
-            return new ResultViewModel { Validate = 0, Id = device.DeviceId };
+                return new ResultViewModel { Validate = 0, Id = device.DeviceId };
+            });
         }
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel> ReadOfflineOfDevice(uint code)
+        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
 
-            return Task.Run(() =>
+            try
             {
-                try
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault();
+                if (device != null)
                 {
+                    var deviceId = device.DeviceId;
+                    //var creatorUser = _userService.GetUsers(123456789)?.FirstOrDefault();
+                    var creatorUser = HttpContext.GetUser();
 
-
-                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault();
-                    if (device != null)
-                    {
-                        var deviceId = device.DeviceId;
-                        //var creatorUser = _userService.GetUsers(123456789)?.FirstOrDefault();
-                        var creatorUser = HttpContext.GetUser();
-
-                        var task = new TaskInfo
+                        if (fromDate.HasValue || toDate.HasValue)
                         {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetServeLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.ProcessingWorld,
-                            TaskItems = new List<TaskItem>(),
-                            DueDate = DateTime.Today
-                        };
-                        task.TaskItems.Add(new TaskItem
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                TaskItems = new List<TaskItem>(),
+                                DeviceBrand = _deviceBrands.ProcessingWorld,
+                            };
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                            });
+
+                            _taskService.InsertTask(task);
+                        }
+
+                        else
                         {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.GetServeLogs,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = _deviceBrands.ProcessingWorld,
+                                TaskItems = new List<TaskItem>(),
+                                DueDate = DateTime.Today
+                            };
+                            task.TaskItems.Add(new TaskItem
+                            {
 
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetServeLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { deviceId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetServeLogs,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { deviceId }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1
+                            });
 
-                        _taskService.InsertTask(task);
+                            _taskService.InsertTask(task);
+                        }
                     }
 
-                    _taskManager.ProcessQueue();
+                await _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, device.DeviceId).ConfigureAwait(false);
 
                     var result = new ResultViewModel { Validate = 1, Message = $"Reading logs of device {code} queued" };
                     return result;
-
                 }
                 catch (Exception exception)
                 {
                     return new ResultViewModel { Validate = 1, Message = $"Error ,Reading logs of device {code} queued!{exception}" };
                 }
-            });
         }
-
 
         [HttpPost]
         [Authorize]

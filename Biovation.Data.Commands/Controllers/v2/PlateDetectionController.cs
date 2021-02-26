@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPost]
-        [Route("LicensePlate")]
         [Authorize]
 
         public Task<ResultViewModel> AddLicensePlate([FromBody]LicensePlate licensePlate = default)
@@ -33,6 +33,13 @@ namespace Biovation.Data.Commands.Controllers.v2
         public Task<ResultViewModel> AddPlateDetectionLog([FromBody]PlateDetectionLog log)
         {
             return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));
+        }
+
+        [HttpDelete]
+        [Authorize]
+        public Task<ResultViewModel> DeleteLicensePlate([FromBody]LicensePlate licensePlate, DateTime modifiedAt, string modifiedBy, string action)
+        {
+            return Task.Run(() => _plateDetectionRepository.DeleteLicensePlate(licensePlate,modifiedAt, modifiedBy,action));
         }
     }
 }

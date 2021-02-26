@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Biovation.Brands.EOS.Manager;
+using Biovation.Brands.Suprema.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Biovation.Brands.EOS.Controllers
+namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
-    [Route("biovation/api/[controller]")]
-    public class EosTaskController : ControllerBase
+    [Route("Biovation/Api/[Controller]")]
+    public class SupremaTaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public EosTaskController(TaskManager taskManager)
+        public SupremaTaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }
@@ -21,9 +21,9 @@ namespace Biovation.Brands.EOS.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("[Action]")]
-        public Task<ResultViewModel> RunProcessQueue(int deviceId = default)
+        public async Task<ResultViewModel> RunProcessQueue(int deviceId = default)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {

@@ -1,20 +1,20 @@
-﻿using Biovation.Brands.ZK.Manager;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Biovation.Brands.Suprema.Manager;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Biovation.Brands.ZK.Controllers
+namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkTimeZoneController : ControllerBase
+    public class SupremaTimeZoneController : ControllerBase
     {
         private readonly DeviceService _deviceService;
         private readonly TaskService _taskService;
@@ -25,7 +25,7 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public ZkTimeZoneController(DeviceService deviceService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public SupremaTimeZoneController(DeviceService deviceService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _taskService = taskService;
@@ -45,7 +45,7 @@ namespace Biovation.Brands.ZK.Controllers
             {
                 try
                 {
-                    var devices = _deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode);
+                    var devices = _deviceService.GetDevices(brandId: DeviceBrands.SupremaCode);
 
                     //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                     var creatorUser = HttpContext.GetUser();
@@ -56,7 +56,7 @@ namespace Biovation.Brands.ZK.Controllers
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.SendTimeZoneToTerminal,
                         Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.ZkTeco,
+                        DeviceBrand = _deviceBrands.Suprema,
                         TaskItems = new List<TaskItem>()
                     };
 
@@ -75,8 +75,7 @@ namespace Biovation.Brands.ZK.Controllers
                         });
                     }
                     _taskService.InsertTask(task);
-                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
-                    //_taskManager.ProcessQueue();
+                    _taskManager.ProcessQueue();
 
 
                     return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
@@ -101,7 +100,7 @@ namespace Biovation.Brands.ZK.Controllers
                 {
                     try
                     {
-                        var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
+                        var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
 
                         //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                         var creatorUser = HttpContext.GetUser();
@@ -111,7 +110,7 @@ namespace Biovation.Brands.ZK.Controllers
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.SendTimeZoneToTerminal,
                             Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.ZkTeco,
+                            DeviceBrand = _deviceBrands.Suprema,
                             TaskItems = new List<TaskItem>()
                         };
 
@@ -129,8 +128,7 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1
                             });
                         _taskService.InsertTask(task);
-                        _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
-                        //_taskManager.ProcessQueue();
+                        _taskManager.ProcessQueue();
                         return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
                     }
                     catch (Exception exception)

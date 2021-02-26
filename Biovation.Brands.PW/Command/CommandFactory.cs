@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.Brands.PW.Devices;
+﻿using Biovation.Brands.PW.Devices;
 using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Brands.PW.Command
 {
@@ -33,6 +33,8 @@ namespace Biovation.Brands.PW.Command
         /// <returns></returns>
         public ICommand Factory(DataTransferModel transferModelData)
         {
+            var taskItem = (TaskItem)transferModelData.Items[0];
+
             switch (transferModelData.EventId)
             {
                 #region DatabaseRequests(NoResponces)
@@ -76,16 +78,14 @@ namespace Biovation.Brands.PW.Command
                 case CommandType.RetrieveAllLogsOfDevice:
                     //Gets and updates all logs from device
                     {
-
-                        return new PwRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices, _deviceService);
+                        return new PwRetrieveAllLogsOfDevice(taskItem, _onlineDevices, _deviceService);
                     }
 
                 case CommandType.RetrieveLogsOfDeviceInPeriod:
-                    //Gets and updates all log in a period of time from device
-                    //var deviceId = Convert.ToUInt32(transferModelData.Items[0]);
-                    //var startDate = Convert.ToDateTime(transferModelData.Items[1]);
-                    //var endDate = Convert.ToDateTime(transferModelData.Items[2]);
-                    throw new NotImplementedException();
+                    {
+                        //Gets and updates all log in a period of time from device
+                        return new RetrieveLogsOfDeviceInPeriod(taskItem, _onlineDevices, _deviceService);
+                    }
 
                 case CommandType.LockDevice:
                     //Locks the device

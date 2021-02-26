@@ -137,7 +137,7 @@ namespace Biovation.Brands.EOS.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskManager.ProcessQueue(device.DeviceId);
 
                     //foreach (var id in userIds)
                     //{
