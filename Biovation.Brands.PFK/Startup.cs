@@ -89,6 +89,7 @@ namespace Biovation.Brands.PFK
             services.AddSingleton<FaceTemplateService, FaceTemplateService>();
             services.AddSingleton<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddSingleton<PlateDetectionService, PlateDetectionService>();
             services.AddSingleton<LogService, LogService>();
             services.AddSingleton<LookupService, LookupService>();
             services.AddSingleton<SettingService, SettingService>();
@@ -106,6 +107,7 @@ namespace Biovation.Brands.PFK
             services.AddSingleton<FaceTemplateRepository, FaceTemplateRepository>();
             services.AddSingleton<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddSingleton<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddSingleton<LogRepository, LogRepository>();
             services.AddSingleton<LookupRepository, LookupRepository>();
             services.AddSingleton<SettingRepository, SettingRepository>();
