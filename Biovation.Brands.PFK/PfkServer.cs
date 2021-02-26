@@ -39,7 +39,7 @@ namespace Biovation.Brands.PFK
             _plateDetectionService = plateDetectionService;
             _logExternalSubmissionRestClient = logExternalSubmissionRestClient;
 
-            _cameras = deviceService.GetDevices(brandId: DeviceBrands.PfkCode).Where(x => x.Active).ToList();
+            _cameras = deviceService.GetDevices(brandId: DeviceBrands.ShahabCode).Where(x => x.Active).ToList();
             _pfkLogger.LogArose += OnLogHappened;
         }
 
