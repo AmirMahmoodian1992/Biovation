@@ -116,6 +116,8 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<UserService, UserService>();
             services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
             services.AddSingleton<VirdiLogService, VirdiLogService>();
+            services.AddSingleton<Biovation.Service.Api.v2.UserService, Biovation.Service.Api.v2.UserService>();
+
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -214,7 +216,6 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
-
         private void ConfigureVirdiServices(IServiceCollection services)
         {
             UcsApi = new UCSAPIClass();
@@ -283,6 +284,73 @@ namespace Biovation.Brands.Virdi
                 , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
             //Callbacks.FactoryCallbacks(UcsApi, OnlineDevices);
         }
+        //private void ConfigureVirdiServices(IServiceCollection services)
+        //{
+        //    UcsApi = new UCSAPIClass();
+        //    UcBioApi = new UCBioAPI();
+        //    UcBioApiExport = new UCBioAPI.Export(UcBioApi);
+
+        //    var kernel = new StandardKernel();
+
+        //    kernel.Load("Biovation.Identifiers.Virdi.dll");
+        //    kernel.Load("Biovation.Hamsters.Virdi.dll");
+
+        //    var identifiers = kernel.GetAll<IIdentifier>().ToList();
+        //    var hamsterControllers = kernel.GetAll<IHamster>().ToList();
+
+        //    foreach (var identifier in identifiers)
+        //        Logger.Log("Virdi Identifier loaded: " + identifier.GetType());
+
+        //    foreach (var hamsterController in hamsterControllers)
+        //        Logger.Log("Virdi Hamster loaded: " + hamsterController.GetType());
+
+        //    services.AddSingleton<TaskManager, TaskManager>();
+        //    services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
+        //    services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
+
+        //    services.AddSingleton<CommandFactory, CommandFactory>();
+        //    services.AddSingleton<Callbacks, Callbacks>();
+
+        //    var serviceProvider = services.BuildServiceProvider();
+
+        //    var virdiObject = new Virdi();
+        //    var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
+        //    //var virdiCodeMappings = new VirdiCodeMappings(serviceProvider.GetService<GenericCodeMappings>());
+
+        //    //var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
+        //    //    , serviceProvider.GetService<AccessGroupService>(), serviceProvider.GetService<FingerTemplateService>(), serviceProvider.GetService<LogService>(), serviceProvider.GetService<BlackListService>()
+        //    //    , serviceProvider.GetService<FaceTemplateService>(), serviceProvider.GetService<TaskService>(), serviceProvider.GetService<AccessGroupService>(), BiovationConfiguration, serviceProvider.GetService<VirdiLogService>()
+        //    //    , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
+        //    //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
+        //    var virdiCallBacks = serviceProvider.GetService<Callbacks>();
+
+        //    services.AddSingleton(UcsApi);
+        //    services.AddSingleton(UcBioApi);
+        //    services.AddSingleton(UcBioApiExport);
+        //    services.AddSingleton(OnlineDevices);
+        //    services.AddSingleton(virdiObject);
+        //    services.AddSingleton(virdiCallBacks);
+        //    services.AddSingleton(virdiServer);
+        //    //services.AddSingleton(virdiCodeMappings);
+        //    //services.AddSingleton<Virdi, Virdi>();
+        //    //services.AddSingleton<Callbacks, Callbacks>();
+        //    //services.AddSingleton<VirdiServer, VirdiServer>();
+        //    //services.AddSingleton<TaskManager, TaskManager>();
+        //    //services.AddSingleton<VirdiCodeMappings, VirdiCodeMappings>();
+        //    //services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
+
+        //    //services.AddSingleton<CommandFactory, CommandFactory>();
+
+        //    //services.BuildServiceProvider().GetService<Callbacks>();
+
+        //    UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
+
+        //    Logger.Log(UcsApi.ErrorCode != 0
+        //            ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
+        //            : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
+        //        , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
+        //    //Callbacks.FactoryCallbacks(UcsApi, OnlineDevices);
+        //}
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)

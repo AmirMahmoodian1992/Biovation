@@ -36,9 +36,9 @@ namespace Biovation.Repository.MessageBus
         }
 
 
-        public Task<ResultViewModel> SendTask(List<TaskInfo> taskList)
+        public async Task<ResultViewModel> SendTask(List<TaskInfo> taskList)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 if (!_biovationConfigurationManager.BroadcastToMessageBus) return new ResultViewModel { Success = false, Id = taskList.FirstOrDefault()?.Id ?? 0, Message = "The use message bus option is disabled." };
 

@@ -43,6 +43,17 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
+        public ResultViewModel<PagingResult<Log>> LogImage(long id = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/Log/LogImage/{id}", Method.GET);
+            restRequest.AddUrlSegment("id", id.ToString());
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Log>>>(restRequest);
+            return requestResult.Result.Data;
+        }
+
+
+
+
         public async Task<ResultViewModel> AddLog(Log log, string token = default)
         {
 

@@ -6,6 +6,7 @@ using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Biovation.CommonClasses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -55,7 +56,6 @@ namespace Biovation.Brands.Eos.Commands
 
 
             var result = OnlineDevices[device.Code].ReadOfflineLogInPeriod(null, FromDate, ToDate);
-
             //return logs == null ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = deviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = deviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
             return result;
         }

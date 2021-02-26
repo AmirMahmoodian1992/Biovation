@@ -49,6 +49,7 @@ namespace Biovation.Brands.Suprema
 
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly TaskManager _taskManager;
         private readonly Dictionary<int, string> _deviceTypes;
         private readonly SupremaCodeMappings _supremaCodeMappings;
         private readonly DeviceFactory _deviceFactory;
@@ -91,7 +92,7 @@ namespace Biovation.Brands.Suprema
 
         private bool _readingLogsInProgress;
 
-        public BioStarServer(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, RestClient monitoringRestClient, SupremaCodeMappings supremaCodeMappings, BiovationConfigurationManager biovationConfigurationManager, DeviceFactory deviceFactory)
+        public BioStarServer(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, RestClient monitoringRestClient, SupremaCodeMappings supremaCodeMappings, BiovationConfigurationManager biovationConfigurationManager, DeviceFactory deviceFactory, TaskManager taskManager)
         {
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
@@ -102,6 +103,7 @@ namespace Biovation.Brands.Suprema
             _monitoringRestClient = monitoringRestClient;
             _supremaCodeMappings = supremaCodeMappings;
             _deviceFactory = deviceFactory;
+            _taskManager = taskManager;
 
             _mPort = biovationConfigurationManager.SupremaDevicesConnectionPort;
             BSSDK.BS_InitSDK();
@@ -533,6 +535,7 @@ namespace Biovation.Brands.Suprema
 
                 //_onlineDevices[deviceId].ReadOfflineEvent();
                 OfflineEventHandlersQueue.Enqueue(new KeyValuePair<uint, Task>(deviceId, new Task(() => _onlineDevices[deviceId].ReadOfflineEvent(), token)));
+                _taskManager.ProcessQueue(_onlineDevices[deviceId].GetDeviceInfo().DeviceId);
                 //StartHandleOfflineEvents();
             }
             catch (Exception exception)

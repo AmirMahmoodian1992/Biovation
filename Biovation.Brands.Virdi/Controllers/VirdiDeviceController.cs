@@ -454,7 +454,7 @@ namespace Biovation.Brands.Virdi.Controllers
                             CurrentIndex = 0
                         });
                         _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
+                        _taskManager.ProcessQueue(devices.DeviceId);
                         return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                     }
                     catch (Exception exception)
@@ -495,7 +495,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     });
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskManager.ProcessQueue(devices.DeviceId);
                     return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
                 }
                 catch (Exception exception)

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MoreLinq.Extensions;
 
@@ -28,7 +29,7 @@ namespace Biovation.Brands.Virdi.Manager
             _taskStatuses = taskStatuses;
         }
 
-        public void ExecuteTask(TaskInfo taskInfo)
+        public async Task ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)
             {
@@ -290,6 +291,25 @@ namespace Biovation.Brands.Virdi.Manager
 
                             break;
                         }
+
+                    case TaskItemTypes.UserAdaptationCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UserAdaptation,
+                                        new List<object> { taskItem }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
                 }
 
                 executeTask?.ContinueWith(task =>
@@ -301,16 +321,21 @@ namespace Biovation.Brands.Virdi.Manager
                     _taskService.UpdateTaskStatus(taskItem);
                 });
 
+                if (executeTask is null)
+                    return;
+
                 if (taskItem.IsParallelRestricted)
-                    executeTask?.Wait();
+                    await executeTask.ConfigureAwait(false);
+
+                executeTask.Dispose();
             }
         }
 
-        public void ProcessQueue()
+        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
-            
+            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+
             lock (_tasks)
             {
                 var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
@@ -325,31 +350,38 @@ namespace Biovation.Brands.Virdi.Manager
             }
 
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    TaskInfo taskInfo;
-                    lock (_tasks)
+                    try
                     {
-                        if (_tasks.Count <= 0)
+                        TaskInfo taskInfo;
+                        lock (_tasks)
                         {
-                            _processingQueueInProgress = false;
-                            return;
+                            if (_tasks.Count <= 0)
+                            {
+                                _processingQueueInProgress = false;
+                                return;
+                            }
+
+                            taskInfo = _tasks.First();
                         }
 
-                        taskInfo = _tasks.First();
+                        Logger.Log($"The task {taskInfo.Id} execution is started");
+                        await ExecuteTask(taskInfo);
+                        Logger.Log($"The task {taskInfo.Id} is executed");
+
+                        lock (_tasks)
+                            if (_tasks.Any(task => task.Id == taskInfo.Id))
+                                _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
                     }
-
-                    Logger.Log($"The task {taskInfo.Id} execution is started");
-                    ExecuteTask(taskInfo);
-                    Logger.Log($"The task {taskInfo.Id} is executed");
-
-                    lock (_tasks)
-                        if (_tasks.Any(task => task.Id == taskInfo.Id))
-                            _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
-            });
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

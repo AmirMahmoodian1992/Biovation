@@ -41,5 +41,23 @@ namespace Biovation.Data.Queries.Controllers.v2
                 Data = result
             };
         }
+
+        [HttpGet]
+        [Route("LogImage/{id?}")]
+        public ResultViewModel<PagingResult<Log>> LogImage([FromRoute] int id = default)
+        {
+
+            var logResult = _logRepository.LogImage(id).Result;
+            var result = new PagingResult<Log>
+            {
+                Data = logResult,
+                Count = logResult.Count
+            };
+
+            return new ResultViewModel<PagingResult<Log>>
+            {
+                Data = result
+            };
+        }
     }
 }

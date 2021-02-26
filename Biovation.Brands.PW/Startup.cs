@@ -68,6 +68,7 @@ namespace Biovation.Brands.PW
 
             services.AddHealthChecks();
 
+            services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
@@ -94,6 +95,8 @@ namespace Biovation.Brands.PW
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<LogService, LogService>();
             services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+            services.AddSingleton<Service.Api.v2.TaskService, Service.Api.v2.TaskService>();
             services.AddSingleton<LookupService, LookupService>();
             services.AddSingleton<SettingService, SettingService>();
             services.AddSingleton<TaskService, TaskService>();
@@ -210,6 +213,7 @@ namespace Biovation.Brands.PW
             services.AddSingleton<CommandFactory, CommandFactory>();
 
             services.AddSingleton<PwServer, PwServer>();
+            services.AddHostedService<TaskManagerHostedService>();
 
             var serviceProvider = services.BuildServiceProvider();
             var pwServer = serviceProvider.GetService<PwServer>();

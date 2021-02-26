@@ -1,4 +1,5 @@
-﻿using Biovation.Constants;
+﻿using System;
+using Biovation.Constants;
 using Biovation.Data.Commands.Sinks;
 using Biovation.Domain;
 using Biovation.Repository.MessageBus;
@@ -7,8 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -34,14 +40,14 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("AddLog")]
         public async Task<ResultViewModel> AddLog([FromBody] Log log)
         {
+           
+
+            var filePath = log.PicByte is null
+                ? string.Empty
+                : SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode,log.DeviceId.ToString(),log.Time).Result;
+            log.Image = filePath;
+
             var logInsertionAwaiter = _logRepository.AddLog(log);
-
-            //Todo: !important add save image
-            //var filePath = log.PicByte is null
-            //    ? string.Empty
-            //    : _commonLogService.SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, DeviceBrands.Virdi.Name).Result;
-            //log.Image = filePath;
-
             //integration
             var broadcastMessageBusAwaiter = _logMessageBusRepository.SendLog(new List<Log> { log });
             var broadcastApiAwaiter = Task.CompletedTask;
@@ -88,20 +94,19 @@ namespace Biovation.Data.Commands.Controllers.v2
                     tasks.Add(_logApiSink.TransferLogBulk(logsToTransfer));
                     tasks.Add(_logMessageBusRepository.SendLog(logsToTransfer));
 
-                    //var logsWithImages = logs.Where(log => logsToTransfer.Any(newLog =>
-                    //                                           log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
-                    //                                           log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
+                    var logsWithImages = logs.Where(log => logsToTransfer.Any(newLog =>
+                                                               log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
+                                                               log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
 
-                    //foreach (var log in logsWithImages)
-                    //{
-                        //Todo: Change for .net core
-                        //var filePath = log.PicByte is null
-                        //    ? string.Empty
-                        //    : await _commonLogService.SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, DeviceBrands.Virdi.Name);
-                        //log.Image = filePath;
+                    foreach (var log in logsWithImages)
+                    {
+                        var filePath = log.PicByte is null
+                            ? string.Empty
+                            : SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, log.DeviceId.ToString(), log.Time).Result;
+                        log.Image = filePath;
 
-                        //tasks.Add(_logRepository.AddLogImage(log));
-                    //}
+                        tasks.Add(_logRepository.AddLogImage(log));
+                    }
 
                     await Task.WhenAll(tasks);
                 });
@@ -158,6 +163,49 @@ namespace Biovation.Data.Commands.Controllers.v2
                 Success = broadcastToApiResult.Success && broadcastToMessageBusResult.Success,
                 Message = !broadcastToApiResult.Success ? broadcastToApiResult.Message : (!broadcastToMessageBusResult.Success ? broadcastToMessageBusResult.Message : "Logs are sent successfully")
             };
+        }
+
+        private Task<string> SaveImage(byte[] image, long userId, DateTime logDatetime, uint deviceCode, string deviceId, string logTime)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                     var directory = Path.Combine(Directory.GetCurrentDirectory() ?? string.Empty,
+                        $@"LogPic\{deviceId}\{logTime}\{logDatetime.Year}\{logDatetime.Month}\{logDatetime.Day}");
+                    //var startupPath = System.IO.Directory.GetCurrentDirectory();
+                    //var directory = Path.Combine(startupPath, path);
+                    if (!Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
+                    var fileName =
+                        $"{userId}-{logDatetime:HH-mm-ss}({deviceCode}).jpg";
+
+
+                    //TODO:For Linux?
+                    //var fs = new FileStream(fileName, FileMode.Create);
+                    //foreach (var t in image)
+                    //{
+                    //    fs.WriteByte(t);
+                    //}
+
+
+                    using (var ms = new MemoryStream(image))
+                    {
+                        using var img = Image.FromStream(ms);
+                        img.Save(Path.Combine(directory, fileName), ImageFormat.Jpeg);
+                    }
+
+                    return Path.Combine(directory, fileName);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return default;
+                }
+            });
         }
     }
 }

@@ -77,7 +77,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
 
                     return new ResultViewModel { Validate = 1, Message = "Sending AccessGroupToTerminal queued" };
@@ -127,7 +128,8 @@ namespace Biovation.Brands.ZK.Controllers
 
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
 
                     return new ResultViewModel { Validate = 1, Message = "Sending AccessGroupToTerminal queued" };
