@@ -10,12 +10,16 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using KasraLockRequests;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.HostedServices
 {
     public class ServicesHealthCheckHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
+        //private Timer _lockTimer;
         private readonly Lookups _lookups;
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
@@ -38,6 +42,7 @@ namespace Biovation.Server.HostedServices
             _systemInformation.Services = new List<ServiceInfo>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
+            new Timer(CheckLockStatus,null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
             return Task.CompletedTask;
         }
@@ -71,6 +76,75 @@ namespace Biovation.Server.HostedServices
 
             //_logger.LogInformation(
             //    "Timed Hosted Service is working. Count: {Count}", count);
+        }
+
+        private void CheckLockStatus(object state)
+        {
+            try
+            {
+                var requests = new KasraLockRequests.Requests();
+
+                var response = new CoconutServiceResultModel();
+                if (_biovationConfigurationManager.SoftwareLockAddress != default &&
+                    _biovationConfigurationManager.SoftwareLockPort != default)
+                {
+                     response = requests.RequestInfo(_biovationConfigurationManager.SoftwareLockAddress, _biovationConfigurationManager.SoftwareLockPort, "info", "1", "1");
+                }
+
+                //var response = requests.RequestInfo("127.0.0.1", 2105, "info", "1", "1");
+                if (response == null)
+                {
+                    CallStopServices();
+                    return;
+                }
+
+                JObject lockInfo;
+                try
+                {
+                    lockInfo = JsonConvert.DeserializeObject<JObject>(response.Message);
+                }
+                catch (Exception)
+                {
+                    CallStopServices();
+                    return;
+                }
+
+                string expirationDate = null;
+                if (!(lockInfo is null))
+                {
+                    var subsystemsInfo =
+                        JsonConvert.DeserializeObject<JArray>(lockInfo["SubSystems"]?.ToString() ?? string.Empty);
+                    foreach (var subsystemInfo in subsystemsInfo)
+                    {
+                        if (!string.Equals(subsystemInfo["SubSystemId"]?.ToString(), "92"
+                            , StringComparison.InvariantCultureIgnoreCase)) continue;
+                        if (subsystemInfo["ExpirationDate"]?.ToString() != null)
+                        {
+                            expirationDate = subsystemInfo["ExpirationDate"].ToString();
+                        }
+                    }
+
+                    if (expirationDate != null && DateTime.Parse(expirationDate) >= DateTime.Now) return;
+                    CallStopServices();
+                    return;
+
+                }
+
+                CallStopServices();
+            }
+            catch (Exception)
+            {
+                CallStopServices();
+            }
+        }
+
+        private void CallStopServices()
+        {
+            //TODO Handle multi instancing
+
+            var restRequest = new RestRequest("ZK/ZKSystemInfo/StopService", Method.GET);
+           _restClient.ExecuteAsync(restRequest);
+
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
