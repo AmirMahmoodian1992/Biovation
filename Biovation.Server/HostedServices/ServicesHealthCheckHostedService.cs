@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v1;
 using KasraLockRequests;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,14 +26,16 @@ namespace Biovation.Server.HostedServices
         private readonly SystemInfo _systemInformation;
         private readonly ILogger<ServicesHealthCheckHostedService> _logger;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly DeviceService _deviceService;
 
-        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager)
+        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService)
         {
             _logger = logger;
             _lookups = lookups;
             _restClient = restClient;
             _systemInformation = systemInformation;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _deviceService = deviceService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -141,10 +144,11 @@ namespace Biovation.Server.HostedServices
         private void CallStopServices()
         {
             //TODO Handle multi instancing
-
-            var restRequest = new RestRequest("ZK/ZKSystemInfo/StopService", Method.GET);
-           _restClient.ExecuteAsync(restRequest);
-
+            var deviceBrands = _deviceService.GetDeviceBrands();
+            foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
+            {
+                _restClient.ExecuteAsync(restRequest);
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
