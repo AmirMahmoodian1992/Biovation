@@ -47,14 +47,6 @@ namespace Biovation.Brands.ZK
         {
             Logger.Log("Service started.");
             _cancellationToken = cancellationToken;
-            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest, cancellationToken);
-            if (!requestResult.Result.Data.Success)
-            {
-                Environment.Exit(0);
-                return Task.CompletedTask;
-            }
-
             var connectToDeviceTasks = new List<Task>();
             Parallel.ForEach(_zkDevices, device => connectToDeviceTasks.Add(ConnectToDevice(device, cancellationToken)));
             //var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();

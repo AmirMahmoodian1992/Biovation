@@ -1,4 +1,5 @@
-﻿using App.Metrics;
+﻿using System;
+using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Suprema.Commands;
 using Biovation.Brands.Suprema.Devices;
@@ -23,7 +24,9 @@ using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
 using Biovation.Brands.Suprema.Middleware;
+using Biovation.Domain;
 using Microsoft.Extensions.Logging;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.Suprema
 {
@@ -112,6 +115,21 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+            if (!requestResult.Result.Data.Success)
+            {
+                Environment.Exit(0);
+                return;
+            }
+
+            #endregion
+
+
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<GenericRepository, GenericRepository>();
@@ -186,7 +204,7 @@ namespace Biovation.Brands.Suprema
 
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-
+            
             serviceCollection.AddSingleton(restClient);
 
             serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
@@ -313,6 +331,7 @@ namespace Biovation.Brands.Suprema
             //services.AddSingleton(UcsApi);
             services.AddSingleton(supremaServer);
             services.AddSingleton(supremaObject);
+
             supremaServer.StartService();
 
 
