@@ -20,22 +20,20 @@ namespace Biovation.Server.HostedServices
     public class ServicesHealthCheckHostedService : IHostedService, IDisposable
     {
         private Timer _timer;
-        //private Timer _lockTimer;
+        private Timer _lockTimer;
         private readonly Lookups _lookups;
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
         private readonly ILogger<ServicesHealthCheckHostedService> _logger;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        private readonly DeviceService _deviceService;
 
-        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService)
+        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager)
         {
             _logger = logger;
             _lookups = lookups;
             _restClient = restClient;
             _systemInformation = systemInformation;
             _biovationConfigurationManager = biovationConfigurationManager;
-            _deviceService = deviceService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -45,7 +43,7 @@ namespace Biovation.Server.HostedServices
             _systemInformation.Services = new List<ServiceInfo>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
-            new Timer(CheckLockStatus,null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            _lockTimer = new Timer(CheckLockStatus,null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
             return Task.CompletedTask;
         }
@@ -135,7 +133,7 @@ namespace Biovation.Server.HostedServices
 
                 CallStopServices();
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 CallStopServices();
             }
@@ -143,12 +141,11 @@ namespace Biovation.Server.HostedServices
 
         private void CallStopServices()
         {
-            //TODO Handle multi instancing
-            var deviceBrands = _deviceService.GetDeviceBrands();
-            foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
-            {
-                _restClient.ExecuteAsync(restRequest);
-            }
+            //var deviceBrands = _lookups.DeviceBrands;
+            //foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
+            //{
+            //    _restClient.ExecuteAsync(restRequest);
+            //}
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -163,6 +160,7 @@ namespace Biovation.Server.HostedServices
         public void Dispose()
         {
             _timer?.Dispose();
+            _lockTimer?.Dispose();
         }
     }
 }
