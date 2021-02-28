@@ -1,8 +1,11 @@
 ﻿using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
+using KasraLockRequests;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -10,10 +13,6 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v1;
-using KasraLockRequests;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Biovation.Server.HostedServices
 {
@@ -43,7 +42,7 @@ namespace Biovation.Server.HostedServices
             _systemInformation.Services = new List<ServiceInfo>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
-            _lockTimer = new Timer(CheckLockStatus,null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            _lockTimer = new Timer(CheckLockStatus, null, TimeSpan.Zero, TimeSpan.FromHours(1));
 
             return Task.CompletedTask;
         }
@@ -83,17 +82,17 @@ namespace Biovation.Server.HostedServices
         {
             try
             {
-                var requests = new KasraLockRequests.Requests();
+                var requests = new Requests();
 
                 var response = new CoconutServiceResultModel();
                 if (_biovationConfigurationManager.SoftwareLockAddress != default &&
                     _biovationConfigurationManager.SoftwareLockPort != default)
                 {
-                     response = requests.RequestInfo(_biovationConfigurationManager.SoftwareLockAddress, _biovationConfigurationManager.SoftwareLockPort, "info", "1", "1");
+                    response = requests.RequestInfo(_biovationConfigurationManager.SoftwareLockAddress, _biovationConfigurationManager.SoftwareLockPort, "info", "1", "1");
                 }
 
                 //var response = requests.RequestInfo("127.0.0.1", 2105, "info", "1", "1");
-                if (response == null)
+                if (response?.Data == null)
                 {
                     CallStopServices();
                     return;
@@ -133,7 +132,7 @@ namespace Biovation.Server.HostedServices
 
                 CallStopServices();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 CallStopServices();
             }
@@ -141,11 +140,11 @@ namespace Biovation.Server.HostedServices
 
         private void CallStopServices()
         {
-            //var deviceBrands = _lookups.DeviceBrands;
-            //foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
-            //{
-            //    _restClient.ExecuteAsync(restRequest);
-            //}
+            var deviceBrands = _lookups.DeviceBrands;
+            foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
+            {
+                _restClient.ExecuteAsync(restRequest);
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
