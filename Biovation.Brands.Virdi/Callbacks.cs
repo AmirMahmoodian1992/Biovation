@@ -1169,7 +1169,7 @@ namespace Biovation.Brands.Virdi
                 var isVisitor = user != null && user.IsAdmin ? 0 : 1;
                 var hasAccess = user != null && (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? 1 : 0;
                 var blacklist = _blackListService.GetBlacklist(userId: (int)(user?.Id ?? -1), deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result;
-                if (blacklist != null) hasAccess = 0;
+                if (blacklist != null && blacklist.Count > 0) hasAccess = 0;
                 isAuthorized = hasAccess;
                 var authErrorCode = hasAccess == 0 ? user != null ? (int)VirdiError.Permission : (int)VirdiError.InvalidUser : (int)VirdiError.None;
 
@@ -1483,7 +1483,7 @@ namespace Biovation.Brands.Virdi
 
                     var isVisitor = user.IsAdmin ? 0 : 1;
                     var blacklist = _blackListService.GetBlacklist(userId: (int)user.Id, deviceId: terminalId, startDate: DateTime.Today, endDate: DateTime.Now).Result;
-                    var hasAccess = (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? blacklist != null ? 1 : 0 : 0;
+                    var hasAccess = (user.StartDate < DateTime.Now && user.EndDate > DateTime.Now || user.StartDate == user.EndDate || user.StartDate == default || user.EndDate == default) && user.IsActive ? blacklist != null && blacklist.Count > 0 ? 1 : 0 : 0;
 
                     isAuthorized = hasAccess;
                     authErrorCode = hasAccess == 0 ? (int)VirdiError.Permission : (int)VirdiError.None;
@@ -1599,7 +1599,7 @@ namespace Biovation.Brands.Virdi
                             ? 1
                             : 0;
 
-                    if (blacklist != null) hasAccess = 0;
+                    if (blacklist != null && blacklist.Count > 0) hasAccess = 0;
                     isAuthorized = hasAccess;
                     authErrorCode = hasAccess == 0 ? (int)VirdiError.Permission : (int)VirdiError.None;
 
