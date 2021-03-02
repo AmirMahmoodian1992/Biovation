@@ -245,20 +245,22 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetLogs,
+                    TaskType = _taskTypes.GetLogsInPeriod,
                     Priority = _taskPriorities.Medium,
                     TaskItems = new List<TaskItem>(),
-                    DeviceBrand = _deviceBrands.ZkTeco,
+                    DeviceBrand = _deviceBrands.Eos,
                     DueDate = DateTimeOffset.Now
                 };
+
+                
 
                 task.TaskItems.Add(new TaskItem
                 {
                     Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.GetLogs,
+                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
                     Priority = _taskPriorities.Medium,
                     DeviceId = DeviceInfo.DeviceId,
-                    Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
+                    Data = JsonConvert.SerializeObject(new { fromDate= DateTime.Now.AddMonths(-3), toDate = DateTime.Now.AddDays(5) }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1
@@ -1065,7 +1067,8 @@ namespace Biovation.Brands.EOS.Devices
                 return new List<User>();
             }
         }
-        public virtual bool GetUser(long userId)
+
+        internal override User GetUser(uint userId)
         {
             lock (ZkTecoSdk)
             {
@@ -1253,15 +1256,17 @@ namespace Biovation.Brands.EOS.Devices
                         Logger.Log($@" The user: {userId} is retrieved from device:{DeviceInfo.Code}
     Info: Finger retrieved count: {retrievedFingerTemplates.Count}, inserted count: {user.FingerTemplates.Count}, 
           Face retrieved count: {retrievedFaceTemplates.Count}, inserted count: {user.FaceTemplates.Count}");
+
+                        return user;
                     }
 
 
-                    return true;
+                    return new User();
                 }
                 catch (Exception e)
                 {
                     Logger.Log($" --> Error On GetUserData {e.Message}", logType: LogType.Warning);
-                    return false;
+                    return new User();
                 }
             }
         }
