@@ -41,7 +41,6 @@ namespace Biovation.Brands.Virdi
         private readonly VirdiCodeMappings _virdiCodeMappings;
         private readonly LogService _logService;
         private readonly LogEvents _logEvents;
-        //private readonly TaskManager _taskManager;
         private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;

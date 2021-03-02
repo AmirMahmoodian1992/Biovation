@@ -260,6 +260,8 @@ namespace Biovation.Brands.Virdi
             //    , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
             //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
 
+            services.AddHostedService<TaskManagerHostedService>();
+
             var serviceProvider = services.BuildServiceProvider();
             var virdiCallBacks = serviceProvider.GetService<Callbacks>();
             services.AddSingleton(virdiCallBacks);
