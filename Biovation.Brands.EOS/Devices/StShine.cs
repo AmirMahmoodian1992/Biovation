@@ -34,20 +34,22 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogService _logService;
 
         private readonly RestClient _restClient;
-        private readonly TaskManager _taskManager;
+        private readonly TaskService _taskService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger)
+        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger, TaskService taskService, DeviceBrands deviceBrands)
          : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             _logService = logService;
             _restClient = restClient;
             _deviceInfo = deviceInfo;
-            _taskManager = taskManager;
             _protocolType = protocolType;
             _onlineDevices = onlineDevices;
+            _taskService = taskService;
+            _deviceBrands = deviceBrands;
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
 
@@ -108,7 +110,7 @@ namespace Biovation.Brands.EOS.Devices
                     _logger.Warning("Could not set the time of device {deviceCode}", _deviceInfo.Code);
             }
 
-            _taskManager.ProcessQueue(_deviceInfo.DeviceId);
+            _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
 
             Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);

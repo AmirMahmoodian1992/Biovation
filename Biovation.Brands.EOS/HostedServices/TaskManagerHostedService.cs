@@ -1,11 +1,11 @@
-﻿using Biovation.Brands.ZK.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Biovation.Brands.ZK.HostedServices
+namespace Biovation.Brands.EOS.HostedServices
 {
     public class TaskManagerHostedService : IHostedService, IDisposable
     {
@@ -32,11 +32,6 @@ namespace Biovation.Brands.ZK.HostedServices
         private void ProcessQueue(object state)
         {
             _taskManager.ProcessQueue(cancellationToken: _cancellationToken).ConfigureAwait(false);
-            //using var scope = _services.CreateScope();
-            //var pingCollector = new PingCollector(scope.ServiceProvider.GetRequiredService<RestClient>(),
-            //    scope.ServiceProvider.GetRequiredService<IMetricsRoot>(),
-            //          scope.ServiceProvider.GetRequiredService<ILogger<PingCollector>>(), _localIpAddress);
-            //pingCollector.CollectPing();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
