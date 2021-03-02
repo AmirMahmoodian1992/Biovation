@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Brands.EOS.Devices;
-using System.Linq;
-using Newtonsoft.Json;
+﻿using Biovation.Brands.EOS.Devices;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS
 {
@@ -23,7 +24,7 @@ namespace Biovation.Brands.EOS
         private readonly DeviceFactory _deviceFactory;
 
         public int Count = 0;
-   
+
         public EosServer(LogService logService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, RestClient restClient, LogEvents logEvents, DeviceFactory deviceFactory)
         {
             _logService = logService;
@@ -153,17 +154,22 @@ namespace Biovation.Brands.EOS
             });
         }
 
-        public void StopServer()
+        public void StopServer(CancellationToken cancellationToken)
         {
-            foreach (var onlineDevice in _onlineDevices)
+            Parallel.ForEach(_onlineDevices, onlineDevice =>
             {
                 onlineDevice.Value.Disconnect();
-            }
+            });
+
+            //foreach (var onlineDevice in _onlineDevices)
+            //{
+            //    onlineDevice.Value.Disconnect();
+            //}
         }
-        public void StartServer()
+        public void StartServer(CancellationToken cancellationToken)
         {
             Logger.Log("EOS Server Started!");
-             foreach (var eosDevice in _eosDevices)
+            foreach (var eosDevice in _eosDevices)
             {
                 ConnectToDevice(eosDevice);
             }

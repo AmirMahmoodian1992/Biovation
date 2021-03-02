@@ -42,7 +42,6 @@ namespace Biovation.Brands.EOS.Devices
         private readonly bool _isGetLogEnable;
 
         private readonly TaskTypes _taskTypes;
-        private readonly TaskManager _taskManager;
         private readonly LogService _logService;
         private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
@@ -53,7 +52,14 @@ namespace Biovation.Brands.EOS.Devices
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
         protected static readonly object LockObject = new object();
-        internal ZkBaseDevice(DeviceBasicInfo deviceInfo, LogService logService, EosCodeMappings eosCodeMappings, TaskService taskService, UserService userService, DeviceService deviceService, AccessGroupService accessGroupService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
+        internal ZkBaseDevice(DeviceBasicInfo deviceInfo, LogService logService, EosCodeMappings eosCodeMappings,
+            TaskService taskService, UserService userService, DeviceService deviceService,
+            AccessGroupService accessGroupService, UserCardService userCardService,
+            FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices,
+            BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, LogSubEvents logSubEvents,
+            TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes,
+            DeviceBrands deviceBrands, BiometricTemplateManager biometricTemplateManager,
+            FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
             : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             DeviceInfo = deviceInfo;
@@ -72,7 +78,6 @@ namespace Biovation.Brands.EOS.Devices
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
-            _taskManager = taskManager;
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
@@ -258,8 +263,7 @@ namespace Biovation.Brands.EOS.Devices
                     OrderIndex = 1
                 });
                 _taskService.InsertTask(task);
-                _taskManager.ProcessQueue(DeviceInfo.DeviceId);
-
+                _taskService.ProcessQueue(_deviceBrands.Eos, DeviceInfo.DeviceId).ConfigureAwait(false);
             }
 
             Task.Run(CheckConnection, TokenSource.Token);

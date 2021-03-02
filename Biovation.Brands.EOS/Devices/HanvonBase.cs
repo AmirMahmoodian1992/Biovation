@@ -24,7 +24,8 @@ namespace Biovation.Brands.EOS.Devices
 
         private readonly RestClient _restClient;
         private readonly LogService _logService;
-        private readonly TaskManager _taskManager;
+        private readonly TaskService _taskService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
@@ -35,13 +36,14 @@ namespace Biovation.Brands.EOS.Devices
         //private readonly DateTime _endDateTimeThreshold;
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents,
-            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices) : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
+            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, TaskService taskService, DeviceBrands deviceBrands) : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             _restClient = restClient;
             _logService = logService;
             _deviceInfo = deviceInfo;
-            _taskManager = taskManager;
             _onlineDevices = onlineDevices;
+            _taskService = taskService;
+            _deviceBrands = deviceBrands;
             _faceTemplateTypes = faceTemplateTypes;
             _stFace = new StFace(new TCPIPConnection
             { IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100, WaitBeforeRead = 100, ReadInCompleteTimeOut = 10, RetryCount = 1 });
@@ -111,7 +113,8 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
-            _taskManager.ProcessQueue(_deviceInfo.DeviceId);
+            _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
+
             Valid = true;
 
             Task.Run(() => { ReadOnlineLog(Token); }, Token);

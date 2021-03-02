@@ -104,6 +104,8 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
 
+            services.AddSingleton<Service.Api.v1.TaskService, Service.Api.v1.TaskService>();
+
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
             services.AddSingleton<BlackListRepository, BlackListRepository>();
@@ -214,10 +216,13 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<EosServer, EosServer>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var eosServer = serviceProvider.GetService<EosServer>();
+            services.AddHostedService<EosHostedService>();
+            services.AddHostedService<TaskManagerHostedService>();
 
-            eosServer.StartServer();
+            //var serviceProvider = services.BuildServiceProvider();
+            //var eosServer = serviceProvider.GetService<EosServer>();
+
+            //eosServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
