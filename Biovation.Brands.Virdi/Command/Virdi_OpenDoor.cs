@@ -17,11 +17,10 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiOpenDoor(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, DeviceService deviceService)
+        public VirdiOpenDoor(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
         {
-            _callbacks = callbacks;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
@@ -41,7 +40,7 @@ namespace Biovation.Brands.Virdi.Command
 
             try
             {
-                _callbacks.UcsApi.OpenDoorToTerminal(TaskItemId, (int)Code);
+                _virdiServer.UcsApi.OpenDoorToTerminal(TaskItemId, (int)Code);
                 // return true;
                 return new ResultViewModel { Id = DeviceId, Message = $"Opendoor command,Error free", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
 

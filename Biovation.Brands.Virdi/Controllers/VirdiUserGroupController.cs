@@ -10,11 +10,11 @@ namespace Biovation.Brands.Virdi.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiUserGroupController : ControllerBase
     {
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiUserGroupController(Callbacks callbacks)
+        public VirdiUserGroupController(VirdiServer virdiServer)
         {
-            _callbacks = callbacks;
+            _virdiServer = virdiServer;
         }
 
         [HttpPost]
@@ -23,7 +23,7 @@ namespace Biovation.Brands.Virdi.Controllers
         {
             try
             {
-                _callbacks.LoadFingerTemplates().ConfigureAwait(false);
+                _virdiServer.LoadFingerTemplates().ConfigureAwait(false);
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)

@@ -25,12 +25,10 @@ namespace Biovation.Brands.Virdi.Command
         private DateTime FromDate { get; }
         private DateTime ToDate { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, DeviceService deviceService)
+        public VirdiRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService)
         {
-            _callbacks = callbacks;
-
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Device = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId);
@@ -66,19 +64,19 @@ namespace Biovation.Brands.Virdi.Command
                 //    Logger.Log(exception);
                 //}
 
-                _callbacks.AccessLogPeriodFromDateTime = FromDate;
-                _callbacks.AccessLogPeriodToDateTime = ToDate;
+                _virdiServer.AccessLogPeriodFromDateTime = FromDate;
+                _virdiServer.AccessLogPeriodToDateTime = ToDate;
 
                 if (FromDate == default || ToDate == default || FromDate == new DateTime(1970, 1, 1))
                 {
-                    _callbacks.GetAccessLogType = (int)VirdiDeviceLogType.All;
-                    _callbacks.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.All);
+                    _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.All;
+                    _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.All);
                 }
                 else
                 {
-                    _callbacks.GetAccessLogType = (int)VirdiDeviceLogType.Period;
-                    _callbacks.AccessLogData.SetPeriod(FromDate.Year, FromDate.Month, FromDate.Day, ToDate.Year, ToDate.Month, ToDate.Day);
-                    _callbacks.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.Period);
+                    _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.Period;
+                    _virdiServer.AccessLogData.SetPeriod(FromDate.Year, FromDate.Month, FromDate.Day, ToDate.Year, ToDate.Month, ToDate.Day);
+                    _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.Period);
                 }
                 //_callbacks.AccessLogData.GetAccessLogFromTerminal(0, (int)Code, (int)VirdiDeviceLogType.Period);
                 //System.Threading.Thread.Sleep(1000);
@@ -99,7 +97,7 @@ namespace Biovation.Brands.Virdi.Command
 
                 //Callbacks.RetrieveLogs = new List<Log>();
 
-                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = DeviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
+                return VirdiServer.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = DeviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
             }
             catch (Exception exception)
             {

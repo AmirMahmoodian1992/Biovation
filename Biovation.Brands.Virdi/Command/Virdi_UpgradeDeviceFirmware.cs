@@ -19,14 +19,11 @@ namespace Biovation.Brands.Virdi.Command
         private string FirmwareFilePath { get; }
         private int TaskItemId { get; }
 
-        private readonly Callbacks _callbacks;
         private readonly VirdiServer _virdiServer;
 
-        public VirdiUpgradeDeviceFirmware(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, DeviceService deviceService)
+        public VirdiUpgradeDeviceFirmware(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService)
         {
             _virdiServer = virdiServer;
-            _callbacks = callbacks;
-
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -47,8 +44,8 @@ namespace Biovation.Brands.Virdi.Command
 
             try
             {
-                Callbacks.UpgradeFirmwareTaskFinished = true;
-                Callbacks.UploadFirmwareFileTaskFinished = true;
+                VirdiServer.UpgradeFirmwareTaskFinished = true;
+                VirdiServer.UploadFirmwareFileTaskFinished = true;
 
                 DeviceBasicInfo deviceInfo = null;
 
@@ -61,30 +58,30 @@ namespace Biovation.Brands.Virdi.Command
                     //ignore
                 }
 
-                _callbacks.UcsApi.UpgradeFirmwareToTerminal(TaskItemId, DeviceCode, FirmwareFilePath);
+                _virdiServer.UcsApi.UpgradeFirmwareToTerminal(TaskItemId, DeviceCode, FirmwareFilePath);
                 Thread.Sleep(1000);
 
                 Logger.Log(GetDescription());
 
-                while (!Callbacks.UploadFirmwareFileTaskFinished)
+                while (!VirdiServer.UploadFirmwareFileTaskFinished)
                     Thread.Sleep(2000);
 
                 for (var i = 0; i < 4; i++)
                 {
-                    if (Callbacks.UpgradeFirmwareTaskFinished)
+                    if (VirdiServer.UpgradeFirmwareTaskFinished)
                         break;
                     Thread.Sleep(500);
                 }
 
-                if (Callbacks.UpgradeFirmwareTaskFinished)
+                if (VirdiServer.UpgradeFirmwareTaskFinished)
                 {
                     return new ResultViewModel
                     {
 
                         Id = DeviceId,
                         Code = Convert.ToInt64(TaskStatuses.DoneCode),
-                        Validate = Callbacks.UpgradeFirmwareTaskFinished ? 1 : 0,
-                        Message = Callbacks.UpgradeFirmwareTaskFinished
+                        Validate = VirdiServer.UpgradeFirmwareTaskFinished ? 1 : 0,
+                        Message = VirdiServer.UpgradeFirmwareTaskFinished
                             ? $"Firmware upgraded successfully on device {DeviceCode}"
                             : $"Uploaded firmware file was not compatible with the device: Device code: {DeviceCode}, Device Model: {deviceInfo?.Model?.Name}"
                     };
@@ -94,8 +91,8 @@ namespace Biovation.Brands.Virdi.Command
 
                     Id = DeviceId,
                     Code = Convert.ToInt64(TaskStatuses.FailedCode),
-                    Validate = Callbacks.UpgradeFirmwareTaskFinished ? 1 : 0,
-                    Message = Callbacks.UpgradeFirmwareTaskFinished
+                    Validate = VirdiServer.UpgradeFirmwareTaskFinished ? 1 : 0,
+                    Message = VirdiServer.UpgradeFirmwareTaskFinished
                         ? $"Firmware upgraded successfully on device {DeviceCode}"
                         : $"Uploaded firmware file was not compatible with the device: Device code: {DeviceCode}, Device Model: {deviceInfo?.Model?.Name}"
                 };
@@ -108,8 +105,8 @@ namespace Biovation.Brands.Virdi.Command
             }
             finally
             {
-                Callbacks.UpgradeFirmwareTaskFinished = true;
-                Callbacks.UploadFirmwareFileTaskFinished = true;
+                VirdiServer.UpgradeFirmwareTaskFinished = true;
+                VirdiServer.UploadFirmwareFileTaskFinished = true;
             }
         }
 

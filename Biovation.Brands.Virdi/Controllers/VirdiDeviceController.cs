@@ -21,7 +21,6 @@ namespace Biovation.Brands.Virdi.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiDeviceController : ControllerBase
     {
-        private readonly Callbacks _callbacks;
         private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
@@ -35,9 +34,8 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
 
-        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
+        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
         {
-            _callbacks = callbacks;
             _virdiServer = virdiServer;
             _taskService = taskService;
             _deviceService = deviceService;
@@ -964,7 +962,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 {
                     foreach (var id in userCodes)
                     {
-                        _callbacks.DeleteUserFromDeviceFastSearch(code, id);
+                        _virdiServer.DeleteUserFromDeviceFastSearch(code, id);
                     }
                 }
 

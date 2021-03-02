@@ -17,7 +17,7 @@ namespace Biovation.Brands.Virdi.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiAccessGroupController : ControllerBase
     {
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
@@ -28,11 +28,11 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiAccessGroupController(TaskService taskService, DeviceService deviceService, Callbacks callbacks, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiAccessGroupController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;
-            _callbacks = callbacks;
+            _virdiServer = virdiServer;
             _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
             _taskTypes = taskTypes;
@@ -121,7 +121,7 @@ namespace Biovation.Brands.Virdi.Controllers
         {
             try
             {
-                _callbacks.LoadFingerTemplates().ConfigureAwait(false);
+                _virdiServer.LoadFingerTemplates().ConfigureAwait(false);
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)

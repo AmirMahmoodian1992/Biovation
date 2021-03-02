@@ -32,12 +32,10 @@ namespace Biovation.Brands.Virdi.Command
             OnlineDevices = devices;
         }
         */
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiRetrieveAllLogsOfDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, DeviceService deviceService)
+        public VirdiRetrieveAllLogsOfDevice(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
         {
-            _callbacks = callbacks;
-
             if (items.Count == 1)
             { DeviceId = Convert.ToInt32(items[0]); }
             else
@@ -66,8 +64,8 @@ namespace Biovation.Brands.Virdi.Command
 
 
 
-                _callbacks.GetAccessLogType = (int)VirdiDeviceLogType.All;
-                _callbacks.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.All);
+                _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.All;
+                _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.All);
                 //System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
 
@@ -83,8 +81,8 @@ namespace Biovation.Brands.Virdi.Command
 
 
                 //Callbacks.RetrieveLogs = new List<Log>();
-                Callbacks.GetLogTaskFinished = true;
-                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 };
+                VirdiServer.GetLogTaskFinished = true;
+                return VirdiServer.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 };
             }
             catch (Exception exception)
             {

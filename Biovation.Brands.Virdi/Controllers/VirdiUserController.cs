@@ -17,7 +17,6 @@ namespace Biovation.Brands.Virdi.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiUserController : ControllerBase
     {
-        private readonly Callbacks _callbacks;
         private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
@@ -30,12 +29,11 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiUserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, Callbacks callbacks, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiUserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;
             _virdiServer = virdiServer;
-            _callbacks = callbacks;
             _accessGroupService = accessGroupService;
             _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
@@ -101,7 +99,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 try
                 {
                     // ReSharper disable once AssignmentIsFullyDiscarded
-                    _callbacks.LoadFingerTemplates().ConfigureAwait(false);
+                    _virdiServer.LoadFingerTemplates().ConfigureAwait(false);
                     return new ResultViewModel { Validate = 1 };
                 }
                 catch (Exception exception)
@@ -155,7 +153,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     if (!updateServerSideIdentification) continue;
                     // ReSharper disable once AssignmentIsFullyDiscarded
-                    _ = _callbacks.AddUserToDeviceFastSearch(code, (int)id);
+                    _ =_virdiServer.AddUserToDeviceFastSearch(code, (int)id).ConfigureAwait(false);
                 }
 
                 _taskService.InsertTask(task);

@@ -246,12 +246,12 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
-            services.AddSingleton<Callbacks, Callbacks>();
+            services.AddSingleton<VirdiServer, VirdiServer>();
 
             var virdiObject = new Virdi();
-            var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
+            //var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
             services.AddSingleton(virdiObject);
-            services.AddSingleton(virdiServer);
+            //services.AddSingleton(virdiServer);
             //var virdiCodeMappings = new VirdiCodeMappings(serviceProvider.GetService<GenericCodeMappings>());
 
             //var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
@@ -261,10 +261,11 @@ namespace Biovation.Brands.Virdi
             //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
 
             services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<VirdiHostedService>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var virdiCallBacks = serviceProvider.GetService<Callbacks>();
-            services.AddSingleton(virdiCallBacks);
+            //var serviceProvider = services.BuildServiceProvider();
+            //var virdiCallBacks = serviceProvider.GetService<VirdiServer>();
+            //services.AddSingleton(virdiCallBacks);
 
             //services.AddSingleton(virdiCodeMappings);
             //services.AddSingleton<Virdi, Virdi>();
@@ -278,12 +279,12 @@ namespace Biovation.Brands.Virdi
 
             //services.BuildServiceProvider().GetService<Callbacks>();
 
-            UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
+            //UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
 
-            Logger.Log(UcsApi.ErrorCode != 0
-                    ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
-                    : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
-                , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
+            //Logger.Log(UcsApi.ErrorCode != 0
+            //        ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
+            //        : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
+            //    , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
             //Callbacks.FactoryCallbacks(UcsApi, OnlineDevices);
         }
         //private void ConfigureVirdiServices(IServiceCollection services)

@@ -1,5 +1,4 @@
-﻿using Biovation.Brands.Virdi.Manager;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
@@ -9,8 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using UCBioBSPCOMLib;
 using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
@@ -29,7 +26,7 @@ namespace Biovation.Brands.Virdi.Command
         private uint Code { get; }
         private int TaskItemId { get; }
 
-        public VirdiRetrieveUsersListFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager)
+        public VirdiRetrieveUsersListFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, UCSAPI ucsApi, DeviceService deviceService)
         {
             _ucsApi = ucsApi;
             _terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;

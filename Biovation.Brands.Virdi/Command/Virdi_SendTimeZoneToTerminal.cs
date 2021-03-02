@@ -20,14 +20,14 @@ namespace Biovation.Brands.Virdi.Command
         private int TimeZoneId { get; set; }
         private TimeZone TimeZoneObj { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiSendTimeZoneToTerminal(uint code, int timeZoneId, VirdiServer virdiServer, Callbacks callbacks, TimeZoneService timeZoneService)
+        public VirdiSendTimeZoneToTerminal(uint code, int timeZoneId, VirdiServer virdiServer, TimeZoneService timeZoneService)
         {
             Code = code;
 
             TimeZoneId = timeZoneId;
-            _callbacks = callbacks;
+            _virdiServer = virdiServer;
             TimeZoneObj = timeZoneService.TimeZones(timeZoneId);
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
@@ -49,18 +49,18 @@ namespace Biovation.Brands.Virdi.Command
 
             try
             {
-                _callbacks.AccessControlData.InitData();
+                _virdiServer.AccessControlData.InitData();
 
                 foreach (var timeZoneDetail in TimeZoneObj.Details)
                 {
-                    _callbacks.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"), timeZoneDetail.DayNumber,
+                    _virdiServer.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"), timeZoneDetail.DayNumber,
                                 timeZoneDetail.FromTime.Hours, timeZoneDetail.FromTime.Minutes, timeZoneDetail.ToTime.Hours, timeZoneDetail.ToTime.Minutes);
                 }
 
                 //_callbacks.AccessControlData.SetAuthProperty("0001", 1, 1, 0, 0, 1, 0, 0, 0);
                 //_callbacks.AccessControlData.SetTimeZoneToAuthProperty("0001", 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
                 //_callbackInstance.AccessControlData.SetHoliday("1000", 0, 1, 1);
-                _callbacks.AccessControlData.SetAccessTime(TimeZoneObj.Id.ToString("D4"),
+                _virdiServer.AccessControlData.SetAccessTime(TimeZoneObj.Id.ToString("D4"),
                     TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 1)?.Id.ToString("D4"),
                     TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 2)?.Id.ToString("D4"),
                     TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 3)?.Id.ToString("D4"),
@@ -69,14 +69,14 @@ namespace Biovation.Brands.Virdi.Command
                     TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 6)?.Id.ToString("D4"),
                     TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 0)?.Id.ToString("D4"), "", "");
 
-                _callbacks.AccessControlData.SetAccessGroup(TimeZoneObj.Id.ToString("D4"), 0, TimeZoneObj.Id.ToString("D4"));
+                _virdiServer.AccessControlData.SetAccessGroup(TimeZoneObj.Id.ToString("D4"), 0, TimeZoneObj.Id.ToString("D4"));
 
                 // 0: TimeZone information
-                _callbacks.AccessControlData.SetAccessControlDataToTerminal(0, (int)Code, 0);
+                _virdiServer.AccessControlData.SetAccessControlDataToTerminal(0, (int)Code, 0);
                 // 1: Holiday information
                 //_callbacks.AccessControlData.SetAccessControlDataToTerminal(0, terminalID, 1);
                 // 2: AccessTime information
-                _callbacks.AccessControlData.SetAccessControlDataToTerminal(0, (int)Code, 2);
+                _virdiServer.AccessControlData.SetAccessControlDataToTerminal(0, (int)Code, 2);
             }
             catch (Exception exception)
             {
