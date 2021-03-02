@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using zkemkeeper;
+using Log = Biovation.Domain.Log;
 using TimeZone = Biovation.Domain.TimeZone;
 //using TimeZone = Biovation.CommonClasses.Models.TimeZone;
 // ReSharper disable InconsistentlySynchronizedField
@@ -917,14 +918,17 @@ namespace Biovation.Brands.EOS.Devices
             }
         }
 
-        public List<User> GetAllUserInfo()
+        public override List<User> GetAllUsers(bool embedTemplate = false)
         {
             lock (ZkTecoSdk)
             {
+                Logger.Log("in GetAllUserInfo");
                 if (ZkTecoSdk.ReadAllUserID((int)DeviceInfo.Code))
                 {
                     var lstUsers = new List<User>();
+                    Logger.Log($"Starting Retrieved user");
 
+                    var index = 0;
                     while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out _,
                         out var privilege, out var enable))
                     {
@@ -932,16 +936,118 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             try
                             {
+                                Logger.Log($"Retrieved user {iUserId}");
                                 var user = new User
                                 {
-                                    Id = Convert.ToInt32(iUserId),
+                                    Code = Convert.ToInt32(iUserId),
                                     UserName = name,
                                     IsActive = enable,
-                                    AdminLevel = privilege
+                                    AdminLevel = privilege,
+                                    SurName = name.Split(' ').LastOrDefault(),
+                                    FirstName = name.Split(' ').FirstOrDefault(),
+                                    StartDate = DateTime.Parse("1970/01/01"),
+                                    EndDate = DateTime.Parse("2050/01/01")
                                 };
 
+                                if (embedTemplate)
+                                {
+                                    index++;
+                                    Logger.Log($"Retrieving templates of user {iUserId}, index: {index}");
+
+                                    try
+                                    {
+                                        if (ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0")
+                                        {
+                                            user.IdentityCard = new IdentityCard
+                                            {
+                                                Number = cardNumber,
+                                                IsActive = true
+                                                //Id = (int)user.Id
+                                            };
+                                        }
+
+                                        Logger.Log($"Retried user card of user {iUserId}, index: {index}");
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Log(e, e.Message);
+                                    }
+
+
+                                    var retrievedFingerTemplates = new List<FingerTemplate>();
+                                    var retrievedFaceTemplates = new List<FaceTemplate>();
+
+                                    try
+                                    {
+                                        for (var i = 0; i <= 9; i++)
+                                        {
+                                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
+                                                out var tempData, out var tempLength))
+                                            {
+                                                Thread.Sleep(50);
+                                                continue;
+                                            }
+
+                                            var fingerTemplate = new FingerTemplate
+                                            {
+                                                FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
+                                                FingerTemplateType = _fingerTemplateTypes.VX10,
+                                                UserId = user.Id,
+                                                Template = Encoding.ASCII.GetBytes(tempData),
+                                                CheckSum = Encoding.ASCII.GetBytes(tempData).Sum(x => x),
+                                                Size = tempLength,
+                                                Index = i
+                                            };
+
+                                            retrievedFingerTemplates.Add(fingerTemplate);
+                                        }
+
+                                        user.FingerTemplates = retrievedFingerTemplates;
+                                        Logger.Log($"Retrieving finger templates of user {iUserId}, index: {index}");
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Log(e, e.Message);
+                                    }
+
+                                    try
+                                    {
+                                        var faceStr = "";
+                                        var faceLen = 0;
+                                        for (var i = 0; i < 9; i++)
+                                        {
+                                            if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
+                                                ref faceStr, ref faceLen))
+                                            {
+                                                Thread.Sleep(50);
+                                                continue;
+                                            }
+
+                                            var faceTemplate = new FaceTemplate
+                                            {
+                                                Index = 50,
+                                                FaceTemplateType = _faceTemplateTypes.ZKVX7,
+                                                UserId = user.Id,
+                                                Template = Encoding.ASCII.GetBytes(faceStr),
+                                                CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
+                                                Size = faceLen,
+                                            };
+
+                                            retrievedFaceTemplates.Add(faceTemplate);
+                                            Logger.Log($"Retrieving face templates of user {iUserId}, index: {index}");
+                                            break;
+                                        }
+
+                                        user.FaceTemplates = retrievedFaceTemplates;
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Log(e, e.Message);
+                                    }
+                                }
                                 //_EosLogService.AddLog(log);
                                 lstUsers.Add(user);
+                                Logger.Log($"Added user {iUserId}");
                             }
                             catch (Exception)
                             {
@@ -1040,7 +1146,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             for (var i = 0; i <= 9; i++)
                             {
-                                if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Id.ToString(), i,
+                                if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
                                     out var tempData, out var tempLength))
                                 {
                                     Thread.Sleep(50);
@@ -1065,7 +1171,7 @@ namespace Biovation.Brands.EOS.Devices
                                         fp.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(i).Code && fp.FingerTemplateType.Code == FingerTemplateTypes.VX10Code) ?? false)
                                     {
                                         user.FingerTemplates.Add(fingerTemplate);
-                                        Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Id}");
+                                        Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Code}");
                                     }
                                     else
                                     {
@@ -1075,7 +1181,7 @@ namespace Biovation.Brands.EOS.Devices
                                 else
                                 {
                                     user.FingerTemplates.Add(fingerTemplate);
-                                    Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Id}");
+                                    Logger.Log($"A finger print with index: {i} is retrieved for user: {user.Code}");
                                 }
                             }
 
