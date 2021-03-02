@@ -3,6 +3,7 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.Extensions.Logging;
 using MoreLinq;
 using Newtonsoft.Json;
 using System;
@@ -19,10 +20,12 @@ namespace Biovation.Brands.ZK.Manager
         private readonly TaskStatuses _taskStatuses;
         private readonly CommandFactory _commandFactory;
 
+        private readonly ILogger<TaskManager> _logger;
         private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
-        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory)
+        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory, ILogger<TaskManager> logger)
         {
+            _logger = logger;
             _taskService = taskService;
             _commandFactory = commandFactory;
             _taskStatuses = taskStatuses;
@@ -355,6 +358,7 @@ namespace Biovation.Brands.ZK.Manager
 
                 executeTask?.ContinueWith(task =>
                 {
+                    _logger.LogDebug("Processing of the Task Item (Id:{taskItemId}, Type:{taskItemType}) Finished With Result: (Success:{taskItemResultSuccess}, Code:{taskItemResultCode}, Message:{taskItemResultMessage})", taskItem.Id, taskItem.TaskItemType.Name, result?.Success, result?.Code, result?.Message);
                     if (result is null) return;
                     taskItem.Result = JsonConvert.SerializeObject(result);
                     taskItem.Status = _taskStatuses.GetTaskStatusByCode(result.Code.ToString());
