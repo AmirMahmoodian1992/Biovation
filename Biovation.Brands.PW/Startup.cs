@@ -1,3 +1,4 @@
+using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.PW.Command;
@@ -21,6 +22,8 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using Biovation.Domain;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.PW
 {
@@ -83,6 +86,18 @@ namespace Biovation.Brands.PW
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+            if (!requestResult.Result.Data.Success)
+            {
+                Environment.Exit(0);
+                return;
+            }
+
+            #endregion
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();

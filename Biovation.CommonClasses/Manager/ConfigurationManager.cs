@@ -379,7 +379,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return ConfigurationManager.AppSettings["SoftwareLockAddress"]?.ToLowerInvariant();
+                    return Configuration.GetSection("AppSettings")["SoftwareLockAddress"]?.ToLowerInvariant();
                 }
                 catch (Exception exception)
                 {
@@ -395,7 +395,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return Convert.ToInt32(ConfigurationManager.AppSettings["SoftwareLockPort"]);
+                    return Convert.ToInt32(Configuration.GetSection("AppSettings")["SoftwareLockPort"] ?? "2105");
                 }
                 catch (Exception exception)
                 {

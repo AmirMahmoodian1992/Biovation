@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using RestSharp;
 
 namespace Biovation.Brands.ZK
 {
@@ -20,6 +21,7 @@ namespace Biovation.Brands.ZK
 
         private readonly DeviceFactory _deviceFactory;
         private readonly List<DeviceBasicInfo> _zkDevices;
+        private readonly RestClient _restClient;
 
         private CancellationToken _cancellationToken;
         /// <summary>
@@ -28,10 +30,11 @@ namespace Biovation.Brands.ZK
         /// </summary>
         /// <returns></returns>
 
-        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory)
+        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory, RestClient restClient)
         {
             _onlineDevices = onlineDevices;
             _deviceFactory = deviceFactory;
+            _restClient = restClient;
             _zkDevices = deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
         }
 

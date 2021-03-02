@@ -39,5 +39,20 @@
     <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="KasraLockRequests">
+      <HintPath>Libraries\KasraLockRequests.dll</HintPath>
+    </Reference>
+    <Reference Include="LockLogic">
+      <HintPath>Libraries\LockLogic.dll</HintPath>
+    </Reference>
+    <Reference Include="LockManager">
+      <HintPath>Libraries\LockManager.dll</HintPath>
+    </Reference>
+    <Reference Include="RegisteryManager">
+      <HintPath>Libraries\RegisteryManager.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 
 </Project>

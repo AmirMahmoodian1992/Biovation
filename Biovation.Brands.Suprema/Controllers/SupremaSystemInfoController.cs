@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
-    [Route("Biovation/Api/[controller]")]
+    [Route("Biovation/Api/[controller]/[action]")]
     public class SupremaSystemInfoController : ControllerBase
     {
         [HttpGet]
@@ -24,5 +25,10 @@ namespace Biovation.Brands.Suprema.Controllers
             return result;
         }
 
+        [HttpGet]
+        public void StopService()
+        {
+            Environment.Exit(0);
+        }
     }
 }
