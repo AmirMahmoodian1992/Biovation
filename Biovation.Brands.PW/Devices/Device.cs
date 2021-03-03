@@ -19,7 +19,7 @@ namespace Biovation.Brands.PW.Devices
 {
     public class Device : IDevices
     {
-        internal CancellationTokenSource Token;
+        internal CancellationToken CancellationToken;
         private bool _valid;
 
         private readonly xLinkClass _pwSdk = new xLinkClass();//create Standalone _PWSdk class dynamically
@@ -55,7 +55,6 @@ namespace Biovation.Brands.PW.Devices
             _deviceBrands = deviceBrands;
             _taskService = taskService;
             _clearLogAfterRetrieving = biovationConfigurationManager.ClearLogAfterRetrieving;
-            Token = new CancellationTokenSource();
 
             _logger = logger.ForContext<Device>();
         }
@@ -71,8 +70,9 @@ namespace Biovation.Brands.PW.Devices
             return _deviceInfo;
         }
 
-        public bool Connect()
+        public bool Connect(CancellationToken cancellationToken)
         {
+            CancellationToken = cancellationToken;
             FillLinkParameters();
             var isConnect = IsConnected();
             if (isConnect)
@@ -155,14 +155,14 @@ namespace Biovation.Brands.PW.Devices
         public bool Disconnect()
         {
             _valid = false;
-            try
-            {
-                Token.Cancel(false);
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
+            //try
+            //{
+            //    Token.Cancel(false);
+            //}
+            //catch (Exception)
+            //{
+            //    //ignore
+            //}
             //var onlineDevices = PWServer.GetOnlineDevices();
             //lock (onlineDevices)
             //{
@@ -196,7 +196,7 @@ namespace Biovation.Brands.PW.Devices
                 return true;
             }
 
-            while (!Token.IsCancellationRequested)
+            while (!CancellationToken.IsCancellationRequested)
             {
                 _logger.Debug($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
                 _logger.Debug($"Error code: {connectResult} ");
@@ -283,8 +283,8 @@ namespace Biovation.Brands.PW.Devices
 
                             newResult = _pwSdk.getIOs(_linkParam, newFilePath, ref newRecordsCount, ref newBonesFn,
                                 ref newRecords, newGateNumber, newTextFile);
-                            _linkParam.clearPW = false; 
-                            
+                            _linkParam.clearPW = false;
+
                             if (newRecordsCount > 0 && _lastLogReadCount == newRecordsCount)
                                 _offlineLogReadCount++;
                             else
@@ -341,7 +341,7 @@ namespace Biovation.Brands.PW.Devices
 
                                     Task.Run(() =>
                                     {
-                                        foreach (var log in logs.TakeWhile(log => !Token.IsCancellationRequested))
+                                        foreach (var log in logs.TakeWhile(log => !CancellationToken.IsCancellationRequested))
                                         {
                                             _logger.Debug($@"RTEvent OnAttTransaction Has been Triggered,Verified OK
                                                 ...UserID: {log.UserId}
@@ -350,7 +350,7 @@ namespace Biovation.Brands.PW.Devices
                                                 ...VerifyMethod: {log.AuthType}
                                                 ...Time: {log.LogDateTime}");
                                         }
-                                    }, Token.Token);
+                                    }, CancellationToken);
 
                                     //innerRecord = newRecordsCount;
                                     _lastLogReadCount = newRecordsCount;
@@ -372,7 +372,7 @@ namespace Biovation.Brands.PW.Devices
                 } while (IsConnected() && _valid);
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-            }, Token.Token);
+            }, CancellationToken);
         }
 
         public ResultViewModel ReadOfflineLog(object cancellationToken, bool fileSave = false)
@@ -477,7 +477,7 @@ namespace Biovation.Brands.PW.Devices
                                     +AuthType:{log.MatchingType}
                                     +Progress:{++i}/{count}");
                                 }
-                            }, Token.Token);
+                            }, CancellationToken);
 
                             //Task.Run(() =>
                             //{
@@ -589,7 +589,7 @@ namespace Biovation.Brands.PW.Devices
                                     +AuthType:{log.MatchingType}
                                     +Progress:{++i}/{recordsCount}");
                                 }
-                            }, Token.Token);
+                            }, CancellationToken);
 
                         }
                         catch (Exception exception)
@@ -701,7 +701,7 @@ namespace Biovation.Brands.PW.Devices
                                     +AuthType:{log.MatchingType}
                                     +Progress:{++i}/{count}");
                                 }
-                            }, Token.Token);
+                            }, CancellationToken);
 
                             //Task.Run(() =>
                             //{
@@ -799,7 +799,7 @@ namespace Biovation.Brands.PW.Devices
                                     +AuthType:{log.MatchingType}
                                     +Progress:{++i}/{recordsCount}");
                                 }
-                            }, Token.Token);
+                            }, CancellationToken);
 
                         }
                         catch (Exception exception)
