@@ -23,6 +23,7 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using Biovation.Brands.Suprema.HostedServices;
 using Biovation.Brands.Suprema.Middleware;
 using Biovation.Domain;
 using Microsoft.Extensions.Logging;
@@ -150,6 +151,23 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
             services.AddSingleton<FastSearchService, FastSearchService>();
+
+            services.AddSingleton<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
+            services.AddSingleton<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
+            services.AddSingleton<Service.Api.v2.BlackListService, Service.Api.v2.BlackListService>();
+            services.AddSingleton<Service.Api.v2.DeviceGroupService, Service.Api.v2.DeviceGroupService>();
+            services.AddSingleton<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
+            services.AddSingleton<Service.Api.v2.FaceTemplateService, Service.Api.v2.FaceTemplateService>();
+            services.AddSingleton<Service.Api.v2.FingerTemplateService, Service.Api.v2.FingerTemplateService>();
+            services.AddSingleton<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
+            services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+            services.AddSingleton<Service.Api.v2.LookupService, Service.Api.v2.LookupService>();
+            services.AddSingleton<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
+            services.AddSingleton<Service.Api.v2.TaskService, Service.Api.v2.TaskService>();
+            services.AddSingleton<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
+            services.AddSingleton<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
+            services.AddSingleton<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -320,19 +338,22 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<FastSearchService, FastSearchService>();
 
+            services.AddSingleton<Suprema, Suprema>();
+            
+            services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<SupremaHostedService>();
 
 
-            var serviceProvider = services.BuildServiceProvider();
-            var supremaServer = serviceProvider.GetService<BioStarServer>();
-            var supremaObject = new Suprema();
-            // var virdiServer = new BioStarServer(UcsApi, OnlineDevices);
+            //var serviceProvider = services.BuildServiceProvider();
+            //var supremaServer = serviceProvider.GetService<BioStarServer>();
+            //var supremaObject = new Suprema();
+            //// var virdiServer = new BioStarServer(UcsApi, OnlineDevices);
 
 
-            //services.AddSingleton(UcsApi);
-            services.AddSingleton(supremaServer);
-            services.AddSingleton(supremaObject);
-
-            supremaServer.StartService();
+            ////services.AddSingleton(UcsApi);
+            //services.AddSingleton(supremaServer);
+            //services.AddSingleton(supremaObject);
+            //supremaServer.StartService();
 
 
 

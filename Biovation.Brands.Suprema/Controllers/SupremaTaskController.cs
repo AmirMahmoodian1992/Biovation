@@ -27,7 +27,7 @@ namespace Biovation.Brands.Suprema.Controllers
             {
                 try
                 {
-                    _taskManager.ProcessQueue(deviceId);
+                    _taskManager.ProcessQueue(deviceId).ConfigureAwait(false);
                     return new ResultViewModel { Success = true };
                 }
                 catch (Exception exception)

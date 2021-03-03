@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Manager;
-using Biovation.CommonClasses.Extension;
+﻿using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
@@ -22,10 +21,9 @@ namespace Biovation.Brands.Suprema.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public SupremaTimeZoneController(DeviceService deviceService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public SupremaTimeZoneController(DeviceService deviceService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _taskService = taskService;
@@ -33,7 +31,6 @@ namespace Biovation.Brands.Suprema.Controllers
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
         }
 
@@ -41,105 +38,102 @@ namespace Biovation.Brands.Suprema.Controllers
         [Authorize]
         public async Task<ResultViewModel> SendTimeZoneToAllDevices([FromBody] int timeZoneId)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
+                var devices = _deviceService.GetDevices(brandId: DeviceBrands.SupremaCode);
+
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+
+                var task = new TaskInfo
                 {
-                    var devices = _deviceService.GetDevices(brandId: DeviceBrands.SupremaCode);
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendTimeZoneToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Suprema,
+                    TaskItems = new List<TaskItem>()
+                };
 
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                    var creatorUser = HttpContext.GetUser();
-
-                    var task = new TaskInfo
+                foreach (var device in devices)
+                {
+                    task.TaskItems.Add(new TaskItem
                     {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.SendTimeZoneToTerminal,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
                         Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Suprema,
-                        TaskItems = new List<TaskItem>()
-                    };
-
-                    foreach (var device in devices)
-                    {
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { timeZoneId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                    }
-                    _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
-
-
-                    return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { timeZoneId }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
                 }
-                catch (Exception exception)
+                _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(_deviceBrands.Suprema).ConfigureAwait(false);
+
+
+                return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel
                 {
-                    return new ResultViewModel
-                    {
-                        Validate = 0,
-                        Message = exception.ToString()
-                    };
-                }
-            });
-
+                    Validate = 0,
+                    Message = exception.ToString()
+                };
+            }
         }
 
         [HttpGet]
         [Authorize]
         public async Task<ResultViewModel> SendTimeZoneToDevice(int timeZoneId, uint code)
         {
-            return await Task.Run(() =>
+            try
+            {
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+                var task = new TaskInfo
                 {
-                    try
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendTimeZoneToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Suprema,
+                    TaskItems = new List<TaskItem>()
+                };
+
+                if (device != null)
+                {
+                    task.TaskItems.Add(new TaskItem
                     {
-                        var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { timeZoneId }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
 
-                        //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                        var creatorUser = HttpContext.GetUser();
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.SendTimeZoneToTerminal,
-                            Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.Suprema,
-                            TaskItems = new List<TaskItem>()
-                        };
+                        OrderIndex = 1
+                    });
+                    _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId)
+                        .ConfigureAwait(false);
+                }
 
-                        if (device != null)
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { timeZoneId }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-
-                                OrderIndex = 1
-                            });
-                        _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
-                        return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
-                    }
-                    catch (Exception exception)
-                    {
-                        return new ResultViewModel
-                        {
-                            Validate = 0,
-                            Message = exception.ToString()
-                        };
-                    }
-                });
+                return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel
+                {
+                    Validate = 0,
+                    Message = exception.ToString()
+                };
+            }
         }
     }
 }
