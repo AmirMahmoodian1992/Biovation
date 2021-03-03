@@ -23,6 +23,7 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using Biovation.Brands.Suprema.HostedServices;
 using Biovation.Brands.Suprema.Middleware;
 using Biovation.Domain;
@@ -120,15 +121,25 @@ namespace Biovation.Brands.Suprema
             #region checkLock
 
             var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-            if (!requestResult.Result.Data.Success)
+            try
             {
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
                 Environment.Exit(0);
-                return;
             }
 
-            #endregion
 
+            #endregion
 
 
             services.AddSingleton(restClient);
@@ -188,6 +199,7 @@ namespace Biovation.Brands.Suprema
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

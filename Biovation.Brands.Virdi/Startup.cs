@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -100,12 +101,23 @@ namespace Biovation.Brands.Virdi
             #region checkLock
 
             var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-            if (!requestResult.Result.Data.Success)
+            try
             {
-                Environment.Exit(0);
-                return;
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
             }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(0);
+            }
+
 
             #endregion
 

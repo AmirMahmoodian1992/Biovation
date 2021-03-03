@@ -23,6 +23,7 @@ using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using Biovation.Domain;
 using Log = Serilog.Log;
 
@@ -88,19 +89,30 @@ namespace Biovation.Brands.EOS
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-            #region checkLock
-
-            //var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            //var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-            //if (!requestResult.Result.Data.Success)
-            //{
-            //    Environment.Exit(0);
-            //    return;
-            //}
-
-            #endregion
 
             services.AddSingleton(restClient);
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            try
+            {
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(0);
+            }
+
+
+            #endregion
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
