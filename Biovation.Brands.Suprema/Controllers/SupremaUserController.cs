@@ -1,6 +1,7 @@
-﻿using Biovation.Brands.Suprema.Commands;
-using Biovation.Brands.Suprema.Services;
+﻿using Biovation.Brands.Suprema.Services;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Manager;
-using Biovation.CommonClasses.Extension;
-using Biovation.Constants;
 
 namespace Biovation.Brands.Suprema.Controllers
 {
@@ -19,7 +17,6 @@ namespace Biovation.Brands.Suprema.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class SupremaUserController : ControllerBase
     {
-        private readonly CommandFactory _commandFactory;
         private readonly FastSearchService _fastSearchService;
 
         private readonly UserService _userService;
@@ -30,22 +27,19 @@ namespace Biovation.Brands.Suprema.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public SupremaUserController(UserService userService, AccessGroupService accessGroupService, FastSearchService fastSearchService, CommandFactory commandFactory, TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public SupremaUserController(UserService userService, AccessGroupService accessGroupService, FastSearchService fastSearchService, TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _userService = userService;
             _accessGroupService = accessGroupService;
             _fastSearchService = fastSearchService;
-            _commandFactory = commandFactory;
             _taskService = taskService;
             _deviceService = deviceService;
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskPriorities = taskPriorities;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
         }
 
@@ -80,7 +74,7 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel ModifyUser([FromBody]User user)
+        public ResultViewModel ModifyUser([FromBody] User user)
         {
             try
             {
@@ -96,64 +90,60 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel> SendUserToDevice(uint code, string userId)
+        public async Task<ResultViewModel> SendUserToDevice(uint code, string userId)
         {
-            return Task.Run(() =>
+            try
             {
+                var userIds = JsonConvert.DeserializeObject<long[]>(userId);
+                var creatorUser = HttpContext.GetUser();
 
-                try
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+                if (devices != null)
                 {
-                    var userIds = JsonConvert.DeserializeObject<long[]>(userId);
-                    var creatorUser = HttpContext.GetUser();
+                    var deviceId = devices.DeviceId;
 
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
-                    if (devices != null)
+                    var task = new TaskInfo
                     {
-                        var deviceId = devices.DeviceId;
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = _deviceBrands.Suprema,
+                        TaskItems = new List<TaskItem>()
+                    };
 
-                        var task = new TaskInfo
+                    foreach (var receivedUserId in userIds)
+                    {
+                        task.TaskItems.Add(new TaskItem
                         {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.SendUsers,
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendUser,
                             Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.Suprema,
-                            TaskItems = new List<TaskItem>()
-                        };
+                            DeviceId = deviceId,
+                            Data = JsonConvert.SerializeObject(new { UserId = receivedUserId }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1
+                        });
 
-                        foreach (var receivedUserId in userIds)
-                        {
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.SendUser,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = deviceId,
-                                Data = JsonConvert.SerializeObject(new { UserId = receivedUserId }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1
-                            });
-
-                            //listResult.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
-                        }
-                        _taskService.InsertTask(task);
+                        //listResult.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
                     }
-                    _taskManager.ProcessQueue();
-                    return new ResultViewModel { Validate = 1, Message = "Sending user queued" };
+                    _taskService.InsertTask(task);
                 }
-                catch (Exception e)
-                {
-                    Logger.Log($" --> SendUserToDevice Code: {code}  {e}");
-                    return new ResultViewModel { Validate = 0, Message = e.Message };
-                }
-            });
 
+                await _taskService.ProcessQueue(_deviceBrands.Suprema, devices?.DeviceId ?? 0).ConfigureAwait(false);
+                return new ResultViewModel { Validate = 1, Message = "Sending user queued" };
+            }
+            catch (Exception e)
+            {
+                Logger.Log($" --> SendUserToDevice Code: {code}  {e}");
+                return new ResultViewModel { Validate = 0, Message = e.Message };
+            }
         }
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel SendUserToAllDevices([FromBody]User user)
+        public async Task<ResultViewModel> SendUserToAllDevices([FromBody] User user)
         {
             var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
             var userId = user.Code;
@@ -193,7 +183,7 @@ namespace Biovation.Brands.Suprema.Controllers
                 return new ResultViewModel { Message = "Sending user queued", Validate = 1 };
             }
             _taskService.InsertTask(task);
-            _taskManager.ProcessQueue();
+            await _taskService.ProcessQueue(_deviceBrands.Suprema).ConfigureAwait(false);
             return new ResultViewModel { Id = user.Id, Validate = 1 };
         }
     }
