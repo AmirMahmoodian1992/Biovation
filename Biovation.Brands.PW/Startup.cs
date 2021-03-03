@@ -224,16 +224,17 @@ namespace Biovation.Brands.PW
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<PwCodeMappings, PwCodeMappings>();
 
+            services.AddSingleton<PwServer, PwServer>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<CommandFactory, CommandFactory>();
 
-            services.AddSingleton<PwServer, PwServer>();
             services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<PwHostedService>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var pwServer = serviceProvider.GetService<PwServer>();
+            //var serviceProvider = services.BuildServiceProvider();
+            //var pwServer = serviceProvider.GetService<PwServer>();
 
-            pwServer.StartServer();
+            //pwServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
