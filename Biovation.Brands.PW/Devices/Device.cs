@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.CommonClasses;
 using xLink;
 using Log = Biovation.Domain.Log;
 
@@ -278,7 +279,7 @@ namespace Biovation.Brands.PW.Devices
                         short newResult;
                         lock (_pwSdk)
                         {
-                            if (_offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
+                            if (_offlineLogReadCount != 0 && _offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
                                 _linkParam.clearPW = true;
 
                             newResult = _pwSdk.getIOs(_linkParam, newFilePath, ref newRecordsCount, ref newBonesFn,
@@ -294,7 +295,7 @@ namespace Biovation.Brands.PW.Devices
                         DeletePhysicalFile(Path.Combine(newFilePath, newBonesFn));
                         if (newResult == 0 && newRecordsCount > 0)
                         {
-                            if (newRecordsCount == _lastLogReadCount)
+                            if (newRecordsCount == _lastLogReadCount && _offlineLogReadCount > 3)
                             {
                                 Thread.Sleep(120000);
                                 continue;
@@ -331,9 +332,9 @@ namespace Biovation.Brands.PW.Devices
                                             logs.Add(log);
                                             //_pwLogService.AddLog(log);
                                         }
-                                        catch (Exception)
+                                        catch (Exception exception)
                                         {
-                                            //ignore
+                                            _logger.Warning(exception, exception.Message);
                                         }
                                     }
 
@@ -432,9 +433,9 @@ namespace Biovation.Brands.PW.Devices
 
                                     logs.Add(log);
                                 }
-                                catch (Exception)
+                                catch (Exception exception)
                                 {
-                                    //ignore
+                                    _logger.Warning(exception, exception.Message);
                                 }
                             }
 
@@ -557,9 +558,10 @@ namespace Biovation.Brands.PW.Devices
                                         thousandIndex++;
                                     }
                                 }
-                                catch (Exception)
+                                catch (Exception exception)
                                 {
-                                    //ignore
+                                    _logger.Warning(exception, exception.Message);
+
                                 }
                             }
 
@@ -719,6 +721,8 @@ namespace Biovation.Brands.PW.Devices
                 //recovering deleted logs
                 lock (_pwSdk)
                 {
+                    _logger.Information("Recovering logs of device {deviceCode} (OLD)", _deviceInfo.Code);
+                    _linkParam.clearPW = false;
                     result = _pwSdk.recoverIOs(_linkParam, filePath, new NetTypes.DATE_TYPE { y = 1, m = 1, d = 1 },
                         new NetTypes.DATE_TYPE { y = (short)(DateTime.Now.Year % 100), m = 12, d = 30 },
                         ref recordsCount, ref bonesFn,
@@ -764,7 +768,7 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            logs = logs.Where(log => log.LogDateTime > fromDate && log.LogDateTime < toDate).ToList();
+                            logs = logs.Where(log => log.LogDateTime >= fromDate && log.LogDateTime <= toDate).ToList();
 
                             var count = recordsCount;
                             var logInsertionTasks = new List<Task>();
@@ -775,7 +779,8 @@ namespace Biovation.Brands.PW.Devices
                                 try
                                 {
                                     var partedLogs = logs.Skip(i * 1000).Take(1000).ToList();
-                                    logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                    if (partedLogs.Count > 0)
+                                        logInsertionTasks.Add(_logService.AddLog(partedLogs));
                                     //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
                                 }
                                 catch (Exception exception)
@@ -808,6 +813,337 @@ namespace Biovation.Brands.PW.Devices
                             //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
                         }
                     }
+
+
+                    _logger.Debug($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
+                }
+                //else if (result == 1001)
+                //{
+                //    _logger.Debug($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
+                //    Disconnect();
+                //}
+                else
+                {
+                    _logger.Debug(
+                        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
+                }
+
+                var deviceLogs = new NetTypes.LOG_RECORD_TYPE[10000];
+
+                //recovering deleted logs (NEW)
+                lock (_pwSdk)
+                {
+                    _logger.Information("Recovering logs of device {deviceCode} (get logs)", _deviceInfo.Code);
+                    _linkParam.clearPW = false;
+                    result = _pwSdk.get_logs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref deviceLogs,
+                        _deviceInfo.Code);
+                }
+
+                //var userId = 0;
+                DeletePhysicalFile(Path.Combine(filePath, bonesFn));
+                if (result == 0)
+                {
+                    lock (LockObject) //make the object exclusive 
+                    {
+                        try
+                        {
+                            var logs = new List<Log>();
+
+                            for (var i = recordsCount - 1; i >= 0; i--)
+                            {
+                                try
+                                {
+                                    var userId = Convert.ToInt32(deviceLogs[i].userId);
+
+                                    var log = new Log
+                                    {
+                                        DeviceId = _deviceInfo.DeviceId,
+                                        DeviceCode = _deviceInfo.Code,
+                                        LogDateTime = new DateTime(deviceLogs[i].xDate.y, deviceLogs[i].xDate.m,
+                                            deviceLogs[i].xDate.d, deviceLogs[i].hh, deviceLogs[i].mn, deviceLogs[i].ss),
+                                        EventLog = _logEvents.Authorized,
+                                        UserId = userId,
+                                        MatchingType =
+                                            _pwCodeMappings.GetMatchingTypeGenericLookup(deviceLogs[i].logCode),
+                                        InOutMode = _deviceInfo.DeviceTypeId,
+                                        TnaEvent = 0,
+                                        SubEvent = _logSubEvents.Normal
+                                    };
+
+                                    logs.Add(log);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+                            }
+
+                            logs = logs.Where(log => log.LogDateTime >= fromDate && log.LogDateTime <= toDate).ToList();
+
+                            var count = recordsCount;
+                            var logInsertionTasks = new List<Task>();
+                            //_logService.AddLog(logs).ConfigureAwait(false);
+
+                            for (var i = 0; i < count / 1000; i++)
+                            {
+                                try
+                                {
+                                    var partedLogs = logs.Skip(i * 1000).Take(1000).ToList();
+                                    if (partedLogs.Count > 0)
+                                        logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                    //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.Warning(exception, exception.Message);
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                }
+                            }
+
+                            Task.WaitAll(logInsertionTasks.ToArray());
+
+                            Task.Run(() =>
+                            {
+                                for (var i = 0; i < logs.Count;)
+                                {
+                                    var log = logs[i];
+                                    _logger.Debug($@"<--
+                                    +TerminalID:{_deviceInfo.Code}
+                                    +UserID:{log.UserId}
+                                    +DateTime:{log.LogDateTime}
+                                    +AuthType:{log.MatchingType}
+                                    +Progress:{++i}/{recordsCount}");
+                                }
+                            }, CancellationToken);
+
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                            //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
+                    }
+
+
+                    _logger.Debug($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
+                }
+                //else if (result == 1001)
+                //{
+                //    _logger.Debug($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
+                //    Disconnect();
+                //}
+                else
+                {
+                    _logger.Debug(
+                        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
+                }
+
+                //recovering deleted logs (NEW)
+                lock (_pwSdk)
+                {
+                    _logger.Information("Recovering logs of device {deviceCode} (NEW with from backup -false)", _deviceInfo.Code);
+                    _linkParam.clearPW = false;
+                    result = _pwSdk.NEW_recoverIOs(_linkParam, filePath, new NetTypes.DATE_TYPE { y = 1, m = 1, d = 1 },
+                        new NetTypes.DATE_TYPE { y = (short)(DateTime.Now.Year % 100), m = 12, d = 30 },
+                        ref recordsCount, ref bonesFn,
+                        ref records, gateNumber, 0, false);
+                }
+
+                //var userId = 0;
+                DeletePhysicalFile(Path.Combine(filePath, bonesFn));
+                if (result == 0)
+                {
+                    lock (LockObject) //make the object exclusive 
+                    {
+                        try
+                        {
+                            var logs = new List<Log>();
+
+                            for (var i = recordsCount - 1; i >= 0; i--)
+                            {
+                                try
+                                {
+                                    var userId = Convert.ToInt32(records[i].cardNo);
+
+                                    var log = new Log
+                                    {
+                                        DeviceId = _deviceInfo.DeviceId,
+                                        DeviceCode = _deviceInfo.Code,
+                                        LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
+                                            records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
+                                        EventLog = _logEvents.Authorized,
+                                        UserId = userId,
+                                        MatchingType =
+                                            _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
+                                        InOutMode = _deviceInfo.DeviceTypeId,
+                                        TnaEvent = 0,
+                                        SubEvent = _logSubEvents.Normal
+                                    };
+
+                                    logs.Add(log);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+                            }
+
+                            logs = logs.Where(log => log.LogDateTime >= fromDate && log.LogDateTime <= toDate).ToList();
+
+                            var count = recordsCount;
+                            var logInsertionTasks = new List<Task>();
+                            //_logService.AddLog(logs).ConfigureAwait(false);
+
+                            for (var i = 0; i < count / 1000; i++)
+                            {
+                                try
+                                {
+                                    var partedLogs = logs.Skip(i * 1000).Take(1000).ToList();
+                                    if (partedLogs.Count > 0)
+                                        logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                    //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.Warning(exception, exception.Message);
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                }
+                            }
+
+                            Task.WaitAll(logInsertionTasks.ToArray());
+
+                            Task.Run(() =>
+                            {
+                                for (var i = 0; i < logs.Count;)
+                                {
+                                    var log = logs[i];
+                                    _logger.Debug($@"<--
+                                    +TerminalID:{_deviceInfo.Code}
+                                    +UserID:{log.UserId}
+                                    +DateTime:{log.LogDateTime}
+                                    +AuthType:{log.MatchingType}
+                                    +Progress:{++i}/{recordsCount}");
+                                }
+                            }, CancellationToken);
+
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                            //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
+                    }
+
+
+                    _logger.Debug($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
+                }
+                //else if (result == 1001)
+                //{
+                //    _logger.Debug($"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} Because the device is disconnected ErrorCode={result}");
+                //    Disconnect();
+                //}
+                else
+                {
+                    _logger.Debug(
+                        $"Could not retrieve offline logs from DeviceId:{_deviceInfo.Code} General Log Data Count:0 ErrorCode={result}");
+                }
+
+                //recovering deleted logs (NEW)
+                lock (_pwSdk)
+                {
+                    _logger.Information("Recovering logs of device {deviceCode} (NEW with from backup -true)", _deviceInfo.Code);
+                    _linkParam.clearPW = false;
+                    result = _pwSdk.NEW_recoverIOs(_linkParam, filePath, new NetTypes.DATE_TYPE { y = 1, m = 1, d = 1 },
+                        new NetTypes.DATE_TYPE { y = (short)(DateTime.Now.Year % 100), m = 12, d = 30 },
+                        ref recordsCount, ref bonesFn,
+                        ref records, gateNumber, 0, true);
+                }
+
+                //var userId = 0;
+                DeletePhysicalFile(Path.Combine(filePath, bonesFn));
+                if (result == 0)
+                {
+                    lock (LockObject) //make the object exclusive 
+                    {
+                        try
+                        {
+                            var logs = new List<Log>();
+
+                            for (var i = recordsCount - 1; i >= 0; i--)
+                            {
+                                try
+                                {
+                                    var userId = Convert.ToInt32(records[i].cardNo);
+
+                                    var log = new Log
+                                    {
+                                        DeviceId = _deviceInfo.DeviceId,
+                                        DeviceCode = _deviceInfo.Code,
+                                        LogDateTime = new DateTime(records[i].xDate.y, records[i].xDate.m,
+                                            records[i].xDate.d, records[i].hh, records[i].mn, records[i].ss),
+                                        EventLog = _logEvents.Authorized,
+                                        UserId = userId,
+                                        MatchingType =
+                                            _pwCodeMappings.GetMatchingTypeGenericLookup(records[i].ioType),
+                                        InOutMode = _deviceInfo.DeviceTypeId,
+                                        TnaEvent = 0,
+                                        SubEvent = _logSubEvents.Normal
+                                    };
+
+                                    logs.Add(log);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+                            }
+
+                            logs = logs.Where(log => log.LogDateTime >= fromDate && log.LogDateTime <= toDate).ToList();
+
+                            var count = recordsCount;
+                            var logInsertionTasks = new List<Task>();
+                            //_logService.AddLog(logs).ConfigureAwait(false);
+
+                            for (var i = 0; i < count / 1000; i++)
+                            {
+                                try
+                                {
+                                    var partedLogs = logs.Skip(i * 1000).Take(1000).ToList();
+                                    if (partedLogs.Count > 0)
+                                        logInsertionTasks.Add(_logService.AddLog(partedLogs));
+                                    //if (saveFile) _logService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.Warning(exception, exception.Message);
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                }
+                            }
+
+                            Task.WaitAll(logInsertionTasks.ToArray());
+
+                            Task.Run(() =>
+                            {
+                                for (var i = 0; i < logs.Count;)
+                                {
+                                    var log = logs[i];
+                                    _logger.Debug($@"<--
+                                    +TerminalID:{_deviceInfo.Code}
+                                    +UserID:{log.UserId}
+                                    +DateTime:{log.LogDateTime}
+                                    +AuthType:{log.MatchingType}
+                                    +Progress:{++i}/{recordsCount}");
+                                }
+                            }, CancellationToken);
+
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                            //_logger.Debug($"User id of log is not in a correct format. UserId : {userId}", logType: LogType.Warning);
+                        }
+                    }
+
 
                     _logger.Debug($"{recordsCount} Offline log retrieved from DeviceId: {_deviceInfo.Code}.");
                 }
@@ -866,7 +1202,7 @@ namespace Biovation.Brands.PW.Devices
                     _linkParam.sysNo = (ushort)_deviceInfo.Code;
                     _linkParam.comPort = 1;
                     _linkParam.viaF = 0;
-                    _linkParam.ioAuto = 1;
+                    _linkParam.ioAuto = 0;
                     _linkParam.pwIP = _deviceInfo.IpAddress;
                     _linkParam.pwPort = _deviceInfo.Port == 0 ? 10001 : _deviceInfo.Port;
                     _linkParam.hwType = GetDeviceType(_deviceInfo.ModelId) == 0 ? (byte)_deviceInfo.ManufactureCode : GetDeviceType(_deviceInfo.ModelId);
