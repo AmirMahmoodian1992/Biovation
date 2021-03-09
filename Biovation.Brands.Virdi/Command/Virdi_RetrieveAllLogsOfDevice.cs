@@ -36,6 +36,7 @@ namespace Biovation.Brands.Virdi.Command
 
         public VirdiRetrieveAllLogsOfDevice(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
         {
+            _virdiServer = virdiServer;
             if (items.Count == 1)
             { DeviceId = Convert.ToInt32(items[0]); }
             else

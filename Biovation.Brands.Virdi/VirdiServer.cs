@@ -208,7 +208,7 @@ namespace Biovation.Brands.Virdi
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService
             , FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, DeviceBrands deviceBrands
             , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , ILogger<VirdiServer> logger, TaskStatuses taskStatuses)
+            , ILogger<VirdiServer> logger, TaskStatuses taskStatuses, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
@@ -225,7 +225,7 @@ namespace Biovation.Brands.Virdi
             _virdiLogService = virdiLogService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _virdiCodeMappings = virdiCodeMappings;
-            _onlineDevices = GetOnlineDevices();
+            _onlineDevices = onlineDevices;
 
             _deviceBrands = deviceBrands;
             _logEvents = logEvents;
