@@ -1830,15 +1830,12 @@ namespace Biovation.Brands.Virdi
             Logger.Log("Device firmware version: { ClientID:" + clientId + ", DeviceID:" + terminalId + ", Version:" + version + " }", logType: LogType.Information);
         }
 
-
-
-
-
         private void GetTerminalTimeCallback(int terminalId)
         {
-            Logger.Log($"Device time: {{ DeviceID: {terminalId} Time: }}");
+            Logger.Log($"Device time: {{ DeviceID: {terminalId} Time: {DateTime.Now} }}");
 
-            //this.ucsAPI.SetTerminalTime(2015, 10, 20, 11, 22, 33);
+            //UcsApi.SetTerminalTime((short) DateTime.Now.Year, (byte) DateTime.Now.Month, (byte) DateTime.Now.Day, (byte) DateTime.Now.Hour, (byte) DateTime.Now.Minute, (byte) DateTime.Now.Second);
+            UcsApi.SetTerminalTimezone(terminalId, "Iran Daylight Time");
         }
 
         //private void GetTerminalOptionCallback(int clientId, int terminalId)

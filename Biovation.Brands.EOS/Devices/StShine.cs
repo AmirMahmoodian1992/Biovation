@@ -22,12 +22,13 @@ namespace Biovation.Brands.EOS.Devices
     /// برای ساعت ST-Pro
     /// </summary>
     /// <seealso cref="Device" />
-    public class StShineDevice : Device
+    public class StShineDevice : Device, IDisposable
     {
         private Clock _clock;
         private int _counter;
         private readonly ProtocolType _protocolType;
         private readonly object _clockInstantiationLock = new object();
+        private Timer _fixDaylightSavingTimer;
 
         private readonly ILogger _logger;
         private readonly DeviceBasicInfo _deviceInfo;
@@ -103,11 +104,20 @@ namespace Biovation.Brands.EOS.Devices
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
-            if (_deviceInfo.TimeSync)
+            var setDateTimeResult = SetDateTime();
+            if (!setDateTimeResult)
+                _logger.Warning("Could not set the time of device {deviceCode}", _deviceInfo.Code);
+
+            try
             {
-                var setDateTimeResult = SetDateTime();
-                if (!setDateTimeResult)
-                    _logger.Warning("Could not set the time of device {deviceCode}", _deviceInfo.Code);
+                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
             }
 
             _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
@@ -119,6 +129,10 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool SetDateTime()
         {
+            lock (_deviceInfo)
+                if (!_deviceInfo.TimeSync)
+                    return true;
+
             for (var i = 0; i < 5; i++)
             {
                 try
@@ -136,6 +150,11 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             return false;
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
         }
 
         private bool IsConnected()
@@ -1424,6 +1443,18 @@ namespace Biovation.Brands.EOS.Devices
             }
         }
 
+        public void Dispose()
+        {
+            try
+            {
+                _clock?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
+            }
+        }
     }
 }
 

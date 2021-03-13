@@ -17,7 +17,7 @@ using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
 {
-    public class HanvonBase : Device
+    public class HanvonBase : Device, IDisposable
     {
         private readonly StFace _stFace;
         private readonly DeviceBasicInfo _deviceInfo;
@@ -28,6 +28,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly DeviceBrands _deviceBrands;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
+        private Timer _fixDaylightSavingTimer;
 
         private int _counter;
 
@@ -49,8 +50,13 @@ namespace Biovation.Brands.EOS.Devices
             _faceTemplateTypes = faceTemplateTypes;
             _stFace = new StFace(new TCPIPConnection
             {
-                IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100,
-                WaitBeforeRead = 100, ReadInCompleteTimeOut = 10, RetryCount = 1
+                IP = _deviceInfo.IpAddress,
+                Port = _deviceInfo.Port,
+                ReadTimeout = 100,
+                WriteTimeout = 100,
+                WaitBeforeRead = 100,
+                ReadInCompleteTimeOut = 10,
+                RetryCount = 1
             });
         }
 
@@ -93,38 +99,29 @@ namespace Biovation.Brands.EOS.Devices
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
-            try
-            {
-                if (_deviceInfo.TimeSync)
-                    lock (_stFace)
-                    {
-                        _stFace.SetDateTime(DateTime.Now);
-                    }
-            }
-            catch (Exception)
-            {
-                Thread.Sleep(500);
-                try
-                {
-                    if (_deviceInfo.TimeSync)
-                        lock (_stFace)
-                        {
-                            _stFace.SetDateTime(DateTime.Now);
-                        }
-                }
-                catch (Exception innerException)
-                {
-                    Logger.Log(innerException);
-                }
-            }
+            var setDateTimeResult = SetDateTime();
+            if (!setDateTimeResult)
+                Logger.Log($"Could not set the time of device {_deviceInfo.Code}");
 
             TimeZone(); //It should be called for the Format DateTime Func. (Knows work with Georgian or persian calender)
+
+            try
+            {
+                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
+            }
 
             _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
 
             Valid = true;
 
-            Task.Run(() => { ReadOnlineLog(Token); }, Token);
+            Task.Run(() => { ReadOnlineLog(Token); }, Token).ConfigureAwait(false);
             return true;
         }
 
@@ -136,12 +133,12 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     try
                     {
-                        ((TCPIPConnection) _stFace.Connection).IsProtected = false;
+                        ((TCPIPConnection)_stFace.Connection).IsProtected = false;
                         _stFace.Connect();
                         if (!string.IsNullOrWhiteSpace(_deviceInfo.DeviceLockPassword))
                         {
-                            ((TCPIPConnection) _stFace.Connection).IsProtected = true;
-                            ((TCPIPConnection) _stFace.Connection).Password = _deviceInfo.DeviceLockPassword;
+                            ((TCPIPConnection)_stFace.Connection).IsProtected = true;
+                            ((TCPIPConnection)_stFace.Connection).Password = _deviceInfo.DeviceLockPassword;
                         }
 
                         if (_stFace.TestConnection())
@@ -169,12 +166,12 @@ namespace Biovation.Brands.EOS.Devices
                     lock (_stFace)
                         try
                         {
-                            ((TCPIPConnection) _stFace.Connection).IsProtected = false;
+                            ((TCPIPConnection)_stFace.Connection).IsProtected = false;
                             _stFace.Connect();
                             if (!string.IsNullOrWhiteSpace(_deviceInfo.DeviceLockPassword))
                             {
-                                ((TCPIPConnection) _stFace.Connection).IsProtected = true;
-                                ((TCPIPConnection) _stFace.Connection).Password = _deviceInfo.DeviceLockPassword;
+                                ((TCPIPConnection)_stFace.Connection).IsProtected = true;
+                                ((TCPIPConnection)_stFace.Connection).Password = _deviceInfo.DeviceLockPassword;
                             }
 
                             if (!_stFace.TestConnection()) continue;
@@ -195,6 +192,35 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             return false;
+        }
+
+        public bool SetDateTime()
+        {
+            if (!_deviceInfo.TimeSync)
+                return true;
+
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_stFace)
+                        _stFace.SetDateTime(DateTime.Now);
+
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    Thread.Sleep(++i * 200);
+                }
+            }
+
+            return false;
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
         }
 
         internal override User GetUser(uint userId)
@@ -230,7 +256,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     user.IdentityCard = new IdentityCard
                     {
-                        Id = (int) terminalUserData.Id,
+                        Id = (int)terminalUserData.Id,
                         Number = terminalUserData.CardNumber,
                         DataCheck = 0,
                         IsActive = !string.Equals(terminalUserData.CardNumber, "0xffffffff",
@@ -292,12 +318,12 @@ namespace Biovation.Brands.EOS.Devices
                 bool deletion;
                 lock (_stFace)
                 {
-                    var user = _stFace.GetUserInfo((int) sUserId);
+                    var user = _stFace.GetUserInfo((int)sUserId);
                     if (user == null) return true;
                 }
 
                 lock (_stFace)
-                    deletion = _stFace.DeleteUser((int) sUserId);
+                    deletion = _stFace.DeleteUser((int)sUserId);
 
                 return deletion;
             }
@@ -466,7 +492,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             user.IdentityCard = new IdentityCard
                             {
-                                Id = (int) retrievedUser.Id,
+                                Id = (int)retrievedUser.Id,
                                 Number = retrievedUser.CardNumber,
                                 DataCheck = 0,
                                 IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff",
@@ -729,7 +755,7 @@ namespace Biovation.Brands.EOS.Devices
                 Connect();
 
             //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
-            return new ResultViewModel {Id = _deviceInfo.DeviceId, Validate = 0, Message = "0"};
+            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
         }
 
         public DateTime TimeZone()
@@ -842,7 +868,7 @@ namespace Biovation.Brands.EOS.Devices
 
             if (!flag)
                 return new ResultViewModel
-                    {Success = false, Message = "Can't communicate with device with message" + text, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                { Success = false, Message = "Can't communicate with device with message" + text, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             var num = text.IndexOf("time=", 0, StringComparison.Ordinal);
             while (num > 0 && num + "time=".Length < text.Length)
             {
@@ -859,7 +885,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (logs.Count <= 0)
-                return new ResultViewModel {Success = false, Message = "Can't communicate with device", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                return new ResultViewModel { Success = false, Message = "Can't communicate with device", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             var records = logs.Select(FaceIdRecord.Parse).Cast<Record>().ToList();
 
             foreach (var record in records)
@@ -871,7 +897,7 @@ namespace Biovation.Brands.EOS.Devices
                         var receivedLog = new Log
                         {
                             LogDateTime = record.DateTime,
-                            UserId = (int) record.ID,
+                            UserId = (int)record.ID,
                             DeviceId = _deviceInfo.DeviceId,
                             DeviceCode = _deviceInfo.Code,
                             InOutMode = _deviceInfo.DeviceTypeId,
@@ -900,7 +926,20 @@ namespace Biovation.Brands.EOS.Devices
 
             _logService.AddLog(eosLogs);
             return new ResultViewModel
-                {Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+            { Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                _stFace?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
+            }
         }
     }
 }

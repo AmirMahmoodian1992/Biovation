@@ -22,7 +22,7 @@ using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Brands.EOS.Devices
 {
-    public class ZkBaseDevice : Device
+    public class ZkBaseDevice : Device, IDisposable
     {
         protected readonly DeviceBasicInfo DeviceInfo;
         private readonly TaskService _taskService;
@@ -36,6 +36,7 @@ namespace Biovation.Brands.EOS.Devices
         //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
         private readonly RestClient _restClient;
         protected CancellationTokenSource TokenSource = new CancellationTokenSource();
+        private Timer _fixDaylightSavingTimer;
 
         protected readonly CZKEMClass ZkTecoSdk = new CZKEMClass(); //create Standalone _zkTecoSdk class dynamically
         private bool _reconnecting;
@@ -173,35 +174,18 @@ namespace Biovation.Brands.EOS.Devices
 
                 _deviceService.ModifyDevice(DeviceInfo);
 
-                if (DeviceInfo.TimeSync)
+                SetDateTime();
+
+                try
                 {
-                    try
-                    {
-                        try
-                        {
-                            var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year, DateTime.Now.Month,
-                                DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                            if (result)
-                                Logger.Log($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
-                            else
-                            {
-                                result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
-                                Logger.Log(result
-                                    ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
-                                    : $"Could not set time for device {DeviceInfo.Code}");
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                            ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
-                            Logger.Log($"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
-                        }
-                    }
-                    catch (Exception exception)
-                    {
-                        Logger.Log(exception);
-                    }
+                    //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                    //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                    var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                    _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
                 }
             }
 
@@ -252,7 +236,7 @@ namespace Biovation.Brands.EOS.Devices
                     DueDate = DateTimeOffset.Now
                 };
 
-                
+
 
                 task.TaskItems.Add(new TaskItem
                 {
@@ -260,7 +244,7 @@ namespace Biovation.Brands.EOS.Devices
                     TaskItemType = _taskItemTypes.GetLogsInPeriod,
                     Priority = _taskPriorities.Medium,
                     DeviceId = DeviceInfo.DeviceId,
-                    Data = JsonConvert.SerializeObject(new { fromDate= DateTime.Now.AddMonths(-3), toDate = DateTime.Now.AddDays(5) }),
+                    Data = JsonConvert.SerializeObject(new { fromDate = DateTime.Now.AddMonths(-3), toDate = DateTime.Now.AddDays(5) }),
                     IsParallelRestricted = true,
                     IsScheduled = false,
                     OrderIndex = 1
@@ -301,6 +285,44 @@ namespace Biovation.Brands.EOS.Devices
             if (TokenSource.IsCancellationRequested) return;
             _reconnecting = true;
             Task.Run(() => { Connect(); }, TokenSource.Token);
+        }
+
+        public void SetDateTime()
+        {
+            if (!DeviceInfo.TimeSync) return;
+
+            try
+            {
+                try
+                {
+                    var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year, DateTime.Now.Month,
+                        DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                    if (result)
+                        Logger.Log($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
+                    else
+                    {
+                        result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                        Logger.Log(result
+                            ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
+                            : $"Could not set time for device {DeviceInfo.Code}");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                    Logger.Log($"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
         }
 
         public bool Disconnect(bool cancelReconnecting = true)
@@ -1351,6 +1373,19 @@ namespace Biovation.Brands.EOS.Devices
                     Logger.Log($"Error in Clear Log device code: {code}", logType: LogType.Warning);
                     return false;
                 }
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                TokenSource?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
             }
         }
     }

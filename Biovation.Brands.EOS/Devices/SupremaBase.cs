@@ -22,7 +22,7 @@ namespace Biovation.Brands.EOS.Devices
     /// برای ساعت ST-Pro
     /// </summary>
     /// <seealso cref="Device" />
-    public class SupremaBaseDevice : Device
+    public class SupremaBaseDevice : Device, IDisposable
     {
         private Clock _clock;
         private int _counter;
@@ -30,10 +30,11 @@ namespace Biovation.Brands.EOS.Devices
 
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly LogService _logService;
+        private Timer _fixDaylightSavingTimer;
 
         private readonly RestClient _restClient;
         private readonly TaskService _taskService;
-        private readonly DeviceBrands _deviceBrands; 
+        private readonly DeviceBrands _deviceBrands;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
@@ -377,11 +378,20 @@ namespace Biovation.Brands.EOS.Devices
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
-            if (_deviceInfo.TimeSync)
+            var setDateTimeResult = SetDateTime();
+            if (!setDateTimeResult)
+                Logger.Log($"Could not set the time of device {_deviceInfo.Code}");
+
+            try
             {
-                var setDateTimeResult = SetDateTime();
-                if (!setDateTimeResult)
-                    Logger.Log($"Could not set the time of device {_deviceInfo.Code}");
+                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
             }
 
             _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
@@ -427,6 +437,10 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool SetDateTime()
         {
+            lock (_deviceInfo)
+                if (!_deviceInfo.TimeSync)
+                    return true;
+
             for (var i = 0; i < 5; i++)
             {
                 try
@@ -444,6 +458,11 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             return false;
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
         }
 
         private bool IsConnected()
@@ -831,8 +850,8 @@ namespace Biovation.Brands.EOS.Devices
 
                     Logger.Log($"Transferring user {user.Code} to device {_deviceInfo.Code},  the user has {userTemplates.Count} valid templates");
 
-                     var supremaMatcher = new UFMatcher();
-                    
+                    var supremaMatcher = new UFMatcher();
+
                     for (var index = 0; index < userTemplates.Count; index += 2)
                     {
                         var firstFingerTemplate = userTemplates[index];
@@ -861,7 +880,7 @@ namespace Biovation.Brands.EOS.Devices
                                     firstFingerTemplate.Template, EnrollOptions.Check_Finger);
                                 sendTemplateResult = checkExistenceResult.ScanState == ScanState.Success ||
                                                      checkExistenceResult.ScanState == ScanState.Scan_Success ||
-                                                     checkExistenceResult.ScanState == ScanState.Data_Ok || checkExistenceResult.ID > 0; 
+                                                     checkExistenceResult.ScanState == ScanState.Data_Ok || checkExistenceResult.ID > 0;
                                 if (checkExistenceResult.ScanState != ScanState.Exist_Finger) break;
                                 Logger.Log($"The {index + 1} of {userTemplates.Count} finger template of user {user.Code} exists on device");
                                 break;
@@ -1332,7 +1351,7 @@ namespace Biovation.Brands.EOS.Devices
 
             if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
             {
-                endTime = new DateTime(2021, 3, 19);
+                //endTime = new DateTime(2021, 3, 19);
                 invalidTime = true;
             }
 
@@ -1602,6 +1621,19 @@ namespace Biovation.Brands.EOS.Devices
                     Logger.Log("Searching right side of mid");
                     BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
                 }
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                _clock?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
             }
         }
     }

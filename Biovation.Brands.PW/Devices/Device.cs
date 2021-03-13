@@ -12,13 +12,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.CommonClasses;
 using xLink;
 using Log = Biovation.Domain.Log;
 
 namespace Biovation.Brands.PW.Devices
 {
-    public class Device : IDevices
+    public class Device : IDevices, IDisposable
     {
         internal CancellationToken CancellationToken;
         private bool _valid;
@@ -32,6 +31,7 @@ namespace Biovation.Brands.PW.Devices
         private int _lastLogReadCount;
         private int _offlineLogReadCount = 1;
         private readonly bool _clearLogAfterRetrieving;
+        private Timer _fixDaylightSavingTimer;
 
         private readonly ILogger _logger;
         private readonly LogEvents _logEvents;
@@ -80,19 +80,18 @@ namespace Biovation.Brands.PW.Devices
             {
                 _logger.Debug($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
 
-                if (_deviceInfo.TimeSync)
+                SetDateTime();
+
+                try
                 {
-                    lock (_pwSdk)
-                    {
-                        try
-                        {
-                            _pwSdk.sendTime(_linkParam);
-                        }
-                        catch (Exception)
-                        {
-                            // ignore
-                        }
-                    }
+                    //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                    //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                    var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                    _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Warning(exception, exception.Message);
                 }
 
                 //Task.Run(() => { ReadOnlineLog(Token); }, Token);
@@ -220,6 +219,26 @@ namespace Biovation.Brands.PW.Devices
             return false;
         }
 
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
+        }
+
+        public void SetDateTime()
+        {
+            if (!_deviceInfo.TimeSync) return;
+            lock (_pwSdk)
+            {
+                try
+                {
+                    _pwSdk.sendTime(_linkParam);
+                }
+                catch (Exception)
+                {
+                    // ignore
+                }
+            }
+        }
         public bool TransferUser(User user)
         {
             throw new NotImplementedException();
@@ -1252,6 +1271,18 @@ namespace Biovation.Brands.PW.Devices
                     return NetConsts.DV_PW1700;
                 default:
                     return 0;
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
             }
         }
     }

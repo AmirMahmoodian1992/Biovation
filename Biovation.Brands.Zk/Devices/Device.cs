@@ -41,6 +41,7 @@ namespace Biovation.Brands.ZK.Devices
         //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
         private readonly RestClient _restClient;
         protected CancellationTokenSource TokenSource = new CancellationTokenSource();
+        private Timer _fixDaylightSavingTimer;
 
         protected readonly CZKEMClass ZkTecoSdk = new CZKEMClass(); //create Standalone _zkTecoSdk class dynamically
         private bool _reconnecting;
@@ -197,38 +198,42 @@ namespace Biovation.Brands.ZK.Devices
 
                     _deviceService.ModifyDevice(DeviceInfo);
 
-                    if (DeviceInfo.TimeSync)
+                    SetDateTime();
+
+                    try
                     {
-                        try
-                        {
-                            try
-                            {
-                                var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year,
-                                    DateTime.Now.Month,
-                                    DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                                if (result)
-                                    _logger.Debug($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
-                                else
-                                {
-                                    result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
-                                    _logger.Debug(result
-                                        ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
-                                        : $"Could not set time for device {DeviceInfo.Code}");
-                                }
-                            }
-                            catch (Exception exception)
-                            {
-                                _logger.Warning(exception, exception.Message);
-                                ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
-                                _logger.Debug(
-                                    $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            _logger.Warning(exception, exception.Message);
-                        }
+                        //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                        //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                        var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                        _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
                     }
+                    catch (Exception exception)
+                    {
+                        _logger.Information(exception, exception.Message);
+                    }
+                    #region Set DayLight Saving
+                    try
+                    {
+                        //var dstResult = DateTime.Now.Year%4 == 0 ? ZKTecoSdk.SetDaylight((int) DeviceInfo.Code, 1, "03-20 00:00", "09-20 23:59") : ZKTecoSdk.SetDaylight((int)DeviceInfo.Code, 1, "03-21 00:00", "09-21 23:59");
+                        //Logger.Log(dstResult
+                        //    ? $"Device {DeviceInfo.Code} DST has been set"
+                        //    : $"Could not set DST for device {DeviceInfo.Code}");
+                        //var dstResult = ZKTecoSdk.SetDaylight((int) DeviceInfo.Code, 1,  "03/20 00:00", "09/20 23:59");
+                        //    string str1 = new DateTime(1990, 3, 20, 0, 0, 0).ToString("MM- dd hh: mm");
+                        //    string str2 = new DateTime(1990, 9, 20, 23, 59, 0).ToString("MM- dd hh: mm");
+                        //    var dstResult = ZKTecoSdk.SetDaylight((int)DeviceInfo.Code, 1,str1 , str2);
+                        //    string st1="";
+                        //    string st2="";
+                        //    int sup=0;
+                        //    var res = ZKTecoSdk.GetDaylight((int) DeviceInfo.Code,  ref sup,  ref st1, ref st2);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+
+                    #endregion
                 }
 
                 if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
@@ -350,6 +355,44 @@ namespace Biovation.Brands.ZK.Devices
             }, cancellationToken);
         }
 
+        public void SetDateTime()
+        {
+            if (!DeviceInfo.TimeSync) return;
+            try
+            {
+                try
+                {
+                    var result = ZkTecoSdk.SetDeviceTime2((int)DeviceInfo.Code, DateTime.Now.Year,
+                        DateTime.Now.Month,
+                        DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                    if (result)
+                        _logger.Debug($"Device {DeviceInfo.Code} time has been set to: {DateTime.Now:u}");
+                    else
+                    {
+                        result = ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                        _logger.Debug(result
+                            ? $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}"
+                            : $"Could not set time for device {DeviceInfo.Code}");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    _logger.Warning(exception, exception.Message);
+                    ZkTecoSdk.SetDeviceTime((int)DeviceInfo.Code);
+                    _logger.Debug(
+                        $"Device {DeviceInfo.Code} time has been set to server time: {DateTime.Now:u}");
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
+            }
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
+        }
         public async Task CheckConnection(CancellationToken cancellationToken)
         {
             int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
@@ -1707,6 +1750,19 @@ namespace Biovation.Brands.ZK.Devices
                     Message = $" Couldn't upload user photos of device {DeviceInfo.Code}",
                     Code = Convert.ToInt64(TaskStatuses.FailedCode)
                 };
+            }
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                TokenSource?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
             }
         }
     }
