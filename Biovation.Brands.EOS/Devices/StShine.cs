@@ -1422,6 +1422,29 @@ namespace Biovation.Brands.EOS.Devices
             }
         }
 
+
+        public override Dictionary<string, string> GetAdditionalData(int code)
+        {
+            var dictionary = new Dictionary<string, string>();
+            int userCount;
+            int templateCount;
+            int packetCount;
+            lock (_clock)
+            {
+                dictionary.Add("DateTime",_clock.GetDateTime().ToString(CultureInfo.InvariantCulture));
+                dictionary.Add("Calender", _clock.GetCalendarType().ToString());
+                _clock.GetCountOfUsersAndTemplatesStShine(out userCount, out templateCount, out packetCount);
+                dictionary.Add("Firmware Version",_clock.GetFirmwareVersion());
+                dictionary.Add("Mac Address", _clock.GetMacAddress());
+                dictionary.Add("Wifi Mac Address",_clock.GetWifiMacAddress());
+                dictionary.Add("Write Pointer", _clock.GetWritePointer().ToString());
+                dictionary.Add("Read Pointer", _clock.GetReadPointer().ToString());
+            }
+            dictionary.Add("User Counts", userCount.ToString());
+            dictionary.Add("Template Counts", templateCount.ToString());
+            dictionary.Add("Packet Counts", packetCount.ToString());
+            return dictionary;
+        }
     }
 }
 
