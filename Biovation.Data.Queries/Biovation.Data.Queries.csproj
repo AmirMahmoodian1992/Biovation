@@ -322,6 +322,17 @@
     <None Remove="Scripts\08.Indexes\0015-TaskItem IX_Device_Status_NonClustered.sql" />
     <None Remove="Scripts\08.Indexes\0016-Device IX_Model_NonClustered.sql" />
     <None Remove="Scripts\08.Indexes\0017-Device IX_Code_Model_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0018-DeviceModel IX_Brand_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0022-FingerTemplate IX_User_TemplateType_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0023-GenericCodeMapping IX_Category_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0024-Lookup IX_Category_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0025-Task IX_Brand_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
+    <None Remove="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -621,6 +632,17 @@
     <EmbeddedResource Include="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0003-Log IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0025-Task IX_Brand_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0024-Lookup IX_Category_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0023-GenericCodeMapping IX_Category_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0022-FingerTemplate IX_User_TemplateType_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0018-DeviceModel IX_Brand_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0017-Device IX_Code_Model_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0016-Device IX_Model_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0015-TaskItem IX_Device_Status_NonClustered.sql" />
