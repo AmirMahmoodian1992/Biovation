@@ -1,32 +1,27 @@
-﻿using Biovation.CommonClasses;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Biovation.Brands.EOS.Devices;
+using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 
-namespace Biovation.Brands.ZK.Command
+namespace Biovation.Brands.EOS.Commands
 {
-    public class ZkGetAdditionalData : ICommand
+    public class EOSGetAdditionalData : ICommand
     {
         private readonly DeviceService _deviceService;
 
         //private uint DeviceId { get; }
         private TaskItem TaskItem { get; }
         private Dictionary<uint, Device> OnlineDevices { get; }
-        private int Code { get; }
 
-        public ZkGetAdditionalData(uint code, Dictionary<uint, Device> onlineDevices, TaskItem taskItem, DeviceService deviceService)
+        public EOSGetAdditionalData(Dictionary<uint, Device> onlineDevices, TaskItem taskItem, DeviceService deviceService)
         {
             OnlineDevices = onlineDevices;
             TaskItem = taskItem;
             _deviceService = deviceService;
-
-            Code = Convert.ToInt32(code);
         }
 
         public object Execute()
@@ -37,14 +32,14 @@ namespace Biovation.Brands.ZK.Command
             var deviceId = TaskItem.DeviceId;
             var device = _deviceService.GetDevice(deviceId)?.Data;
             if (device is null)
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
+                return new Dictionary<string, string>();
 
             if (!OnlineDevices.ContainsKey(device.Code))
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
+                return new Dictionary<string, string>();
 
             try
             {
-                var result = OnlineDevices[device.Code].GetAdditionalData(Code);
+                var result = OnlineDevices[device.Code].GetAdditionalData((int)device.Code);
                 return result;
                 
             }
@@ -57,12 +52,12 @@ namespace Biovation.Brands.ZK.Command
 
         public string GetDescription()
         {
-            return $"GetAdditionalData from Device {Code}";
+            return $"GetAdditionalData from Device";
         }
 
         public string GetTitle()
         {
-            return $"GetAdditionalData from Device {Code}";
+            return $"GetAdditionalData from Device";
         }
 
         public void Rollback()

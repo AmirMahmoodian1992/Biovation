@@ -351,5 +351,105 @@ namespace Biovation.Brands.EOS.Controllers
         }
 
 
+        [HttpGet]
+        [Authorize]
+        public Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        {
+            return Task.Run(() =>
+            {
+                var creatorUser = HttpContext.GetUser();
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.GetLogsInPeriod,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Eos,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                    ?.FirstOrDefault();
+
+                if (device is null)
+                {
+                    return null;
+                }
+
+
+                var deviceId = device.DeviceId;
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = deviceId,
+                    Data = JsonConvert.SerializeObject(new { deviceId}),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0
+                });
+                var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                    new List<object> { task.TaskItems.FirstOrDefault() });
+
+                var result = getAdditionalData.Execute();
+
+                return (Dictionary<string, string>)result;
+            });
+
+            //return Task.Run(() =>
+            //{
+            //    try
+            //    {
+            //        var creatorUser = HttpContext.GetUser();
+
+            //        var task = new TaskInfo
+            //        {
+            //            CreatedAt = DateTimeOffset.Now,
+            //            CreatedBy = creatorUser,
+            //            TaskType = _taskTypes.GetAdditionalData,
+            //            Priority = _taskPriorities.Medium,
+            //            DeviceBrand = _deviceBrands.Eos,
+            //            TaskItems = new List<TaskItem>(),
+            //            DueDate = DateTime.Today
+            //        };
+
+            //        var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+            //            ?.FirstOrDefault();
+            //        if (device is null)
+            //        {
+            //            return new ResultViewModel { Validate = 0, Message = "Device with code is not exist" };
+            //        }
+
+
+            //        var deviceId = device.DeviceId;
+            //        task.TaskItems.Add(new TaskItem
+            //        {
+            //            Status = _taskStatuses.Queued,
+            //            TaskItemType = _taskItemTypes.GetLogsInPeriod,
+            //            Priority = _taskPriorities.Medium,
+            //            DeviceId = deviceId,
+            //            Data = JsonConvert.SerializeObject(new { deviceId }),
+            //            IsParallelRestricted = true,
+            //            IsScheduled = false,
+            //            OrderIndex = 1,
+            //            CurrentIndex = 0
+            //        });
+
+            //        _taskService.InsertTask(task);
+            //        _taskManager.ProcessQueue();
+
+            //        return new Dictionary<string, string>();
+            //    }
+            //    catch (Exception exception)
+            //    {
+            //        return new Dictionary<string, string>();
+            //    }
+            //});
+        }
+
+
     }
 }

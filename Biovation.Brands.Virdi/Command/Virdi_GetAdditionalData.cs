@@ -80,10 +80,10 @@ namespace Biovation.Brands.Virdi.Command
                 _ucsApi.EventGetUserCount -= GetUserCount;
 
 
-                if (deviceBasicInfo.FirmwareVersion != null)
-                {
-                    InfoDictionary.Add("Firmware Version", deviceBasicInfo.FirmwareVersion);
-                }
+                //if (deviceBasicInfo.FirmwareVersion != null)
+                //{
+                //    InfoDictionary.Add("Firmware Version", deviceBasicInfo.FirmwareVersion);
+                //}
 
                 return InfoDictionary;
             }
