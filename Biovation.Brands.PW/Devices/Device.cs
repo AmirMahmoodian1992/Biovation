@@ -292,7 +292,7 @@ namespace Biovation.Brands.PW.Devices
                         var newRecords = new NetTypes.IN_OUT_RECORD_TYPE[100000]; //for 10000 records.
                         var newFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + '\\';
                         var newTextFile = "";
-                        var userId = 0;
+                        long userId = 0;
                         //Task.Run(() =>
                         //{
                         short newResult;
@@ -330,7 +330,7 @@ namespace Biovation.Brands.PW.Devices
                                     {
                                         try
                                         {
-                                            userId = Convert.ToInt32(newRecords[i].cardNo);
+                                            userId = Convert.ToInt64(newRecords[i].cardNo);
 
 
                                             var log = new Log
@@ -434,7 +434,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(records[i].cardNo);
+                                    var userId = Convert.ToInt64(records[i].cardNo);
 
                                     var log = new Log
                                     {
@@ -540,7 +540,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(records[i].cardNo);
+                                    var userId = Convert.ToInt64(records[i].cardNo);
 
                                     var log = new Log
                                     {
@@ -681,7 +681,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(records[i].cardNo);
+                                    var userId = Convert.ToInt64(records[i].cardNo);
 
                                     var log = new Log
                                     {
@@ -762,7 +762,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(records[i].cardNo);
+                                    var userId = Convert.ToInt64(records[i].cardNo);
 
                                     var log = new Log
                                     {
@@ -872,7 +872,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(deviceLogs[i].userId);
+                                    var userId = Convert.ToInt64(deviceLogs[i].userId);
 
                                     var log = new Log
                                     {
@@ -982,7 +982,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(records[i].cardNo);
+                                    var userId = Convert.ToInt64(records[i].cardNo);
 
                                     var log = new Log
                                     {
@@ -1092,7 +1092,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    var userId = Convert.ToInt32(records[i].cardNo);
+                                    var userId = Convert.ToInt64(records[i].cardNo);
 
                                     var log = new Log
                                     {
