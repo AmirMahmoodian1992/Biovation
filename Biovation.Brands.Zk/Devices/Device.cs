@@ -753,7 +753,7 @@ namespace Biovation.Brands.ZK.Devices
                         {
                             try
                             {
-                                var userId = Convert.ToInt32(iUserId);
+                                var userId = Convert.ToInt64(iUserId);
 
                                 var log = new Log
                                 {
@@ -901,7 +901,7 @@ namespace Biovation.Brands.ZK.Devices
                         {
                             try
                             {
-                                var userId = Convert.ToInt32(iUserId);
+                                var userId = Convert.ToInt64(iUserId);
 
                                 var log = new Log
                                 {
@@ -1123,7 +1123,7 @@ namespace Biovation.Brands.ZK.Devices
 
                                 var user = new User
                                 {
-                                    Code = Convert.ToInt32(iUserId),
+                                    Code = Convert.ToInt64(iUserId),
                                     UserName = name,
                                     IsActive = enable,
                                     AdminLevel = privilege,
