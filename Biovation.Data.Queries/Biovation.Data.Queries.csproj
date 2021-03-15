@@ -333,6 +333,7 @@
     <None Remove="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
     <None Remove="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
     <None Remove="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0029-Log IX_SuccessTransfer_NonClustered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -632,6 +633,7 @@
     <EmbeddedResource Include="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0003-Log IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0029-Log IX_SuccessTransfer_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
