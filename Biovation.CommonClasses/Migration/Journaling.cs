@@ -67,7 +67,7 @@ namespace Biovation.CommonClasses.Migration
         private static string GetExecutedScriptsSql(string schema, string table)
         {
             return _biovationConfigurationManager.ReplaceScriptsOnMigration
-                ? $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' ORDER BY [ScriptName]"
+                ? $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' AND [ScriptName] NOT LIKE '%08.Indexes%' ORDER BY [ScriptName]"
                 : $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} ORDER BY [ScriptName]";
         }
 
@@ -107,7 +107,7 @@ namespace Biovation.CommonClasses.Migration
 
         public void StoreExecutedScript(SqlScript script, Func<IDbCommand> dbCommandFactory)
         {
-            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data") || script.Name.Contains("06.Data"))
+            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data") || script.Name.Contains("06.Views"))
             {
                 using var context = new DbContext(_connectionFactory);
                 using var command = context.CreateCommand();
