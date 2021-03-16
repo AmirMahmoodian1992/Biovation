@@ -22,7 +22,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.Wpf" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.1.0" />
     <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
@@ -63,24 +63,20 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Libraries\EncryptorVC_X64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>EncryptorVC_X64.dll</TargetPath>
-    </None>
-    <None Update="Libraries\EncryptorVC_X86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>EncryptorVC_X86.dll</TargetPath>
-    </None>
-    <None Update="Libraries\HwDevComm.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>HwDevComm.dll</TargetPath>
-    </None>
-    <None Update="Libraries\FK623Attend.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>FK623Attend.dll</TargetPath>
-    </None>
-  </ItemGroup>
+  <Target Name="CopyLibraryFileOnBuild" AfterTargets="Compile">
+    <Message Text="Copying Library Files To Output" />
+    <Copy SourceFiles="Libraries\HwDevComm.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="Libraries\FK623Attend.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="Libraries\EncryptorVC_X86.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="Libraries\EncryptorVC_X64.dll" DestinationFolder="$(OutDir)" />
+  </Target>
 
+  <Target Name="CopyLibraryFileOnPublish" AfterTargets="Publish">
+    <Message Text="Copying Library Files To Output" />
+    <Copy SourceFiles="Libraries\HwDevComm.dll" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="Libraries\FK623Attend.dll" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="Libraries\EncryptorVC_X86.dll" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="Libraries\EncryptorVC_X64.dll" DestinationFolder="$(PublishDir)" />
+  </Target>
 
 </Project>
