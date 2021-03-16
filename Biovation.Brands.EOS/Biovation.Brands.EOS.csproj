@@ -63,20 +63,23 @@
     </Reference>
   </ItemGroup>
 
-  <Target Name="CopyLibraryFileOnBuild" AfterTargets="Compile">
-    <Message Text="Copying Library Files To Output" />
-    <Copy SourceFiles="Libraries\HwDevComm.dll" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="Libraries\FK623Attend.dll" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="Libraries\EncryptorVC_X86.dll" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="Libraries\EncryptorVC_X64.dll" DestinationFolder="$(OutDir)" />
-  </Target>
-
-  <Target Name="CopyLibraryFileOnPublish" AfterTargets="Publish">
-    <Message Text="Copying Library Files To Output" />
-    <Copy SourceFiles="Libraries\HwDevComm.dll" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="Libraries\FK623Attend.dll" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="Libraries\EncryptorVC_X86.dll" DestinationFolder="$(PublishDir)" />
-    <Copy SourceFiles="Libraries\EncryptorVC_X64.dll" DestinationFolder="$(PublishDir)" />
-  </Target>
+  <ItemGroup>
+    <ContentWithTargetPath Include="Libraries\HwDevComm.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>HwDevComm.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\FK623Attend.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>FK623Attend.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\EncryptorVC_X86.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>EncryptorVC_X86.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\EncryptorVC_X64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>EncryptorVC_X64.dll</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
 
 </Project>
