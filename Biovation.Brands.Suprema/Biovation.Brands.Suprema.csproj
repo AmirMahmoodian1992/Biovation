@@ -61,14 +61,11 @@
 		</Reference>
 	</ItemGroup>
 
-  <Target Name="CopyLibraryFileOnBuild" AfterTargets="Compile">
-    <Message Text="Copying Library Files To Output" />
-    <Copy SourceFiles="Libraries\BS_SDK.dll" DestinationFolder="$(OutDir)" />
-  </Target>
-
-  <Target Name="CopyLibraryFileOnPublish" AfterTargets="Publish">
-    <Message Text="Copying Library Files To Output" />
-    <Copy SourceFiles="Libraries\BS_SDK.dll" DestinationFolder="$(PublishDir)" />
-  </Target>
+  <ItemGroup>
+    <ContentWithTargetPath Include="Libraries\BS_SDK.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>BS_SDK.dll</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
 
 </Project>
