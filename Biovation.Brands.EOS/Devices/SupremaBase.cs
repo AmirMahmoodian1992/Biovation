@@ -1194,15 +1194,15 @@ namespace Biovation.Brands.EOS.Devices
          bool saveFile = false)
         {
             var invalidTime = false;
-            if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
+            if (startTime is null || startTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day) || startTime > DateTime.Now)
             {
-                startTime = new DateTime(1921, 3, 21);
+                startTime = new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day);
                 invalidTime = true;
             }
 
-            if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
+            if (endTime is null || endTime > DateTime.Now || endTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day))
             {
-                endTime = new DateTime(2021, 3, 19);
+                endTime = DateTime.Now;
                 invalidTime = true;
             }
 
@@ -1267,32 +1267,49 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
-                    
+
                     if (successSetPointer)
                     {
-                        (int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
-                        BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
-                            (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
-
-
-                        for (var i = 0; i < 5; i++)
+                        var dic = new Dictionary<int, int>()
                         {
-                            try
-                            {
-                                lock (_clock)
-                                {
-                                    Thread.Sleep(500);
-                                    successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
-                                }
-                                break;
-                            }
-                            catch (Exception exception)
-                            {
-                                Logger.Log(exception, exception.Message);
-                                Thread.Sleep(++i * 100);
-                            }
-
+                            {1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0}
+                        };
+                        var index = 0;
+                        try
+                        {
+                          var  clockRecord = (ClockRecord)_clock.GetRecord();
+                          EOSsearch(ref index, new DateTime(1399, 5, 6), 10, DateTime.Now, dic,clockRecord.DateTime.Month);
                         }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+                        
+
+                        //(int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
+                        //BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
+                        //    (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
+
+
+                        //for (var i = 0; i < 5; i++)
+                        //{
+                        //    try
+                        //    {
+                        //        lock (_clock)
+                        //        {
+                        //            Thread.Sleep(500);
+                        //            successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                        //        }
+                        //        break;
+                        //    }
+                        //    catch (Exception exception)
+                        //    {
+                        //        Logger.Log(exception, exception.Message);
+                        //        Thread.Sleep(++i * 100);
+                        //    }
+
+                        //}
 
                     }
 
@@ -1394,6 +1411,87 @@ namespace Biovation.Brands.EOS.Devices
                     BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
                 }
             }
+        }
+
+        private void EOSsearch(ref int currentIndex, DateTime startDateTime, int stepLenght, DateTime prevDateTime, IDictionary<int, int> seenMonth, int firstSeenMonth)
+        {
+            var successSetPointer = false;
+            ClockRecord clockRecord = null;
+            if (currentIndex < stepLenght)
+            {
+                return;
+            }
+
+            currentIndex -= stepLenght;
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_clock)
+                    {
+                        if (!successSetPointer)
+                        {
+                            Thread.Sleep(500);
+                            successSetPointer = _clock.SetReadPointer(currentIndex);
+                        }
+                        Thread.Sleep(500);
+                        clockRecord = (ClockRecord)_clock.GetRecord();
+                    }
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, exception.Message);
+                    Thread.Sleep(++i * 100);
+                }
+            }
+
+            if (clockRecord == null)
+            {
+                //ignore
+            }
+            else
+            {
+                var recordDateTime = clockRecord.DateTime;
+                if (recordDateTime.Month > firstSeenMonth)
+                {
+                    recordDateTime  = recordDateTime.AddYears(1);
+                }
+                if (prevDateTime.Month != recordDateTime.Month)
+                {
+                    seenMonth[recordDateTime.Month]++;
+                    if (seenMonth[recordDateTime.Month] > 1)
+                    {
+                        return;
+                    }
+                }
+
+                if (recordDateTime.Month > startDateTime.Month)
+                {
+                    if ( prevDateTime - recordDateTime < recordDateTime - startDateTime)
+                    {
+                        stepLenght += stepLenght * 2 <= 80 ? stepLenght * 2 : stepLenght;
+                    }
+                    EOSsearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth,firstSeenMonth);
+                }
+                else if (recordDateTime.Month < startDateTime.Month)
+                {
+                    EOSsearch(ref currentIndex, startDateTime, stepLenght/3, recordDateTime, seenMonth, firstSeenMonth);
+                }
+                else
+                {
+                    if (recordDateTime.Day > startDateTime.Day - 1)
+                    {
+                        EOSsearch(ref currentIndex, startDateTime, 1, recordDateTime, seenMonth, firstSeenMonth);
+                    }
+                    else if (recordDateTime.Day + 2 < startDateTime.Day - 1)
+                    {
+                        EOSsearch(ref currentIndex, startDateTime, -1, recordDateTime, seenMonth, firstSeenMonth);
+                    }
+
+                }
+            }
+
         }
     }
 }
