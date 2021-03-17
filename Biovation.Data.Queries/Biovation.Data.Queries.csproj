@@ -305,6 +305,35 @@
     <None Remove="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <None Remove="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
     <None Remove="Scripts\06.Views\0001-Select TaskOrdered.sql" />
+    <None Remove="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0003-Log IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0004-Log IX_DateTime_Event_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0005-Log IX_Device_Event_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0006-Log IX_User_Event_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0007-Log IX_Device_DateTime_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0008-Log IX_User_DateTime_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0009-Log IX_Device_DateTime_SuccessTransfer_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0010-Log IX_User_DateTime_SuccessTransfer_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0011-Log IX_Id_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0012-TaskItem IX_Task_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0013-TaskItem IX_Device_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0014-TaskItem IX_Task_Status_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0015-TaskItem IX_Device_Status_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0016-Device IX_Model_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0017-Device IX_Code_Model_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0018-DeviceModel IX_Brand_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0022-FingerTemplate IX_User_TemplateType_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0023-GenericCodeMapping IX_Category_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0024-Lookup IX_Category_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0025-Task IX_Brand_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
+    <None Remove="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0029-Log IX_SuccessTransfer_NonClustered.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -601,6 +630,35 @@
     <EmbeddedResource Include="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0003-Log IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0029-Log IX_SuccessTransfer_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0025-Task IX_Brand_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0024-Lookup IX_Category_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0023-GenericCodeMapping IX_Category_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0022-FingerTemplate IX_User_TemplateType_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0018-DeviceModel IX_Brand_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0017-Device IX_Code_Model_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0016-Device IX_Model_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0015-TaskItem IX_Device_Status_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0013-TaskItem IX_Device_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0014-TaskItem IX_Task_Status_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0012-TaskItem IX_Task_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0011-Log IX_Id_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0010-Log IX_User_DateTime_SuccessTransfer_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0009-Log IX_Device_DateTime_SuccessTransfer_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0008-Log IX_User_DateTime_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0007-Log IX_Device_DateTime_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0004-Log IX_DateTime_Event_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0006-Log IX_User_Event_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0005-Log IX_Device_Event_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\06.Views\0001-Select TaskOrdered.sql" />
   </ItemGroup>
 
