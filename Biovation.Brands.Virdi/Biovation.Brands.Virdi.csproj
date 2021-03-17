@@ -72,7 +72,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>UCBioBSP.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\SDK\UCBioBSPCOM.dll">
+    <ContentWithTargetPath Include="Libraries\UCBioBSPCOM.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>UCBioBSPCOM.dll</TargetPath>
     </ContentWithTargetPath>
@@ -80,7 +80,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>UCSAPI40.dll</TargetPath>
     </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Libraries\SDK\UCSAPICOM.dll">
+    <ContentWithTargetPath Include="Libraries\UCSAPICOM.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>UCSAPICOM.dll</TargetPath>
     </ContentWithTargetPath>
