@@ -1194,6 +1194,7 @@ namespace Biovation.Brands.EOS.Devices
          bool saveFile = false)
         {
             var invalidTime = false;
+            Logger.Log($"The datetime start with {startTime}");
             if (startTime is null || startTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day) || startTime > DateTime.Now)
             {
                 startTime = new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day);
@@ -1267,7 +1268,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
-
+                    Logger.Log(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
                     if (successSetPointer)
                     {
                         var dic = new Dictionary<int, int>()
@@ -1278,7 +1279,8 @@ namespace Biovation.Brands.EOS.Devices
                         try
                         {
                           var  clockRecord = (ClockRecord)_clock.GetRecord();
-                          EOSsearch(ref index, new DateTime(1399, 5, 6), 10, DateTime.Now, dic,clockRecord.DateTime.Month);
+                          Logger.Log($"First datetime {clockRecord.DateTime}");
+                            EOSsearch(ref index, new DateTime(1399, 5, 6), 10, DateTime.Now, dic,clockRecord.DateTime.Month);
                         }
                         catch (Exception e)
                         {
@@ -1453,6 +1455,7 @@ namespace Biovation.Brands.EOS.Devices
             else
             {
                 var recordDateTime = clockRecord.DateTime;
+                Logger.Log($"NEW datetime {recordDateTime}");
                 if (recordDateTime.Month > firstSeenMonth)
                 {
                     recordDateTime  = recordDateTime.AddYears(1);
