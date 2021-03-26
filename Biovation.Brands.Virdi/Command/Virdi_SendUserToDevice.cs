@@ -31,7 +31,7 @@ namespace Biovation.Brands.Virdi.Command
         private int IsBlackList { get; }
 
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
         private readonly LogEvents _logEvents;
         private readonly LogService _logService;
         private readonly UserCardService _userCardService;
@@ -48,9 +48,9 @@ namespace Biovation.Brands.Virdi.Command
             'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی', 'ي', 'ء', 'إ', 'أ', 'ؤ', 'ئ', 'ة', 'ك'
         };
 
-        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
-            _callbacks = callbacks;
+            _virdiServer = virdiServer;
             _logService = logService;
             _userCardService = userCardService;
             _adminDeviceService = adminDeviceService;
@@ -96,10 +96,10 @@ namespace Biovation.Brands.Virdi.Command
                 var isFace = false;
 
                 //fpData.ClearFPData();
-                _callbacks.ServerUserData.InitUserData();
+                _virdiServer.ServerUserData.InitUserData();
 
-                _callbacks.ServerUserData.IsBlacklist = UserObj.IsActive ? IsBlackList : 1;
-                //                    _callbacks._serveruserData.IsBlacklist = 1;
+                _virdiServer.ServerUserData.IsBlacklist = UserObj.IsActive ? IsBlackList : 1;
+                //                    _virdiServer._serveruserData.IsBlacklist = 1;
 
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
@@ -113,26 +113,26 @@ namespace Biovation.Brands.Virdi.Command
                     userName = replacements.Aggregate(userName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
                 }
 
-                _callbacks.ServerUserData.UserID = (int)UserObj.Code;
-                _callbacks.ServerUserData.UniqueID = Math.Abs(UserObj.UniqueId).ToString();
-                _callbacks.ServerUserData.UserName = userName;
+                _virdiServer.ServerUserData.UserID = (int)UserObj.Code;
+                _virdiServer.ServerUserData.UniqueID = Math.Abs(UserObj.UniqueId).ToString();
+                _virdiServer.ServerUserData.UserName = userName;
 
                 if (UserObj.ImageBytes != null && UserObj.ImageBytes.Length > 0)
-                    _callbacks.ServerUserData.SetPictureData(UserObj.ImageBytes.Length, "JPG", UserObj.ImageBytes);
+                    _virdiServer.ServerUserData.SetPictureData(UserObj.ImageBytes.Length, "JPG", UserObj.ImageBytes);
 
                 var adminDevices = _adminDeviceService.GetAdminDevicesByUserId(personId: UserId);
-                _callbacks.ServerUserData.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId) ? 1 : 0;
+                _virdiServer.ServerUserData.IsAdmin = adminDevices.Any(x => x.DeviceId == DeviceId) ? 1 : 0;
 
-                _callbacks.ServerUserData.IsIdentify = UserObj.IsActive ? 1 : 0;
+                _virdiServer.ServerUserData.IsIdentify = UserObj.IsActive ? 1 : 0;
                 // Set Access Flag
-                _callbacks.ServerUserData.IsFace1toN = 0;
+                _virdiServer.ServerUserData.IsFace1toN = 0;
 
                 var userCards = _userCardService.GetCardsByFilter(UserId);
                 var activeCard = userCards?.Find(card => card.IsActive);
 
                 if (activeCard != null)
                 {
-                    _callbacks.ServerUserData.SetCardData(1, activeCard.CardNum);
+                    _virdiServer.ServerUserData.SetCardData(1, activeCard.CardNum);
                     isCard = true;
                 }
 
@@ -142,8 +142,8 @@ namespace Biovation.Brands.Virdi.Command
                     try
                     {
                         //var decryptedPassword = Encoding.ASCII.GetBytes(UserObj.Password);
-                        //_callbacks.ServerUserData.Password = decryptedPassword;
-                        _callbacks.ServerUserData.Password = UserObj.Password;
+                        //_virdiServer.ServerUserData.Password = decryptedPassword;
+                        _virdiServer.ServerUserData.Password = UserObj.Password;
                         isPassword = true;
                     }
                     catch (Exception e)
@@ -158,7 +158,7 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     for (var i = 0; i < virdiFinger.Count; i += 2)
                     {
-                        _callbacks.ServerUserData.AddFingerData(virdiFinger[i].FingerIndex.OrderIndex, (int)UCBioAPI.Type.TEMPLATE_TYPE.SIZE400, virdiFinger[i].Template, virdiFinger[i + 1].Template);
+                        _virdiServer.ServerUserData.AddFingerData(virdiFinger[i].FingerIndex.OrderIndex, (int)UCBioAPI.Type.TEMPLATE_TYPE.SIZE400, virdiFinger[i].Template, virdiFinger[i + 1].Template);
                     }
 
                     isFingerPrint = true;
@@ -169,63 +169,63 @@ namespace Biovation.Brands.Virdi.Command
                 var virdiFace = _faceTemplateService.FaceTemplates(userId: UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VFACECode);
                 if (virdiFace != null)
                 {
-                    _callbacks.ServerUserData.FaceNumber = virdiFace.Index;
-                    _callbacks.ServerUserData.FaceData = virdiFace.Template;
-                    _callbacks.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
+                    _virdiServer.ServerUserData.FaceNumber = virdiFace.Index;
+                    _virdiServer.ServerUserData.FaceData = virdiFace.Template;
+                    _virdiServer.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
                     isFace = true;
                 }
 
 
                 if (isCard && isFingerPrint && isFace)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.CardOrFpOrFace;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrFpOrFace;
                 }
                 else if (isCard && isPassword)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.CardOrPassword;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrPassword;
                 }
                 else if (isFace && isPassword)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.FaceOrPassword;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.FaceOrPassword;
                 }
                 else if (isFingerPrint && isPassword)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.FpOrPassword;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.FpOrPassword;
                 }
                 else if (isFace && isFingerPrint)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.FpOrFace;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.FpOrFace;
                 }
                 else if (isCard && isFingerPrint)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.CardOrFp;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrFp;
                 }
                 else if (isCard && isFace)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.CardOrFace;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrFace;
                 }
                 else if (isFace)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.Face;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.Face;
                 }
                 else if (isFingerPrint)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.Fp;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.Fp;
                 }
                 else if (isCard)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.Card;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.Card;
                 }
                 else if (isPassword)
                 {
-                    _callbacks.ServerUserData.AuthType = (int)AuthType.Password;
+                    _virdiServer.ServerUserData.AuthType = (int)AuthType.Password;
                 }
 
-                _callbacks.ServerUserData.SetAuthType(Convert.ToInt32(false), Convert.ToInt32(isFingerPrint),
+                _virdiServer.ServerUserData.SetAuthType(Convert.ToInt32(false), Convert.ToInt32(isFingerPrint),
                     Convert.ToInt32(false), Convert.ToInt32(isPassword),
                     Convert.ToInt32(isCard), Convert.ToInt32(false));
 
-                _callbacks.ServerUserData.SetAuthTypeEx(Convert.ToInt32(isFace), 0, 0, 0, 0, 0, 0, 0);
+                _virdiServer.ServerUserData.SetAuthTypeEx(Convert.ToInt32(isFace), 0, 0, 0, 0, 0, 0, 0);
 
                 var userAccessGroups = _accessGroupService.GetAccessGroups(userId: UserObj.Id);
 
@@ -233,16 +233,16 @@ namespace Biovation.Brands.Virdi.Command
                     userAccessGroups.FirstOrDefault(
                         ag => ag.DeviceGroup.Any(dg => dg.Devices.Any(dev => dev.DeviceId == DeviceId)));
 
-                _callbacks.ServerUserData.AccessGroup = validAccessGroup?.Id.ToString("D4") ?? "****";
+                _virdiServer.ServerUserData.AccessGroup = validAccessGroup?.Id.ToString("D4") ?? "****";
 
                 if (UserObj.EndDate != default && UserObj.StartDate != default && UserObj.StartDate < UserObj.EndDate)
-                    _callbacks.ServerUserData.SetAccessDate(1, UserObj.StartDate.Year, UserObj.StartDate.Month, UserObj.StartDate.Day, UserObj.EndDate.Year, UserObj.EndDate.Month, UserObj.EndDate.Day);
+                    _virdiServer.ServerUserData.SetAccessDate(1, UserObj.StartDate.Year, UserObj.StartDate.Month, UserObj.StartDate.Day, UserObj.EndDate.Year, UserObj.EndDate.Month, UserObj.EndDate.Day);
 
-                _callbacks.ServerUserData.AddUserToTerminal(TaskItemId, (int)Code, 1);
+                _virdiServer.ServerUserData.AddUserToTerminal(TaskItemId, (int)Code, 1);
 
                 Logger.Log("-->Add user to terminal");
 
-                if (_callbacks.ServerUserData.ErrorCode == 0)
+                if (_virdiServer.ServerUserData.ErrorCode == 0)
                 {
                     Logger.Log($"  +User {UserId} successfully transferred to device: {Code}.");
 
@@ -261,8 +261,8 @@ namespace Biovation.Brands.Virdi.Command
                     return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfully transferred to device: {Code}.", Validate = 1 };
                 }
 
-                Logger.Log($"  +Cannot transfer user {UserId} to device: {Code}. Error code = {_callbacks.ServerUserData.ErrorCode}\n");
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot transfer user {UserId} to device: {Code}. Error code = {_callbacks.ServerUserData.ErrorCode}\n", Validate = 1 };
+                Logger.Log($"  +Cannot transfer user {UserId} to device: {Code}. Error code = {_virdiServer.ServerUserData.ErrorCode}\n");
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot transfer user {UserId} to device: {Code}. Error code = {_virdiServer.ServerUserData.ErrorCode}\n", Validate = 1 };
             }
             catch (Exception ex)
             {

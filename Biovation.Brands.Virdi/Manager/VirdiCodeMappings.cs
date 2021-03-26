@@ -8,8 +8,11 @@ namespace Biovation.Brands.Virdi.Manager
 {
     public class VirdiCodeMappings
     {
-        public VirdiCodeMappings(GenericCodeMappings genericCodeMappings)
+        private readonly MatchingTypes _matchingTypes;
+
+        public VirdiCodeMappings(GenericCodeMappings genericCodeMappings, MatchingTypes matchingTypes)
         {
+            _matchingTypes = matchingTypes;
             _virdiLogSubEventMappings = genericCodeMappings.LogSubEventMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
 
@@ -20,7 +23,6 @@ namespace Biovation.Brands.Virdi.Manager
                 genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
         }
 
-
         private readonly List<GenericCodeMapping> _virdiLogSubEventMappings;
 
         private readonly List<GenericCodeMapping> _virdiFingerTemplateTypeMappings;
@@ -29,7 +31,7 @@ namespace Biovation.Brands.Virdi.Manager
 
         public Lookup GetLogSubEventGenericLookup(int virdiCode)
         {
-            return _virdiLogSubEventMappings.FirstOrDefault(subEvent => string.Equals(subEvent.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+            return _virdiLogSubEventMappings.FirstOrDefault(subEvent => string.Equals(subEvent.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? new Lookup { Code = virdiCode.ToString(), Category = _virdiLogSubEventMappings.FirstOrDefault()?.GenericValue.Category };
         }
 
         public Lookup GetFingerTemplateTypeLookup(int virdiCode)
@@ -38,7 +40,7 @@ namespace Biovation.Brands.Virdi.Manager
         }
         public Lookup GetMatchingTypeGenericLookup(int virdiCode)
         {
-            return _virdiMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+            return _virdiMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
     }
 }

@@ -21,20 +21,18 @@ namespace Biovation.Brands.ZK.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("[Action]")]
-        public async Task<ResultViewModel> RunProcessQueue()
+        public async Task<ResultViewModel> RunProcessQueue(int deviceId = default)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
-                {
-                    _taskManager.ProcessQueue();
-                    return new ResultViewModel { Success = true };
-                }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel { Success = false, Message = exception.ToString() };
-                }
-            });
+                await _taskManager.ProcessQueue(deviceId).ConfigureAwait(false);
+                return new ResultViewModel { Success = true };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel { Success = false, Message = exception.ToString() };
+            }
+
         }
     }
 }

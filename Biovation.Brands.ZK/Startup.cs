@@ -1,7 +1,9 @@
+using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
+using Biovation.Brands.ZK.HostedServices;
 using Biovation.Brands.ZK.Manager;
 using Biovation.Brands.ZK.Middleware;
 using Biovation.CommonClasses;
@@ -21,13 +23,15 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
+using System.Threading;
+using Biovation.Domain;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.ZK
 {
     public class Startup
     {
-        private ZkTecoServer _zkTecoServer;
+        //private readonly ZkTecoServer _zkTecoServer;
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
@@ -56,7 +60,7 @@ namespace Biovation.Brands.ZK
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public async void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
                 .AddJsonOptions(options =>
@@ -75,12 +79,35 @@ namespace Biovation.Brands.ZK
 
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
-            await ConfigureZkServices(services);
+            ConfigureZkServices(services);
         }
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            try
+            {
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(0);
+            }
+
+
+            #endregion
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -164,10 +191,10 @@ namespace Biovation.Brands.ZK
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
-            Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
-                fingerIndexNamesQuery, deviceBrandsQuery, logEventsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
-                faceTemplateTypeQuery, matchingTypeQuery, logEventMappingsQuery, logSubEventMappingsQuery,
-                fingerTemplateTypeMappingsQuery, matchingTypeMappingsQuery);
+            //Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
+            //    fingerIndexNamesQuery, deviceBrandsQuery, logEventsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
+            //    faceTemplateTypeQuery, matchingTypeQuery, logEventMappingsQuery, logSubEventMappingsQuery,
+            //    fingerTemplateTypeMappingsQuery, matchingTypeMappingsQuery);
 
             var lookups = new Lookups
             {
@@ -209,7 +236,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 
-        private async Task ConfigureZkServices(IServiceCollection services)
+        private void ConfigureZkServices(IServiceCollection services)
         {
             services.AddSingleton(OnlineDevices);
 
@@ -221,9 +248,14 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<DeviceFactory, DeviceFactory>();
 
             services.AddSingleton<ZkTecoServer, ZkTecoServer>();
-            var serviceProvider = services.BuildServiceProvider();
-            _zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
-            await _zkTecoServer.StartServer();
+
+            services.AddHostedService<ZKTecoHostedService>();
+            services.AddHostedService<TaskManagerHostedService>();
+
+            //var serviceProvider = services.BuildServiceProvider();
+            //_zkTecoServer = serviceProvider.GetService<ZkTecoServer>();
+            //await _zkTecoServer.StartServer();
+            //Task.Run(() => _zkTecoServer.StartServer());
         }
 
 
@@ -235,7 +267,7 @@ namespace Biovation.Brands.ZK
                 app.UseDeveloperExceptionPage();
             }
 
-            applicationLifetime.ApplicationStopping.Register(OnServiceStopping);
+            //applicationLifetime.ApplicationStopping.Register(OnServiceStopping);
             //app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -253,12 +285,12 @@ namespace Biovation.Brands.ZK
             });
         }
 
-        private async void OnServiceStopping()
-        {
-            if (_zkTecoServer is null)
-                return;
+        //private async void OnServiceStopping()
+        //{
+        //    if (_zkTecoServer is null)
+        //        return;
 
-            await _zkTecoServer.StopServer();
-        }
+        //    await _zkTecoServer.StopServer();
+        //}
     }
 }

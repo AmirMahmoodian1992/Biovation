@@ -47,7 +47,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(onlineUserId == 0 || onlineUserId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
             return Task.Run(() => _userService.GetUsers(userId, withPicture, from, size, getTemplatesData, filterText, type, isAdmin, token: token));
         }
 
@@ -55,7 +55,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(onlineUserId == 0 || onlineUserId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
             return Task.Run(() =>
            {
                try
@@ -103,7 +103,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SearchUserFilter")]
         public List<User> SearchUser(string filterText, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
                 return _userService.GetUsers(filterText: filterText, token: token);
@@ -118,7 +118,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SearchUser")]
         public List<User> SearchUser(string filterText, int type, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
                 return _userService.GetUsers(filterText: filterText, type: type, token: token);
@@ -133,7 +133,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("ModifyUser")]
         public Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 try
                 {
@@ -259,7 +259,7 @@ namespace Biovation.Server.Controllers.v1
                     var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
-                        result.Add(_restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data);
+                        result.Add(requestResult.Data);
                 }
 
                 return result;

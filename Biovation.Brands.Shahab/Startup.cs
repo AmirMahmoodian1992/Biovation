@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Shahab.Devices;
@@ -8,6 +10,7 @@ using Biovation.Brands.Shahab.Middleware;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
@@ -19,6 +22,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.Shahab
 {
@@ -79,6 +83,29 @@ namespace Biovation.Brands.Shahab
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            try
+            {
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(0);
+            }
+
+
+            #endregion
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();

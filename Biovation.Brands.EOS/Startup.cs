@@ -1,3 +1,4 @@
+using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.EOS.Commands;
@@ -22,6 +23,9 @@ using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using Biovation.Domain;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.EOS
 {
@@ -85,7 +89,30 @@ namespace Biovation.Brands.EOS
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
             services.AddSingleton(restClient);
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            try
+            {
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(0);
+            }
+
+
+            #endregion
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
@@ -103,6 +130,8 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
+
+            services.AddSingleton<Service.Api.v1.TaskService, Service.Api.v1.TaskService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -214,10 +243,13 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<EosServer, EosServer>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var eosServer = serviceProvider.GetService<EosServer>();
+            services.AddHostedService<EosHostedService>();
+            services.AddHostedService<TaskManagerHostedService>();
 
-            eosServer.StartServer();
+            //var serviceProvider = services.BuildServiceProvider();
+            //var eosServer = serviceProvider.GetService<EosServer>();
+
+            //eosServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

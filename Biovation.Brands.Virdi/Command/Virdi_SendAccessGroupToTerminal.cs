@@ -5,7 +5,6 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
 using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,15 +24,14 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
         private int DeviceId { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiSendAccessGroupToTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, DeviceService deviceService, AccessGroupService accessGroupService)
+        public VirdiSendAccessGroupToTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService, AccessGroupService accessGroupService)
         {
-            _callbacks = callbacks;
+            _virdiServer = virdiServer;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
-
 
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
@@ -59,11 +57,11 @@ namespace Biovation.Brands.Virdi.Command
 
             try
             {
-                _callbacks.AccessControlData.InitData();
+                _virdiServer.AccessControlData.InitData();
 
                 foreach (var timeZoneDetail in AccessGroupObj.TimeZone.Details)
                 {
-                    _callbacks.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"), timeZoneDetail.DayNumber,
+                    _virdiServer.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"), timeZoneDetail.DayNumber,
                                 timeZoneDetail.FromTime.Hours, timeZoneDetail.FromTime.Minutes, timeZoneDetail.ToTime.Hours, timeZoneDetail.ToTime.Minutes);
                 }
 
@@ -80,7 +78,7 @@ namespace Biovation.Brands.Virdi.Command
                 //    0, 0, 0, 0, 0, 0, 0, 0, 0);
 
                 //_callbackInstance.AccessControlData.SetHoliday("1000", 0, 1, 1);
-                _callbacks.AccessControlData.SetAccessTime(AccessGroupObj.TimeZone.Id.ToString("D4"),
+                _virdiServer.AccessControlData.SetAccessTime(AccessGroupObj.TimeZone.Id.ToString("D4"),
                     AccessGroupObj.TimeZone.Details.FirstOrDefault(tz => tz.DayNumber == 2)?.Id.ToString("D4") ?? "****",
                     AccessGroupObj.TimeZone.Details.FirstOrDefault(tz => tz.DayNumber == 3)?.Id.ToString("D4") ?? "****",
                     AccessGroupObj.TimeZone.Details.FirstOrDefault(tz => tz.DayNumber == 4)?.Id.ToString("D4") ?? "****",
@@ -89,16 +87,16 @@ namespace Biovation.Brands.Virdi.Command
                     AccessGroupObj.TimeZone.Details.FirstOrDefault(tz => tz.DayNumber == 7)?.Id.ToString("D4") ?? "****",
                     AccessGroupObj.TimeZone.Details.FirstOrDefault(tz => tz.DayNumber == 1)?.Id.ToString("D4") ?? "****", "", "");
 
-                _callbacks.AccessControlData.SetAccessGroup(AccessGroupObj.Id.ToString("D4"), 0, AccessGroupObj.TimeZone.Id.ToString("D4"));
+                _virdiServer.AccessControlData.SetAccessGroup(AccessGroupObj.Id.ToString("D4"), 0, AccessGroupObj.TimeZone.Id.ToString("D4"));
 
                 // 0: TimeZone information
-                _callbacks.AccessControlData.SetAccessControlDataToTerminal(TaskItemId, (int)Code, 0);
+                _virdiServer.AccessControlData.SetAccessControlDataToTerminal(TaskItemId, (int)Code, 0);
                 // 1: Holiday information
                 //_callbacks.AccessControlData.SetAccessControlDataToTerminal(0, terminalID, 1);
                 // 2: AccessTime information
-                _callbacks.AccessControlData.SetAccessControlDataToTerminal(TaskItemId, (int)Code, 2);
+                _virdiServer.AccessControlData.SetAccessControlDataToTerminal(TaskItemId, (int)Code, 2);
                 // 3: AccessGroup information
-                _callbacks.AccessControlData.SetAccessControlDataToTerminal(TaskItemId, (int)Code, 3);
+                _virdiServer.AccessControlData.SetAccessControlDataToTerminal(TaskItemId, (int)Code, 3);
 
                 Logger.Log($"The access group: {AccessGroupId} transfered to device: {Code} successfuly.");
             }

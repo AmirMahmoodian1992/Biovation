@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
@@ -88,6 +89,11 @@ namespace Biovation.Service.Api.v2
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {
             return _taskRepository.UpdateTaskStatus(taskItem);
+        }
+
+        public async Task<ResultViewModel> ProcessQueue(Lookup brand, int deviceId = default, string token = default)
+        {
+            return await _taskRepository.ProcessQueue(brand, deviceId, token);
         }
     }
 }

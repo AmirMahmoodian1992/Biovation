@@ -22,7 +22,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.Wpf" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.1.0" />
     <PackageReference Include="App.Metrics.AspNetCore.All" Version="4.1.0" />
@@ -64,23 +64,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Libraries\EncryptorVC_X64.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>EncryptorVC_X64.dll</TargetPath>
-    </None>
-    <None Update="Libraries\EncryptorVC_X86.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>EncryptorVC_X86.dll</TargetPath>
-    </None>
-    <None Update="Libraries\HwDevComm.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <ContentWithTargetPath Include="Libraries\HwDevComm.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>HwDevComm.dll</TargetPath>
-    </None>
-    <None Update="Libraries\FK623Attend.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\FK623Attend.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>FK623Attend.dll</TargetPath>
-    </None>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\EncryptorVC_X86.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>EncryptorVC_X86.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Libraries\EncryptorVC_X64.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>EncryptorVC_X64.dll</TargetPath>
+    </ContentWithTargetPath>
   </ItemGroup>
-
 
 </Project>

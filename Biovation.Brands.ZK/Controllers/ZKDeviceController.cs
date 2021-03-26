@@ -92,80 +92,86 @@ namespace Biovation.Brands.ZK.Controllers
 
             if (device.Active)
             {
-                return await Task.Run(() =>
-                {
-                    try
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.ZkTeco,
-                            TaskItems = new List<TaskItem>()
-                        };
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(device.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                        _zkTecoServer.ConnectToDevice(device);
-                        _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
-                        return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
-                    }
-                    catch (Exception exception)
-                    {
-                        return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                    }
-                });
-            }
-
-
-            return await Task.Run(() =>
-            {
+                //return await Task.Run(async () =>
+                //{
                 try
                 {
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = _taskTypes.LockDevice,
+                        TaskType = _taskTypes.UnlockDevice,
                         Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>(),
-                        DeviceBrand = _deviceBrands.ZkTeco
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
                     {
                         Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.LockDevice,
+                        TaskItemType = _taskItemTypes.UnlockDevice,
                         Priority = _taskPriorities.Medium,
 
                         DeviceId = device.DeviceId,
                         Data = JsonConvert.SerializeObject(device.DeviceId),
                         IsParallelRestricted = true,
                         IsScheduled = false,
-                        OrderIndex = 1,
-
+                        OrderIndex = 1
                     });
+
+                    await Task.Run(() => _zkTecoServer.ConnectToDevice(device));
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
-                    return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
+                    await _taskService.ProcessQueue(_deviceBrands.ZkTeco, device.DeviceId).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue(device.DeviceId);
+                    return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
                 catch (Exception exception)
                 {
                     return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                 }
-            });
+                //});
+            }
 
+
+            //return await Task.Run(() =>
+            //{
+            try
+            {
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.LockDevice,
+                    Priority = _taskPriorities.Medium,
+                    TaskItems = new List<TaskItem>(),
+                    DeviceBrand = _deviceBrands.ZkTeco
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.LockDevice,
+                    Priority = _taskPriorities.Medium,
+
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(device.DeviceId),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+
+                });
+
+                _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(_deviceBrands.ZkTeco, device.DeviceId).ConfigureAwait(false);
+                //_taskManager.ProcessQueue(device.DeviceId);
+                await _zkTecoServer.DisconnectFromDevice(device);
+                return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+            }
+
+
+            //});
         }
 
 
@@ -241,7 +247,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1,
                             });
                             _taskService.InsertTask(task);
-                            _taskManager.ProcessQueue();
+                            _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                            //_taskManager.ProcessQueue();
                             return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
                         }
 
@@ -270,7 +277,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1
                             });
                             _taskService.InsertTask(task);
-                            _taskManager.ProcessQueue();
+                            _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                            //_taskManager.ProcessQueue();
                         }
 
                         return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
@@ -331,7 +339,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
                     return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
@@ -438,7 +447,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
                     var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
                     return result;

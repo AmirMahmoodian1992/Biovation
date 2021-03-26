@@ -75,7 +75,8 @@ namespace Biovation.Brands.ZK.Controllers
                         });
                     }
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
 
                     return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
@@ -128,7 +129,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1
                             });
                         _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
+                        _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                        //_taskManager.ProcessQueue();
                         return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
                     }
                     catch (Exception exception)

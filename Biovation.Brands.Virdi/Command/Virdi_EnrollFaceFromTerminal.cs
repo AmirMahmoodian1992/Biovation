@@ -14,13 +14,11 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
         public Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
 
-        private readonly Callbacks _callbacks;
         private readonly VirdiServer _virdiServer;
         private readonly DeviceService _deviceService;
 
-        public VirdiEnrollFaceFromTerminal(IReadOnlyList<object> items, Callbacks callbacks, VirdiServer virdiServer, DeviceService deviceService)
+        public VirdiEnrollFaceFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
         {
-            _callbacks = callbacks;
             _virdiServer = virdiServer;
             _deviceService = deviceService;
             DeviceId = Convert.ToInt32(items[0]);
@@ -37,7 +35,7 @@ namespace Biovation.Brands.Virdi.Command
 
             //_virdiServer._ucsApi.EnrollFromTerminal(0, DeviceId);
 
-            _callbacks.TerminalUserData.RegistFaceFromTerminal(TaskItemId, (int)device.Code, 0);
+            _virdiServer.TerminalUserData.RegistFaceFromTerminal(TaskItemId, (int)device.Code, 0);
 
 
             if (_virdiServer.UcsApi.ErrorCode == 0)

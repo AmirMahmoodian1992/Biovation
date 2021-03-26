@@ -2,12 +2,14 @@
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v2;
+using Biovation.Service.Api.v1;
 using Microsoft.Extensions.Logging;
+using MoreLinq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS.Manager
@@ -19,7 +21,7 @@ namespace Biovation.Brands.EOS.Manager
         private readonly CommandFactory _commandFactory;
 
         private readonly ILogger<TaskManager> _logger;
-        private List<TaskInfo> _tasks = new List<TaskInfo>();
+        private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
         public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, ILogger<TaskManager> logger)
@@ -30,7 +32,7 @@ namespace Biovation.Brands.EOS.Manager
             _commandFactory = commandFactory;
         }
 
-        public void ExecuteTask(TaskInfo taskInfo)
+        public async Task ExecuteTask(TaskInfo taskInfo)
         {
             _logger.LogDebug("Processing of the Task (Id:{taskId}, Type:{taskType}) Started With Task Items:", taskInfo.Id, taskInfo.TaskType.Name);
 
@@ -292,6 +294,24 @@ namespace Biovation.Brands.EOS.Manager
 
                             break;
                         }
+                    case TaskItemTypes.UserAdaptationCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UserAdaptation,
+                                        new List<object> { taskItem }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
                 }
 
                 executeTask?.ContinueWith(task =>
@@ -304,19 +324,27 @@ namespace Biovation.Brands.EOS.Manager
                     _taskService.UpdateTaskStatus(taskItem);
                 });
 
+                if (executeTask is null)
+                    return;
+
                 if (taskItem.IsParallelRestricted)
-                    executeTask?.Wait();
+                    await executeTask.ConfigureAwait(false);
+
+                executeTask.Dispose();
             }
         }
 
-        public void ProcessQueue()
+        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
+            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.EosCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+
             lock (_tasks)
             {
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.EosCode,
-                             excludedTaskStatusCodes: new List<string>
-                                 {_taskStatuses.Done.Code, _taskStatuses.Failed.Code})?.Data?.Data ??
-                         new List<TaskInfo>();
+                var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
+
+                Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
+                _tasks.AddRange(newTasks);
 
                 if (_processingQueueInProgress)
                     return;
@@ -324,27 +352,39 @@ namespace Biovation.Brands.EOS.Manager
                 _processingQueueInProgress = true;
             }
 
-            Task.Run(() =>
+
+            Task.Run(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    TaskInfo taskInfo;
-                    lock (_tasks)
+                    try
                     {
-                        if (_tasks.Count <= 0)
+                        TaskInfo taskInfo;
+                        lock (_tasks)
                         {
-                            _processingQueueInProgress = false;
-                            return;
+                            if (_tasks.Count <= 0)
+                            {
+                                _processingQueueInProgress = false;
+                                return;
+                            }
+
+                            taskInfo = _tasks.First();
                         }
 
-                        taskInfo = _tasks.First();
-                    }
+                        Logger.Log($"The task {taskInfo.Id} execution is started");
+                        await ExecuteTask(taskInfo);
+                        Logger.Log($"The task {taskInfo.Id} is executed");
 
-                    ExecuteTask(taskInfo);
-                    lock (_tasks)
-                        _tasks.Remove(taskInfo);
+                        lock (_tasks)
+                            if (_tasks.Any(task => task.Id == taskInfo.Id))
+                                _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
-            });
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

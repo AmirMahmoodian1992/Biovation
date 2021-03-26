@@ -4,17 +4,19 @@ using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace Biovation.Brands.Suprema.Manager
 {
     public class SupremaCodeMappings
     {
-        private readonly DeviceService _commonDeviceService;
+        private readonly MatchingTypes _matchingTypes;
+        private readonly DeviceService _deviceService;
 
-        public SupremaCodeMappings(DeviceService commonDeviceService, GenericCodeMappings genericCodeMapping)
+        public SupremaCodeMappings(DeviceService deviceService, GenericCodeMappings genericCodeMapping, MatchingTypes matchingTypes)
         {
-            _commonDeviceService = commonDeviceService;
+            _deviceService = deviceService;
+            _matchingTypes = matchingTypes;
+
             _supremaLogSubEventMappings = genericCodeMapping.LogSubEventMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.SupremaCode).ToList();
 
@@ -31,7 +33,7 @@ namespace Biovation.Brands.Suprema.Manager
 
         public Lookup GetLogSubEventGenericLookup(byte supremaCode)
         {
-            return _supremaLogSubEventMappings.FirstOrDefault(subEvent => string.Equals(subEvent.ManufactureCode, ((int)supremaCode).ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+            return _supremaLogSubEventMappings.FirstOrDefault(subEvent => string.Equals(subEvent.ManufactureCode, ((int)supremaCode).ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? new Lookup { Code = Convert.ToInt32(supremaCode).ToString(), Category = _supremaLogSubEventMappings.FirstOrDefault()?.GenericValue.Category };
         }
 
         public Lookup GetLogEventGenericLookup(byte supremaCode)
@@ -41,14 +43,13 @@ namespace Biovation.Brands.Suprema.Manager
 
         public DeviceModel GetGenericDeviceModel(int supremaDeviceTypeId)
         {
-            var deviceModels = _commonDeviceService.GetDeviceModels(brandId: DeviceBrands.SupremaCode);
+            var deviceModels = _deviceService.GetDeviceModels(brandId: DeviceBrands.SupremaCode);
             return deviceModels.FirstOrDefault(deviceModel => deviceModel.Brand.Code == DeviceBrands.SupremaCode && deviceModel.ManufactureCode == supremaDeviceTypeId);
-        } 
+        }
 
         public Lookup GetMatchingTypeGenericLookup(int supremaCode)
         {
-            var result =  _supremaMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, supremaCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
-            return result;
+            return _supremaMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, supremaCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
     }
 }

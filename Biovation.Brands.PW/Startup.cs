@@ -1,3 +1,4 @@
+using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.PW.Command;
@@ -21,6 +22,9 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using Biovation.Domain;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.PW
 {
@@ -68,6 +72,7 @@ namespace Biovation.Brands.PW
 
             services.AddHealthChecks();
 
+            services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
@@ -82,6 +87,29 @@ namespace Biovation.Brands.PW
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            #region checkLock
+
+            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+            try
+            {
+                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                if (!requestResult.Result.Data.Success)
+                {
+                    Logger.Log("The Lock is not active");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+            }
+            catch (Exception)
+            {
+                Logger.Log("The connection with Lock service has a problem");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Environment.Exit(0);
+            }
+
+
+            #endregion
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -94,6 +122,8 @@ namespace Biovation.Brands.PW
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<LogService, LogService>();
             services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+            services.AddSingleton<Service.Api.v2.TaskService, Service.Api.v2.TaskService>();
             services.AddSingleton<LookupService, LookupService>();
             services.AddSingleton<SettingService, SettingService>();
             services.AddSingleton<TaskService, TaskService>();
@@ -206,15 +236,17 @@ namespace Biovation.Brands.PW
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<PwCodeMappings, PwCodeMappings>();
 
+            services.AddSingleton<PwServer, PwServer>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<CommandFactory, CommandFactory>();
 
-            services.AddSingleton<PwServer, PwServer>();
+            services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<PwHostedService>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var pwServer = serviceProvider.GetService<PwServer>();
+            //var serviceProvider = services.BuildServiceProvider();
+            //var pwServer = serviceProvider.GetService<PwServer>();
 
-            pwServer.StartServer();
+            //pwServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

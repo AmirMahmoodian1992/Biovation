@@ -3,11 +3,13 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.Extensions.Logging;
 using MoreLinq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Manager
@@ -18,16 +20,18 @@ namespace Biovation.Brands.ZK.Manager
         private readonly TaskStatuses _taskStatuses;
         private readonly CommandFactory _commandFactory;
 
-        private List<TaskInfo> _tasks = new List<TaskInfo>();
+        private readonly ILogger<TaskManager> _logger;
+        private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
-        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory)
+        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory, ILogger<TaskManager> logger)
         {
+            _logger = logger;
             _taskService = taskService;
             _commandFactory = commandFactory;
             _taskStatuses = taskStatuses;
         }
 
-        public void ExecuteTask(TaskInfo taskInfo)
+        public async Task ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)
             {
@@ -328,10 +332,33 @@ namespace Biovation.Brands.ZK.Manager
                             break;
                         }
 
+                    #region MyRegion
+
+                    case TaskItemTypes.UserAdaptationCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UserAdaptation,
+                                        new List<object> { taskItem }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
+                        #endregion
+
                 }
 
                 executeTask?.ContinueWith(task =>
                 {
+                    _logger.LogDebug("Processing of the Task Item (Id:{taskItemId}, Type:{taskItemType}) Finished With Result: (Success:{taskItemResultSuccess}, Code:{taskItemResultCode}, Message:{taskItemResultMessage})", taskItem.Id, taskItem.TaskItemType.Name, result?.Success, result?.Code, result?.Message);
                     if (result is null) return;
                     taskItem.Result = JsonConvert.SerializeObject(result);
                     taskItem.Status = _taskStatuses.GetTaskStatusByCode(result.Code.ToString());
@@ -339,17 +366,20 @@ namespace Biovation.Brands.ZK.Manager
                     _taskService.UpdateTaskStatus(taskItem);
                 });
 
-                if (taskItem.IsParallelRestricted)
-                    executeTask?.Wait();
+                if (executeTask is null)
+                    return;
 
-                executeTask?.Dispose();
+                if (taskItem.IsParallelRestricted)
+                    await executeTask.ConfigureAwait(false);
+
+                executeTask.Dispose();
             }
         }
 
-        public void ProcessQueue()
+        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
+            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
 
             lock (_tasks)
             {
@@ -365,31 +395,38 @@ namespace Biovation.Brands.ZK.Manager
             }
 
 
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    TaskInfo taskInfo;
-                    lock (_tasks)
+                    try
                     {
-                        if (_tasks.Count <= 0)
+                        TaskInfo taskInfo;
+                        lock (_tasks)
                         {
-                            _processingQueueInProgress = false;
-                            return;
+                            if (_tasks.Count <= 0)
+                            {
+                                _processingQueueInProgress = false;
+                                return;
+                            }
+
+                            taskInfo = _tasks.First();
                         }
 
-                        taskInfo = _tasks.First();
+                        Logger.Log($"The task {taskInfo.Id} execution is started");
+                        await ExecuteTask(taskInfo);
+                        Logger.Log($"The task {taskInfo.Id} is executed");
+
+                        lock (_tasks)
+                            if (_tasks.Any(task => task.Id == taskInfo.Id))
+                                _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
                     }
-
-                    Logger.Log($"The task {taskInfo.Id} execution is started");
-                    ExecuteTask(taskInfo);
-                    Logger.Log($"The task {taskInfo.Id} is executed");
-
-                    lock (_tasks)
-                        if (_tasks.Any(task => task.Id == taskInfo.Id))
-                            _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
-            });
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

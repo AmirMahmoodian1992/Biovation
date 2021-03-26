@@ -6,6 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using Biovation.CommonClasses.Manager;
 
 namespace Biovation.CommonClasses.Migration
 {
@@ -15,7 +18,7 @@ namespace Biovation.CommonClasses.Migration
         private string TableName { get; }
         private string ModuleName { get; }
         private DatabaseConnectionInfo ConnectionInfo { get; }
-
+        private static BiovationConfigurationManager _biovationConfigurationManager;
         /// <summary>
         /// برای ایجاد کانکشن به دیتابیس
         /// </summary>
@@ -23,12 +26,13 @@ namespace Biovation.CommonClasses.Migration
 
         private static SqlServerObjectParser _sqlServerObjectParser;
 
-        public Journaling(string moduleName, DatabaseConnectionInfo connectionInfo)
+        public Journaling(string moduleName, DatabaseConnectionInfo connectionInfo, BiovationConfigurationManager biovationConfigurationManager)
         {
             Schema = "dbo";
             TableName = "_MigrationHistory";
             ModuleName = moduleName;
             ConnectionInfo = connectionInfo;
+            _biovationConfigurationManager = biovationConfigurationManager;
             _connectionFactory = ConnectionHelper.GetConnection(ConnectionInfo);
             _sqlServerObjectParser = new SqlServerObjectParser();
         }
@@ -62,7 +66,9 @@ namespace Biovation.CommonClasses.Migration
 
         private static string GetExecutedScriptsSql(string schema, string table)
         {
-            return $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' ORDER BY [ScriptName]";
+            return _biovationConfigurationManager.ReplaceScriptsOnMigration
+                ? $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} WHERE [ScriptName] NOT LIKE '%03.SP%' AND [ScriptName] NOT LIKE '%02.Functions%' AND [ScriptName] NOT LIKE '%04.Triggers%' AND [ScriptName] NOT LIKE '%05.Data%' AND [ScriptName] NOT LIKE '%06.View%' AND [ScriptName] NOT LIKE '%08.Indexes%' ORDER BY [ScriptName]"
+                : $"SELECT [ScriptName] FROM {CreateTableName(schema, table)} ORDER BY [ScriptName]";
         }
 
         public string[] GetExecutedScripts()
@@ -90,14 +96,18 @@ namespace Biovation.CommonClasses.Migration
                     }
                 }
 
+                var entryAssemblyName = Assembly.GetEntryAssembly()?.GetName().Name;
+                var newScriptNames = scripts.Select(sc => sc.Replace("Biovation.Server.SQL_Scripts", $"{entryAssemblyName ?? "Biovation.Data.Queries"}.Scripts")).ToList();
+                scripts.AddRange(newScriptNames);
                 result = scripts.ToArray();
             }
+
             return result;
         }
 
         public void StoreExecutedScript(SqlScript script, Func<IDbCommand> dbCommandFactory)
         {
-            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data") || script.Name.Contains("06.Data"))
+            if (script.Name.Contains("02.Functions") || script.Name.Contains("03.SP") || script.Name.Contains("04.Triggers") || script.Name.Contains("05.Data") || script.Name.Contains("06.Views"))
             {
                 using var context = new DbContext(_connectionFactory);
                 using var command = context.CreateCommand();
