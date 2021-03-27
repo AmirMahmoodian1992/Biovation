@@ -1331,8 +1331,8 @@ namespace Biovation.Brands.EOS.Devices
         }
 
         public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
-        DateTime? endTime,
-        bool saveFile = false)
+            DateTime? endTime,
+            bool saveFile = false)
         {
             //lock (_clock)
             //{
@@ -1344,13 +1344,16 @@ namespace Biovation.Brands.EOS.Devices
 
             var invalidTime = false;
             Logger.Log($"The datetime start with {startTime}");
-            if (startTime is null || startTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day) || startTime > DateTime.Now)
+            if (startTime is null ||
+                startTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day) ||
+                startTime > DateTime.Now)
             {
                 startTime = new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day);
                 invalidTime = true;
             }
 
-            if (endTime is null || endTime > DateTime.Now || endTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day))
+            if (endTime is null || endTime > DateTime.Now ||
+                endTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day))
             {
                 //endTime = new DateTime(2021, 3, 19);
                 invalidTime = true;
@@ -1386,6 +1389,7 @@ namespace Biovation.Brands.EOS.Devices
                         Thread.Sleep(500);
                         writePointer = _clock.GetWritePointer();
                     }
+
                     break;
                 }
                 catch (Exception exception)
@@ -1411,6 +1415,7 @@ namespace Biovation.Brands.EOS.Devices
                                 Thread.Sleep(500);
                                 initialReadPointer = _clock.GetReadPointer();
                             }
+
                             break;
                         }
                         catch (Exception exception)
@@ -1433,6 +1438,7 @@ namespace Biovation.Brands.EOS.Devices
                                 Thread.Sleep(500);
                                 successSetPointer = _clock.SetReadPointer(leftBoundary);
                             }
+
                             break;
                         }
                         catch (Exception exception)
@@ -1448,21 +1454,23 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         var dic = new Dictionary<int, int>()
                         {
-                            {1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{12,0}
+                            {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0},
+                            {12, 0}
                         };
                         var index = 0;
                         try
                         {
-                          var  clockRecord = (ClockRecord)_clock.GetRecord();
-                          Logger.Log($"First datetime {clockRecord.DateTime}");
-                            EOSsearch(ref index, new DateTime(1399, 5, 6), 10, DateTime.Now, dic,clockRecord.DateTime.Month);
+                            var clockRecord = (ClockRecord)_clock.GetRecord();
+                            Logger.Log($"First datetime {clockRecord.DateTime}");
+                            EOSsearch(ref index, new DateTime(1399, 5, 6), 10, DateTime.Now, dic,
+                                clockRecord.DateTime.Month);
                         }
                         catch (Exception e)
                         {
                             Console.WriteLine(e);
                             throw;
                         }
-                        
+
 
                         //(int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
                         //BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
@@ -1488,31 +1496,44 @@ namespace Biovation.Brands.EOS.Devices
 
                         //}
 
-                    if (!successSetPointer)
-                    {
-                        for (var i = 0; i < 5; i++)
+                        if (!successSetPointer)
                         {
-                            try
+                            for (var i = 0; i < 5; i++)
                             {
-                                lock (_clock)
+                                try
                                 {
-                                    Thread.Sleep(500);
-                                    successSetPointer = _clock.SetReadPointer(initialReadPointer);
+                                    lock (_clock)
+                                    {
+                                        Thread.Sleep(500);
+                                        successSetPointer = _clock.SetReadPointer(initialReadPointer);
+                                    }
+
+                                    break;
                                 }
-                                break;
-                            }
-                            catch (Exception exception)
-                            {
-                                Logger.Log(exception, exception.Message);
-                                Thread.Sleep(++i * 100);
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception, exception.Message);
+                                    Thread.Sleep(++i * 100);
+                                }
                             }
                         }
-                    }
 
-                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Success = successSetPointer, Code = Convert.ToInt32(TaskStatuses.DoneCode) };
+                        return new ResultViewModel
+                        {
+                             Id = _deviceInfo.DeviceId,
+                            Success = successSetPointer,
+                            Code = Convert.ToInt32(TaskStatuses.DoneCode)
+                        };
+                    }
                 }
 
-            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+            return new ResultViewModel
+            {
+                Id = _deviceInfo.DeviceId,
+                Validate = 0,
+                Message = "0",
+                Code = Convert.ToInt32(TaskStatuses.FailedCode)
+            };
         }
 
 
@@ -1659,7 +1680,7 @@ namespace Biovation.Brands.EOS.Devices
                 Logger.Log($"NEW datetime {recordDateTime}");
                 if (recordDateTime.Month > firstSeenMonth)
                 {
-                    recordDateTime  = recordDateTime.AddYears(1);
+                    recordDateTime = recordDateTime.AddYears(1);
                 }
                 if (prevDateTime.Month != recordDateTime.Month)
                 {
@@ -1672,15 +1693,15 @@ namespace Biovation.Brands.EOS.Devices
 
                 if (recordDateTime.Month > startDateTime.Month)
                 {
-                    if ( prevDateTime - recordDateTime < recordDateTime - startDateTime)
+                    if (prevDateTime - recordDateTime < recordDateTime - startDateTime)
                     {
                         stepLenght += stepLenght * 2 <= 80 ? stepLenght * 2 : stepLenght;
                     }
-                    EOSsearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth,firstSeenMonth);
+                    EOSsearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth, firstSeenMonth);
                 }
                 else if (recordDateTime.Month < startDateTime.Month)
                 {
-                    EOSsearch(ref currentIndex, startDateTime, stepLenght/3, recordDateTime, seenMonth, firstSeenMonth);
+                    EOSsearch(ref currentIndex, startDateTime, stepLenght / 3, recordDateTime, seenMonth, firstSeenMonth);
                 }
                 else
                 {
@@ -1710,6 +1731,6 @@ namespace Biovation.Brands.EOS.Devices
                 Logger.Log(exception, exception.Message);
             }
         }
-        }
+    }
 }
 
