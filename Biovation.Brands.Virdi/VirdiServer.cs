@@ -26,7 +26,7 @@ using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi
 {
-    public class VirdiServer
+    public class VirdiServer : IDisposable
     {
         #region CTOR
 
@@ -57,6 +57,7 @@ namespace Biovation.Brands.Virdi
         private readonly TaskService _taskService;
         private readonly AccessGroupService _accessGroupService;
         private readonly ILogger<VirdiServer> _logger;
+        private Timer _fixDaylightSavingTimer;
 
         //Todo: Find better solution
         //private readonly Dictionary<int, TaskInfo> _tasks = new Dictionary<int, TaskInfo>();
@@ -360,6 +361,22 @@ namespace Biovation.Brands.Virdi
                     ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
                     : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
                 , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
+
+
+            try
+            {
+                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                var dueTime =
+                    ((DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265
+                        ? new DateTime(DateTime.Now.Year, 3, 22, 0, 0, 10)
+                        : new DateTime(DateTime.Now.Year, 6, 22, 0, 0, 10)) - DateTime.Now).TotalMilliseconds;
+                _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
         }
 
         public void StopServer()
@@ -372,6 +389,12 @@ namespace Biovation.Brands.Virdi
             return _onlineDevices;
         }
 
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            StopServer();
+            Thread.Sleep(3000);
+            StartServer();
+        }
         private async void GetAccessLogCount(int clientId, int terminalId, int logCount)
         {
             if (logCount > 0)
@@ -2510,6 +2533,18 @@ namespace Biovation.Brands.Virdi
                +TerminalID: {terminalId}");
 
             UpgradeFirmwareTaskFinished = true;
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
         }
     }
 }
