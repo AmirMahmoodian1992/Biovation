@@ -521,18 +521,36 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists && Valid)
+                        while (newRecordExists)
                         {
+                            if (!Valid)
+                            {
+                                Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
+                                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                            }
+
                             var test = true;
                             var exceptionTester = false;
-                            while (test && Valid)
+                            while (test)
                             {
+                                if (!Valid)
+                                {
+                                    Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                }
+
                                 ClockRecord record = null;
 
                                 try
                                 {
                                     while (record == null)
                                     {
+                                        if (!Valid)
+                                        {
+                                            Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
+                                            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                        }
+
                                         lock (_clock)
                                             record = (ClockRecord)_clock.GetRecord();
                                         Thread.Sleep(300);

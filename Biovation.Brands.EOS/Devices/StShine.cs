@@ -171,7 +171,7 @@ namespace Biovation.Brands.EOS.Devices
                     return true;
                 }
 
-            while (true)
+            while (Valid)
             {
                 _logger.Debug("Could not connect to device {deviceCode} --> IP: {deviceIpAddress}", _deviceInfo.Code, _deviceInfo.IpAddress);
 
@@ -186,6 +186,7 @@ namespace Biovation.Brands.EOS.Devices
                     }
             }
 
+            return false;
         }
         public virtual ResultViewModel ReadOnlineLog(object token)
         {
@@ -212,18 +213,35 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists && Valid)
+                        while (newRecordExists)
                         {
+                            if (!Valid)
+                            {
+                                _logger.Debug("Disconnect requested for device {deviceCode}", _deviceInfo.Code);
+                                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                            }
+
                             var test = true;
                             var exceptionTester = false;
-                            while (test && Valid)
+                            while (test)
                             {
-                                ClockRecord record = null;
+                                if (!Valid)
+                                {
+                                    _logger.Debug("Disconnect requested for device {deviceCode}", _deviceInfo.Code);
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                }
 
+                                ClockRecord record = null;
                                 try
                                 {
                                     while (record == null)
                                     {
+                                        if (!Valid)
+                                        {
+                                            _logger.Debug("Disconnect requested for device {deviceCode}", _deviceInfo.Code);
+                                            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                        }
+
                                         lock (_clock)
                                             record = (ClockRecord)_clock.GetRecord();
                                         Thread.Sleep(300);
@@ -385,14 +403,12 @@ namespace Biovation.Brands.EOS.Devices
             //_clock?.Disconnect();
             //_clock?.Dispose();
             if (Valid)
-            {
                 Connect();
-            }
 
             //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
             return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-
         }
+
         public override bool Disconnect()
         {
             Valid = false;

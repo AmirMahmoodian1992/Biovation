@@ -58,6 +58,8 @@ namespace Biovation.Brands.EOS.Devices
                 ReadInCompleteTimeOut = 10,
                 RetryCount = 1
             });
+
+            Valid = true;
         }
 
         public override bool Connect()
@@ -157,7 +159,7 @@ namespace Biovation.Brands.EOS.Devices
 
                 }
 
-                while (true)
+                while (Valid)
                 {
                     Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
 
@@ -579,18 +581,36 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_stFace)
                             empty = _stFace.IsEmpty();
 
-                        while (!empty && Valid)
+                        while (!empty)
                         {
+                            if (!Valid)
+                            {
+                                Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
+                                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                            }
+
                             var test = true;
                             var exceptionTester = false;
-                            while (test && Valid)
+                            while (test)
                             {
+                                if (!Valid)
+                                {
+                                    Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                }
+
                                 Record record = null;
 
                                 try
                                 {
                                     while (record == null)
                                     {
+                                        if (!Valid)
+                                        {
+                                            Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
+                                            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                        }
+
                                         lock (_stFace)
                                         {
                                             record = _stFace.GetRecord();
