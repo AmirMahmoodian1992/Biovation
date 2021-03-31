@@ -196,7 +196,7 @@ namespace Biovation.Brands.PW.Devices
                 return true;
             }
 
-            while (!CancellationToken.IsCancellationRequested)
+            while (!CancellationToken.IsCancellationRequested && _valid)
             {
                 _logger.Debug($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
                 _logger.Debug($"Error code: {connectResult} ");
