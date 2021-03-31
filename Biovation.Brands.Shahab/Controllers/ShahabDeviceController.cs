@@ -73,5 +73,30 @@ namespace Biovation.Brands.Shahab.Controllers
                 }
             });
         }
+
+        [HttpPost]
+        [Authorize]
+        public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
+        {
+            var resultList = new Dictionary<uint, bool>();
+
+            foreach (var deviceId in deviceIds)
+            {
+                var device = _deviceService.GetDevice(deviceId);
+                lock (_onlineDevices)
+                {
+                    if (_onlineDevices.ContainsKey(device.Code))
+                    {
+                        _onlineDevices[device.Code].Disconnect();
+                        if (_onlineDevices.ContainsKey(device.Code))
+                            _onlineDevices.Remove(device.Code);
+                    }
+                }
+
+                resultList.Add(deviceId, true);
+            }
+
+            return resultList;
+        }
     }
 }

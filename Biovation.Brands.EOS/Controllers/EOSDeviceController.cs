@@ -87,6 +87,34 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpPost]
         [Authorize]
+        public Dictionary<uint, bool> DeleteDevices([FromBody] List<uint> deviceIds)
+        {
+            var resultList = new Dictionary<uint, bool>();
+
+            foreach (var deviceId in deviceIds)
+            {
+                var device = _deviceService.GetDevice(deviceId)?.Data;
+                if (device is null)
+                    continue;
+
+                lock (_onlineDevices)
+                {
+                    if (_onlineDevices.ContainsKey(device.Code))
+                    {
+                        _onlineDevices[device.Code].Disconnect();
+                        if (_onlineDevices.ContainsKey(device.Code))
+                            _onlineDevices.Remove(device.Code);
+                    }
+                }
+
+                resultList.Add(deviceId, true);
+            }
+
+            return resultList;
+        }
+
+        [HttpPost]
+        [Authorize]
         public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userIds,
             bool updateServerSideIdentification = false)
         {

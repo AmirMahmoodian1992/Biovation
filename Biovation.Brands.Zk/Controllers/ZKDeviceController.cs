@@ -539,12 +539,14 @@ namespace Biovation.Brands.ZK.Controllers
 
                 foreach (var deviceId in deviceIds)
                 {
+                    var device = _deviceService.GetDevice(deviceId);
                     lock (_onlineDevices)
                     {
-                        if (_onlineDevices.ContainsKey(deviceId))
+                        if (_onlineDevices.ContainsKey(device.Code))
                         {
-                            _onlineDevices[deviceId].Disconnect();
-                            _onlineDevices.Remove(deviceId);
+                            _onlineDevices[device.Code].Disconnect();
+                            if (_onlineDevices.ContainsKey(device.Code))
+                                _onlineDevices.Remove(device.Code);
                         }
                     }
 
