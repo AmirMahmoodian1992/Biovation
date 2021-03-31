@@ -256,10 +256,10 @@ namespace Biovation.Server.Controllers.v1
                     restRequest.AddParameter("code", deviceBasic.Code);
                     restRequest.AddParameter("userId", userId);
                     restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                    var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    var requestResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                     if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
-                        result.Add(requestResult.Data);
+                        result.AddRange(requestResult.Data);
                 }
 
                 return result;
