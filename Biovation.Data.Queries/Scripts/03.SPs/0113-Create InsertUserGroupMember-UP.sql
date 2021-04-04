@@ -2,7 +2,7 @@
 @UserId BIGINT, @GroupId INT,@UserType INt = 1
 AS
 BEGIN
-    DECLARE @Message AS NVARCHAR (200) = N'ایجاد با موفقیت انجام گرفت', @Validate AS INT = 1, @Code  AS nvarchar(5) = N'201';
+    DECLARE @Message AS NVARCHAR (200) = N'ایجاد با موفقیت انجام گرفت', @Validate AS INT = 1, @Code AS NVARCHAR (15) = N'201';
     BEGIN TRY
         BEGIN TRANSACTION T1;
         
