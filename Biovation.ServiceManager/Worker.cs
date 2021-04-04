@@ -41,7 +41,7 @@ namespace Biovation.ServiceManager
 
                 var services = ServiceController.GetServices();
                 var biovationBrandsServices = services.Where(service => service.ServiceName.ToLower().Contains("biovation.brands"));
-                
+
                 if (!startBaseServices)
                 {
                     Parallel.ForEach(biovationBrandsServices, brandService =>
@@ -51,7 +51,7 @@ namespace Biovation.ServiceManager
                     });
 
                     await Task.Delay(3000, stoppingToken);
-                    waitValue = 1.584; 
+                    waitValue = 1.584;
                     continue;
                 }
 
@@ -77,15 +77,15 @@ namespace Biovation.ServiceManager
                 if (service.Status == ServiceControllerStatus.Running)
                     return true;
 
-                if (service.Status != ServiceControllerStatus.Stopped)
-                {
-                    //service.Stop();
-                    //service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(3));
-                    StopService(serviceName);
-                }
+                //if (service.Status != ServiceControllerStatus.Stopped)
+                //{
+                //service.Stop();
+                //service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(3));
+                StopService(serviceName);
+                //}
 
                 service.Start();
-                service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(20));
+                service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(1));
                 return true;
             }
             catch
@@ -107,7 +107,7 @@ namespace Biovation.ServiceManager
             try
             {
                 if (service.Status == ServiceControllerStatus.Stopped) return;
-                
+
                 service.Stop();
                 service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(15));
             }
