@@ -80,7 +80,7 @@ namespace Biovation.Brands.Suprema.Commands
                 Logger.Log($"The device: {device.DeviceId} is not connected.");
                 return new ResultViewModel { Validate = 0, Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
-            var userOfDevice = _onlineDevices[DeviceId].GetUser(UserCode);
+            var userOfDevice = _onlineDevices[device.Code].GetUser(UserCode);
             if (!(userOfDevice is null))
             {
                 try
@@ -100,7 +100,7 @@ namespace Biovation.Brands.Suprema.Commands
                     {
                         Id = 0,
                         //todo
-                        Code = userOfDevice.Id,
+                        Code = userOfDevice.Code,
                         AdminLevel = userOfDevice.AdminLevel,
                         StartDate = userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00"
                             ? DateTime.Parse("1970/01/01")
@@ -119,14 +119,14 @@ namespace Biovation.Brands.Suprema.Commands
 
 
 
-                    var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Id))?.Data?.Data.FirstOrDefault();
+                    var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Code))?.Data?.Data.FirstOrDefault();
 
                     if (existUser != null)
                     {
                         user = new User
                         {
-                            Id = 0,
-                            //Code = userOfDevice.Id,
+                            Id = existUser.Id,
+                            Code = userOfDevice.Code,
                             AdminLevel = userOfDevice.AdminLevel,
                             StartDate = userOfDevice.StartDate.ToString(CultureInfo.InvariantCulture) == "0000-00-00"
                                 ? DateTime.Parse("1970/01/01")
@@ -144,7 +144,7 @@ namespace Biovation.Brands.Suprema.Commands
                     }
 
                     _userService.ModifyUser(user);
-                    user.Id = _userService.GetUsers(userId:userOfDevice.Id).Data.Data.FirstOrDefault().Id;
+                    user.Id = _userService.GetUsers(code:userOfDevice.Code).Data.Data.FirstOrDefault().Id;
 
                     //Card
                     try
@@ -368,7 +368,7 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 //todo
                                 //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4)?.Data.Data;
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4)?.Data?.Data;
 
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
@@ -413,6 +413,7 @@ namespace Biovation.Brands.Suprema.Commands
                             }
                         });
                     }
+                    
 
 
                 }
@@ -421,10 +422,11 @@ namespace Biovation.Brands.Suprema.Commands
                     Console.WriteLine(e);
                     throw;
                 }
-                return new ResultViewModel<User> { Data = userOfDevice, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                //  return new ResultViewModel<User> { Data = userOfDevice, Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                return new ResultViewModel { Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
             }
-            return new ResultViewModel<User> { Id = DeviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
-
+            // return new ResultViewModel<User> { Id = DeviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+            return new ResultViewModel { Id = DeviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
         }
 
         public string GetDescription()

@@ -70,7 +70,7 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var user = _userService.GetUsers(userId:userId)?.Data?.Data.FirstOrDefault();
+            var user = _userService.GetUsers(userId:userId,getTemplatesData:true)?.Data?.Data.FirstOrDefault();
 
             if (user == null)
             {
@@ -78,11 +78,11 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var userAccess = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+            //var userAccess = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
 
-            var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
-            var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
-            var disable = userAccess.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
+            //var fullAccess = userAccess?.FirstOrDefault(ua => ua.Id == 254);
+            //var noAccess = userAccess?.FirstOrDefault(ua => ua.Id == 253);
+            //var disable = userAccess?.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
 
 
             #region transferUserToDevice
@@ -101,12 +101,12 @@ namespace Biovation.Brands.Suprema.Commands
             }
             catch (Exception)
             {
-                return false;
+                return new ResultViewModel { Id = deviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) }; ;
             }
 
             #endregion transferUserToDevices
 
-            return true;
+            return new ResultViewModel { Id = deviceId, Message = "1", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) }; ;
         }
 
         public void Rollback()

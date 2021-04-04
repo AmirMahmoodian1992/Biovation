@@ -29,6 +29,7 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest("Queries/v2/FingerTemplate", Method.GET);
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("templateIndex", templateIndex.ToString());
+            restRequest.AddQueryParameter("fingerTemplateType", fingerTemplateType);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;

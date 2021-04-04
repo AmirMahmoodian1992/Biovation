@@ -37,7 +37,8 @@ namespace Biovation.Brands.Suprema.Manager
 
                 Task executeTask = null;
                 ResultViewModel result = null;
-
+                taskItem.Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.InProgressCode);
+                _taskService.UpdateTaskStatus(taskItem);
                 switch (taskItem.TaskItemType.Code)
                 {
 

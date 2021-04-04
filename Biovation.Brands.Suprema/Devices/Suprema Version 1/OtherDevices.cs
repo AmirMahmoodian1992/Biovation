@@ -68,8 +68,6 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         public override bool TransferUser(User userData)
         {
             MTemplateData = new byte[BSSDK.TEMPLATE_SIZE * 2 * 2];
-            //var userDataService = new UserServices();
-            //var userData = userDataService.GetUser(nUserIdn, ConnectionType);
             var userHdr = new BSSDK.BEUserHdr();
             userHdr.fingerChecksum = new ushort[2];
             userHdr.isDuress = new byte[2];
@@ -78,12 +76,13 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
 
             // pwd
-            if (!(userData.Password is null))
+            if (!(userData.PasswordBytes is null))
             {
                 var pwd = userData.Password;
                 userHdr.password = new byte[17];
                 var tmppw = Encoding.ASCII.GetBytes(pwd);
                 Buffer.BlockCopy(tmppw, 0, userHdr.password, 0, tmppw.Length);
+
             }
 
             //userHdr.userID = Convert.ToUInt32(userData.SUserId);
@@ -103,7 +102,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
 
 
-            var userTemplate = (_fingerTemplateService.FingerTemplates(userId: (int)userData.Id).Where(x => x.FingerTemplateType.Code == _fingerTemplateTypes.SU384.Code)).ToList();
+            //var userTemplate = (_fingerTemplateService.FingerTemplates(userId: (int)userData.Id, fingerTemplateType: FingerTemplateTypes.SU384Code).Where(x => x.FingerTemplateType.Code == _fingerTemplateTypes.SU384.Code)).ToList();
+            var userTemplate = userData.FingerTemplates;
             var rowCount = userTemplate.Count;
             var numberOfFingers = 0;
             int fingerChecksum1 = new ushort();
@@ -160,22 +160,16 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             try
             {
 
-
-                var userCards = _userCardService.GetCardsByFilter(userData.Id, true);
-                //var rowc = dtCard.Count;
-                if (userCards != null)
+                if (int.Parse(userData.IdentityCard?.Number) > 0)
                 {
-                    var userCard = userCards.FirstOrDefault();
-                    if (userCard != null)
-                    {
-                        userHdr.cardID = Convert.ToUInt32(userCard.CardNum);
-                        userHdr.cardFlag = 1;
-                        userHdr.cardCustomID = 0;
 
-                        //userHdr.Card = (byte)userCardData[rowc - 1].nBypass;
-                        CardValidation(userCard.CardNum);
-                        hasCard = true;
-                    }
+                    userHdr.cardID = Convert.ToUInt32(userData.IdentityCard?.Number);
+                    userHdr.cardFlag = 1;
+                    userHdr.cardCustomID = 0;
+
+                    //userHdr.Card = (byte)userCardData[rowc - 1].nBypass;
+                    CardValidation(userData.IdentityCard?.Number);
+                    hasCard = true;
                 }
 
                 else
@@ -185,10 +179,10 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 userHdr.cardID = 0;
-                Logger.Log(e.ToString());
+                Logger.Log($"The User : {userData.Id} Do not have card or query do not return any thing");
             }
 
             userHdr.cardVersion = BSSDK.BE_CARD_VERSION_1;
@@ -1181,7 +1175,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             var tempUser = new User
             {
-                Id = Convert.ToInt32(userHdr.userID),
+                Code = Convert.ToInt32(userHdr.userID),
                 IsActive = !Convert.ToBoolean(userHdr.disabled),
                 AdminLevel = userHdr.adminLevel
             };
