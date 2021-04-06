@@ -124,7 +124,7 @@ namespace Biovation.Domain
                 if (nDateTime != default)
                     return;
                 
-                if ((long)value / 10000000 > 0)
+                if ((long)value / 10000000000 > 0)
                     value /= 10000000;
 
                 nDateTime = value;
@@ -144,8 +144,19 @@ namespace Biovation.Domain
         public int AuthResult { get; set; }
         [OneToOne]
         public Lookup MatchingType { get; set; }
-        [JsonProperty("DeviceIOType")]
-        public int InOutMode { get; set; }
+
+        //[JsonProperty("DeviceIOType")]
+        public int InOutMode
+        {
+            get => DeviceIOType;
+            set
+            {
+                DeviceIOType = value;
+            }
+        }
+
+        //[JsonProperty("InOutMode")]
+        private int DeviceIOType { get; set; }
         public override string ToString()
         {
             return $@"UserId:{UserId} DeviceId:{DeviceId} DeviceCode:{DeviceCode} Ticks:{DateTimeTicks} LogTime:{LogDateTime} EventId:{EventLog.Code} SubEventId:{SubEvent?.Code ?? 0.ToString()}";
