@@ -88,9 +88,18 @@ namespace Biovation.Server.Controllers.v2
                             Data = new SystemInfo() { LockEndTime = null },
                         };
                     }
+
+                    if (DateTime.Parse(expirationDate) >= DateTime.Now)
+                    {
+                        return new ResultViewModel<SystemInfo>
+                        {
+                            Validate = 1,
+                            Data = new SystemInfo() {LockEndTime = expirationDate},
+                        };
+                    }
                     return new ResultViewModel<SystemInfo>
                     {
-                        Validate = 1,
+                        Validate = 0,
                         Data = new SystemInfo() { LockEndTime = expirationDate },
                     };
                 }

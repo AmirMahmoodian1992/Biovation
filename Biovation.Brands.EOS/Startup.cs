@@ -99,8 +99,19 @@ namespace Biovation.Brands.EOS
                 var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
                 if (!requestResult.Result.Data.Success)
                 {
-                    Logger.Log("The Lock is not active");
-                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Logger.Log("The Lock is not active", logType: LogType.Warning);
+                    try
+                    {
+                        if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                        {
+                            Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        //ignore
+                    }
+                    Thread.Sleep(TimeSpan.FromSeconds(10));
                     Environment.Exit(0);
                 }
             }
