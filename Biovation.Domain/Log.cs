@@ -156,7 +156,7 @@ namespace Biovation.Domain
         }
 
         //[JsonProperty("InOutMode")]
-        private int DeviceIOType { get; set; }
+        public int DeviceIOType { get; set; }
         public override string ToString()
         {
             return $@"UserId:{UserId} DeviceId:{DeviceId} DeviceCode:{DeviceCode} Ticks:{DateTimeTicks} LogTime:{LogDateTime} EventId:{EventLog.Code} SubEventId:{SubEvent?.Code ?? 0.ToString()}";
