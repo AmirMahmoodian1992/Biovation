@@ -12,6 +12,7 @@ namespace Biovation.Domain.RelayControllerModels
         //public Tuple<Enum, DateTime> LastState { get; set; }
         [OneToOne]
         public RelayHub Hub { get; set; }
+        [OneToOne]
         public Entrance Entrance { get; set; }
         [OneToMany]
         public List<Scheduling> Schedulings { get; set; }
