@@ -12,6 +12,7 @@ namespace Biovation.Constants
         public const string ProcessingWorldCode = "15005";
         public const string MaxaCode = "15006";
         public const string ShahabCode = "15007";
+        public const string PalizCode = "15008";
 
         public DeviceBrands(Lookups lookups)
         {
@@ -31,5 +32,6 @@ namespace Biovation.Constants
         public Lookup ProcessingWorld { get; set; }
         public Lookup Maxa { get; set; }
         public Lookup Shahab { get; set; }
+        public Lookup Paliz { get; set; }
     }
 }
