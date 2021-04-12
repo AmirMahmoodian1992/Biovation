@@ -20,6 +20,7 @@ using Serilog;
 using System.Threading;
 using System.Reflection;
 using Biovation.Brands.Paliz.Middleware;
+using Biovation.Brands.Paliz.HostedServices;
 using Log = Serilog.Log;
 
 namespace Biovation.Brands.Paliz
@@ -202,7 +203,11 @@ namespace Biovation.Brands.Paliz
 
         public void ConfigurePalizServices(IServiceCollection services)
         {
+            var palizObject = new Paliz();
+            services.AddSingleton(palizObject);
+            services.AddSingleton<PalizServer, PalizServer>();
 
+            services.AddHostedService<PalizHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

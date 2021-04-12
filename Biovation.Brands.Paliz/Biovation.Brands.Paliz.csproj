@@ -27,5 +27,9 @@
     <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Libraries\" />
+  </ItemGroup>
+
 
 </Project>
