@@ -24,5 +24,12 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Biovation.CommonClasses\Biovation.CommonClasses.csproj" />
+    <ProjectReference Include="..\Biovation.Constants\Biovation.Constants.csproj" />
+    <ProjectReference Include="..\Biovation.Repository.Api\Biovation.Repository.Api.csproj" />
+    <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
+  </ItemGroup>
+
 
 </Project>
