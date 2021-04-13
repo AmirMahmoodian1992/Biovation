@@ -12,7 +12,8 @@ namespace Biovation.Constants
         public const string ProcessingWorldCode = "15005";
         public const string MaxaCode = "15006";
         public const string ShahabCode = "15007";
-        public const string PalizCode = "15008";
+
+        public const string PalizCode = "15009";
 
         public DeviceBrands(Lookups lookups)
         {
@@ -23,6 +24,7 @@ namespace Biovation.Constants
             ProcessingWorld = lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ProcessingWorldCode));
             Maxa = lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, MaxaCode));
             Shahab = lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, ShahabCode));
+            Paliz = lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Code, PalizCode));
         }
 
         public Lookup Virdi { get; set; }
