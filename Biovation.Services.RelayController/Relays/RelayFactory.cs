@@ -17,10 +17,10 @@ namespace Biovation.Services.RelayController.Relays
         /// <returns> IRelay object </returns>
         public IRelay Factory(Relay relay, TcpClient tcpClient)
         {
-            return relay.Hub.RelayHubModel.Name switch
+            return relay.RelayHub.RelayHubModel.Name switch
             {
                 RelayBrands.Behsan => new BehsanRelay(relay, tcpClient),
-                _ => throw new ArgumentException(message: $"{relay.Hub.RelayHubModel} is not defined as a relay's brand")
+                _ => throw new ArgumentException(message: $"{relay.RelayHub.RelayHubModel} is not defined as a relay's brand")
             };
         }
     }

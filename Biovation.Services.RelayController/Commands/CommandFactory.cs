@@ -26,7 +26,7 @@ namespace Biovation.Services.RelayController.Commands
                 Id = relayId,
                 Name = $"relay_{relayId}",
                 NodeNumber = relayId,
-                Hub = new RelayHub
+                RelayHub = new RelayHub
                 {
                     Id = 1,
                     IpAddress = "192.168.1.200",
@@ -52,7 +52,7 @@ namespace Biovation.Services.RelayController.Commands
 
             var relay = _relayFactory.Factory(relayInfo, tcpClient);
 
-            if (relay.RelayInfo.NodeNumber > relay.RelayInfo.Hub.Capacity)
+            if (relay.RelayInfo.NodeNumber > relay.RelayInfo.RelayHub.Capacity)
                 throw new Exception("the relay node number is out of range!");
 
             return commandId switch

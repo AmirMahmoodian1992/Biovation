@@ -19,7 +19,7 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
         }
 
         [HttpPost]
-        [Authorize]
+        //[Authorize]
         public Task<ResultViewModel> AddRelay([FromBody] Relay relay = default)
         {
             return Task.Run(() => _relayRepository.CreateRelay(relay));

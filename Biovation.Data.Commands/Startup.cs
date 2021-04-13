@@ -14,6 +14,7 @@ using System.Reflection;
 using Biovation.Data.Commands.Middleware;
 using Biovation.Data.Commands.Sinks;
 using Biovation.Repository.MessageBus;
+using Biovation.Repository.Sql.v2.RelayController;
 
 namespace Biovation.Data.Commands
 {
@@ -93,6 +94,7 @@ namespace Biovation.Data.Commands
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddScoped<RelayRepository, RelayRepository>();
 
 
             //integration
