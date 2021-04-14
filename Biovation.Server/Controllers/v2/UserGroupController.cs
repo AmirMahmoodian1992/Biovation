@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
+using Biovation.Constants;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -24,13 +26,25 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
+        private readonly TaskService _taskService;
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly DeviceBrands _deviceBrands;
 
-        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, RestClient restClient)
+        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, RestClient restClient, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
             _restClient = restClient;
+            _taskService = taskService;
+            _taskTypes = taskTypes;
+            _taskPriorities = taskPriorities;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _deviceBrands = deviceBrands;
         }
 
         [HttpGet]
@@ -51,10 +65,14 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
         {
             var token = (string)HttpContext.Items["Token"];
+            var creatorUser = HttpContext.GetUser();
+
             return Task.Run(async () =>
             {
                 try
                 {
+                    List<DeviceBasicInfo> allChangedDevices = new List<DeviceBasicInfo>();
+
                     if (userGroup is null)
                         return new ResultViewModel
                         { Success = false, Validate = 0, Code = 404, Message = "Null user group is provided!" };
@@ -222,10 +240,10 @@ namespace Biovation.Server.Controllers.v2
                     });
 
                     Task.WaitAll(computeNewAddition, computeNewDeletion);
-
+                    
                     foreach (var deviceKey in existingAuthorizedUsersOfDevicesToDelete.Keys)
                     {
-                        await Task.Run(async () =>
+                        await Task.Run( () =>
                         {
                             var device = _deviceService.GetDevice(deviceKey, token: token).Data;
                             var usersToDeleteFromDevice = (newAuthorizedUsersOfDevicesToDelete.ContainsKey(deviceKey) && newAuthorizedUsersOfDevicesToDelete[deviceKey]?.Count > 0
@@ -234,47 +252,85 @@ namespace Biovation.Server.Controllers.v2
                                 : existingAuthorizedUsersOfDevicesToDelete[deviceKey]).Select(user =>
                                 new User { Code = user.UserCode, UserName = user.UserName });
 
-                            var deleteUserRestRequest =
-                                new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
-                                    Method.POST);
-                            deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                            deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Code));
-                            /*var deletionResult =*/
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
-                            await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
 
-                            //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.DeleteUsers,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = device.Brand,
+                                TaskItems = new List<TaskItem>()
+                            };
+
+                            foreach (var userCode in usersToDeleteFromDevice.Select(user => user.Code))
+                            {
+
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = device.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { userCode }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1
+                                });
+                            }
+
+                            _taskService.InsertTask(task);
+                            if (!allChangedDevices.Exists(deviceTemp => deviceTemp.Brand.Code == device.Brand.Code)) allChangedDevices.Add(device);
+
                         });
                     }
 
                     foreach (var deviceKey in newAuthorizedUsersOfDevicesToAdd.Keys)
                     {
-                        await Task.Run(async () =>
+                        await Task.Run(() =>
                         {
                             var device = _deviceService.GetDevice(deviceKey, token: token).Data;
-                            var usersToDeleteFromDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
+                            var usersToAddToDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
                                 ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
                                     .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
                                 : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
                                 new User { Code = user.UserCode, UserName = user.UserName });
 
-                            var sendUserRestRequest =
-                                new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
-                            sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                            sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
-                            /*var additionResult =*/
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            var task = new TaskInfo
                             {
-                                sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
-                            await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendUsers,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = _deviceBrands.ZkTeco,
+                                TaskItems = new List<TaskItem>()
+                            };
 
-                            //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
+                            foreach (var id in usersToAddToDevice.Select(user=>user.Code))
+                            {
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendUser,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = device.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { UserId = id }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1
+                                });
+
+                            }
+
+                            _taskService.InsertTask(task);
+                            if(!allChangedDevices.Exists(deviceTemp=> deviceTemp.Brand.Code == device.Brand.Code)) allChangedDevices.Add(device);
+
                         });
                     }
+                    allChangedDevices.ForEach((device) =>
+                    {
+                        _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+                    });
                     return result;
                 }
                 catch (Exception exception)
