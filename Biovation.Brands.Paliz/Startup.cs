@@ -203,11 +203,11 @@ namespace Biovation.Brands.Paliz
 
         public void ConfigurePalizServices(IServiceCollection services)
         {
-            var palizObject = new Paliz();
-            services.AddSingleton(palizObject);
-            services.AddSingleton<PalizServer, PalizServer>();
+            //var palizObject = new Paliz();
+            //services.AddSingleton(palizObject);
+            //services.AddSingleton<PalizServer, PalizServer>();
 
-            services.AddHostedService<PalizHostedService>();
+            //services.AddHostedService<PalizHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
