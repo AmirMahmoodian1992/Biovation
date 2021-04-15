@@ -77,6 +77,7 @@ namespace Biovation.Brands.Paliz
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
             #region checkLock
 
             var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
@@ -112,26 +113,56 @@ namespace Biovation.Brands.Paliz
 
             services.AddSingleton(restClient);
             //add your injection here 
+
+            services.AddSingleton<AccessGroupService, AccessGroupService>();
+            services.AddSingleton<AdminDeviceService, AdminDeviceService>();
+            services.AddSingleton<BlackListService, BlackListService>();
+            services.AddSingleton<DeviceGroupService, DeviceGroupService>();
+            services.AddSingleton<DeviceService, DeviceService>();
+            services.AddSingleton<FaceTemplateService, FaceTemplateService>();
+            services.AddSingleton<FingerTemplateService, FingerTemplateService>();
+            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddSingleton<LogService, LogService>();
+            services.AddSingleton<LookupService, LookupService>();
+            services.AddSingleton<SettingService, SettingService>();
+            services.AddSingleton<TaskService, TaskService>();
+            services.AddSingleton<TimeZoneService, TimeZoneService>();
+            services.AddSingleton<UserCardService, UserCardService>();
+            services.AddSingleton<UserGroupService, UserGroupService>();
+            services.AddSingleton<UserService, UserService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+
+            services.AddSingleton<GenericRepository, GenericRepository>();
+            services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
+            services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
+            services.AddSingleton<BlackListRepository, BlackListRepository>();
+            services.AddSingleton<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddSingleton<DeviceRepository, DeviceRepository>();
+            services.AddSingleton<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddSingleton<FingerTemplateRepository, FingerTemplateRepository>();
+            services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddSingleton<LogRepository, LogRepository>();
+            services.AddSingleton<LookupRepository, LookupRepository>();
+            services.AddSingleton<SettingRepository, SettingRepository>();
+            services.AddSingleton<TaskRepository, TaskRepository>();
+            services.AddSingleton<TimeZoneRepository, TimeZoneRepository>();
+            services.AddSingleton<UserCardRepository, UserCardRepository>();
+            services.AddSingleton<UserGroupRepository, UserGroupRepository>();
+            services.AddSingleton<UserRepository, UserRepository>();
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
         {
-            var serviceCollection = new ServiceCollection();
-            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            //var serviceCollection = new ServiceCollection();
+            //var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
-            serviceCollection.AddSingleton(restClient);
+            //services.AddSingleton(restClient);
 
-            serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
-            serviceCollection.AddScoped<LookupRepository, LookupRepository>();
-            serviceCollection.AddScoped<LookupService, LookupService>();
-            serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-            serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
-
+        
             //serviceCollection.AddScoped<Lookups, Lookups>();
             //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
 
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider();
 
             var lookupService = serviceProvider.GetService<LookupService>();
 
@@ -146,7 +177,6 @@ namespace Biovation.Brands.Paliz
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
-
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
 
@@ -198,16 +228,15 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
-
         }
 
         public void ConfigurePalizServices(IServiceCollection services)
         {
-            //var palizObject = new Paliz();
-            //services.AddSingleton(palizObject);
-            //services.AddSingleton<PalizServer, PalizServer>();
+            var palizObject = new Paliz();
+            services.AddSingleton(palizObject);
+            services.AddSingleton<PalizServer, PalizServer>();
 
-            //services.AddHostedService<PalizHostedService>();
+            services.AddHostedService<PalizHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

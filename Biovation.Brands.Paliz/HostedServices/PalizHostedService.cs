@@ -26,12 +26,16 @@ namespace Biovation.Brands.Paliz.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
+
+            //throw new NotImplementedException();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
+
+            //throw new NotImplementedException();
         }
     }
 }
