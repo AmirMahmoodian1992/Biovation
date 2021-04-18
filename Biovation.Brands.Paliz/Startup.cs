@@ -29,7 +29,7 @@ namespace Biovation.Brands.Paliz
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
-        public readonly Dictionary<uint, DeviceBasicInfo> OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
+        public readonly Dictionary<string, DeviceBasicInfo> OnlineDevices = new Dictionary<string, DeviceBasicInfo>();
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
