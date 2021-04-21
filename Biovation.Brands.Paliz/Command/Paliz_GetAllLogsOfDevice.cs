@@ -4,10 +4,11 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using PalizTiara.Api.Models;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -20,7 +21,7 @@ namespace Biovation.Brands.Paliz.Command
 
         private int TaskItemId { get; }
 
-        private int DeviceId { get; }
+        private int TerminalId { get; }
 
         private uint Code { get; }
 
@@ -29,7 +30,7 @@ namespace Biovation.Brands.Paliz.Command
         public VirdiRetrieveAllLogsOfDevice(uint code, Dictionary<uint, DeviceBasicInfo> devices)
         {
             Code = code;
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == code).Value.DeviceId;
+            TerminalId = devices.FirstOrDefault(dev => dev.Key == code).Value.TerminalId;
             OnlineDevices = devices;
         }
         */
@@ -39,14 +40,15 @@ namespace Biovation.Brands.Paliz.Command
         {
             _palizServer = palizServer;
             if (items.Count == 1)
-            { DeviceId = Convert.ToInt32(items[0]); }
+            { TerminalId = Convert.ToInt32(items[0]); }
             else
             {
-                DeviceId = Convert.ToInt32(items[0]);
+                TerminalId = Convert.ToInt32(items[0]);
                 TaskItemId = Convert.ToInt32(items[1]);
             }
 
-            Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+            Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 0;
             //OnlineDevices = palizServer.GetOnlineDevices();
         }
 
@@ -61,19 +63,25 @@ namespace Biovation.Brands.Paliz.Command
 
             try
             {
+                var request = new DeviceLogRequestModel();
+                //var fromDate = this.FromDatePicker.SelectedDate;
+                //var toDate = this.ToDatePicker.SelectedDate;
+                
                 //_palizServer.GetAccessLogType = (int)PalizDeviceLogType.All;
-                //_palizServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.All);
-                //System.Threading.Thread.Sleep(1000);
+                //_serverManager.GetDeviceLogAsyncTask();
+                System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
 
                 Logger.Log($" +Retrieving logs from device: {Code} started successfully.\n");
                 PalizServer.GetLogTaskFinished = true;
-                return PalizServer.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 };
+                return PalizServer.GetLogTaskFinished 
+                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = 0.ToString(), Validate = 1 }
+                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = TerminalId, Message = 0.ToString(), Validate = 1 };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = "Error in command execute", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = "Error in command execute", Validate = 0 };
             }
         }
 
