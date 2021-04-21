@@ -1,4 +1,4 @@
-﻿namespace Biovation.Brands.Paliz.Model.logs
+﻿namespace Biovation.Brands.Paliz.Model.Logs
 {
     public class LogRequestModel
     {
