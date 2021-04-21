@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using DataAccessLayerCore.Repositories;
 using Biovation.Repository.Api.v2;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses;
 using Biovation.Domain;
@@ -23,13 +23,14 @@ using Biovation.Brands.Paliz.Middleware;
 using Biovation.Brands.Paliz.HostedServices;
 using Log = Serilog.Log;
 using System.Collections.Generic;
+using Biovation.Brands.Paliz.Manager;
 
 namespace Biovation.Brands.Paliz
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
-        public readonly Dictionary<string, DeviceBasicInfo> OnlineDevices = new Dictionary<string, DeviceBasicInfo>();
+        public readonly Dictionary<uint, DeviceBasicInfo> OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
@@ -133,7 +134,7 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
-            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+            //services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
 
             services.AddSingleton<GenericRepository, GenericRepository>();
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
@@ -195,17 +196,17 @@ namespace Biovation.Brands.Paliz
 
             var lookups = new Lookups
             {
-                TaskStatuses = taskStatusesQuery.Result,
-                TaskTypes = taskTypesQuery.Result,
-                TaskItemTypes = taskItemTypesQuery.Result,
-                TaskPriorities = taskPrioritiesQuery.Result,
-                FingerIndexNames = fingerIndexNamesQuery.Result,
-                DeviceBrands = deviceBrandsQuery.Result,
-                LogSubEvents = logSubEventsQuery.Result,
-                FingerTemplateType = fingerTemplateTypeQuery.Result,
-                FaceTemplateType = faceTemplateTypeQuery.Result,
-                LogEvents = logEventsQuery.Result,
-                MatchingTypes = matchingTypeQuery.Result
+                TaskStatuses = taskStatusesQuery.Data.Data,
+                TaskTypes = taskTypesQuery.Data.Data,
+                TaskItemTypes = taskItemTypesQuery.Data.Data,
+                TaskPriorities = taskPrioritiesQuery.Data.Data,
+                FingerIndexNames = fingerIndexNamesQuery.Data.Data,
+                DeviceBrands = deviceBrandsQuery.Data.Data,
+                LogSubEvents = logSubEventsQuery.Data.Data,
+                FingerTemplateType = fingerTemplateTypeQuery.Data.Data,
+                FaceTemplateType = faceTemplateTypeQuery.Data.Data,
+                LogEvents = logEventsQuery.Data.Data,
+                MatchingTypes = matchingTypeQuery.Data.Data
             };
 
             var genericCodeMappings = new GenericCodeMappings
@@ -236,6 +237,8 @@ namespace Biovation.Brands.Paliz
         public void ConfigurePalizServices(IServiceCollection services)
         {
             services.AddSingleton(OnlineDevices);
+            services.AddSingleton<PalizCodeMappings, PalizCodeMappings>();
+            services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             var palizObject = new Paliz();
             services.AddSingleton(palizObject);
