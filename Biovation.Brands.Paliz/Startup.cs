@@ -24,6 +24,7 @@ using Biovation.Brands.Paliz.HostedServices;
 using Log = Serilog.Log;
 using System.Collections.Generic;
 using Biovation.Brands.Paliz.Manager;
+using Biovation.Brands.Paliz.Devices;
 
 namespace Biovation.Brands.Paliz
 {
@@ -239,7 +240,7 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton(OnlineDevices);
             services.AddSingleton<PalizCodeMappings, PalizCodeMappings>();
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
-
+            services.AddSingleton<DeviceFactory, DeviceFactory>();
             var palizObject = new Paliz();
             services.AddSingleton(palizObject);
             services.AddSingleton<PalizServer, PalizServer>();
