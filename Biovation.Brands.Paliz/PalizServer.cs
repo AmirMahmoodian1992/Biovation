@@ -13,6 +13,7 @@ namespace Biovation.Brands.Paliz
     {
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
+        public static bool GetLogTaskFinished = true;
 
         private static Dictionary<string, DeviceBasicInfo> _onlineDevices;
         internal readonly TiaraServerManager _serverManager;
