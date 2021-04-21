@@ -40,8 +40,8 @@ namespace Biovation.Brands.Paliz
         private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
         internal readonly TiaraServerManager _serverManager;
 
-        public PalizServer(Dictionary<uint, DeviceBasicInfo> onlineDevices, UserService commonUserService, DeviceService commonDeviceService
-            , UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService
+        public PalizServer(TiaraServerManager serverManager, Dictionary<uint, DeviceBasicInfo> onlineDevices, UserService commonUserService
+            , DeviceService commonDeviceService , UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService
             , LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration
             , FingerTemplateTypes fingerTemplateTypes, PalizCodeMappings codeMappings, DeviceBrands deviceBrands
@@ -69,10 +69,9 @@ namespace Biovation.Brands.Paliz
             _monitoringRestClient = (RestClient)new RestClient(biovationConfiguration.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             Trace.TraceLevel = TraceLevel.Error;
-            Trace.TraceListener += WriteTrace;
+            Trace.TraceListener += Listen;
 
-            TiaraServerManager.Bootstrapper();
-            _serverManager = new TiaraServerManager();
+            _serverManager = serverManager;
 
             // initialize events
             _serverManager.LiveTrafficLogEvent += OnLiveTrafficLogEvent;
@@ -139,16 +138,20 @@ namespace Biovation.Brands.Paliz
             }
         }
 
-        private async void WriteTrace(string format, params object[] args)
+        private async void Listen(string format, params object[] args)
         {
             if(args.Length < 1)
             {
                 return;
             }
 
+            if (args.Length != 3)
+            {
+                return;
+            }
+
             var terminalName = args[1].ToString();
             //var existedDevice = _commonDeviceService.GetDevices(deviceName: terminalName).Data.Data.FirstOrDefault();
-            await _serverManager.GetDeviceInfoAsyncTask(terminalName);
             await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
 
             //await Task.Run(async () =>
