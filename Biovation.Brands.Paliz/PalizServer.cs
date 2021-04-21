@@ -4,12 +4,16 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Newtonsoft.Json;
 using PalizTiara.Api;
 using PalizTiara.Api.CallBacks;
 using PalizTiara.Api.Models;
 using PalizTiara.Protocol.Utility;
 using RestSharp;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz
 {
@@ -41,7 +45,7 @@ namespace Biovation.Brands.Paliz
         internal readonly TiaraServerManager _serverManager;
 
         public PalizServer(TiaraServerManager serverManager, Dictionary<uint, DeviceBasicInfo> onlineDevices, UserService commonUserService
-            , DeviceService commonDeviceService , UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService
+            , DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService
             , LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration
             , FingerTemplateTypes fingerTemplateTypes, PalizCodeMappings codeMappings, DeviceBrands deviceBrands
@@ -76,8 +80,8 @@ namespace Biovation.Brands.Paliz
             // initialize events
             _serverManager.LiveTrafficLogEvent += OnLiveTrafficLogEvent;
             _serverManager.DeviceLogEvent += ServerManagerOnDeviceLogEvent;
-            _serverManager.DeviceInfoEvent += DeviceInfoEvent;
-            _serverManager.TiaraSettingsEvent += TiaraSettingsEvent;
+            _serverManager.DeviceInfoEvent += GetDeviceInfoCallback;
+            _serverManager.TiaraSettingsEvent += GetTiaraSettingsCallback;
 
             //foreach (var device in _onlineDevices)
             //{
@@ -88,12 +92,107 @@ namespace Biovation.Brands.Paliz
             //}
         }
 
-        private void TiaraSettingsEvent(object sender, TiaraSettingsEventArgs args)
+        private void GetTiaraSettingsCallback(object sender, TiaraSettingsEventArgs args)
         {
-            // pass
+            if (args?.TiaraSettings is null)
+            {
+                return;
+            }
+
+            var terminalName = args.TiaraSettings.ServerSetting.TerminalName;
+            var terminalId = Convert.ToUInt32(args.TiaraSettings.ServerSetting.TerminalId);
+
+            var existedDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.PalizCode).Data.Data.FirstOrDefault();
+
+            Task.Run(async () =>
+            {
+                var connectionStatus = new ConnectionStatus
+                {
+                    DeviceId = existedDevice?.DeviceId ?? 0,
+                    IsConnected = true
+                };
+
+                try
+                {
+                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+
+                    await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //integration
+                    var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
+                    var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
+                        {
+                            new DataChangeMessage<ConnectionStatus>
+                            {
+                                Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
+                                TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = connectionStatusList
+                            }
+                        };
+
+                    //_deviceConnectionStateInternalSource.PushData(biovationBrokerMessageData);
+
+                    await _logService.AddLog(new Log
+                    {
+                        DeviceId = existedDevice?.DeviceId ?? 0,
+                        LogDateTime = DateTime.Now,
+                        EventLog = _logEvents.Connect
+                    });
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+            }).ConfigureAwait(false);
+
+            //DeviceBasicInfo device;
+            //if (existedDevice != null)
+            //{
+            //    device = new DeviceBasicInfo
+            //    {
+            //        Code = (uint)terminalId,
+            //        DeviceId = existDevice.DeviceId,
+            //        Name = existDevice.Name,
+            //        Brand = existDevice.Brand,
+            //        Model = existDevice.Model,
+            //        IpAddress = terminalIp,
+            //        Port = BiovationConfiguration.VirdiDevicesConnectionPort,
+            //        MacAddress = existDevice.MacAddress,
+            //        RegisterDate = existDevice.RegisterDate,
+            //        TimeSync = existDevice.TimeSync,
+            //        Active = existDevice.Active,
+            //        DeviceTypeId = existDevice.DeviceTypeId
+            //    };
+
+            //    if (existDevice.Code != (uint)terminalId || !string.Equals(existDevice.IpAddress, terminalIp, StringComparison.InvariantCultureIgnoreCase) || existDevice.Port != BiovationConfiguration.VirdiDevicesConnectionPort)
+            //        _commonDeviceService.ModifyDevice(device);
+            //}
+            //else
+            //{
+            //    device = new DeviceBasicInfo
+            //    {
+            //        Code = (uint)terminalId,
+            //        Brand = _deviceBrands.Virdi,
+            //        Model = new DeviceModel { Id = 1001 },
+            //        IpAddress = terminalIp,
+            //        Port = BiovationConfiguration.VirdiDevicesConnectionPort,
+            //        MacAddress = "",
+            //        RegisterDate = DateTime.Now,
+            //        TimeSync = true,
+            //        Active = true
+            //    };
+
+            //    device.Name = terminalId + "[" + device.IpAddress + "]";
+            //    var result = _commonDeviceService.ModifyDevice(device);
+            //    if (result.Validate == 1)
+            //        device.DeviceId = (int)result.Id;
+            //}
+
+            //if (!_onlineDevices.ContainsKey((string)terminalName))
+            //    _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
+
         }
 
-        private void DeviceInfoEvent(object sender, DeviceInfoEventArgs args)
+        private void GetDeviceInfoCallback(object sender, DeviceInfoEventArgs args)
         {
             // pass
         }
@@ -140,7 +239,7 @@ namespace Biovation.Brands.Paliz
 
         private async void Listen(string format, params object[] args)
         {
-            if(args.Length < 1)
+            if (args.Length < 1)
             {
                 return;
             }
@@ -152,7 +251,7 @@ namespace Biovation.Brands.Paliz
 
             var terminalName = args[1].ToString();
             //var existedDevice = _commonDeviceService.GetDevices(deviceName: terminalName).Data.Data.FirstOrDefault();
-            await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
+            //await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
 
             //await Task.Run(async () =>
             //{
