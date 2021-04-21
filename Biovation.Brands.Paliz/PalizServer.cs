@@ -70,7 +70,8 @@ namespace Biovation.Brands.Paliz
             _fingerTemplateTypes = fingerTemplateTypes;
             _codeMappings = codeMappings;
             _onlineDevices = onlineDevices;
-
+            _logEvents = logEvents;
+            _deviceBrands = deviceBrands;
             _monitoringRestClient = (RestClient)new RestClient(biovationConfiguration.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             Trace.TraceLevel = TraceLevel.Error;
@@ -100,10 +101,12 @@ namespace Biovation.Brands.Paliz
                 return;
             }
 
-            var terminalName = args.TiaraSettings.ServerSetting.TerminalName;
-            var terminalId = Convert.ToUInt32(args.TiaraSettings.ServerSetting.TerminalId);
+            var tiaraSettings = args.TiaraSettings;
 
-            var existedDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.PalizCode).Data.Data.FirstOrDefault();
+            var terminalName = tiaraSettings.ServerSetting.TerminalName;
+            var terminalId = Convert.ToUInt32(tiaraSettings.ServerSetting.TerminalId);
+
+            var existedDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.PalizCode).Data?.Data?.FirstOrDefault() ?? new DeviceBasicInfo();
 
             Task.Run(async () =>
             {
@@ -145,52 +148,55 @@ namespace Biovation.Brands.Paliz
                 }
             }).ConfigureAwait(false);
 
-            //DeviceBasicInfo device;
-            //if (existedDevice != null)
-            //{
-            //    device = new DeviceBasicInfo
-            //    {
-            //        Code = (uint)terminalId,
-            //        DeviceId = existDevice.DeviceId,
-            //        Name = existDevice.Name,
-            //        Brand = existDevice.Brand,
-            //        Model = existDevice.Model,
-            //        IpAddress = terminalIp,
-            //        Port = BiovationConfiguration.VirdiDevicesConnectionPort,
-            //        MacAddress = existDevice.MacAddress,
-            //        RegisterDate = existDevice.RegisterDate,
-            //        TimeSync = existDevice.TimeSync,
-            //        Active = existDevice.Active,
-            //        DeviceTypeId = existDevice.DeviceTypeId
-            //    };
+            DeviceBasicInfo device;
+            if (existedDevice?.DeviceId != default(int))
+            {
+                device = new DeviceBasicInfo
+                {
+                    Code = terminalId,
+                    DeviceId = existedDevice.DeviceId,
+                    Name = terminalName,
+                    Brand = existedDevice.Brand,
+                    Model = existedDevice.Model,
+                    IpAddress = tiaraSettings.ServerSetting.ServerIP,
+                    Port = tiaraSettings.ServerSetting.ServerPortNumber,
+                    MacAddress = existedDevice.MacAddress,
+                    RegisterDate = existedDevice.RegisterDate,
+                    TimeSync = existedDevice.TimeSync,
+                    Active = existedDevice.Active,
+                    DeviceTypeId = existedDevice.DeviceTypeId
+                };
 
-            //    if (existDevice.Code != (uint)terminalId || !string.Equals(existDevice.IpAddress, terminalIp, StringComparison.InvariantCultureIgnoreCase) || existDevice.Port != BiovationConfiguration.VirdiDevicesConnectionPort)
-            //        _commonDeviceService.ModifyDevice(device);
-            //}
-            //else
-            //{
-            //    device = new DeviceBasicInfo
-            //    {
-            //        Code = (uint)terminalId,
-            //        Brand = _deviceBrands.Virdi,
-            //        Model = new DeviceModel { Id = 1001 },
-            //        IpAddress = terminalIp,
-            //        Port = BiovationConfiguration.VirdiDevicesConnectionPort,
-            //        MacAddress = "",
-            //        RegisterDate = DateTime.Now,
-            //        TimeSync = true,
-            //        Active = true
-            //    };
+                if (existedDevice.Code != terminalId || !string.Equals(existedDevice.IpAddress, tiaraSettings.ServerSetting.ServerIP, StringComparison.InvariantCultureIgnoreCase) || tiaraSettings.ServerSetting.ServerPortNumber != biovationConfiguration.PalizDevicesConnectionPort)
+                    _commonDeviceService.ModifyDevice(device);
+            }
+            else
+            {
+                device = new DeviceBasicInfo
+                {
+                    Code = terminalId,
+                    Brand = _deviceBrands.Paliz,
+                    Model = new DeviceModel { Id = 6001 },
+                    IpAddress = tiaraSettings.ServerSetting.ServerIP,
+                    Port = tiaraSettings.ServerSetting.ServerPortNumber,
+                    MacAddress = tiaraSettings.LanSetting.LanMac ?? "",
+                    RegisterDate = DateTime.Now,
+                    TimeSync = true,
+                    Active = true
+                };
 
-            //    device.Name = terminalId + "[" + device.IpAddress + "]";
-            //    var result = _commonDeviceService.ModifyDevice(device);
-            //    if (result.Validate == 1)
-            //        device.DeviceId = (int)result.Id;
-            //}
+                //device.Name = terminalId + "[" + device.IpAddress + "]";
+                device.Name = terminalName;
+                var result = _commonDeviceService.ModifyDevice(device);
+                if (result.Validate == 1)
+                    device.DeviceId = (int)result.Id;
+            }
 
-            //if (!_onlineDevices.ContainsKey((string)terminalName))
-            //    _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
+            if (!_onlineDevices.ContainsKey(terminalId))
+                _onlineDevices.Add(terminalId, device);
 
+            Logger.Log($"Connected device: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
+            Logger.Log($"Retrieving new log: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
         }
 
         private void GetDeviceInfoCallback(object sender, DeviceInfoEventArgs args)
@@ -238,8 +244,17 @@ namespace Biovation.Brands.Paliz
             }
         }
 
+        private int T = 0;
+
         private async void Listen(string format, params object[] args)
         {
+            if (T > 0)
+            {
+                return;
+            }
+
+            T++;
+
             if (args.Length < 1)
             {
                 return;
@@ -252,7 +267,7 @@ namespace Biovation.Brands.Paliz
 
             var terminalName = args[1].ToString();
             //var existedDevice = _commonDeviceService.GetDevices(deviceName: terminalName).Data.Data.FirstOrDefault();
-            //await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
+            await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
 
             //await Task.Run(async () =>
             //{
