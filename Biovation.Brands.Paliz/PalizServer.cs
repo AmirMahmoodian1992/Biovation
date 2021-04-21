@@ -1,16 +1,11 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Kasra.MessageBus.Domain.Enumerators;
-using Kasra.MessageBus.Infrastructure;
-using Kasra.MessageBus.Managers.Sinks.EventBus;
-using Kasra.MessageBus.Managers.Sinks.Internal;
 using PalizTiara.Api;
 using PalizTiara.Api.CallBacks;
 using PalizTiara.Api.Models;
 using PalizTiara.Protocol.Utility;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz
 {
@@ -34,6 +29,7 @@ namespace Biovation.Brands.Paliz
 
             // initialize events
             _serverManager.LiveTrafficLogEvent += OnLiveTrafficLogEvent;
+            _serverManager.DeviceLogEvent += ServerManagerOnDeviceLogEvent;
 
             //foreach (var device in _onlineDevices)
             //{
@@ -74,6 +70,13 @@ namespace Biovation.Brands.Paliz
                 return;
             }
             var log = args.LiveTraffic;
+        }
+        private void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
+        {
+            if (args?.DeviceLogModel?.Logs?.Length > 0)
+            {
+                // Do something
+            }
         }
 
         private async void WriteTrace(string format, params object[] args)
