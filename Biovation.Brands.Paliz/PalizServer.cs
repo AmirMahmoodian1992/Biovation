@@ -1,30 +1,32 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Kasra.MessageBus.Domain.Enumerators;
-using Kasra.MessageBus.Infrastructure;
-using Kasra.MessageBus.Managers.Sinks.EventBus;
-using Kasra.MessageBus.Managers.Sinks.Internal;
+using Biovation.Service.Api.v2;
 using PalizTiara.Api;
 using PalizTiara.Api.CallBacks;
 using PalizTiara.Api.Models;
 using PalizTiara.Protocol.Utility;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace Biovation.Brands.Paliz
 {
     public class PalizServer
     {
+        private readonly UserService _commonUserService;
+        private readonly DeviceService _commonDeviceService;
+
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
 
-        private static Dictionary<string, DeviceBasicInfo> _onlineDevices;
+        private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
         internal readonly TiaraServerManager _serverManager;
 
-        public PalizServer(Dictionary<string, DeviceBasicInfo> onlineDevices)
+        public PalizServer(Dictionary<uint, DeviceBasicInfo> onlineDevices, UserService commonUserService, DeviceService commonDeviceService)
         {
             _onlineDevices = onlineDevices;
+            _commonDeviceService = commonDeviceService;
+            _commonUserService = commonUserService;
 
             Trace.TraceLevel = TraceLevel.Error;
             Trace.TraceListener += WriteTrace;
@@ -61,7 +63,7 @@ namespace Biovation.Brands.Paliz
             _serverManager.Stop();
         }
 
-        public Dictionary<string, DeviceBasicInfo> GetOnlineDevices()
+        public Dictionary<uint, DeviceBasicInfo> GetOnlineDevices()
         {
             return _onlineDevices;
         }
@@ -79,9 +81,10 @@ namespace Biovation.Brands.Paliz
         private async void WriteTrace(string format, params object[] args)
         {
             var terminalName = args[1].ToString();
+            var existedDevice = _commonDeviceService.GetDevices(deviceName: terminalName).Data.Data.FirstOrDefault();
 
-            if (!_onlineDevices.ContainsKey((string)terminalName))
-                _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
+            //if (!_onlineDevices.ContainsKey((string)terminalName))
+            //    _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
 
             await _serverManager.GetLiveTrafficLogAsyncTask(terminalName);
         }
