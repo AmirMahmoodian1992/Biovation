@@ -233,19 +233,19 @@ namespace Biovation.Brands.Paliz
 
         private void OnLiveTrafficLogEvent(object sender, LiveTrafficEventArgs args)
         {
-            var device = (DeviceSender)sender;
             if (sender == null || args?.LiveTraffic == null)
             {
                 return;
             }
             var log = args.LiveTraffic;
-            var objList = new List<Object>
-            {
-                "tiarathegroudbreaker",
-                7
-            };
-            var getAllLogsOfDevice = new PalizGetAllLogsOfDevice(objList, this, _commonDeviceService);
-            getAllLogsOfDevice.Execute();
+            //var device = (DeviceSender)sender;
+            //var objList = new List<Object>
+            //{
+            //    "tiarathegroudbreaker",
+            //    7
+            //};
+            //var getAllLogsOfDevice = new PalizGetAllLogsOfDevice(objList, this, _commonDeviceService);
+            //getAllLogsOfDevice.Execute();
         }
         private async void AddLog(DeviceSender device, DeviceLogDataModel[] logs)
         {
