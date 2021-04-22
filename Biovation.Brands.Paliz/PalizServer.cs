@@ -247,6 +247,22 @@ namespace Biovation.Brands.Paliz
             var getAllLogsOfDevice = new PalizGetAllLogsOfDevice(objList, this, _commonDeviceService);
             getAllLogsOfDevice.Execute();
         }
+        private async void AddLog(DeviceSender device, DeviceLogDataModel[] logs)
+        {
+            var logList = new List<Log>();
+            foreach (var item in logs)
+            {
+                _deviceLogs.Add(item);
+                var log = new Log
+                {
+                    DeviceName = device.TerminalName,
+                    LogDateTime = new DateTime(item.Time),
+                    Id = item.Id
+                };
+                logList.Add(log);
+            }
+            await _logService.AddLog(logList);
+        }
 
         private async void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
         {
@@ -255,10 +271,10 @@ namespace Biovation.Brands.Paliz
             {
                 return;
             }
-            foreach (var log in args.DeviceLogModel.Logs)
-            {
-                _deviceLogs.Add(log);
-            }
+
+            // TODO - Send logs.
+            AddLog(device, args.DeviceLogModel.Logs);
+            
             var request = new DeviceLogRequestModel
             {
                 StartDate = args.DeviceLogModel.StartDate,
@@ -266,7 +282,6 @@ namespace Biovation.Brands.Paliz
                 Page = ++NextLogPageNumber
             };
             await _serverManager.GetDeviceLogAsyncTask(device.TerminalName, request);
-            // TODO - Sent the first page.
         }
 
         private int T = 0;
