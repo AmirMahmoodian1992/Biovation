@@ -14,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Brands.Paliz.Command;
+using System.Collections.ObjectModel;
 
 namespace Biovation.Brands.Paliz
 {
@@ -37,6 +39,9 @@ namespace Biovation.Brands.Paliz
         private readonly RestClient _monitoringRestClient;
         private readonly TaskService _taskService;
         private readonly AccessGroupService _accessGroupService;
+        private readonly ObservableCollection<DeviceLogDataModel> _deviceLogs =
+            new ObservableCollection<DeviceLogDataModel>();
+        public int NextLogPageNumber { get; set; }
 
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
@@ -234,14 +239,34 @@ namespace Biovation.Brands.Paliz
                 return;
             }
             var log = args.LiveTraffic;
+            var objList = new List<Object>
+            {
+                "tiarathegroudbreaker",
+                7
+            };
+            var getAllLogsOfDevice = new PalizGetAllLogsOfDevice(objList, this, _commonDeviceService);
+            getAllLogsOfDevice.Execute();
         }
 
-        private void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
+        private async void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
         {
-            if (args?.DeviceLogModel?.Logs?.Length > 0)
+            var device = (DeviceSender)sender;
+            if (args.DeviceLogModel.Logs == null || args?.DeviceLogModel?.Logs?.Length < 1)
             {
-                // Do something
+                return;
             }
+            foreach (var log in args.DeviceLogModel.Logs)
+            {
+                _deviceLogs.Add(log);
+            }
+            var request = new DeviceLogRequestModel
+            {
+                StartDate = args.DeviceLogModel.StartDate,
+                EndDate = args.DeviceLogModel.EndDate,
+                Page = ++NextLogPageNumber
+            };
+            await _serverManager.GetDeviceLogAsyncTask(device.TerminalName, request);
+            // TODO - Sent the first page.
         }
 
         private int T = 0;

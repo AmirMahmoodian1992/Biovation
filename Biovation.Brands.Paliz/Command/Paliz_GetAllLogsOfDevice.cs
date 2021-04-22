@@ -36,11 +36,11 @@ namespace Biovation.Brands.Paliz.Command
             }
             else
             {
-                // Do something or delete this block
+                // TODO - Do something or delete this block.
             }
 
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
-            Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 0;
+            Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
         }
 
@@ -56,6 +56,7 @@ namespace Biovation.Brands.Paliz.Command
             try
             {
                 var request = new DeviceLogRequestModel();
+                _palizServer.NextLogPageNumber = 1;
                 _palizServer._serverManager.GetDeviceLogAsyncTask(TerminalName, request);
                 System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
