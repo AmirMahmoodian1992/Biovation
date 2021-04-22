@@ -20,36 +20,28 @@ namespace Biovation.Brands.Paliz.Command
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
 
         private int TaskItemId { get; }
-
+        private string TerminalName { get; }
         private int TerminalId { get; }
-
         private uint Code { get; }
 
-
-        /*
-        public VirdiRetrieveAllLogsOfDevice(uint code, Dictionary<uint, DeviceBasicInfo> devices)
-        {
-            Code = code;
-            TerminalId = devices.FirstOrDefault(dev => dev.Key == code).Value.TerminalId;
-            OnlineDevices = devices;
-        }
-        */
         private readonly PalizServer _palizServer;
 
         public PalizGetLogsOfDeviceInPeriod(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService)
         {
             _palizServer = palizServer;
-            if (items.Count == 1)
-            { TerminalId = Convert.ToInt32(items[0]); }
+            if (items.Count == 2)
+            {
+                TerminalName = Convert.ToString(items[0]);
+                TerminalId = Convert.ToInt32(items[1]);
+            }
             else
             {
-                TerminalId = Convert.ToInt32(items[0]);
-                TaskItemId = Convert.ToInt32(items[1]);
+                // TODO - Do something or delete this block.
             }
 
-            var devices = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-            Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 0;
-            //OnlineDevices = palizServer.GetOnlineDevices();
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
+            OnlineDevices = palizServer.GetOnlineDevices();
         }
 
 
@@ -64,11 +56,8 @@ namespace Biovation.Brands.Paliz.Command
             try
             {
                 var request = new DeviceLogRequestModel();
-                //var fromDate = this.FromDatePicker.SelectedDate;
-                //var toDate = this.ToDatePicker.SelectedDate;
-
-                //_palizServer.GetAccessLogType = (int)PalizDeviceLogType.All;
-                //_serverManager.GetDeviceLogAsyncTask();
+                _palizServer.NextLogPageNumber = 1;
+                _palizServer._serverManager.GetDeviceLogAsyncTask(TerminalName, request);
                 System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
 
