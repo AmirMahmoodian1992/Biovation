@@ -1,7 +1,4 @@
-﻿//using Biovation.Brands.Paliz.UniComAPI;
-using Biovation.Brands.Paliz.UniComAPI;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Interface;
+﻿using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
