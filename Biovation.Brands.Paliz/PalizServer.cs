@@ -28,7 +28,6 @@ namespace Biovation.Brands.Paliz
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly PalizCodeMappings _codeMappings;
-        private readonly LogService _logService;
         private readonly LogEvents _logEvents;
         private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
@@ -41,13 +40,14 @@ namespace Biovation.Brands.Paliz
         private readonly AccessGroupService _accessGroupService;
         private readonly ObservableCollection<DeviceLogDataModel> _deviceLogs =
             new ObservableCollection<DeviceLogDataModel>();
+        internal readonly LogService _logService;
         public int NextLogPageNumber { get; set; }
-
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
         public static bool GetLogTaskFinished = true;
-
+        private PalizCodeMappings _palizCodeMappings;
         private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
+        private static List<string> _onlineTerminals;
         internal readonly TiaraServerManager _serverManager;
 
         public PalizServer(TiaraServerManager serverManager, Dictionary<uint, DeviceBasicInfo> onlineDevices, UserService commonUserService
@@ -56,7 +56,7 @@ namespace Biovation.Brands.Paliz
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration
             , FingerTemplateTypes fingerTemplateTypes, PalizCodeMappings codeMappings, DeviceBrands deviceBrands
             , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , TaskStatuses taskStatuses)
+            , TaskStatuses taskStatuses, PalizCodeMappings palizCodeMappings)
         {
             _onlineDevices = onlineDevices;
             _commonDeviceService = commonDeviceService;
@@ -65,6 +65,7 @@ namespace Biovation.Brands.Paliz
             _commonAccessGroupService = commonAccessGroupService;
             _fingerTemplateService = fingerTemplateService;
             _logService = logService;
+            _palizCodeMappings = palizCodeMappings;
             _blackListService = blackListService;
             _faceTemplateService = faceTemplateService;
             _taskService = taskService;
@@ -78,15 +79,13 @@ namespace Biovation.Brands.Paliz
             _logEvents = logEvents;
             _deviceBrands = deviceBrands;
             _monitoringRestClient = (RestClient)new RestClient(biovationConfiguration.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
-
+            _onlineTerminals = new List<string>();
             Trace.TraceLevel = TraceLevel.Error;
             Trace.TraceListener += Listen;
-
             _serverManager = serverManager;
 
             // initialize events
             _serverManager.LiveTrafficLogEvent += OnLiveTrafficLogEvent;
-            _serverManager.DeviceLogEvent += ServerManagerOnDeviceLogEvent;
             _serverManager.DeviceInfoEvent += GetDeviceInfoCallback;
             _serverManager.TiaraSettingsEvent += GetTiaraSettingsCallback;
 
@@ -197,8 +196,11 @@ namespace Biovation.Brands.Paliz
                     device.DeviceId = (int)result.Id;
             }
 
-            if (!_onlineDevices.ContainsKey(terminalId))
-                _onlineDevices.Add(terminalId, device);
+            lock (_onlineDevices)
+            {
+                if (!_onlineDevices.ContainsKey(terminalId))
+                    _onlineDevices.Add(terminalId, device);
+            }
 
             Logger.Log($"Connected device: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
             Logger.Log($"Retrieving new log: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
@@ -237,77 +239,37 @@ namespace Biovation.Brands.Paliz
             {
                 return;
             }
-            var log = args.LiveTraffic;
+            //var log = args.LiveTraffic;
             //var device = (DeviceSender)sender;
             //var objList = new List<Object>
             //{
             //    "tiarathegroudbreaker",
             //    7
             //};
-            //var getAllLogsOfDevice = new PalizGetAllLogsOfDevice(objList, this, _commonDeviceService);
+            //var getAllLogsOfDevice = new PalizGetAllTrafficLogs(objList, this, _commonDeviceService);
             //getAllLogsOfDevice.Execute();
-        }
-        private async void AddLog(DeviceSender device, DeviceLogDataModel[] logs)
-        {
-            var logList = new List<Log>();
-            foreach (var item in logs)
-            {
-                _deviceLogs.Add(item);
-                var log = new Log
-                {
-                    DeviceName = device.TerminalName,
-                    LogDateTime = new DateTime(item.Time),
-                    Id = item.Id
-                };
-                //var logg = new Log
-                //{
-                //    DeviceCode = (uint)terminalId,
-                //    EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
-                //    UserId = AccessLogData.UserID,
-                //    LogDateTime = DateTime.Parse(AccessLogData.DateTime),
-                //    //MatchingType = AccessLogData.AuthType,
-                //    //MatchingType = authMode.BioCode,
-                //    MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
-                //    AuthType = AccessLogData.AuthType,
-                //    SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
-                //    PicByte = picture,
-                //    TnaEvent = 0
-                //};
-                logList.Add(log);
-            }
-            await _logService.AddLog(logList);
+            //var userId = new UserIdModel(1);
         }
 
-        private async void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
+        private void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
         {
             var device = (DeviceSender)sender;
             if (args.DeviceLogModel.Logs == null || args?.DeviceLogModel?.Logs?.Length < 1)
             {
                 return;
             }
-
-            // TODO - Send logs.
-            //AddLog(device, args.DeviceLogModel.Logs);
-            
-            var request = new DeviceLogRequestModel
-            {
-                StartDate = args.DeviceLogModel.StartDate,
-                EndDate = args.DeviceLogModel.EndDate,
-                Page = ++NextLogPageNumber
-            };
-            await _serverManager.GetDeviceLogAsyncTask(device.TerminalName, request);
         }
 
         private int T = 0;
 
         private async void Listen(string format, params object[] args)
         {
-            if (T > 0)
-            {
-                return;
-            }
+            //if (T > 0)
+            //{
+            //    return;
+            //}
 
-            T++;
+            //T++;
 
             if (args.Length < 1)
             {
@@ -320,6 +282,17 @@ namespace Biovation.Brands.Paliz
             }
 
             var terminalName = args[1].ToString();
+
+            lock (_onlineTerminals)
+            {
+                if (_onlineTerminals.Exists(x => x.ToLower() == terminalName.ToLower()))
+                {
+                    return;
+                }
+
+                _onlineTerminals.Add(terminalName);
+            }
+
             //var existedDevice = _commonDeviceService.GetDevices(deviceName: terminalName).Data.Data.FirstOrDefault();
             await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
 
@@ -411,6 +384,7 @@ namespace Biovation.Brands.Paliz
             //    _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
 
             await _serverManager.GetLiveTrafficLogAsyncTask(terminalName);
+
         }
     }
 }
