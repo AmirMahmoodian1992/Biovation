@@ -13,17 +13,20 @@ namespace Biovation.Brands.Paliz.Command
     {
         private readonly PalizServer _palizServer;
         private readonly LogEvents _logEvents;
+        private readonly TaskService _taskService;
+        private readonly DeviceService _deviceService;
         private readonly LogService _logService;
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
 
-        public CommandFactory(PalizServer virdiServer, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents)
+        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, TaskService taskService)
         {
-            _palizServer = virdiServer;
+            _palizServer = palizServer;
             _logService = logService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
+            _taskService = taskService;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -41,6 +44,16 @@ namespace Biovation.Brands.Paliz.Command
         {
             switch (transferModelData.EventId)
             {
+                case CommandType.GetAllLogsOfDevice:
+                    //Gets all the device traffic logs.
+                    {
+                        return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService);
+                    }
+                case CommandType.GetLogsOfDeviceInPeriod:
+                    //Gets all the device traffic logs in a period of time.
+                    {
+                        return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService);
+                    }
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
                     throw new NotImplementedException();
