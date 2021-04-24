@@ -19,6 +19,8 @@ namespace Biovation.Brands.Paliz.Command
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
+        private long StartDate { get; }
+        private long EndDate { get; }
         private uint Code { get; }
 
         private readonly PalizServer _palizServer;
@@ -26,10 +28,12 @@ namespace Biovation.Brands.Paliz.Command
         public PalizGetLogsOfDeviceInPeriod(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService)
         {
             _palizServer = palizServer;
-            if (items.Count == 2)
+            if (items.Count == 4)
             {
                 TerminalName = Convert.ToString(items[0]);
                 TerminalId = Convert.ToInt32(items[1]);
+                StartDate = long.Parse(items[2].ToString());
+                EndDate = long.Parse(items[3].ToString());
             }
             else
             {
@@ -52,7 +56,11 @@ namespace Biovation.Brands.Paliz.Command
 
             try
             {
-                var request = new DeviceLogRequestModel();
+                var request = new DeviceLogRequestModel
+                {
+                    StartDate = StartDate,
+                    EndDate = EndDate
+                };
                 _palizServer.NextLogPageNumber = 1;
                 _palizServer._serverManager.GetDeviceLogAsyncTask(TerminalName, request);
                 System.Threading.Thread.Sleep(1000);
