@@ -6,10 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PalizTiara.Api.Models;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.Paliz.Command
 {
-    public class PalizGetTrafficLogsInPeriod
+    public class PalizGetTrafficLogsInPeriod : ICommand
     {
         /// <summary>
         /// All connected devices
@@ -22,10 +25,11 @@ namespace Biovation.Brands.Paliz.Command
         private long StartDate { get; }
         private long EndDate { get; }
         private uint Code { get; }
+        private int UserId { get; }
 
         private readonly PalizServer _palizServer;
 
-        public PalizGetTrafficLogsInPeriod(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService)
+        public PalizGetTrafficLogsInPeriod(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService)
         {
             _palizServer = palizServer;
             if (items.Count == 4)
@@ -40,6 +44,10 @@ namespace Biovation.Brands.Paliz.Command
                 // TODO - Do something or delete this block.
             }
 
+            _palizServer = palizServer;
+            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            UserId = (int)data["userId"];
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
