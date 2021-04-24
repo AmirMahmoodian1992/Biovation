@@ -9,7 +9,7 @@ using PalizTiara.Api.Models;
 
 namespace Biovation.Brands.Paliz.Command
 {
-    public class PalizGetLogsOfDeviceInPeriod
+    public class PalizGetTrafficLogsInPeriod
     {
         /// <summary>
         /// All connected devices
@@ -25,7 +25,7 @@ namespace Biovation.Brands.Paliz.Command
 
         private readonly PalizServer _palizServer;
 
-        public PalizGetLogsOfDeviceInPeriod(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService)
+        public PalizGetTrafficLogsInPeriod(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService)
         {
             _palizServer = palizServer;
             if (items.Count == 4)

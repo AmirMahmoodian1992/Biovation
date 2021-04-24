@@ -45,12 +45,12 @@ namespace Biovation.Brands.Paliz.Command
             switch (transferModelData.EventId)
             {
                 case CommandType.GetAllLogsOfDevice:
-                    //Gets all the device traffic logs.
+                    //Gets all the device access(traffic) logs.
                     {
                         return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService);
                     }
                 case CommandType.GetLogsOfDeviceInPeriod:
-                    //Gets all the device traffic logs in a period of time.
+                    //Gets all the device access(traffic) logs in a period of time.
                     {
                         return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService);
                     }
