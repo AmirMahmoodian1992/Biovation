@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 using Biovation.Service.Api.v2;
 using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
+using Biovation.Brands.Paliz.Manager;
 
 namespace Biovation.Brands.Paliz.Command
 {
     public class CommandFactory
     {
         private readonly PalizServer _palizServer;
+        private readonly PalizCodeMappings _palizCodeMappings;
         private readonly LogEvents _logEvents;
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
@@ -20,8 +22,9 @@ namespace Biovation.Brands.Paliz.Command
         private readonly MatchingTypes _matchingTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
 
-        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, TaskService taskService)
+        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings)
         {
+            _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
             _logService = logService;
             _logEvents = logEvents;
@@ -47,12 +50,12 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.GetAllLogsOfDevice:
                     //Gets all the device access(traffic) logs.
                     {
-                        return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService);
+                        return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.GetLogsOfDeviceInPeriod:
                     //Gets all the device access(traffic) logs in a period of time.
                     {
-                        return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService);
+                        return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
