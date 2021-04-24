@@ -30,17 +30,17 @@ namespace Biovation.Brands.Paliz.Manager
         private readonly List<GenericCodeMapping> _matchingTypeMappings;
 
 
-        public Lookup GetLogSubEventGenericLookup(int code)
+        public Lookup GetLogSubEventGenericLookup(long code)
         {
             return _logSubEventMappings.FirstOrDefault(subEvent => string.Equals(subEvent.ManufactureCode, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? new Lookup { Code = code.ToString(), Category = _logSubEventMappings.FirstOrDefault()?.GenericValue.Category };
         }
 
-        public Lookup GetFingerTemplateTypeLookup(int code)
+        public Lookup GetFingerTemplateTypeLookup(long code)
         {
             return _fingerTemplateTypeMappings.FirstOrDefault(fingerTemplateType => string.Equals(fingerTemplateType.ManufactureCode, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
         }
 
-        public Lookup GetMatchingTypeGenericLookup(int code)
+        public Lookup GetMatchingTypeGenericLookup(long code)
         {
             return _matchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
