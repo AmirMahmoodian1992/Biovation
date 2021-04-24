@@ -284,16 +284,16 @@ namespace Biovation.Brands.Paliz
             await _serverManager.GetDeviceLogAsyncTask(device.TerminalName, request);
         }
 
-        private int T = 0;
+        //private int T = 0;
 
         private async void Listen(string format, params object[] args)
         {
-            if (T > 0)
-            {
-                return;
-            }
+            //if (T > 0)
+            //{
+            //    return;
+            //}
 
-            T++;
+            //T++;
 
             if (args.Length < 1)
             {
@@ -308,94 +308,6 @@ namespace Biovation.Brands.Paliz
             var terminalName = args[1].ToString();
             //var existedDevice = _commonDeviceService.GetDevices(deviceName: terminalName).Data.Data.FirstOrDefault();
             await _serverManager.GetTiaraSettingsAsyncTask(terminalName);
-
-            //await Task.Run(async () =>
-            //{
-
-            //    var connectionStatus = new ConnectionStatus
-            //    {
-            //        DeviceId = existedDevice?.DeviceId ?? 0,
-            //        IsConnected = true
-            //    };
-
-            //    try
-            //    {
-            //        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-            //        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-            //        await _monitoringRestClient.ExecuteAsync<ResultViewModel>(restRequest);
-            //        //integration
-            //        var connectionStatusList = new List<ConnectionStatus> { connectionStatus };
-            //        var biovationBrokerMessageData = new List<DataChangeMessage<ConnectionStatus>>
-            //            {
-            //                new DataChangeMessage<ConnectionStatus>
-            //                {
-            //                    Id = Guid.NewGuid().ToString(), EventId = 1, SourceName = "BiovationCore",
-            //                    TimeStamp = DateTimeOffset.Now, SourceDatabaseName = "biovation", Data = connectionStatusList
-            //                }
-            //            };
-
-            //        //_deviceConnectionStateInternalSource.PushData(biovationBrokerMessageData);
-
-            //        await _logService.AddLog(new Log
-            //        {
-            //            DeviceId = existedDevice?.DeviceId ?? 0,
-            //            LogDateTime = DateTime.Now,
-            //            EventLog = _logEvents.Connect
-            //        });
-            //    }
-            //    catch (Exception)
-            //    {
-            //        //ignore
-            //    }
-            //}).ConfigureAwait(false);
-
-            //DeviceBasicInfo device;
-            //if (existedDevice != null)
-            //{
-            //    device = new DeviceBasicInfo
-            //    {
-            //        Code = (uint)terminalId,
-            //        DeviceId = existDevice.DeviceId,
-            //        Name = existDevice.Name,
-            //        Brand = existDevice.Brand,
-            //        Model = existDevice.Model,
-            //        IpAddress = terminalIp,
-            //        Port = BiovationConfiguration.VirdiDevicesConnectionPort,
-            //        MacAddress = existDevice.MacAddress,
-            //        RegisterDate = existDevice.RegisterDate,
-            //        TimeSync = existDevice.TimeSync,
-            //        Active = existDevice.Active,
-            //        DeviceTypeId = existDevice.DeviceTypeId
-            //    };
-
-            //    if (existDevice.Code != (uint)terminalId || !string.Equals(existDevice.IpAddress, terminalIp, StringComparison.InvariantCultureIgnoreCase) || existDevice.Port != BiovationConfiguration.VirdiDevicesConnectionPort)
-            //        _commonDeviceService.ModifyDevice(device);
-            //}
-            //else
-            //{
-            //    device = new DeviceBasicInfo
-            //    {
-            //        Code = (uint)terminalId,
-            //        Brand = _deviceBrands.Virdi,
-            //        Model = new DeviceModel { Id = 1001 },
-            //        IpAddress = terminalIp,
-            //        Port = BiovationConfiguration.VirdiDevicesConnectionPort,
-            //        MacAddress = "",
-            //        RegisterDate = DateTime.Now,
-            //        TimeSync = true,
-            //        Active = true
-            //    };
-
-            //    device.Name = terminalId + "[" + device.IpAddress + "]";
-            //    var result = _commonDeviceService.ModifyDevice(device);
-            //    if (result.Validate == 1)
-            //        device.DeviceId = (int)result.Id;
-            //}
-
-            //if (!_onlineDevices.ContainsKey((string)terminalName))
-            //    _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
-
             await _serverManager.GetLiveTrafficLogAsyncTask(terminalName);
         }
     }
