@@ -259,6 +259,20 @@ namespace Biovation.Brands.Paliz
                     LogDateTime = new DateTime(item.Time),
                     Id = item.Id
                 };
+                //var logg = new Log
+                //{
+                //    DeviceCode = (uint)terminalId,
+                //    EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
+                //    UserId = AccessLogData.UserID,
+                //    LogDateTime = DateTime.Parse(AccessLogData.DateTime),
+                //    //MatchingType = AccessLogData.AuthType,
+                //    //MatchingType = authMode.BioCode,
+                //    MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
+                //    AuthType = AccessLogData.AuthType,
+                //    SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                //    PicByte = picture,
+                //    TnaEvent = 0
+                //};
                 logList.Add(log);
             }
             await _logService.AddLog(logList);
@@ -273,7 +287,7 @@ namespace Biovation.Brands.Paliz
             }
 
             // TODO - Send logs.
-            AddLog(device, args.DeviceLogModel.Logs);
+            //AddLog(device, args.DeviceLogModel.Logs);
             
             var request = new DeviceLogRequestModel
             {
