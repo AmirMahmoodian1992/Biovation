@@ -1,8 +1,8 @@
-﻿//using Biovation.Brands.Paliz.Command;
+﻿using Biovation.Brands.Paliz.Command;
 using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -17,14 +17,14 @@ namespace Biovation.Brands.Paliz.Manager
     {
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
-        //private readonly CommandFactory _commandFactory;
+        private readonly CommandFactory _commandFactory;
 
         private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
-        public TaskManager(TaskService taskService, /*CommandFactory commandFactory,*/ TaskStatuses taskStatuses)
+        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
         {
             _taskService = taskService;
-            //_commandFactory = commandFactory;
+            _commandFactory = commandFactory;
             _taskStatuses = taskStatuses;
         }
 
@@ -47,11 +47,8 @@ namespace Biovation.Brands.Paliz.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    /*result = (ResultViewModel)CommandFactory.Factory(CommandType.SendUsers,
-                                        new List<object> { taskItem.Id, taskItem.DeviceId }).Execute();*/
-                                    ////result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
-                                    ////    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                                    result = new ResultViewModel { Validate = 1 };
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                                 taskItem.ExecutionAt = DateTime.Now;
                             }
@@ -69,10 +66,8 @@ namespace Biovation.Brands.Paliz.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    //result = (ResultViewModel)_commandFactory.Factory(
-                                    //    CommandType.RetrieveLogsOfDeviceInPeriod,
-                                    //    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                                    result = new ResultViewModel { Validate = 1 };
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -80,10 +75,8 @@ namespace Biovation.Brands.Paliz.Manager
                             {
                                 Logger.Log(exception);
                             }
-
                             break;
                         }
-
                     case TaskItemTypes.SendUserCode:
                         {
                             try
@@ -341,11 +334,63 @@ namespace Biovation.Brands.Paliz.Manager
                 executeTask.Dispose();
             }
         }
+        //public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
+        //{
+        //    var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
+        //        excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
 
-        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
+        //    lock (_tasks)
+        //    {
+        //        var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
+
+        //        Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
+        //        _tasks.AddRange(newTasks);
+
+        //        if (_processingQueueInProgress)
+        //            return;
+
+        //        _processingQueueInProgress = true;
+        //    }
+
+
+        //    Task.Run(async () =>
+        //    {
+        //        while (!cancellationToken.IsCancellationRequested)
+        //        {
+        //            try
+        //            {
+        //                TaskInfo taskInfo;
+        //                lock (_tasks)
+        //                {
+        //                    if (_tasks.Count <= 0)
+        //                    {
+        //                        _processingQueueInProgress = false;
+        //                        return;
+        //                    }
+
+        //                    taskInfo = _tasks.First();
+        //                }
+
+        //                Logger.Log($"The task {taskInfo.Id} execution is started");
+        //                await ExecuteTask(taskInfo);
+        //                Logger.Log($"The task {taskInfo.Id} is executed");
+
+        //                lock (_tasks)
+        //                    if (_tasks.Any(task => task.Id == taskInfo.Id))
+        //                        _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception);
+        //            }
+        //        }
+        //    }, cancellationToken).ConfigureAwait(false);
+        //}
+
+        public void ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode })?.Data?.Data ?? new List<TaskInfo>();
 
             lock (_tasks)
             {
@@ -355,8 +400,9 @@ namespace Biovation.Brands.Paliz.Manager
                 _tasks.AddRange(newTasks);
 
                 if (_processingQueueInProgress)
+                {
                     return;
-
+                }
                 _processingQueueInProgress = true;
             }
 
