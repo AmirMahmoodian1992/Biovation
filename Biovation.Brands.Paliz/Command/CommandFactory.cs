@@ -52,7 +52,7 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.GetLogsOfDeviceInPeriod:
                     //Gets all the device access(traffic) logs in a period of time.
                     {
-                        return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService);
+                        return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService);
                     }
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
