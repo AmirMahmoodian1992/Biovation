@@ -334,60 +334,8 @@ namespace Biovation.Brands.Paliz.Manager
                 executeTask.Dispose();
             }
         }
-        //public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
-        //{
-        //    var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
-        //        excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
 
-        //    lock (_tasks)
-        //    {
-        //        var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
-
-        //        Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
-        //        _tasks.AddRange(newTasks);
-
-        //        if (_processingQueueInProgress)
-        //            return;
-
-        //        _processingQueueInProgress = true;
-        //    }
-
-
-        //    Task.Run(async () =>
-        //    {
-        //        while (!cancellationToken.IsCancellationRequested)
-        //        {
-        //            try
-        //            {
-        //                TaskInfo taskInfo;
-        //                lock (_tasks)
-        //                {
-        //                    if (_tasks.Count <= 0)
-        //                    {
-        //                        _processingQueueInProgress = false;
-        //                        return;
-        //                    }
-
-        //                    taskInfo = _tasks.First();
-        //                }
-
-        //                Logger.Log($"The task {taskInfo.Id} execution is started");
-        //                await ExecuteTask(taskInfo);
-        //                Logger.Log($"The task {taskInfo.Id} is executed");
-
-        //                lock (_tasks)
-        //                    if (_tasks.Any(task => task.Id == taskInfo.Id))
-        //                        _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
-        //            }
-        //            catch (Exception exception)
-        //            {
-        //                Logger.Log(exception);
-        //            }
-        //        }
-        //    }, cancellationToken).ConfigureAwait(false);
-        //}
-
-        public void ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
+        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
             var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode })?.Data?.Data ?? new List<TaskInfo>();
