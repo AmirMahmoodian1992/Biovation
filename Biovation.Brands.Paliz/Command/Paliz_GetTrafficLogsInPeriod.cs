@@ -34,29 +34,37 @@ namespace Biovation.Brands.Paliz.Command
 
         public PalizGetTrafficLogsInPeriod(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
-            if (items.Count == 4)
-            {
-                TerminalName = Convert.ToString(items[0]);
-                TerminalId = Convert.ToInt32(items[1]);
-                StartDate = long.Parse(items[2].ToString());
-                EndDate = long.Parse(items[3].ToString());
-            }
-            else
-            {
-                // TODO - Do something or delete this block.
-            }
+            TerminalId = Convert.ToInt32(items[0]);
+            TaskItemId = Convert.ToInt32(items[1]);
 
-            _palizCodeMappings = palizCodeMappings;
-            _logEvents = logEvents;
-            _palizServer = palizServer;
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["userId"];
+            try
+            {
+                var date = (DateTime)data["fromDate"];
+                StartDate = date.Ticks;
+            }
+            catch (Exception)
+            {
+                StartDate = new DateTime(1970, 1, 1).Ticks;
+            }
+            try
+            {
+                var date = (DateTime)data["toDate"];
+                EndDate = date.Ticks;
+            }
+            catch (Exception)
+            {
+                EndDate = DateTime.Now.AddYears(5).Ticks;
+            }
+            _palizCodeMappings = palizCodeMappings;
+            _logEvents = logEvents;
+            _palizServer = palizServer;
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
         }
-
 
         public object Execute()
         {
@@ -128,6 +136,11 @@ namespace Biovation.Brands.Paliz.Command
         }
         private async void TrafficLogEventCallBack(object sender, LogRequestEventArgs args)
         {
+            if (TerminalId != TaskItemId)
+            {
+                return;
+            }
+
             if (args.Result == false)
             {
                 return;

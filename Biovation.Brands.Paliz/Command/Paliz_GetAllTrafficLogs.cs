@@ -32,16 +32,8 @@ namespace Biovation.Brands.Paliz.Command
 
         public PalizGetAllTrafficLogs(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
-            if (items.Count == 3)
-            {
-                TaskItemId = Convert.ToInt32(items[0]);
-                TerminalName = Convert.ToString(items[1]);
-                TerminalId = Convert.ToInt32(items[2]);
-            }
-            else
-            {
-                // TODO - Do something or delete this block.
-            }
+            TerminalId = Convert.ToInt32(items[0]);
+            TaskItemId = Convert.ToInt32(items[1]);
 
             _palizCodeMappings = palizCodeMappings;
             _logEvents = logEvents;
@@ -91,20 +83,20 @@ namespace Biovation.Brands.Paliz.Command
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = "Error in command execute", Validate = 0 };
             }
         }
-        private async void FailTrafficLogEventCallBack(object sender, LogRequestEventArgs args)
+        private async void FailTrafficLogEventCallBack(object sender, LogRequestEventArgs logs)
         {
-            //if (clientId != TaskItemId)
-            //{
-            //    return;
-            //}
+            if (TerminalId != TaskItemId)
+            {
+                return;
+            }
 
-            if (args.Result == false)
+            if (logs.Result == false)
             {
                 return;
             }
 
             var logList = new List<Log>();
-            foreach(var log in args.TrafficLogModel.Logs)
+            foreach(var log in logs.TrafficLogModel.Logs)
             {
                 logList.Add(new Log
                 {
@@ -123,19 +115,21 @@ namespace Biovation.Brands.Paliz.Command
             var request = new LogRequestModel
             {
                 UserId = 0,
-                Page = ++args.TrafficLogModel.Page
+                Page = ++logs.TrafficLogModel.Page
             };
             await _palizServer._serverManager.GetFailLogAsyncTask(TerminalName, request);
+
+            _palizServer._serverManager.FailLogEvent -= FailTrafficLogEventCallBack;
         }
-        private async void TrafficLogEventCallBack(object sender, LogRequestEventArgs args)
+        private async void TrafficLogEventCallBack(object sender, LogRequestEventArgs logs)
         {
-            if (args.Result == false)
+            if (logs.Result == false)
             {
                 return;
             }
 
             var logList = new List<Log>();
-            foreach (var log in args.TrafficLogModel.Logs)
+            foreach (var log in logs.TrafficLogModel.Logs)
             {
                 logList.Add(new Log
                 {
@@ -154,9 +148,11 @@ namespace Biovation.Brands.Paliz.Command
             var request = new LogRequestModel
             {
                 UserId = 0,
-                Page = ++args.TrafficLogModel.Page
+                Page = ++logs.TrafficLogModel.Page
             };
             await _palizServer._serverManager.GetTrafficLogAsyncTask(TerminalName, request);
+
+            _palizServer._serverManager.TrafficLogEvent -= TrafficLogEventCallBack;
         }
 
         public void Rollback()
