@@ -8,6 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PalizTiara.Api.Models;
+using PalizTiara.Api.CallBacks;
+using Biovation.Brands.Paliz.Manager;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -17,7 +21,8 @@ namespace Biovation.Brands.Paliz.Command
         /// All connected devices
         /// </summary>
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
-
+        private PalizCodeMappings _palizCodeMappings;
+        private LogEvents _logEvents;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
@@ -25,19 +30,15 @@ namespace Biovation.Brands.Paliz.Command
 
         private readonly PalizServer _palizServer;
 
-        public PalizDeleteAllLogsOfDevice(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService)
+        public PalizDeleteAllLogsOfDevice(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
+            TerminalId = Convert.ToInt32(items[0]);
+            TaskItemId = Convert.ToInt32(items[1]);
+            _palizCodeMappings = palizCodeMappings;
+            _logEvents = logEvents;
+            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             _palizServer = palizServer;
-            if (items.Count == 2)
-            {
-                TerminalName = Convert.ToString(items[0]);
-                TerminalId = Convert.ToInt32(items[1]);
-            }
-            else
-            {
-                // TODO - Do something or delete this block.
-            }
-
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
@@ -48,13 +49,13 @@ namespace Biovation.Brands.Paliz.Command
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetriveAllLogsOfDevice,The device: {Code} is not connected.");
-                return new List<User>();
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = TerminalId, Message = $"The device: {Code} is not connected.", Validate = 1 };
             }
 
             try
             {
                 var request = new DeviceLogRequestModel();
-                _palizServer.NextLogPageNumber = 1;
+                _palizServer._serverManager.DeviceLogDeleteEvent += DeleteDeviceLogEventCallBack;
                 _palizServer._serverManager.DeleteDeviceLogAsyncTask(TerminalName);
                 System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
@@ -70,6 +71,19 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(exception);
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = "Error in command execute", Validate = 0 };
             }
+        }
+        private void DeleteDeviceLogEventCallBack(object sender, SetActionEventArgs acttion)
+        {
+            if (TerminalId != TaskItemId)
+            {
+                return;
+            }
+
+            if (acttion.Result == false)
+            {
+                return;
+            }
+            _palizServer._serverManager.DeviceLogDeleteEvent -= DeleteDeviceLogEventCallBack;
         }
 
         public void Rollback()
