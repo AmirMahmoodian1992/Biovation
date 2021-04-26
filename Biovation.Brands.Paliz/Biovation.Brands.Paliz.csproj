@@ -18,10 +18,6 @@
     <PackageReference Include="RestSharp" Version="106.11.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
     <PackageReference Include="Serilog.Sinks.Udp" Version="7.1.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    <PackageReference Include="System.Reactive.Core" Version="3.0.0" />
-    <PackageReference Include="System.Reactive.Interfaces" Version="3.0.0" />
-    <PackageReference Include="System.Reactive.Linq" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,18 +29,6 @@
 
   <ItemGroup>
     <Folder Include="Libraries\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="NodaTime">
-      <HintPath>Libraries\NodaTime.dll</HintPath>
-    </Reference>
-    <Reference Include="PalizTiara.Api">
-      <HintPath>Libraries\PalizTiara.Api.dll</HintPath>
-    </Reference>
-    <Reference Include="PalizTiara.Protocol">
-      <HintPath>Libraries\PalizTiara.Protocol.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 

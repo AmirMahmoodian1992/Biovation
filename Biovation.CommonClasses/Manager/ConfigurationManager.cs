@@ -324,21 +324,6 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
-        public int PalizDevicesConnectionPort
-        {
-            get
-            {
-                try
-                {
-                    return Convert.ToInt32(ConfigurationManager.AppSettings["PalizDevicesConnectionPort"] ?? "1883");
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return default;
-                }
-            }
-        }
 
         public bool GetAllLogWhenConnect
         {

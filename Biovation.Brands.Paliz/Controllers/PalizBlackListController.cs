@@ -56,7 +56,7 @@ namespace Biovation.Brands.Paliz.Controllers
 
                 foreach (var blacklist in blackLists)
                 {
-                    var devices = _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                    var devices = _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
                     if (devices is null)
                         continue;
 

@@ -21,7 +21,7 @@ namespace Biovation.Brands.Paliz.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class PalizDeviceController : ControllerBase
     {
-        //private readonly VirdiServer _virdiServer;
+        //private readonly PalizServer _palizServer;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
@@ -39,7 +39,7 @@ namespace Biovation.Brands.Paliz.Controllers
             TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
             BiovationConfigurationManager configurationManager)
         {
-            //_virdiServer = virdiServer;
+            //_palizServer = palizServer;
             _taskService = taskService;
             _deviceService = deviceService;
             //_commandFactory = commandFactory;
@@ -60,11 +60,11 @@ namespace Biovation.Brands.Paliz.Controllers
             {
                 var onlineDevices = new List<DeviceBasicInfo>();
 
-                //foreach (var onlineDevice in _virdiServer.GetOnlineDevices())
+                //foreach (var onlineDevice in _palizServer.GetOnlineDevices())
                 //{
                 //    if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
                 //    {
-                //        var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.VirdiCode)
+                //        var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.PalizCode)
                 //            .FirstOrDefault();
                 //        if (device is null)
                 //            continue;
@@ -84,7 +84,7 @@ namespace Biovation.Brands.Paliz.Controllers
         [Authorize]
         public async Task<ResultViewModel> RetrieveLogs([FromBody] uint code)
         {
-            var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+            var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
             if (device is null)
                 return new ResultViewModel {Success = false, Message = "Wrong device code is provided"};
 
@@ -120,15 +120,15 @@ namespace Biovation.Brands.Paliz.Controllers
 
                 else
                 {
-                    var virdiDevices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                    foreach (var virdiDevice in virdiDevices)
+                    var palizDevices = _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                    foreach (var palizDevice in palizDevices)
                     {
                         task.TaskItems.Add(new TaskItem
                         {
                             Status = _taskStatuses.Queued,
                             TaskItemType = _taskItemTypes.GetLogs,
                             Priority = _taskPriorities.Medium,
-                            DeviceId = virdiDevice.DeviceId,
+                            DeviceId = palizDevice.DeviceId,
                             Data = JsonConvert.SerializeObject(device.DeviceId),
                             IsParallelRestricted = true,
                             IsScheduled = false,
@@ -157,7 +157,7 @@ namespace Biovation.Brands.Paliz.Controllers
             try
             {
                 var creatorUser = HttpContext.GetUser();
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel {Success = false, Message = "Wrong device code is provided"};
 
@@ -192,16 +192,16 @@ namespace Biovation.Brands.Paliz.Controllers
 
                         else
                         {
-                            var virdiDevices =
-                                _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                            foreach (var virdiDevice in virdiDevices)
+                            var palizDevices =
+                                _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                            foreach (var palizDevice in palizDevices)
                             {
                                 task.TaskItems.Add(new TaskItem
                                 {
                                     Status = _taskStatuses.Queued,
                                     TaskItemType = _taskItemTypes.GetLogsInPeriod,
                                     Priority = _taskPriorities.Medium,
-                                    DeviceId = virdiDevice.DeviceId,
+                                    DeviceId = palizDevice.DeviceId,
                                     Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
                                     IsParallelRestricted = true,
                                     IsScheduled = false,
@@ -242,17 +242,17 @@ namespace Biovation.Brands.Paliz.Controllers
 
                         else
                         {
-                            var virdiDevices =
-                                _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                            foreach (var virdiDevice in virdiDevices)
+                            var palizDevices =
+                                _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                            foreach (var palizDevice in palizDevices)
                             {
                                 task.TaskItems.Add(new TaskItem
                                 {
                                     Status = _taskStatuses.Queued,
                                     TaskItemType = _taskItemTypes.GetLogs,
                                     Priority = _taskPriorities.Medium,
-                                    DeviceId = virdiDevice.DeviceId,
-                                    Data = JsonConvert.SerializeObject(virdiDevice.DeviceId),
+                                    DeviceId = palizDevice.DeviceId,
+                                    Data = JsonConvert.SerializeObject(palizDevice.DeviceId),
                                     IsParallelRestricted = true,
                                     IsScheduled = false,
                                     OrderIndex = 1
@@ -284,7 +284,7 @@ namespace Biovation.Brands.Paliz.Controllers
         [HttpGet]
         public ResultViewModel ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            var devices =_deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+            var devices =_deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
             var deviceId = devices.DeviceId;
             try
             {
@@ -316,7 +316,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 var creatorUser = HttpContext.GetUser();
@@ -362,7 +362,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 var creatorUser = HttpContext.GetUser();
@@ -407,7 +407,7 @@ namespace Biovation.Brands.Paliz.Controllers
         public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
             var creatorUser = HttpContext.GetUser();
-            var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.VirdiCode)
+            var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.PalizCode)
                 .FirstOrDefault();
 
             if (device.Active)
@@ -600,7 +600,7 @@ namespace Biovation.Brands.Paliz.Controllers
                 };
                 //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
                 //int[] userIds =new[] {Convert.ToInt32(userId)};
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
                 var deviceId = devices.DeviceId;
                 foreach (var id in userIds)
                 {
@@ -678,7 +678,7 @@ namespace Biovation.Brands.Paliz.Controllers
                         DueDate = DateTime.Today
                     };
 
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode)
+                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode)
                         .FirstOrDefault();
                     var deviceId = devices.DeviceId;
                     task.TaskItems.Add(new TaskItem
@@ -717,7 +717,7 @@ namespace Biovation.Brands.Paliz.Controllers
             try
             {
                 var creatorUser = HttpContext.GetUser();
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
                 var task = new TaskInfo
                 {
@@ -779,13 +779,13 @@ namespace Biovation.Brands.Paliz.Controllers
         //{
         //    return Task.Run(async () =>
         //    {
-        //        var devices = _deviceService.GetDeviceBasicInfoWithCode((uint)deviceCode, DeviceBrands.VirdiCode);
+        //        var devices = _deviceService.GetDeviceBasicInfoWithCode((uint)deviceCode, DeviceBrands.PalizCode);
         ////        var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
         //        var creatorUser = HttpContext.GetUser();
         //        if (!Request.Content.IsMimeMultipartContent())
         //            throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
 
-        //        if (_virdiServer.GetOnlineDevices().Values.All(device => device.Code != deviceCode))
+        //        if (_palizServer.GetOnlineDevices().Values.All(device => device.Code != deviceCode))
         //            return new ResultViewModel { Validate = 0, Code = 400, Id = deviceCode, Message = $"The device {deviceCode} is not online." };
 
         //        //var tempFolderPath = Path.Combine(Assembly.GetExecutingAssembly().Location, "TempFiles");
@@ -862,7 +862,7 @@ namespace Biovation.Brands.Paliz.Controllers
                 if (!Request.Content.IsMimeMultipartContent())
                     throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
 
-                if (_virdiServer.GetOnlineDevices().Values.All(device => device.Code != deviceCode))
+                if (_palizServer.GetOnlineDevices().Values.All(device => device.Code != deviceCode))
                     return new ResultViewModel { Validate = 0, Code = 400, Id = deviceCode, Message = $"The device {deviceCode} is not online." };
 
                 //var tempFolderPath = Path.Combine(Assembly.GetExecutingAssembly().Location, "TempFiles");
@@ -919,7 +919,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 var creatorUser = HttpContext.GetUser();
@@ -970,7 +970,7 @@ namespace Biovation.Brands.Paliz.Controllers
                 {
                     foreach (var id in userCodes)
                     {
-                        //_virdiServer.DeleteUserFromDeviceFastSearch(code, id);
+                        //_palizServer.DeleteUserFromDeviceFastSearch(code, id);
                     }
                 }
 

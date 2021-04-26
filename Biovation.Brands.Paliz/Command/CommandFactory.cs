@@ -86,7 +86,7 @@ namespace Biovation.Brands.Paliz.Command
                     //Unlocks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        //return new VirdiEnrollFromTerminal(transferModelData.Items, VirdiServer.GetOnlineDevices());
+                        //return new PalizEnrollFromTerminal(transferModelData.Items, PalizServer.GetOnlineDevices());
                         throw new NotImplementedException();
                     }
 

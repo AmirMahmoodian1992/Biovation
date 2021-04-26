@@ -8,7 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using DataAccessLayerCore.Repositories;
 using Biovation.Repository.Api.v2;
-using Biovation.Service.Api.v2;
+using Biovation.Service.Api.v1;
 using Biovation.CommonClasses.Manager;
 using Biovation.CommonClasses;
 using Biovation.Domain;
@@ -22,18 +22,12 @@ using System.Reflection;
 using Biovation.Brands.Paliz.Middleware;
 using Biovation.Brands.Paliz.HostedServices;
 using Log = Serilog.Log;
-using System.Collections.Generic;
-using Biovation.Brands.Paliz.Manager;
-using PalizTiara.Api;
-using Biovation.Brands.Paliz.Devices;
 
 namespace Biovation.Brands.Paliz
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
-        public readonly Dictionary<uint, DeviceBasicInfo> OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
-
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
@@ -83,7 +77,6 @@ namespace Biovation.Brands.Paliz
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-
             #region checkLock
 
             var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
@@ -119,56 +112,26 @@ namespace Biovation.Brands.Paliz
 
             services.AddSingleton(restClient);
             //add your injection here 
-
-            services.AddSingleton<AccessGroupService, AccessGroupService>();
-            services.AddSingleton<AdminDeviceService, AdminDeviceService>();
-            services.AddSingleton<BlackListService, BlackListService>();
-            services.AddSingleton<DeviceGroupService, DeviceGroupService>();
-            services.AddSingleton<DeviceService, DeviceService>();
-            services.AddSingleton<FaceTemplateService, FaceTemplateService>();
-            services.AddSingleton<FingerTemplateService, FingerTemplateService>();
-            services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
-            services.AddSingleton<LogService, LogService>();
-            services.AddSingleton<LookupService, LookupService>();
-            services.AddSingleton<SettingService, SettingService>();
-            services.AddSingleton<TaskService, TaskService>();
-            services.AddSingleton<TimeZoneService, TimeZoneService>();
-            services.AddSingleton<UserCardService, UserCardService>();
-            services.AddSingleton<UserGroupService, UserGroupService>();
-            services.AddSingleton<UserService, UserService>();
-            //services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
-
-            services.AddSingleton<GenericRepository, GenericRepository>();
-            services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
-            services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
-            services.AddSingleton<BlackListRepository, BlackListRepository>();
-            services.AddSingleton<DeviceGroupRepository, DeviceGroupRepository>();
-            services.AddSingleton<DeviceRepository, DeviceRepository>();
-            services.AddSingleton<FaceTemplateRepository, FaceTemplateRepository>();
-            services.AddSingleton<FingerTemplateRepository, FingerTemplateRepository>();
-            services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-            services.AddSingleton<LogRepository, LogRepository>();
-            services.AddSingleton<LookupRepository, LookupRepository>();
-            services.AddSingleton<SettingRepository, SettingRepository>();
-            services.AddSingleton<TaskRepository, TaskRepository>();
-            services.AddSingleton<TimeZoneRepository, TimeZoneRepository>();
-            services.AddSingleton<UserCardRepository, UserCardRepository>();
-            services.AddSingleton<UserGroupRepository, UserGroupRepository>();
-            services.AddSingleton<UserRepository, UserRepository>();
         }
 
         public void ConfigureConstantValues(IServiceCollection services)
         {
-            //var serviceCollection = new ServiceCollection();
-            //var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            var serviceCollection = new ServiceCollection();
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
-            //services.AddSingleton(restClient);
+            serviceCollection.AddSingleton(restClient);
 
-        
+            serviceCollection.AddSingleton<GenericRepository, GenericRepository>();
+            serviceCollection.AddScoped<LookupRepository, LookupRepository>();
+            serviceCollection.AddScoped<LookupService, LookupService>();
+            serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
+
             //serviceCollection.AddScoped<Lookups, Lookups>();
             //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
 
-            var serviceProvider = services.BuildServiceProvider();
+
+            var serviceProvider = serviceCollection.BuildServiceProvider();
 
             var lookupService = serviceProvider.GetService<LookupService>();
 
@@ -184,6 +147,7 @@ namespace Biovation.Brands.Paliz
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
 
+
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
 
             var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
@@ -198,17 +162,17 @@ namespace Biovation.Brands.Paliz
 
             var lookups = new Lookups
             {
-                TaskStatuses = taskStatusesQuery.Data.Data,
-                TaskTypes = taskTypesQuery.Data.Data,
-                TaskItemTypes = taskItemTypesQuery.Data.Data,
-                TaskPriorities = taskPrioritiesQuery.Data.Data,
-                FingerIndexNames = fingerIndexNamesQuery.Data.Data,
-                DeviceBrands = deviceBrandsQuery.Data.Data,
-                LogSubEvents = logSubEventsQuery.Data.Data,
-                FingerTemplateType = fingerTemplateTypeQuery.Data.Data,
-                FaceTemplateType = faceTemplateTypeQuery.Data.Data,
-                LogEvents = logEventsQuery.Data.Data,
-                MatchingTypes = matchingTypeQuery.Data.Data
+                TaskStatuses = taskStatusesQuery.Result,
+                TaskTypes = taskTypesQuery.Result,
+                TaskItemTypes = taskItemTypesQuery.Result,
+                TaskPriorities = taskPrioritiesQuery.Result,
+                FingerIndexNames = fingerIndexNamesQuery.Result,
+                DeviceBrands = deviceBrandsQuery.Result,
+                LogSubEvents = logSubEventsQuery.Result,
+                FingerTemplateType = fingerTemplateTypeQuery.Result,
+                FaceTemplateType = faceTemplateTypeQuery.Result,
+                LogEvents = logEventsQuery.Result,
+                MatchingTypes = matchingTypeQuery.Result
             };
 
             var genericCodeMappings = new GenericCodeMappings
@@ -234,18 +198,11 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
+
         }
 
         public void ConfigurePalizServices(IServiceCollection services)
         {
-            TiaraServerManager.Bootstrapper();
-            var tiaraServerManager = new TiaraServerManager();
-
-            services.AddSingleton(OnlineDevices);
-            services.AddSingleton(tiaraServerManager);
-            services.AddSingleton<PalizCodeMappings, PalizCodeMappings>();
-            services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
-            services.AddSingleton<DeviceFactory, DeviceFactory>();
             var palizObject = new Paliz();
             services.AddSingleton(palizObject);
             services.AddSingleton<PalizServer, PalizServer>();
