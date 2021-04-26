@@ -9,6 +9,7 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,8 +33,9 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly CommandFactory _commandFactory;
         private readonly ZkTecoServer _zkTecoServer;
+        private readonly ILogger _logger;
 
-        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer)
+        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
         {
             _deviceService = deviceService;
             _accessGroupService = accessGroupService;
@@ -47,6 +49,7 @@ namespace Biovation.Brands.ZK.Controllers
             _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
             _zkTecoServer = zkTecoServer;
+            _logger = logger.ForContext<ZkDeviceController>();
         }
 
         [HttpGet]
@@ -61,14 +64,28 @@ namespace Biovation.Brands.ZK.Controllers
                 {
                     foreach (var onlineDevice in _onlineDevices)
                     {
-                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                        try
                         {
-                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService
-                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault()
-                                ?.Name;
+                            if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                            {
+                                onlineDevice.Value.GetDeviceInfo().Name = _deviceService
+                                    .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault()
+                                    ?.Name;
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
                         }
 
-                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                        try
+                        {
+                            onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                        }
                     }
                 }
 
