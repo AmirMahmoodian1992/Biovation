@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.Shahab.Devices;
+﻿using Biovation.Brands.Shahab.Devices;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Shahab.Controllers
 {
@@ -18,12 +19,14 @@ namespace Biovation.Brands.Shahab.Controllers
         private readonly ShahabServer _shahabServer;
         private readonly DeviceService _deviceService;
         private readonly Dictionary<uint, Device> _onlineDevices;
+        private readonly ILogger _logger;
 
-        public ShahabDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, ShahabServer shahabServer)
+        public ShahabDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, ShahabServer shahabServer, ILogger logger)
         {
             _shahabServer = shahabServer;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
+            _logger = logger.ForContext<ShahabDeviceController>();
         }
 
         [HttpGet]
@@ -32,13 +35,31 @@ namespace Biovation.Brands.Shahab.Controllers
         {
             var onlineDevices = new List<DeviceBasicInfo>();
 
-            foreach (var onlineDevice in _onlineDevices)
+            lock (_onlineDevices)
             {
-                if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                foreach (var onlineDevice in _onlineDevices)
                 {
-                    onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.MaxaCode)?.FirstOrDefault()?.Name;
+                    try
+                    {
+                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                        {
+                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.MaxaCode)?.FirstOrDefault()?.Name;
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
+
+                    try
+                    {
+                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
                 }
-                onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
             }
 
             return onlineDevices;
