@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,12 +24,14 @@ namespace Biovation.Brands.Paliz.HostedServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _palizServer.StartServer();
+            return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _palizServer.StopServer();
+            return Task.CompletedTask;
         }
     }
 }
