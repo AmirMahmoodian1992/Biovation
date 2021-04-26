@@ -7,6 +7,7 @@ using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +31,11 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly ILogger _logger;
+
         public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices,
             EosServer eosServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes,
-            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, ILogger logger)
         {
             _eosServer = eosServer;
             _deviceService = deviceService;
@@ -45,6 +48,8 @@ namespace Biovation.Brands.EOS.Controllers
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _deviceBrands = deviceBrands;
+
+            _logger = logger.ForContext<EosDeviceController>();
         }
 
         [HttpGet]
@@ -53,16 +58,33 @@ namespace Biovation.Brands.EOS.Controllers
         {
             var onlineDevices = new List<DeviceBasicInfo>();
 
-            foreach (var onlineDevice in _onlineDevices)
+            lock (_onlineDevices)
             {
-                if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                foreach (var onlineDevice in _onlineDevices)
                 {
-                    onlineDevice.Value.GetDeviceInfo().Name = _deviceService
-                        .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault()
-                        ?.Name;
-                }
+                    try
+                    {
+                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                        {
+                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService
+                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault()
+                                ?.Name;
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
 
-                onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    try
+                    {
+                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
+                }
             }
 
             return onlineDevices;
