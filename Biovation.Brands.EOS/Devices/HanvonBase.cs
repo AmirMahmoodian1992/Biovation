@@ -854,7 +854,7 @@ namespace Biovation.Brands.EOS.Devices
 
 
             //Logger.Log($@"THe Log Count is {logs.Count} At the time {DateTime.Now}");
-            var records = logs.Select(FaceIdRecord.Parse).Cast<Record>().ToList();
+            var records = logs.Select(FaceIdRecord.Parse).ToList();
 
             foreach (var record in records)
             {
@@ -869,7 +869,8 @@ namespace Biovation.Brands.EOS.Devices
                             DeviceId = _deviceInfo.DeviceId,
                             DeviceCode = _deviceInfo.Code,
                             InOutMode = _deviceInfo.DeviceTypeId,
-                            //SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                            SubEvent = LogSubEvents.Normal,
+                            MatchingType = EosCodeMappings.GetMatchingTypeGenericLookup((int)record.FaceIdCheckmethodType),
                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
                             EventLog = LogEvents.Authorized,
                             TnaEvent = 0,
