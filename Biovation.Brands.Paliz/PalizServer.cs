@@ -10,7 +10,7 @@ namespace Biovation.Brands.Paliz
         private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
 
         /// <summary>
-        /// <En>Make or return the unique instance of Zk Server.</En>
+        /// <En>Make or return the unique instance of Paliz Server.</En>
         /// <Fa>یک نمونه واحد از سرور ساخته و باز میگرداند.</Fa>
         /// </summary>
         /// <returns></returns>
@@ -18,8 +18,8 @@ namespace Biovation.Brands.Paliz
         {
             Logger.Log("Service started.");
             var connectToDeviceTasks = new List<Task>();
-            //Parallel.ForEach(_zkDevices, device => connectToDeviceTasks.Add(ConnectToDevice(device, cancellationToken)));
-            //var connectToDeviceTasks = _zkDevices.Select(ConnectToDevice).ToList();
+            //Parallel.ForEach(_palizDevices, device => connectToDeviceTasks.Add(ConnectToDevice(device, cancellationToken)));
+            //var connectToDeviceTasks = _palizDevices.Select(ConnectToDevice).ToList();
             if (connectToDeviceTasks.Count == 0)
                 return Task.CompletedTask;
 
