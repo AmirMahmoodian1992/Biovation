@@ -38,7 +38,7 @@ namespace Biovation.Brands.Paliz.Manager
             try
             {
                 var restRequest = new RestRequest("/device/devices", Method.GET);
-                restRequest.AddQueryParameter("brandId", DeviceBrands.VirdiCode);
+                restRequest.AddQueryParameter("brandId", DeviceBrands.PalizCode);
                 var restResult = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest).Result.Data;
 
                 if (restResult is null)
