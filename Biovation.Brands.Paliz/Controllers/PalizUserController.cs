@@ -17,7 +17,7 @@ namespace Biovation.Brands.Paliz.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class PalizUserController : ControllerBase
     {
-        //private readonly PalizServer _palizServer;
+        //private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
@@ -33,7 +33,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             _taskService = taskService;
             _deviceService = deviceService;
-            //_palizServer = palizServer;
+            //_virdiServer = virdiServer;
             _accessGroupService = accessGroupService;
             //_commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
@@ -99,7 +99,7 @@ namespace Biovation.Brands.Paliz.Controllers
                 try
                 {
                     // ReSharper disable once AssignmentIsFullyDiscarded
-                    //_palizServer.LoadFingerTemplates().ConfigureAwait(false);
+                    //_virdiServer.LoadFingerTemplates().ConfigureAwait(false);
                     return new ResultViewModel { Validate = 1 };
                 }
                 catch (Exception exception)
@@ -117,7 +117,7 @@ namespace Biovation.Brands.Paliz.Controllers
             var resultList = new List<ResultViewModel>();
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                 if (device is null)
                     return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists" } };
 
@@ -153,7 +153,7 @@ namespace Biovation.Brands.Paliz.Controllers
 
                     if (!updateServerSideIdentification) continue;
                     // ReSharper disable once AssignmentIsFullyDiscarded
-                    //_ = _palizServer.AddUserToDeviceFastSearch(code, (int)id).ConfigureAwait(false);
+                    //_ = _virdiServer.AddUserToDeviceFastSearch(code, (int)id).ConfigureAwait(false);
                 }
 
                 _taskService.InsertTask(task);
@@ -216,7 +216,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             return await Task.Run(() =>
             {
-                //var onlineDevice = _palizServer.GetOnlineDevices();
+                //var onlineDevice = _virdiServer.GetOnlineDevices();
                 var result = new List<ResultViewModel>();
                 //foreach (var device in onlineDevice)
                 //{

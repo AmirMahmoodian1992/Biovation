@@ -10,11 +10,11 @@ namespace Biovation.Brands.Paliz.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class PalizUserGroupController : ControllerBase
     {
-        //private readonly PalizServer _palizServer;
+        //private readonly VirdiServer _virdiServer;
 
-        public PalizUserGroupController(/*PalizServer palizServer*/)
+        public PalizUserGroupController(/*VirdiServer virdiServer*/)
         {
-           // _palizServer = palizServer;
+           // _virdiServer = virdiServer;
         }
 
         [HttpPost]
@@ -23,7 +23,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-                //_palizServer.LoadFingerTemplates().ConfigureAwait(false);
+                //_virdiServer.LoadFingerTemplates().ConfigureAwait(false);
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)

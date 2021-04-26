@@ -344,7 +344,7 @@ namespace Biovation.Brands.Paliz.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.PalizCode, deviceId: deviceId,
+            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
 
             lock (_tasks)
