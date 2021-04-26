@@ -21,8 +21,8 @@ namespace Biovation.Brands.Paliz.Command
         /// All connected devices
         /// </summary>
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
-        private PalizCodeMappings _palizCodeMappings;
-        private LogEvents _logEvents;
+        //private PalizCodeMappings _palizCodeMappings;
+        //private LogEvents _logEvents;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
@@ -30,12 +30,12 @@ namespace Biovation.Brands.Paliz.Command
 
         private readonly PalizServer _palizServer;
 
-        public PalizDeleteAllLogsOfDevice(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
+        public PalizDeleteAllLogsOfDevice(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService)
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            _palizCodeMappings = palizCodeMappings;
-            _logEvents = logEvents;
+            //_palizCodeMappings = palizCodeMappings;
+            //_logEvents = logEvents;
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             _palizServer = palizServer;
