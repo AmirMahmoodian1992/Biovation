@@ -247,7 +247,9 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             var palizObject = new Paliz();
+            services.AddSingleton(OnlineDevices);
             services.AddSingleton(palizObject);
+            services.AddSingleton<TiaraServerManager, TiaraServerManager>();
             services.AddSingleton<PalizServer, PalizServer>();
 
             services.AddHostedService<PalizHostedService>();
