@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api.CallBacks;
+using System.Text;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -63,32 +64,32 @@ namespace Biovation.Brands.Paliz.Command
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
         }
-        //public object Execute()
-        //{
-        //    if (OnlineDevices.All(device => device.Key != Code))
-        //    {
-        //        Logger.Log($"RetriveUser,The device: {Code} is not connected.");
-        //        return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };
-        //    }
+        public object Execute()
+        {
+            if (OnlineDevices.All(device => device.Key != Code))
+            {
+                Logger.Log($"RetriveUser,The device: {Code} is not connected.");
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = TerminalId, Message = $"The device: {Code} is not connected.", Validate = 1 };
+            }
 
-        //    try
-        //    {
-        //        //Callbacks.ModifyUserData = true;
-        //        _palizServer._serverManager.UserInfoEvent += GetUserInfoEventCallBack;
-        //        var userIdModel = new UserIdModel(UserId);
-        //        _palizServer._serverManager.GetUserInfoAsyncTask(userIdModel, TerminalName);
-        //        System.Threading.Thread.Sleep(1000);
-        //        Logger.Log(GetDescription());
+            try
+            {
+                //Callbacks.ModifyUserData = true;
+                _palizServer._serverManager.UserInfoEvent += GetUserInfoEventCallBack;
+                var userIdModel = new UserIdModel(UserId);
+                _palizServer._serverManager.GetUserInfoAsyncTask(userIdModel, TerminalName);
+                System.Threading.Thread.Sleep(1000);
+                Logger.Log(GetDescription());
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n", Validate = 1 };
 
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = $"Exeption: {exception}", Validate = 0 };
 
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        Logger.Log(exception);
-        //        return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"Exeption: {exception}", Validate = 0 };
-
-        //    }
-        //}
+            }
+        }
         private void GetUserInfoEventCallBack(object sender, UserInfoEventArgs args)
         {
             if (TerminalId != TaskItemId)
@@ -100,7 +101,50 @@ namespace Biovation.Brands.Paliz.Command
             {
                 return;
             }
+            var userInfoModel = args.UserInfoModel;
+            var fingerprintModelList = userInfoModel.Fingerprints;
+            var t = new FingerTemplate();
+            
+            var isoEncoding = Encoding.GetEncoding(28591);
+            var windowsEncoding = Encoding.GetEncoding(1256);
 
+            //var user = new User
+            //{
+            //    Code = _terminalUserData.UserID,
+            //    AdminLevel = args.UserInfoModel.Level,
+            //    AuthMode = _terminalUserData.AuthType,
+            //    Password = userInfoModel.Password,
+            //    FullName = PalizTiara.Api.Helpers. userInfoModel.Name,
+            //    IsActive = userInfoModel.Locked,
+            //    ImageBytes = userInfoModel.Image,
+            //    FingerTemplates = new List<FingerTemplate>(LinkedListNode,)
+            //};
+            
+            //var userExists = _userService.GetUsers(code: _terminalUserData.UserID).FirstOrDefault();
+            //if (userExists != null)
+            //{
+            //    user = new User
+            //    {
+            //        Id = userExists.Id,
+            //        Code = userExists.Code,
+            //        AdminLevel = _terminalUserData.IsAdmin,
+            //        StartDate = _terminalUserData.StartAccessDate == "0000-00-00"
+            //            ? userExists.StartDate
+            //            : DateTime.Parse(_terminalUserData.StartAccessDate),
+            //        EndDate = _terminalUserData.EndAccessDate == "0000-00-00"
+            //            ? userExists.EndDate
+            //            : DateTime.Parse(_terminalUserData.EndAccessDate),
+            //        AuthMode = _terminalUserData.AuthType,
+            //        Password = _terminalUserData.Password,
+            //        UserName = string.IsNullOrEmpty(userName) ? userExists.UserName : userName,
+            //        FirstName = firstName ?? userExists.FirstName,
+            //        SurName = string.Equals(surName, userName) ? userExists.SurName ?? surName : surName,
+            //        IsActive = userExists.IsActive,
+            //        ImageBytes = picture
+            //    };
+            //}
+
+            //var userInsertionResult = _userService.ModifyUser(user);
 
             _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
         }
