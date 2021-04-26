@@ -10,5 +10,8 @@ using System.Threading;
 
 namespace Biovation.Brands.Paliz.Devices
 {
-    
+    public class Device
+    {
+
+    }
 }
