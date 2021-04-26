@@ -8,6 +8,7 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,11 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
 
-        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
+        private readonly Dictionary<uint, DeviceBasicInfo> _onlineDevices;
+
+        private readonly ILogger _logger;
+
+        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             _virdiServer = virdiServer;
             _taskService = taskService;
@@ -47,6 +52,9 @@ namespace Biovation.Brands.Virdi.Controllers
             _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
             _configurationManager = configurationManager;
+            _onlineDevices = onlineDevices;
+
+            _logger = logger.ForContext<VirdiDeviceController>();
         }
 
         [HttpGet]
@@ -57,20 +65,35 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 var onlineDevices = new List<DeviceBasicInfo>();
 
-                foreach (var onlineDevice in _virdiServer.GetOnlineDevices())
+                foreach (var onlineDevice in _onlineDevices)
                 {
-                    if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
+                    try
                     {
-                        var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.VirdiCode)
-                            .FirstOrDefault();
-                        if (device is null)
-                            continue;
+                        if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
+                        {
+                            var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.VirdiCode)
+                                .FirstOrDefault();
+                            if (device is null)
+                                continue;
 
-                        onlineDevice.Value.Name = device.Name;
-                        onlineDevice.Value.DeviceId = device.DeviceId;
+                            onlineDevice.Value.Name = device.Name;
+                            onlineDevice.Value.DeviceId = device.DeviceId;
+                        }
+
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
                     }
 
-                    onlineDevices.Add(onlineDevice.Value);
+                    try
+                    {
+                        onlineDevices.Add(onlineDevice.Value);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
                 }
 
                 return onlineDevices;
