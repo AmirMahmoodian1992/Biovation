@@ -31,5 +31,17 @@
     <Folder Include="Libraries\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="NodaTime">
+      <HintPath>Libraries\NodaTime.dll</HintPath>
+    </Reference>
+    <Reference Include="PalizTiara.Api">
+      <HintPath>Libraries\PalizTiara.Api.dll</HintPath>
+    </Reference>
+    <Reference Include="PalizTiara.Protocol">
+      <HintPath>Libraries\PalizTiara.Protocol.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 
 </Project>
