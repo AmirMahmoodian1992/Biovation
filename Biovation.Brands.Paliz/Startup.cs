@@ -22,12 +22,16 @@ using System.Reflection;
 using Biovation.Brands.Paliz.Middleware;
 using Biovation.Brands.Paliz.HostedServices;
 using Log = Serilog.Log;
+using System.Collections.Generic;
+using Biovation.Brands.Paliz.Devices;
+using PalizTiara.Api;
 
 namespace Biovation.Brands.Paliz
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
@@ -204,7 +208,9 @@ namespace Biovation.Brands.Paliz
         public void ConfigurePalizServices(IServiceCollection services)
         {
             var palizObject = new Paliz();
+            services.AddSingleton(OnlineDevices);
             services.AddSingleton(palizObject);
+            services.AddSingleton<TiaraServerManager, TiaraServerManager>();
             services.AddSingleton<PalizServer, PalizServer>();
 
             services.AddHostedService<PalizHostedService>();
