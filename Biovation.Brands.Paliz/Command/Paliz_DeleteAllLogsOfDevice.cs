@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.Paliz.Command
 {
-    public class PalizDeleteAllLogsOfDevice
+    public class PalizDeleteAllLogsOfDevice : ICommand
     {
         /// <summary>
         /// All connected devices

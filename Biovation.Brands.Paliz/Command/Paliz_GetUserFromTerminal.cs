@@ -15,7 +15,7 @@ using System.Text;
 
 namespace Biovation.Brands.Paliz.Command
 {
-    public class PalizGetUserFromTerminal
+    public class PalizGetUserFromTerminal : ICommand
     {
         /// <summary>
         /// All connected devices
