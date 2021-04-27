@@ -90,6 +90,23 @@ namespace Biovation.Brands.Paliz.Command
 
             }
         }
+        private List<FingerTemplate> GetFingerTemplates(FingerprintModel[] fingerprintList)
+        {
+            var fingerTemplateList = new List<FingerTemplate>();
+            foreach(var fingerprint in fingerprintList)
+            {
+                fingerTemplateList.Add(new FingerTemplate
+                {
+                    // TODO - Ask this if casting is ok.
+                    Id = (int) fingerprint.Id,
+                    UserId = fingerprint.UserId,
+                    Template = fingerprint.Template,
+                    Index = fingerprint.Index,
+                    EnrollQuality = fingerprint.Quality
+                });
+            }
+            return fingerTemplateList;
+        }
         private void GetUserInfoEventCallBack(object sender, UserInfoEventArgs args)
         {
             if (TerminalId != TaskItemId)
@@ -102,24 +119,22 @@ namespace Biovation.Brands.Paliz.Command
                 return;
             }
             var userInfoModel = args.UserInfoModel;
-            var fingerprintModelList = userInfoModel.Fingerprints;
-            var t = new FingerTemplate();
             
             var isoEncoding = Encoding.GetEncoding(28591);
             var windowsEncoding = Encoding.GetEncoding(1256);
-
-            //var user = new User
-            //{
-            //    Code = _terminalUserData.UserID,
-            //    AdminLevel = args.UserInfoModel.Level,
-            //    AuthMode = _terminalUserData.AuthType,
-            //    Password = userInfoModel.Password,
-            //    FullName = PalizTiara.Api.Helpers. userInfoModel.Name,
-            //    IsActive = userInfoModel.Locked,
-            //    ImageBytes = userInfoModel.Image,
-            //    FingerTemplates = new List<FingerTemplate>(LinkedListNode,)
-            //};
             
+
+            var user = new User
+            {
+                AuthMode = userInfoModel.Locked ? 0 : 1,
+                Password = userInfoModel.Password,
+                FullName = userInfoModel.Name,
+                IsActive = userInfoModel.Locked,
+                ImageBytes = userInfoModel.Image,
+                FingerTemplates = GetFingerTemplates(userInfoModel.Fingerprints)
+                //IdentityCard = 
+            };
+
             //var userExists = _userService.GetUsers(code: _terminalUserData.UserID).FirstOrDefault();
             //if (userExists != null)
             //{
