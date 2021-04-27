@@ -12,6 +12,7 @@ using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api.CallBacks;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -27,6 +28,9 @@ namespace Biovation.Brands.Paliz.Command
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly AccessGroupService _accessGroupService;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
@@ -35,7 +39,7 @@ namespace Biovation.Brands.Paliz.Command
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
-        public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
+        public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -68,6 +72,8 @@ namespace Biovation.Brands.Paliz.Command
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateService = fingerTemplateService;
+            _faceTemplateService = faceTemplateService;
+            _faceTemplateTypes = faceTemplateTypes;
 
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
@@ -99,7 +105,7 @@ namespace Biovation.Brands.Paliz.Command
 
             }
         }
-        private List<FingerTemplate> GetFingerTemplates(FingerprintModel[] fingerprintList, User getUsersRes)
+        private void ModifyFingerTemplates(FingerprintModel[] fingerprintList, User getUsersRes)
         {
             var fingerTemplateList = new List<FingerTemplate>();
             if (getUsersRes != null)
@@ -135,7 +141,55 @@ namespace Biovation.Brands.Paliz.Command
                     Index = fingerprint.Index
                 });
             }
-            return fingerTemplateList;
+            if (fingerTemplateList.Any())
+            {
+                foreach (var fingerTemplate in fingerTemplateList)
+                {
+                    _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
+                }
+            }
+        }
+        private void ModifyFaceTemplates(UserInfoModel userInfoModel, User getUsersRes)
+        {
+            var faceTemplateList = new List<FaceTemplate>();
+            var userFaces = _faceTemplateService.FaceTemplates(userId: userInfoModel.Id);
+            if (getUsersRes != null)
+            {
+                getUsersRes.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
+            }
+            foreach(var faceModel in userInfoModel.Faces)
+            {
+                var faceData = faceModel.Template;
+                var faceTemplate = new FaceTemplate
+                {
+                    Index = userInfoModel.Faces.Length,
+                    FaceTemplateType = _faceTemplateTypes.VFACE,
+                    UserId = faceModel.UserId,
+                    Template = faceData,
+                    CheckSum = faceData.Sum(x => x),
+                    Size = faceData.Length
+                };
+                if (getUsersRes != null)
+                {
+                    if (!getUsersRes.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
+                    {
+                        faceTemplateList.Add(faceTemplate);
+                    }
+                }
+                else
+                {
+                    faceTemplateList.Add(faceTemplate);
+                }
+
+                if (faceTemplateList.Any())
+                {
+                    foreach (var faceTemplates in faceTemplateList)
+                    {
+                        _faceTemplateService.ModifyFaceTemplate(faceTemplates);
+                    }
+                }
+                    
+            }
         }
 
         // TODO - If ever needed, use this method to get cards info.
@@ -151,7 +205,7 @@ namespace Biovation.Brands.Paliz.Command
         //                IsActive = true,
         //                UserId = userInfoModel.Id
         //            };
-                    
+
         //            _userCardService.ModifyUserCard(card);
         //        }
         //    }
@@ -185,40 +239,60 @@ namespace Biovation.Brands.Paliz.Command
                 FullName = userInfoModel.Name,
                 IsActive = userInfoModel.Locked,
                 ImageBytes = userInfoModel.Image,
-                FingerTemplates = GetFingerTemplates(userInfoModel.Fingerprints, getUsersRes)
             };
-            
+            try
+            {
+                Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints.Length}");
+                ModifyFingerTemplates(userInfoModel.Fingerprints, getUsersRes);
 
-            //Card
-            //Logger.Log($"   +TotalCardCount:{userInfoModel.Cards.Length}");
-
-
-            //var userExists = _userService.GetUsers(code: _terminalUserData.UserID).FirstOrDefault();
-            //if (userExists != null)
+                Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces.Length}");
+                ModifyFaceTemplates(userInfoModel, getUsersRes);
+            }
+            catch(Exception ex)
+            {
+                Logger.Log(ex);
+            }
+            //if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
             //{
-            //    user = new User
+            //    Task.Run(() =>
             //    {
-            //        Id = userExists.Id,
-            //        Code = userExists.Code,
-            //        AdminLevel = _terminalUserData.IsAdmin,
-            //        StartDate = _terminalUserData.StartAccessDate == "0000-00-00"
-            //            ? userExists.StartDate
-            //            : DateTime.Parse(_terminalUserData.StartAccessDate),
-            //        EndDate = _terminalUserData.EndAccessDate == "0000-00-00"
-            //            ? userExists.EndDate
-            //            : DateTime.Parse(_terminalUserData.EndAccessDate),
-            //        AuthMode = _terminalUserData.AuthType,
-            //        Password = _terminalUserData.Password,
-            //        UserName = string.IsNullOrEmpty(userName) ? userExists.UserName : userName,
-            //        FirstName = firstName ?? userExists.FirstName,
-            //        SurName = string.Equals(surName, userName) ? userExists.SurName ?? surName : surName,
-            //        IsActive = userExists.IsActive,
-            //        ImageBytes = picture
-            //    };
+            //        try
+            //        {
+            //            lock (_palizServer.LoadFingerTemplateLock)
+            //            {
+            //                var accessGroupsOfUser = _accessGroupService.GetAccessGroups(userId: user.Id);
+            //                if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
+            //                {
+            //                    var devices =
+            //                        _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+
+            //                    foreach (var device in devices)
+            //                    {
+            //                        _palizServer.AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
+            //                    }
+            //                }
+
+            //                else
+            //                {
+            //                    foreach (var accessGroup in accessGroupsOfUser)
+            //                    {
+            //                        foreach (var deviceGroup in accessGroup.DeviceGroup)
+            //                        {
+            //                            foreach (var device in deviceGroup.Devices)
+            //                            {
+            //                                _palizServer.AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        catch (Exception exception)
+            //        {
+            //            Logger.Log(exception);
+            //        }
+            //    });
             //}
-
-            //var userInsertionResult = _userService.ModifyUser(user);
-
             _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
         }
         public void Rollback()
