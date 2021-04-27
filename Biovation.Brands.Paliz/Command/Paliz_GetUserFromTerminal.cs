@@ -107,6 +107,28 @@ namespace Biovation.Brands.Paliz.Command
             }
             return fingerTemplateList;
         }
+        // TODO - If ever needed, use this method to get cards info.
+        //private void ModifyUserCards(UserInfoModel userInfoModel)
+        //{
+        //    try
+        //    {
+        //        foreach (var card in userInfoModel.Cards)
+        //        {
+        //            var userCard = new UserCard
+        //            {
+        //                CardNum = card.ToString(),
+        //                IsActive = true,
+        //                UserId = userInfoModel.Id
+        //            };
+                    
+        //            _userCardService.ModifyUserCard(card);
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Logger.Log(e);
+        //    }
+        //}
         private void GetUserInfoEventCallBack(object sender, UserInfoEventArgs args)
         {
             if (TerminalId != TaskItemId)
@@ -132,8 +154,10 @@ namespace Biovation.Brands.Paliz.Command
                 IsActive = userInfoModel.Locked,
                 ImageBytes = userInfoModel.Image,
                 FingerTemplates = GetFingerTemplates(userInfoModel.Fingerprints)
-                //IdentityCard = 
             };
+            //Card
+            //Logger.Log($"   +TotalCardCount:{userInfoModel.Cards.Length}");
+            
 
             //var userExists = _userService.GetUsers(code: _terminalUserData.UserID).FirstOrDefault();
             //if (userExists != null)
