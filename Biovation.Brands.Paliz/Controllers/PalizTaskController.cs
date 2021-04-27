@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Biovation.Brands.Paliz.Manager;
 //using Biovation.Brands.Paliz.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Authorization;
@@ -11,11 +12,11 @@ namespace Biovation.Brands.Paliz.Controllers
     [Route("Biovation/Api/[Controller]")]
     public class PalizTaskController :  ControllerBase
     {
-        //private readonly TaskManager _taskManager;
+        private readonly TaskManager _taskManager;
 
-        public PalizTaskController(/*TaskManager taskManager*/)
+        public PalizTaskController(TaskManager taskManager)
         {
-            //_taskManager = taskManager;
+            _taskManager = taskManager;
         }
 
         [HttpPost]
@@ -25,7 +26,7 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-               // await _taskManager.ProcessQueue(deviceId).ConfigureAwait(false);
+                await _taskManager.ProcessQueue(deviceId).ConfigureAwait(false);
                 return new ResultViewModel { Success = true };
             }
             catch (Exception exception)

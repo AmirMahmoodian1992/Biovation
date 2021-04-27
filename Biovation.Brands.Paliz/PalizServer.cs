@@ -26,21 +26,27 @@ namespace Biovation.Brands.Paliz
         private readonly UserCardService _commonUserCardService;
         private readonly AccessGroupService _commonAccessGroupService;
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly AccessGroupService _accessGroupService;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly TaskService _taskService;
+        internal readonly LogService _logService;
+
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskItemTypes _taskItemTypes;
+
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly PalizCodeMappings _codeMappings;
         private readonly LogEvents _logEvents;
-        private readonly TaskStatuses _taskStatuses;
         private readonly DeviceBrands _deviceBrands;
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
-        private readonly FaceTemplateService _faceTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly RestClient _monitoringRestClient;
-        private readonly TaskService _taskService;
-        private readonly AccessGroupService _accessGroupService;
         private readonly ObservableCollection<DeviceLogDataModel> _deviceLogs =
             new ObservableCollection<DeviceLogDataModel>();
-        internal readonly LogService _logService;
+
         public int NextLogPageNumber { get; set; }
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
@@ -49,14 +55,15 @@ namespace Biovation.Brands.Paliz
         private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
         private static List<string> _onlineTerminals;
         internal readonly TiaraServerManager _serverManager;
+        internal readonly object LoadFingerTemplateLock = new object();
 
         public PalizServer(TiaraServerManager serverManager, Dictionary<uint, DeviceBasicInfo> onlineDevices, UserService commonUserService
             , DeviceService commonDeviceService, UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService
             , LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService
-            , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration
+            , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, TaskItemTypes taskItemTypes
             , FingerTemplateTypes fingerTemplateTypes, PalizCodeMappings codeMappings, DeviceBrands deviceBrands
             , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , TaskStatuses taskStatuses, PalizCodeMappings palizCodeMappings)
+            , TaskStatuses taskStatuses, PalizCodeMappings palizCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities)
         {
             _onlineDevices = onlineDevices;
             _commonDeviceService = commonDeviceService;
@@ -69,11 +76,18 @@ namespace Biovation.Brands.Paliz
             _blackListService = blackListService;
             _faceTemplateService = faceTemplateService;
             _taskService = taskService;
+
             _taskStatuses = taskStatuses;
+            _taskTypes = taskTypes;
+            _taskPriorities = taskPriorities;
+            _taskItemTypes = taskItemTypes;
+
             _accessGroupService = accessGroupService;
             this.biovationConfiguration = biovationConfiguration;
             //_virdiLogService = virdiLogService;
             _fingerTemplateTypes = fingerTemplateTypes;
+            _biometricTemplateManager = biometricTemplateManager;
+            _faceTemplateTypes = faceTemplateTypes;
             _codeMappings = codeMappings;
             _onlineDevices = onlineDevices;
             _logEvents = logEvents;
@@ -204,6 +218,46 @@ namespace Biovation.Brands.Paliz
 
             Logger.Log($"Connected device: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
             Logger.Log($"Retrieving new log: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
+
+            //User createrUser;
+            var creatorUser = _commonUserService.GetUsers(code: 987654321).Data?.Data?.FirstOrDefault();
+            //if (creatorUserData != null)
+            //{
+            //    createrUser = creatorUserData.FirstOrDefault();
+            //}
+            //else
+            //{
+            //    createrUser = new User
+            //}
+
+            //var lastLogsOfDevice = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.GetLogs,
+                Priority = _taskPriorities.Medium,
+                TaskItems = new List<TaskItem>(),
+                DeviceBrand = _deviceBrands.Paliz,
+                DueDate = DateTimeOffset.Now
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.GetLogs,
+                Priority = _taskPriorities.Medium,
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(device.DeviceId),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1
+            });
+
+            _taskService.InsertTask(task);
+            //AccessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
+            _taskService.ProcessQueue(_deviceBrands.Paliz, device.DeviceId).ConfigureAwait(false);
         }
 
         private void GetDeviceInfoCallback(object sender, DeviceInfoEventArgs args)
@@ -264,12 +318,12 @@ namespace Biovation.Brands.Paliz
 
         private async void Listen(string format, params object[] args)
         {
-            //if (T > 0)
-            //{
-            //    return;
-            //}
+            if (T > 0)
+            {
+                return;
+            }
 
-            //T++;
+            T++;
 
             if (args.Length < 1)
             {
