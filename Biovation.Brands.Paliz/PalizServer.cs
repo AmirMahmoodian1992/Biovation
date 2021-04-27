@@ -180,7 +180,7 @@ namespace Biovation.Brands.Paliz
                 {
                     Code = terminalId,
                     Brand = _deviceBrands.Paliz,
-                    Model = new DeviceModel { Id = 6001 },
+                    Model = new DeviceModel { Id = 8001 },
                     IpAddress = tiaraSettings.ServerSetting.ServerIP,
                     Port = tiaraSettings.ServerSetting.ServerPortNumber,
                     MacAddress = tiaraSettings.LanSetting.LanMac ?? "",
