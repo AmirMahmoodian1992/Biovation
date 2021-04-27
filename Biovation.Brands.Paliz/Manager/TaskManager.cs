@@ -47,7 +47,7 @@ namespace Biovation.Brands.Paliz.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveAllLogsOfDevice,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.GetAllLogsOfDevice,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
                                 taskItem.ExecutionAt = DateTime.Now;
@@ -337,7 +337,7 @@ namespace Biovation.Brands.Paliz.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
+            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.PalizCode, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode })?.Data?.Data ?? new List<TaskInfo>();
 
             lock (_tasks)

@@ -22,7 +22,9 @@ namespace Biovation.Brands.Paliz.Command
         private readonly MatchingTypes _matchingTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
 
-        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings)
+        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents
+            , LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings
+            , DeviceService deviceService)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
@@ -30,6 +32,7 @@ namespace Biovation.Brands.Paliz.Command
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _taskService = taskService;
+            _deviceService = deviceService;
         }
 
         public ICommand Factory(int eventId, List<object> items)

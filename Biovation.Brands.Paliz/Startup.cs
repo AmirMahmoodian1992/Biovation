@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api;
 using Biovation.Brands.Paliz.Devices;
+using Biovation.Brands.Paliz.Command;
 
 namespace Biovation.Brands.Paliz
 {
@@ -238,18 +239,21 @@ namespace Biovation.Brands.Paliz
 
         public void ConfigurePalizServices(IServiceCollection services)
         {
-            TiaraServerManager.Bootstrapper();
-            var tiaraServerManager = new TiaraServerManager();
+            services.AddSingleton<TaskManager, TaskManager>();
 
-            services.AddSingleton(OnlineDevices);
-            services.AddSingleton(tiaraServerManager);
             services.AddSingleton<PalizCodeMappings, PalizCodeMappings>();
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
+
+            services.AddSingleton<CommandFactory, CommandFactory>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();
+
+            TiaraServerManager.Bootstrapper();
+            var tiaraServerManager = new TiaraServerManager();
+            services.AddSingleton(tiaraServerManager);
+
             var palizObject = new Paliz();
             services.AddSingleton(OnlineDevices);
             services.AddSingleton(palizObject);
-            services.AddSingleton<TiaraServerManager, TiaraServerManager>();
             services.AddSingleton<PalizServer, PalizServer>();
 
             services.AddHostedService<PalizHostedService>();
