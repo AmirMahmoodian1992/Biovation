@@ -26,7 +26,7 @@ namespace Biovation.Brands.Paliz.Command
         private string TerminalName { get; }
         private int TerminalId { get; }
         private int UserId { get; }
-        private uint Code { get; }//iaushdfjhsdgfjhsdgfujsdgfujs
+        private uint Code { get; }//this is a test command
 
         private readonly PalizServer _palizServer;
 
