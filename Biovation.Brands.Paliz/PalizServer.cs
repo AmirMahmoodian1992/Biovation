@@ -30,7 +30,6 @@ namespace Biovation.Brands.Paliz
         private readonly FaceTemplateService _faceTemplateService;
         private readonly TaskService _taskService;
         internal readonly LogService _logService;
-
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;

@@ -261,7 +261,7 @@ namespace Biovation.Brands.Paliz.Command
             //            lock (_palizServer.LoadFingerTemplateLock)
             //            {
             //                var accessGroupsOfUser = _accessGroupService.GetAccessGroups(userId: user.Id);
-            //                if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
+            //                if (accessGroupsOfUser is null || accessGroupsOfUser?.Data?.Data.Count == 0)
             //                {
             //                    var devices =
             //                        _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
@@ -274,7 +274,7 @@ namespace Biovation.Brands.Paliz.Command
 
             //                else
             //                {
-            //                    foreach (var accessGroup in accessGroupsOfUser)
+            //                    foreach (var accessGroup in accessGroupsOfUser?.Data?.Data)
             //                    {
             //                        foreach (var deviceGroup in accessGroup.DeviceGroup)
             //                        {
