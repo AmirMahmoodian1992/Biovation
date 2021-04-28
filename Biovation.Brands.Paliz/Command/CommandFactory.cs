@@ -31,7 +31,7 @@ namespace Biovation.Brands.Paliz.Command
             , LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings
             , DeviceService deviceService, FingerTemplateService fingerTemplateService
             , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
-            , FaceTemplateTypes faceTemplateTypes, UserService userService)
+            , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
@@ -43,6 +43,7 @@ namespace Biovation.Brands.Paliz.Command
             _fingerTemplateService = fingerTemplateService;
             _biometricTemplateManager = biometricTemplateManager;
             _faceTemplateService = faceTemplateService;
+            _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
             _userService = userService;
         }
