@@ -95,6 +95,24 @@ namespace Biovation.Brands.Paliz.Manager
 
                             break;
                         }
+                    case TaskItemTypes.RetrieveAllUsersFromTerminalCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
                     case TaskItemTypes.SendBlackListCode:
                         {
                             try

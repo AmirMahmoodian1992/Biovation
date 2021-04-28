@@ -12,7 +12,6 @@ using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api.CallBacks;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -32,8 +31,6 @@ namespace Biovation.Brands.Paliz.Command
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
-        private long StartDate { get; }
-        private long EndDate { get; }
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
@@ -46,24 +43,6 @@ namespace Biovation.Brands.Paliz.Command
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["userId"];
-            try
-            {
-                var date = (DateTime)data["fromDate"];
-                StartDate = date.Ticks;
-            }
-            catch (Exception)
-            {
-                StartDate = new DateTime(1970, 1, 1).Ticks;
-            }
-            try
-            {
-                var date = (DateTime)data["toDate"];
-                EndDate = date.Ticks;
-            }
-            catch (Exception)
-            {
-                EndDate = DateTime.Now.AddYears(5).Ticks;
-            }
             _palizServer = palizServer;
             _userService = userService;
             _fingerTemplateTypes = fingerTemplateTypes;

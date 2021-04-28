@@ -73,12 +73,18 @@ namespace Biovation.Brands.Paliz.Command
                         return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.RetrieveUserFromDevice:
-                    //Unlocks the device
+                    //Gets a specific user info from device.
                     {
-                        //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        //var userId = Convert.ToInt32(transferModelData.Items[1]);
                         return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes);
                     }
+                case CommandType.RetrieveUsersListFromDevice:
+                    //Gets a specific user info from device.
+                    {
+                        return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes);
+                    }
+                case CommandType.GetUsersOfDevice:
+                    //Gets users of devices
+                    throw new NotImplementedException();
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
                     throw new NotImplementedException();
