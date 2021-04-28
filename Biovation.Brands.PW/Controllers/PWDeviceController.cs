@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace Biovation.Brands.PW.Controllers
 {
@@ -17,6 +18,7 @@ namespace Biovation.Brands.PW.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class PwDeviceController : ControllerBase
     {
+        private readonly ILogger _logger;
         private readonly PwServer _pwServer;
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
@@ -29,7 +31,7 @@ namespace Biovation.Brands.PW.Controllers
 
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, ILogger logger)
         {
             _taskService = taskService;
             _deviceService = deviceService;
@@ -40,6 +42,8 @@ namespace Biovation.Brands.PW.Controllers
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
+
+            _logger = logger.ForContext<PwDeviceController>();
         }
 
 
@@ -53,10 +57,24 @@ namespace Biovation.Brands.PW.Controllers
             {
                 foreach (var onlineDevice in _onlineDevices)
                 {
-                    if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
-                        onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault()?.Name;
+                    try
+                    {
+                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault()?.Name;
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
 
-                    onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    try
+                    {
+                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
                 }
             }
 
@@ -149,7 +167,7 @@ namespace Biovation.Brands.PW.Controllers
                     }
                 }
 
-                await _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, device.DeviceId).ConfigureAwait(false);
+                await _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, device?.DeviceId ?? 0).ConfigureAwait(false);
 
                 var result = new ResultViewModel { Validate = 1, Message = $"Reading logs of device {code} queued" };
                 return result;
