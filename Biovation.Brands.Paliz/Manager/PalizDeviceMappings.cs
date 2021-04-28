@@ -7,6 +7,11 @@ namespace Biovation.Brands.Paliz.Manager
     {
         private readonly Dictionary<string, DeviceBasicInfo> _deviceMappings;
 
+        public PalizDeviceMappings()
+        {
+            _deviceMappings = new Dictionary<string, DeviceBasicInfo>();
+        }
+
         public DeviceBasicInfo GetDeviceBasicInfo(string deviceName)
         {
             return _deviceMappings.ContainsKey(deviceName) ? _deviceMappings[deviceName] : null;

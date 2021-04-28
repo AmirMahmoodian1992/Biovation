@@ -296,8 +296,11 @@ namespace Biovation.Brands.Paliz
             {
                 return;
             }
-            var device = _palizDeviceMappings.GetDeviceBasicInfo(args.LiveTraffic.Device);
-            if(device == null || device.DeviceId == 0)
+
+            var deviceSender = sender as DeviceSender;
+            //var device = _onlineDevices.FirstOrDefault(x => x.Value.Name == args.LiveTraffic.Device).Value;
+            var device = _palizDeviceMappings.GetDeviceBasicInfo(deviceSender.TerminalName);
+            if (device == null || device.DeviceId == 0)
             {
                 device = _commonDeviceService.GetDevices(deviceName: args.LiveTraffic.Device)?.Data?.Data.FirstOrDefault();
                 if (device == null)
