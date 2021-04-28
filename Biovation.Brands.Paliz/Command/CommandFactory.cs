@@ -21,10 +21,17 @@ namespace Biovation.Brands.Paliz.Command
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
+        private readonly FingerTemplateService _fingerTemplateService;
+        private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly FaceTemplateService _faceTemplateService;
+        private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly UserService _userService;
 
         public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents
             , LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings
-            , DeviceService deviceService)
+            , DeviceService deviceService, FingerTemplateService fingerTemplateService
+            , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
+            , FaceTemplateTypes faceTemplateTypes, UserService userService)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
@@ -33,6 +40,11 @@ namespace Biovation.Brands.Paliz.Command
             _logSubEvents = logSubEvents;
             _taskService = taskService;
             _deviceService = deviceService;
+            _fingerTemplateService = fingerTemplateService;
+            _biometricTemplateManager = biometricTemplateManager;
+            _faceTemplateService = faceTemplateService;
+            _faceTemplateTypes = faceTemplateTypes;
+            _userService = userService;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -59,6 +71,13 @@ namespace Biovation.Brands.Paliz.Command
                     //Gets all the device access(traffic) logs in a period of time.
                     {
                         return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
+                    }
+                case CommandType.RetrieveUserFromDevice:
+                    //Unlocks the device
+                    {
+                        //var code = Convert.ToUInt32(transferModelData.Items[0]);
+                        //var userId = Convert.ToInt32(transferModelData.Items[1]);
+                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes);
                     }
                 case CommandType.PersonnelEvent:
                     //Change in Personnel

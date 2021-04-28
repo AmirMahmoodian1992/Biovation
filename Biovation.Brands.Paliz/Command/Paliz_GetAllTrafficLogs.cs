@@ -72,8 +72,6 @@ namespace Biovation.Brands.Paliz.Command
             {
                 var request = new LogRequestModel
                 {
-                    //UserId = 0,
-                    //Page = 1
                     UserId = 0,
                     Page = 0,
                     StartDate = 0,
@@ -136,7 +134,15 @@ namespace Biovation.Brands.Paliz.Command
 
             await _palizServer._logService.AddLog(logList);
 
-            //await _palizServer._serverManager.GetFailLogAsyncTask(TerminalName, request);
+            var request = new LogRequestModel
+            {
+                Page = ++logs.TrafficLogModel.Page,
+                UserId = 0,
+                StartDate = 0,
+                EndDate = 0,
+            };
+
+            await _palizServer._serverManager.GetFailLogAsyncTask(TerminalName, request);
 
             _palizServer._serverManager.FailLogEvent -= FailTrafficLogEventCallBack;
 
@@ -172,13 +178,12 @@ namespace Biovation.Brands.Paliz.Command
             var request = new LogRequestModel
             {
                 UserId = 0,
-                Page = 0,
                 StartDate = 0,
-                EndDate = 0
-                //Page = ++logs.TrafficLogModel.Page
+                EndDate = 0,
+                Page = ++logs.TrafficLogModel.Page
             };
 
-            //await _palizServer._serverManager.GetTrafficLogAsyncTask(TerminalName, request);
+            await _palizServer._serverManager.GetTrafficLogAsyncTask(TerminalName, request);
 
             _palizServer._serverManager.TrafficLogEvent -= TrafficLogEventCallBack;
 

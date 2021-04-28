@@ -77,15 +77,14 @@ namespace Biovation.Brands.Paliz.Manager
                             }
                             break;
                         }
-                    case TaskItemTypes.SendUserCode:
+                    case TaskItemTypes.RetrieveUserFromTerminalCode:
                         {
                             try
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    //result = (ResultViewModel)_commandFactory.Factory(CommandType.SendUserToDevice,
-                                    // new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                                    result = new ResultViewModel { Validate = 1 };
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
                             }
@@ -96,8 +95,6 @@ namespace Biovation.Brands.Paliz.Manager
 
                             break;
                         }
-
-
                     case TaskItemTypes.SendBlackListCode:
                         {
                             try
@@ -157,14 +154,14 @@ namespace Biovation.Brands.Paliz.Manager
 
                             break;
                         }
-                    case TaskItemTypes.RetrieveUserFromTerminalCode:
+                    case TaskItemTypes.SendUserCode:
                         {
                             try
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    //result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                                    //    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                    //result = (ResultViewModel)_commandFactory.Factory(CommandType.SendUserToDevice,
+                                    // new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                     result = new ResultViewModel { Validate = 1 };
                                 });
 

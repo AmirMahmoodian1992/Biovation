@@ -22,8 +22,6 @@ namespace Biovation.Brands.Paliz.Command
         /// All connected devices
         /// </summary>
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
-        private readonly LogEvents _logEvents;
-        private readonly PalizCodeMappings _palizCodeMappings;
         private readonly UserService _userService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
@@ -39,7 +37,8 @@ namespace Biovation.Brands.Paliz.Command
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
-        public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
+        private bool _userRetrievied;
+        public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes)
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -65,8 +64,6 @@ namespace Biovation.Brands.Paliz.Command
             {
                 EndDate = DateTime.Now.AddYears(5).Ticks;
             }
-            _palizCodeMappings = palizCodeMappings;
-            _logEvents = logEvents;
             _palizServer = palizServer;
             _userService = userService;
             _fingerTemplateTypes = fingerTemplateTypes;
@@ -89,11 +86,13 @@ namespace Biovation.Brands.Paliz.Command
 
             try
             {
-                //Callbacks.ModifyUserData = true;
                 _palizServer._serverManager.UserInfoEvent += GetUserInfoEventCallBack;
                 var userIdModel = new UserIdModel(UserId);
                 _palizServer._serverManager.GetUserInfoAsyncTask(userIdModel, TerminalName);
-                System.Threading.Thread.Sleep(1000);
+                while (!_userRetrievied)
+                {
+                    System.Threading.Thread.Sleep(500);
+                }
                 Logger.Log(GetDescription());
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n", Validate = 1 };
 
@@ -226,6 +225,7 @@ namespace Biovation.Brands.Paliz.Command
             {
                 return;
             }
+
             var userInfoModel = args.UserInfoModel;
             
             var isoEncoding = Encoding.GetEncoding(28591);
@@ -252,48 +252,8 @@ namespace Biovation.Brands.Paliz.Command
             {
                 Logger.Log(ex);
             }
-            //if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
-            //{
-            //    Task.Run(() =>
-            //    {
-            //        try
-            //        {
-            //            lock (_palizServer.LoadFingerTemplateLock)
-            //            {
-            //                var accessGroupsOfUser = _accessGroupService.GetAccessGroups(userId: user.Id);
-            //                if (accessGroupsOfUser is null || accessGroupsOfUser?.Data?.Data.Count == 0)
-            //                {
-            //                    var devices =
-            //                        _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-
-            //                    foreach (var device in devices)
-            //                    {
-            //                        _palizServer.AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
-            //                    }
-            //                }
-
-            //                else
-            //                {
-            //                    foreach (var accessGroup in accessGroupsOfUser?.Data?.Data)
-            //                    {
-            //                        foreach (var deviceGroup in accessGroup.DeviceGroup)
-            //                        {
-            //                            foreach (var device in deviceGroup.Devices)
-            //                            {
-            //                                _palizServer.AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //            }
-            //        }
-            //        catch (Exception exception)
-            //        {
-            //            Logger.Log(exception);
-            //        }
-            //    });
-            //}
             _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
+            _userRetrievied = true;
         }
         public void Rollback()
         {

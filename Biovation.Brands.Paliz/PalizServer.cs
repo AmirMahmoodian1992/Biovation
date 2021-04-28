@@ -292,26 +292,16 @@ namespace Biovation.Brands.Paliz
             {
                 return;
             }
-            //var log = args.LiveTraffic;
-            //var device = (DeviceSender)sender;
-            //var objList = new List<Object>
-            //{
-            //    "tiarathegroudbreaker",
-            //    7
-            //};
-            //var getAllLogsOfDevice = new PalizGetAllTrafficLogs(objList, this, _commonDeviceService);
-            //getAllLogsOfDevice.Execute();
-            //var userId = new UserIdModel(1);
         }
 
-        private void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
-        {
-            var device = (DeviceSender)sender;
-            if (args.DeviceLogModel.Logs == null || args?.DeviceLogModel?.Logs?.Length < 1)
-            {
-                return;
-            }
-        }
+        //private void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)
+        //{
+        //    var device = (DeviceSender)sender;
+        //    if (args.DeviceLogModel.Logs == null || args?.DeviceLogModel?.Logs?.Length < 1)
+        //    {
+        //        return;
+        //    }
+        //}
 
         private int T = 0;
 
