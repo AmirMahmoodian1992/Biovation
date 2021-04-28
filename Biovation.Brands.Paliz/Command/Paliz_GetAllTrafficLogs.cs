@@ -83,9 +83,10 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.FailLogEvent += FailTrafficLogEventCallBack;
                 _palizServer._serverManager.GetFailLogAsyncTask(TerminalName, request);
 
+                System.Threading.Thread.Sleep(1000);
                 while (!succeedLogsRetrieved || !failedLogsRetrieved)
                 {
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(1000);
                 }
 
                 Logger.Log(GetDescription());
@@ -123,8 +124,10 @@ namespace Biovation.Brands.Paliz.Command
                     DeviceId = onlineDevice.DeviceId,
                     DeviceCode = onlineDevice.Code,
                     EventLog = _logEvents.UnAuthorized,
-                    UserId = log.UserId,
-                    LogDateTime = new DateTime(log.Time),
+                    UserId = -1,
+                    //UserId = log.UserId,
+                    //LogDateTime = new DateTime(log.Time),
+                    DateTimeTicks = Convert.ToUInt32(log.Time / 1000),
                     MatchingType = _palizCodeMappings.GetMatchingTypeGenericLookup(log.TrafficType),
                     //SubEvent = _palizCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                     PicByte = log.Image,
@@ -165,7 +168,8 @@ namespace Biovation.Brands.Paliz.Command
                     DeviceCode = onlineDevice.Code,
                     EventLog = _logEvents.Authorized,
                     UserId = log.UserId,
-                    LogDateTime = new DateTime(log.Time),
+                    DateTimeTicks = Convert.ToUInt32(log.Time / 1000),
+                    //LogDateTime = new DateTime(log.Time),
                     MatchingType = _palizCodeMappings.GetMatchingTypeGenericLookup(log.TrafficType),
                     //SubEvent = _palizCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                     PicByte = log.Image,

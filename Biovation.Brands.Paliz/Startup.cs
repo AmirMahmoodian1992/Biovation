@@ -121,6 +121,10 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton(restClient);
             //add your injection here 
 
+            services.AddSingleton<Biovation.Service.Api.v1.TaskService, Biovation.Service.Api.v1.TaskService>();
+            services.AddSingleton<Biovation.Service.Api.v1.DeviceService, Biovation.Service.Api.v1.DeviceService>();
+            services.AddSingleton<Biovation.Service.Api.v1.AccessGroupService, Biovation.Service.Api.v1.AccessGroupService>();
+
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
             services.AddSingleton<BlackListService, BlackListService>();

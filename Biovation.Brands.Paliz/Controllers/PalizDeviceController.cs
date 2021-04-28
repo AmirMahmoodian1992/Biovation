@@ -587,6 +587,9 @@ namespace Biovation.Brands.Paliz.Controllers
             {
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
                 var creatorUser = HttpContext.GetUser();
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
+                if (device is null)
+                    return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists." } };
 
                 var task = new TaskInfo
                 {
@@ -598,10 +601,11 @@ namespace Biovation.Brands.Paliz.Controllers
                     TaskItems = new List<TaskItem>(),
                     DueDate = DateTime.Today
                 };
+
                 //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
                 //int[] userIds =new[] {Convert.ToInt32(userId)};
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
-                var deviceId = devices.DeviceId;
+
+                var deviceId = device.DeviceId;
                 foreach (var id in userIds)
                 {
                     task.TaskItems.Add(new TaskItem

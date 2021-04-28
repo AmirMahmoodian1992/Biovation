@@ -118,9 +118,9 @@ namespace Biovation.Brands.Paliz.Command
                         throw new NotImplementedException();
                     }
 
-                case CommandType.GetUsersOfDevice:
-                    //Gets users of devices
-                    throw new NotImplementedException();
+                //case CommandType.GetUsersOfDevice:
+                //    //Gets users of devices
+                //    throw new NotImplementedException();
 
                 case CommandType.GetOnlineDevices:
                     //Gets online devices
