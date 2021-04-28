@@ -303,16 +303,16 @@ namespace Biovation.Brands.Paliz
         //    }
         //}
 
-        private int T = 0;
+        //private int T = 0;
 
         private async void Listen(string format, params object[] args)
         {
-            if (T > 0)
-            {
-                return;
-            }
+            //if (T > 0)
+            //{
+            //    return;
+            //}
 
-            T++;
+            //T++;
 
             if (args.Length < 1)
             {
