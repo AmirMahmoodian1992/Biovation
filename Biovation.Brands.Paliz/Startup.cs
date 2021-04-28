@@ -27,6 +27,7 @@ using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api;
 using Biovation.Brands.Paliz.Devices;
 using Biovation.Brands.Paliz.Command;
+using System.Text;
 
 namespace Biovation.Brands.Paliz
 {
@@ -243,6 +244,8 @@ namespace Biovation.Brands.Paliz
 
         public void ConfigurePalizServices(IServiceCollection services)
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<PalizDeviceMappings, PalizDeviceMappings>();
             services.AddSingleton<PalizCodeMappings, PalizCodeMappings>();

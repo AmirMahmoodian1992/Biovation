@@ -53,8 +53,8 @@ namespace Biovation.Brands.Paliz.Command
                 return;
             }
 
-            Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 0;
-            TerminalName = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Name ?? string.Empty;
+            Code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 0;
+            TerminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Name ?? string.Empty;
             OnlineDevices = _palizServer.GetOnlineDevices();
         }
 

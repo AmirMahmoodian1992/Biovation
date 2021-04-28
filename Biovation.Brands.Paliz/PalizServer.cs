@@ -343,12 +343,7 @@ namespace Biovation.Brands.Paliz
 
             //T++;
 
-            if (args.Length < 1)
-            {
-                return;
-            }
-
-            if (args.Length != 3)
+            if (args.Length < 1 || args.Length != 3)
             {
                 return;
             }
@@ -455,7 +450,7 @@ namespace Biovation.Brands.Paliz
             //if (!_onlineDevices.ContainsKey((string)terminalName))
             //    _onlineDevices.Add((string)terminalName, new DeviceBasicInfo());
 
-            await _serverManager.GetLiveTrafficLogAsyncTask(terminalName);
+            //await _serverManager.GetLiveTrafficLogAsyncTask(terminalName);
 
         }
     }
