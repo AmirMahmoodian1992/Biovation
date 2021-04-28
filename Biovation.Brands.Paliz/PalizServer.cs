@@ -16,6 +16,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Brands.Paliz.Command;
 using System.Collections.ObjectModel;
+using Biovation.Brands.Paliz.Manager;
 
 namespace Biovation.Brands.Paliz
 {
@@ -34,7 +35,7 @@ namespace Biovation.Brands.Paliz
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskItemTypes _taskItemTypes;
-
+        private readonly PalizDeviceMappings _palizDeviceMappings;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly PalizCodeMappings _codeMappings;
         private readonly LogEvents _logEvents;
@@ -62,7 +63,7 @@ namespace Biovation.Brands.Paliz
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, TaskItemTypes taskItemTypes
             , FingerTemplateTypes fingerTemplateTypes, PalizCodeMappings codeMappings, DeviceBrands deviceBrands
             , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , TaskStatuses taskStatuses, PalizCodeMappings palizCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities)
+            , TaskStatuses taskStatuses, PalizCodeMappings palizCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, PalizDeviceMappings palizDeviceMappings)
         {
             _onlineDevices = onlineDevices;
             _commonDeviceService = commonDeviceService;
@@ -101,6 +102,7 @@ namespace Biovation.Brands.Paliz
             _serverManager.LiveTrafficLogEvent += OnLiveTrafficLogEvent;
             _serverManager.DeviceInfoEvent += GetDeviceInfoCallback;
             _serverManager.TiaraSettingsEvent += GetTiaraSettingsCallback;
+            _palizDeviceMappings = palizDeviceMappings;
 
             //foreach (var device in _onlineDevices)
             //{
@@ -215,6 +217,8 @@ namespace Biovation.Brands.Paliz
                     _onlineDevices.Add(terminalId, device);
             }
 
+            _palizDeviceMappings.InsertDeviceMapping(terminalName, device);
+
             Logger.Log($"Connected device: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
             Logger.Log($"Retrieving new log: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
 
@@ -286,12 +290,37 @@ namespace Biovation.Brands.Paliz
             return _onlineDevices;
         }
 
-        private void OnLiveTrafficLogEvent(object sender, LiveTrafficEventArgs args)
+        private async void OnLiveTrafficLogEvent(object sender, LiveTrafficEventArgs args)
         {
             if (sender == null || args?.LiveTraffic == null)
             {
                 return;
             }
+            var device = _palizDeviceMappings.GetDeviceBasicInfo(args.LiveTraffic.Device);
+            if(device == null || device.DeviceId == 0)
+            {
+                device = _commonDeviceService.GetDevices(deviceName: args.LiveTraffic.Device)?.Data?.Data.FirstOrDefault();
+                if (device == null)
+                {
+                    return;
+                }
+            }
+            var log = new Log
+            {
+                DeviceId = device.DeviceId,
+                DeviceCode = device.Code,
+                EventLog = args.LiveTraffic.Valid ? _logEvents.Authorized : _logEvents.UnAuthorized,
+                UserId = args.LiveTraffic.Valid ? args.LiveTraffic.UserId : -1,
+                //UserId = log.UserId,
+                //LogDateTime = new DateTime(log.Time),
+                DateTimeTicks = Convert.ToUInt32(args.LiveTraffic.Time / 1000),
+                MatchingType = _palizCodeMappings.GetMatchingTypeGenericLookup(args.LiveTraffic.TrafficType),
+                //SubEvent = _palizCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                PicByte = args.LiveTraffic.Image,
+                InOutMode = device.DeviceTypeId
+            };
+
+            await _logService.AddLog(log);
         }
 
         //private void ServerManagerOnDeviceLogEvent(object sender, DeviceLogEventArgs args)

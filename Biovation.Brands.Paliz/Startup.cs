@@ -244,7 +244,7 @@ namespace Biovation.Brands.Paliz
         public void ConfigurePalizServices(IServiceCollection services)
         {
             services.AddSingleton<TaskManager, TaskManager>();
-
+            services.AddSingleton<PalizDeviceMappings, PalizDeviceMappings>();
             services.AddSingleton<PalizCodeMappings, PalizCodeMappings>();
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
