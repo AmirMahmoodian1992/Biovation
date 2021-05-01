@@ -11,7 +11,6 @@ using Newtonsoft.Json;
 using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api.CallBacks;
-using System.Text;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -27,7 +26,6 @@ namespace Biovation.Brands.Paliz.Command
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
-        private readonly AccessGroupService _accessGroupService;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
@@ -220,9 +218,6 @@ namespace Biovation.Brands.Paliz.Command
 
             var userInfoModel = args.UserInfoModel;
 
-            var isoEncoding = Encoding.GetEncoding(28591);
-            var windowsEncoding = Encoding.GetEncoding(1256);
-
             //var user = new User
             //{
             //    AuthMode = userInfoModel.Locked ? 0 : 1,
@@ -253,10 +248,10 @@ namespace Biovation.Brands.Paliz.Command
                 //SurName = surName,
             };
 
-            var existUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
-            if (existUser != null)
+            var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
+            if (existingUser != null)
             {
-                user.Id = existUser.Id;
+                user.Id = existingUser.Id;
             }
 
             var userInsertionResult = _userService.ModifyUser(user);
