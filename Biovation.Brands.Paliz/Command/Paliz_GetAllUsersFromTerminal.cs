@@ -11,8 +11,6 @@ using Newtonsoft.Json;
 using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api.CallBacks;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -28,7 +26,6 @@ namespace Biovation.Brands.Paliz.Command
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
-        private readonly AccessGroupService _accessGroupService;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
@@ -36,7 +33,7 @@ namespace Biovation.Brands.Paliz.Command
         private int StartId { get; }
         private int EndId { get; }
         private readonly PalizServer _palizServer;
-        private bool _massUserRetrievied;
+        private bool _massUserRetrieved;
         public PalizGetAllUsersFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes)
         {
             TerminalId = Convert.ToInt32(items[0]);
@@ -44,8 +41,12 @@ namespace Biovation.Brands.Paliz.Command
 
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            StartId = (int)data["startId"];
-            StartId = (int)data["endId"];
+            if (data != null)
+            {
+                StartId = (int) data["startId"];
+                StartId = (int) data["endId"];
+            }
+
             _palizServer = palizServer;
             _userService = userService;
             _fingerTemplateTypes = fingerTemplateTypes;
@@ -71,7 +72,7 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.MassUserInfoEvent += GetMassUserInfoEventCallBack;
                 var massUserIdModel = new MassUserIdModel(StartId, EndId);
                 _palizServer._serverManager.GetMassUserInfoTask(TerminalName, massUserIdModel);
-                while (!_massUserRetrievied)
+                while (!_massUserRetrieved)
                 {
                     System.Threading.Thread.Sleep(500);
                 }
@@ -91,22 +92,17 @@ namespace Biovation.Brands.Paliz.Command
             var fingerTemplateList = new List<FingerTemplate>();
             if (getUsersRes != null)
             {
-                var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(getUsersRes.Id))?.Data?.Data
-                    .Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
-                foreach (var fingerprint in fingerprintList)
+                fingerTemplateList.AddRange(fingerprintList.Select(fingerprint => new FingerTemplate
                 {
-                    fingerTemplateList.Add(new FingerTemplate
-                    {
-                        // TODO - Ask this if casting is ok.
-                        Id = (int)fingerprint.Id,
-                        UserId = fingerprint.UserId,
-                        Template = fingerprint.Template,
-                        FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
-                        EnrollQuality = fingerprint.Quality,
-                        FingerTemplateType = _fingerTemplateTypes.V400,
-                        Index = _fingerTemplateService.FingerTemplates(userId: (int)(getUsersRes.Id))?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
-                    });
-                }
+                    // TODO - Ask this if casting is ok.
+                    Id = (int) fingerprint.Id,
+                    UserId = fingerprint.UserId,
+                    Template = fingerprint.Template,
+                    FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
+                    EnrollQuality = fingerprint.Quality,
+                    FingerTemplateType = _fingerTemplateTypes.V400,
+                    Index = _fingerTemplateService.FingerTemplates(userId: (int) (getUsersRes.Id))?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+                }));
             }
             foreach (var fingerprint in fingerprintList)
             {
@@ -214,12 +210,27 @@ namespace Biovation.Brands.Paliz.Command
                 var getUsersRes = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data.FirstOrDefault();
                 var user = new User
                 {
+                    Code = userInfoModel.Id,
+                    AdminLevel = (int)userInfoModel.Level,
+                    StartDate = DateTime.Parse("1970/01/01"),
+                    EndDate = DateTime.Parse("2050/01/01"),
                     AuthMode = userInfoModel.Locked ? 0 : 1,
                     Password = userInfoModel.Password,
                     FullName = userInfoModel.Name,
                     IsActive = userInfoModel.Locked,
-                    ImageBytes = userInfoModel.Image,
+                    ImageBytes = userInfoModel.Image
                 };
+
+                var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
+                if (existingUser != null)
+                {
+                    user.Id = existingUser.Id;
+                }
+
+                var userInsertionResult = _userService.ModifyUser(user);
+                Logger.Log("<--User is Modified");
+
+                user.Id = userInsertionResult.Id;
                 try
                 {
                     Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints.Length}");
@@ -235,7 +246,7 @@ namespace Biovation.Brands.Paliz.Command
             }
             
             _palizServer._serverManager.MassUserInfoEvent -= GetMassUserInfoEventCallBack;
-            _massUserRetrievied = true;
+            _massUserRetrieved = true;
         }
         public void Rollback()
         {
