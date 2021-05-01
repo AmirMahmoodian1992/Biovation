@@ -7,11 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using PalizTiara.Api.Models;
 using PalizTiara.Api.CallBacks;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
-using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz.Command
 {
