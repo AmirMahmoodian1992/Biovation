@@ -105,7 +105,6 @@ namespace Biovation.Brands.Paliz.Command
                     fingerTemplateList.Add(new FingerTemplate
                     {
                         // TODO - Ask this if casting is ok.
-                        Id = (int)fingerprint.Id,
                         UserId = fingerprint.UserId,
                         Template = fingerprint.Template,
                         FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
@@ -120,7 +119,6 @@ namespace Biovation.Brands.Paliz.Command
                 fingerTemplateList.Add(new FingerTemplate
                 {
                     // TODO - Ask this if casting is ok.
-                    Id = (int)fingerprint.Id,
                     UserId = fingerprint.UserId,
                     Template = fingerprint.Template,
                     FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
@@ -231,21 +229,15 @@ namespace Biovation.Brands.Paliz.Command
             {
                 Code = userInfoModel.Id,
                 AdminLevel = (int)userInfoModel.Level,
-                //StartDate = userInfoModel.StartAccessDate == "0000-00-00"
-                //                               ? DateTime.Parse("1970/01/01")
-                //                               : DateTime.Parse(_terminalUserData.StartAccessDate),
-                //EndDate = userInfoModel.EndAccessDate == "0000-00-00"
-                //                               ? DateTime.Parse("2050/01/01")
-                //                               : DateTime.Parse(_terminalUserData.EndAccessDate),
                 StartDate = DateTime.Parse("1970/01/01"),
                 EndDate = DateTime.Parse("2050/01/01"),
                 AuthMode = userInfoModel.Locked ? 0 : 1,
                 Password = userInfoModel.Password,
                 FullName = userInfoModel.Name,
                 IsActive = userInfoModel.Locked,
-                ImageBytes = userInfoModel.Image
-                //UserName = userInfoModel.user,
-                //SurName = surName,
+                ImageBytes = userInfoModel.Image,
+                SurName = userInfoModel.Name.Split(' ').LastOrDefault(),
+                FirstName = userInfoModel.Name.Split(' ').FirstOrDefault(),
             };
 
             var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
