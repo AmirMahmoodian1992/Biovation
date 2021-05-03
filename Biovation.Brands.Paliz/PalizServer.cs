@@ -14,9 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.Paliz.Command;
 using System.Collections.ObjectModel;
-using Biovation.Brands.Paliz.Manager;
 
 namespace Biovation.Brands.Paliz
 {
@@ -51,6 +49,7 @@ namespace Biovation.Brands.Paliz
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
         public static bool GetLogTaskFinished = true;
+        public static bool GetLogInPeriodTaskFinished = true;
         private PalizCodeMappings _palizCodeMappings;
         private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
         private static List<string> _onlineTerminals;

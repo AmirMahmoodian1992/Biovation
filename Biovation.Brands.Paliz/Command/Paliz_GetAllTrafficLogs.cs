@@ -17,68 +17,73 @@ namespace Biovation.Brands.Paliz.Command
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
-        private LogEvents _logEvents;
-        private PalizCodeMappings _palizCodeMappings;
-        private int TaskItemId { get; }
-        private string TerminalName { get; }
-        private int TerminalId { get; }
-        //private int UserId { get; }
-        private uint Code { get; }//this is a test command
-
-        private readonly PalizServer _palizServer;
+        private Dictionary<uint, DeviceBasicInfo> onlineDevices { get; }
+        //private int taskItemId { get; }
+        private string terminalName { get; }
+        private int terminalId { get; }
+        private uint code { get; }
         private DeviceBasicInfo onlineDevice { get; set; }
 
+        private LogEvents _logEvents;
+        private PalizCodeMappings _palizCodeMappings;
+        private readonly PalizServer _palizServer;
         private bool succeedLogsRetrieved;
         private bool failedLogsRetrieved;
+        private int totalOfflineLogs;
+        /// <summary>
+        /// Paliz sdk has a limit of maximum number of 100 logs per page
+        /// </summary>
+        private const int MaxLogCountPerPage = 100;
 
         public PalizGetAllTrafficLogs(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
-            TerminalId = Convert.ToInt32(items[0]);
-            TaskItemId = Convert.ToInt32(items[1]);
+            terminalId = Convert.ToInt32(items[0]);
+            //taskItemId = Convert.ToInt32(items[1]);
 
             _palizCodeMappings = palizCodeMappings;
             _logEvents = logEvents;
             _palizServer = palizServer;
-            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
+            //var taskItem = taskService.GetTaskItem(taskItemId)?.Data ?? new TaskItem();
             //var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             //UserId = (int)data["userId"];
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
             if (devices is null)
             {
-                OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
+                onlineDevices = new Dictionary<uint, DeviceBasicInfo>();
                 return;
             }
 
-            Code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 0;
-            TerminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Name ?? string.Empty;
-            OnlineDevices = _palizServer.GetOnlineDevices();
+            code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == terminalId)?.Code ?? 0;
+            terminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == terminalId)?.Name ?? string.Empty;
+            onlineDevices = _palizServer.GetOnlineDevices();
         }
 
         public object Execute()
         {
-            if (OnlineDevices.All(device => device.Key != Code))
+            if (onlineDevices.All(device => device.Key != code))
             {
-                Logger.Log($"RetriveAllLogsOfDevice,The device: {Code} is not connected.");
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = TerminalId, Message = $"The device: {Code} is not connected.", Validate = 1 };
+                Logger.Log($"RetriveAllLogsOfDevice,The device: {code} is not connected.");
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = terminalId, Message = $"The device: {code} is not connected.", Validate = 1 };
             }
 
-            onlineDevice = OnlineDevices.FirstOrDefault(device => device.Key == Code).Value;
+            onlineDevice = onlineDevices.FirstOrDefault(device => device.Key == code).Value;
 
             try
             {
                 var request = new LogRequestModel
                 {
                     UserId = 0,
-                    Page = 0,
+                    Page = 1,
                     StartDate = 0,
                     EndDate = 0
                 };
 
+                Logger.Log($" +Retrieving logs from device: {code} started successfully.\n");
+
                 _palizServer._serverManager.TrafficLogEvent += TrafficLogEventCallBack;
-                _palizServer._serverManager.GetTrafficLogAsyncTask(TerminalName, request);
+                _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request);
                 _palizServer._serverManager.FailLogEvent += FailTrafficLogEventCallBack;
-                _palizServer._serverManager.GetFailLogAsyncTask(TerminalName, request);
+                _palizServer._serverManager.GetFailLogAsyncTask(terminalName, request);
 
                 System.Threading.Thread.Sleep(1000);
                 while (!succeedLogsRetrieved || !failedLogsRetrieved)
@@ -86,18 +91,21 @@ namespace Biovation.Brands.Paliz.Command
                     System.Threading.Thread.Sleep(1000);
                 }
 
-                Logger.Log(GetDescription());
+                _palizServer._serverManager.TrafficLogEvent -= TrafficLogEventCallBack;
+                _palizServer._serverManager.FailLogEvent -= FailTrafficLogEventCallBack;
 
-                Logger.Log($" +Retrieving logs from device: {Code} started successfully.\n");
+                //Logger.Log(GetDescription());
+                Logger.Log($"{totalOfflineLogs} Offline log retrieved from DeviceId: {code}.");
+
                 PalizServer.GetLogTaskFinished = true;
                 return PalizServer.GetLogTaskFinished
-                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = 0.ToString(), Validate = 1 }
-                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = TerminalId, Message = 0.ToString(), Validate = 1 };
+                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = terminalId, Message = 0.ToString(), Validate = 1 }
+                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = terminalId, Message = 0.ToString(), Validate = 1 };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = "Error in command execute", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = terminalId, Message = "Error in command execute", Validate = 0 };
             }
         }
 
@@ -108,7 +116,7 @@ namespace Biovation.Brands.Paliz.Command
             //    return;
             //}
 
-            if (logs.Result == false)
+            if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
                 return;
             }
@@ -133,25 +141,29 @@ namespace Biovation.Brands.Paliz.Command
             }
 
             await _palizServer._logService.AddLog(logList);
+            totalOfflineLogs += logs.TrafficLogModel.Logs.Length;
 
-            //var request = new LogRequestModel
-            //{
-            //    Page = ++logs.TrafficLogModel.Page,
-            //    UserId = 0,
-            //    StartDate = 0,
-            //    EndDate = 0,
-            //};
+            if (logs.TrafficLogModel.Logs.Length >= MaxLogCountPerPage)
+            {
+                var request = new LogRequestModel
+                {
+                    UserId = 0,
+                    Page = ++logs.TrafficLogModel.Page,
+                    StartDate = 0,
+                    EndDate = 0
+                };
 
-            //await _palizServer._serverManager.GetFailLogAsyncTask(TerminalName, request);
-
-            _palizServer._serverManager.FailLogEvent -= FailTrafficLogEventCallBack;
-
-            failedLogsRetrieved = true;
+                await _palizServer._serverManager.GetFailLogAsyncTask(terminalName, request);
+            }
+            else
+            {
+                failedLogsRetrieved = true;
+            }
         }
 
         private async void TrafficLogEventCallBack(object sender, LogRequestEventArgs logs)
         {
-            if (logs.Result == false)
+            if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
                 return;
             }
@@ -175,20 +187,24 @@ namespace Biovation.Brands.Paliz.Command
             }
 
             await _palizServer._logService.AddLog(logList);
+            totalOfflineLogs += logs.TrafficLogModel.Logs.Length;
 
-            //var request = new LogRequestModel
-            //{
-            //    UserId = 0,
-            //    StartDate = 0,
-            //    EndDate = 0,
-            //    Page = ++logs.TrafficLogModel.Page
-            //};
+            if (logs.TrafficLogModel.Logs.Length >= MaxLogCountPerPage)
+            {
+                var request = new LogRequestModel
+                {
+                    UserId = 0,
+                    Page = ++logs.TrafficLogModel.Page,
+                    StartDate = 0,
+                    EndDate = 0
+                };
 
-            //await _palizServer._serverManager.GetTrafficLogAsyncTask(TerminalName, request);
-
-            _palizServer._serverManager.TrafficLogEvent -= TrafficLogEventCallBack;
-
-            succeedLogsRetrieved = true;
+                await _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request);
+            }
+            else
+            {
+                succeedLogsRetrieved = true;
+            }
         }
 
         public void Rollback()

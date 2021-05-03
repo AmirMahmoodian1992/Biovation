@@ -187,13 +187,11 @@ namespace Biovation.Brands.Paliz.Controllers
                                 IsParallelRestricted = true,
                                 IsScheduled = false,
                                 OrderIndex = 1,
-
                             });
 
                         else
                         {
-                            var palizDevices =
-                                _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                            var palizDevices = _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
                             foreach (var palizDevice in palizDevices)
                             {
                                 task.TaskItems.Add(new TaskItem

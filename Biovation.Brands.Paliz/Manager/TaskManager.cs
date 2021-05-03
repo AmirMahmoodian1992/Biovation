@@ -66,7 +66,7 @@ namespace Biovation.Brands.Paliz.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveLogsOfDeviceInPeriod,
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod,
                                         new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
                                 });
 
