@@ -1,8 +1,6 @@
 ﻿using Biovation.Constants;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Biovation.Service.Api.v2;
 using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
@@ -26,12 +24,14 @@ namespace Biovation.Brands.Paliz.Command
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserService _userService;
+        private readonly UserCardService _userCardService;
 
         public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents
             , LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings
             , DeviceService deviceService, FingerTemplateService fingerTemplateService
             , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
-            , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes)
+            , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes
+            , UserCardService userCardService)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
@@ -46,6 +46,7 @@ namespace Biovation.Brands.Paliz.Command
             _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
             _userService = userService;
+            _userCardService = userCardService;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -76,7 +77,7 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.RetrieveUserFromDevice:
                     //Gets a specific user info from device.
                     {
-                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes);
+                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
                     //Gets a specific user info from device.

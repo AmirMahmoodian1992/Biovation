@@ -26,24 +26,25 @@ namespace Biovation.Brands.Paliz.Command
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly UserCardService _userCardService;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
-        private bool _userRetrievied;
+        private bool _userRetrieved;
         public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
             , DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager
             , FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService
-            , FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes)
+            , FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
 
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (int)data["userId"];
+            if (data != null) UserId = (int) data["userId"];
             _palizServer = palizServer;
             _userService = userService;
             _fingerTemplateTypes = fingerTemplateTypes;
@@ -51,6 +52,7 @@ namespace Biovation.Brands.Paliz.Command
             _fingerTemplateService = fingerTemplateService;
             _faceTemplateService = faceTemplateService;
             _faceTemplateTypes = faceTemplateTypes;
+            _userCardService = userCardService;
 
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
             if (devices is null)
@@ -68,7 +70,7 @@ namespace Biovation.Brands.Paliz.Command
         {
             if (OnlineDevices.All(device => device.Key != Code))
             {
-                Logger.Log($"RetriveUser,The device: {Code} is not connected.");
+                Logger.Log($"RetrieveUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = TerminalId, Message = $"The device: {Code} is not connected.", Validate = 1 };
             }
 
@@ -77,7 +79,7 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.UserInfoEvent += GetUserInfoEventCallBack;
                 var userIdModel = new UserIdModel(UserId);
                 _palizServer._serverManager.GetUserInfoAsyncTask(userIdModel, TerminalName);
-                while (!_userRetrievied)
+                while (!_userRetrieved)
                 {
                     System.Threading.Thread.Sleep(500);
                 }
@@ -88,7 +90,7 @@ namespace Biovation.Brands.Paliz.Command
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = $"Exeption: {exception}", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = $"Exception: {exception}", Validate = 0 };
 
             }
         }
@@ -98,41 +100,38 @@ namespace Biovation.Brands.Paliz.Command
             var fingerTemplateList = new List<FingerTemplate>();
             if (user != null)
             {
+                // TODO - Ask why this is here
                 var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(user.Id))?.Data?.Data
                     .Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
-                foreach (var fingerprint in fingerprintList)
-                {
-                    fingerTemplateList.Add(new FingerTemplate
-                    {
-                        // TODO - Ask this if casting is ok.
-                        UserId = fingerprint.UserId,
-                        Template = fingerprint.Template,
-                        FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
-                        EnrollQuality = fingerprint.Quality,
-                        FingerTemplateType = _fingerTemplateTypes.V400,
-                        Index = _fingerTemplateService.FingerTemplates(userId: (int)(user.Id))?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
-                    });
-                }
-            }
-            foreach (var fingerprint in fingerprintList)
-            {
-                fingerTemplateList.Add(new FingerTemplate
+
+                fingerTemplateList.AddRange(fingerprintList.Select(fingerprint => new FingerTemplate
                 {
                     // TODO - Ask this if casting is ok.
-                    UserId = fingerprint.UserId,
+                    UserId = user.Id,
                     Template = fingerprint.Template,
                     FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
                     EnrollQuality = fingerprint.Quality,
                     FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = fingerprint.Index
-                });
+                    Index = _fingerTemplateService.FingerTemplates(userId: (int) (user.Id))?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+                }));
             }
-            if (fingerTemplateList.Any())
+
+            fingerTemplateList.AddRange(fingerprintList.Select(fingerprint => new FingerTemplate
             {
-                foreach (var fingerTemplate in fingerTemplateList)
-                {
-                    _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
-                }
+                // TODO - Ask this if casting is ok.
+                UserId = fingerprint.UserId,
+                Template = fingerprint.Template,
+                FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
+                EnrollQuality = fingerprint.Quality,
+                FingerTemplateType = _fingerTemplateTypes.V400,
+                Index = fingerprint.Index
+            }));
+
+            if (!fingerTemplateList.Any()) return;
+
+            foreach (var fingerTemplate in fingerTemplateList)
+            {
+                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
             }
         }
 
@@ -179,28 +178,27 @@ namespace Biovation.Brands.Paliz.Command
             }
         }
 
-        // TODO - If ever needed, use this method to get cards info.
-        //private void ModifyUserCards(UserInfoModel userInfoModel)
-        //{
-        //    try
-        //    {
-        //        foreach (var card in userInfoModel.Cards)
-        //        {
-        //            var userCard = new UserCard
-        //            {
-        //                CardNum = card.ToString(),
-        //                IsActive = true,
-        //                UserId = userInfoModel.Id
-        //            };
+        private void ModifyUserCards(UserInfoModel userInfoModel, long userId)
+        {
+            try
+            {
+                foreach (var card in userInfoModel.Cards)
+                {
+                    var userCard = new UserCard
+                    {
+                        CardNum = card.ToString(),
+                        IsActive = true,
+                        UserId = userId
+                    };
 
-        //            _userCardService.ModifyUserCard(card);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Logger.Log(e);
-        //    }
-        //}
+                    _userCardService.ModifyUserCard(userCard);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Log(e);
+            }
+        }
 
         private void GetUserInfoEventCallBack(object sender, UserInfoEventArgs args)
         {
@@ -253,6 +251,8 @@ namespace Biovation.Brands.Paliz.Command
 
             try
             {
+                Logger.Log($"   +TotalCardCount:{userInfoModel.Cards.Length}");
+                ModifyUserCards(userInfoModel, user.Id);
                 Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints.Length}");
                 ModifyFingerTemplates(userInfoModel.Fingerprints, user);
 
@@ -264,7 +264,7 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(ex);
             }
             _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
-            _userRetrievied = true;
+            _userRetrieved = true;
         }
         public void Rollback()
         {
