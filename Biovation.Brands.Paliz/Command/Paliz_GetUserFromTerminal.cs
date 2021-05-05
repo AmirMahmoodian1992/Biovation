@@ -33,7 +33,7 @@ namespace Biovation.Brands.Paliz.Command
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
-        private bool _userRetrieved;
+        //private bool _userRetrieved;
         public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
             , DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager
             , FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService
@@ -41,7 +41,6 @@ namespace Biovation.Brands.Paliz.Command
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null) UserId = (int) data["userId"];
@@ -79,10 +78,7 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.UserInfoEvent += GetUserInfoEventCallBack;
                 var userIdModel = new UserIdModel(UserId);
                 _palizServer._serverManager.GetUserInfoAsyncTask(userIdModel, TerminalName);
-                while (!_userRetrieved)
-                {
-                    System.Threading.Thread.Sleep(500);
-                }
+                System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n", Validate = 1 };
 
@@ -182,6 +178,10 @@ namespace Biovation.Brands.Paliz.Command
         {
             try
             {
+                if(userInfoModel?.Cards == null)
+                {
+                    return;
+                }
                 foreach (var card in userInfoModel.Cards)
                 {
                     var userCard = new UserCard
@@ -214,15 +214,6 @@ namespace Biovation.Brands.Paliz.Command
 
             var userInfoModel = args.UserInfoModel;
 
-            //var user = new User
-            //{
-            //    AuthMode = userInfoModel.Locked ? 0 : 1,
-            //    Password = userInfoModel.Password,
-            //    FullName = userInfoModel.Name,
-            //    IsActive = userInfoModel.Locked,
-            //    ImageBytes = userInfoModel.Image,
-            //};
-
             var user = new User
             {
                 Code = userInfoModel.Id,
@@ -251,20 +242,28 @@ namespace Biovation.Brands.Paliz.Command
 
             try
             {
-                Logger.Log($"   +TotalCardCount:{userInfoModel.Cards.Length}");
+                Logger.Log($"   +TotalCardCount:{userInfoModel?.Cards?.Length ?? 0}");
                 ModifyUserCards(userInfoModel, user.Id);
-                Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints.Length}");
-                ModifyFingerTemplates(userInfoModel.Fingerprints, user);
-
-                Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces.Length}");
-                ModifyFaceTemplates(userInfoModel, user);
+               
+               
+                Logger.Log($"   +TotalFingerCount:{userInfoModel?.Fingerprints?.Length ?? 0}");
+                if(userInfoModel?.Fingerprints != null)
+                {
+                    ModifyFingerTemplates(userInfoModel.Fingerprints, user);
+                }
+                
+                Logger.Log($"   +TotalFaceCount:{userInfoModel?.Faces?.Length ?? 0}");
+                if(userInfoModel?.Faces != null)
+                {
+                    ModifyFaceTemplates(userInfoModel, user);
+                }
             }
             catch (Exception ex)
             {
                 Logger.Log(ex);
             }
             _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
-            _userRetrieved = true;
+            //_userRetrieved = true;
         }
         public void Rollback()
         {

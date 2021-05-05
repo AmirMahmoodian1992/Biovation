@@ -123,7 +123,6 @@ namespace Biovation.Brands.Paliz
 
             var terminalName = tiaraSettings.ServerSetting.TerminalName;
             var terminalId = Convert.ToUInt32(tiaraSettings.ServerSetting.TerminalId);
-
             var existedDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.PalizCode).Data?.Data?.FirstOrDefault() ?? new DeviceBasicInfo();
 
             Task.Run(async () =>
