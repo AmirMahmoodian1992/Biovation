@@ -33,7 +33,6 @@ namespace Biovation.Brands.Paliz.Command
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
-        //private bool _userRetrieved;
         public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
             , DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager
             , FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService
@@ -91,8 +90,13 @@ namespace Biovation.Brands.Paliz.Command
             }
         }
 
-        private void ModifyFingerTemplates(FingerprintModel[] fingerprintList, User user)
+        private void ModifyFingerTemplates(UserInfoModel userInfoModel, User user)
         {
+            if (userInfoModel?.Fingerprints == null)
+            {
+                return;
+            }
+            var fingerprints = userInfoModel.Fingerprints;
             var fingerTemplateList = new List<FingerTemplate>();
             if (user != null)
             {
@@ -100,7 +104,7 @@ namespace Biovation.Brands.Paliz.Command
                 var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(user.Id))?.Data?.Data
                     .Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
 
-                fingerTemplateList.AddRange(fingerprintList.Select(fingerprint => new FingerTemplate
+                fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
                 {
                     // TODO - Ask this if casting is ok.
                     UserId = user.Id,
@@ -112,7 +116,7 @@ namespace Biovation.Brands.Paliz.Command
                 }));
             }
 
-            fingerTemplateList.AddRange(fingerprintList.Select(fingerprint => new FingerTemplate
+            fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
             {
                 // TODO - Ask this if casting is ok.
                 UserId = fingerprint.UserId,
@@ -133,6 +137,10 @@ namespace Biovation.Brands.Paliz.Command
 
         private void ModifyFaceTemplates(UserInfoModel userInfoModel, User user)
         {
+            if (userInfoModel?.Faces == null)
+            {
+                return;
+            }
             var faceTemplateList = new List<FaceTemplate>();
             var userFaces = _faceTemplateService.FaceTemplates(userId: userInfoModel.Id);
             if (user != null)
@@ -213,7 +221,6 @@ namespace Biovation.Brands.Paliz.Command
             }
 
             var userInfoModel = args.UserInfoModel;
-
             var user = new User
             {
                 Code = userInfoModel.Id,
@@ -226,7 +233,7 @@ namespace Biovation.Brands.Paliz.Command
                 IsActive = userInfoModel.Locked,
                 ImageBytes = userInfoModel.Image,
                 SurName = userInfoModel.Name.Split(' ').LastOrDefault(),
-                FirstName = userInfoModel.Name.Split(' ').FirstOrDefault(),
+                FirstName = userInfoModel.Name.Split(' ').FirstOrDefault()
             };
 
             var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
@@ -247,16 +254,10 @@ namespace Biovation.Brands.Paliz.Command
                
                
                 Logger.Log($"   +TotalFingerCount:{userInfoModel?.Fingerprints?.Length ?? 0}");
-                if(userInfoModel?.Fingerprints != null)
-                {
-                    ModifyFingerTemplates(userInfoModel.Fingerprints, user);
-                }
+                ModifyFingerTemplates(userInfoModel, user);
                 
                 Logger.Log($"   +TotalFaceCount:{userInfoModel?.Faces?.Length ?? 0}");
-                if(userInfoModel?.Faces != null)
-                {
-                    ModifyFaceTemplates(userInfoModel, user);
-                }
+                ModifyFaceTemplates(userInfoModel, user);
             }
             catch (Exception ex)
             {
