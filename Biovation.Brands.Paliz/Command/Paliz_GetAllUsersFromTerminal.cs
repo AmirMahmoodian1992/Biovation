@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PalizTiara.Api.Models;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
 using PalizTiara.Api.CallBacks;
@@ -31,24 +29,13 @@ namespace Biovation.Brands.Paliz.Command
         private string TerminalName { get; }
         private int TerminalId { get; }
         private uint Code { get; }
-        private int StartId { get; }
-        private int EndId { get; }
         private readonly PalizServer _palizServer;
-        private bool _massUserRetrieved;
         public PalizGetAllUsersFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService,
             UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService,
             FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-
-            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
-            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            if (data != null)
-            {
-                StartId = (int) data["startId"];
-                StartId = (int) data["endId"];
-            }
 
             _palizServer = palizServer;
             _userService = userService;
@@ -60,6 +47,7 @@ namespace Biovation.Brands.Paliz.Command
             _userCardService = userCardService;
 
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            TerminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Name ?? string.Empty;
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
         }
@@ -74,12 +62,11 @@ namespace Biovation.Brands.Paliz.Command
             try
             {
                 _palizServer._serverManager.MassUserInfoEvent += GetMassUserInfoEventCallBack;
-                var massUserIdModel = new MassUserIdModel(StartId, EndId);
+                var massUserIdModel = new MassUserIdModel(1, long.MaxValue);
                 _palizServer._serverManager.GetMassUserInfoTask(TerminalName, massUserIdModel);
                 System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +User {StartId} successfully retrieved from device: {Code}.\n", Validate = 1 };
-
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +Users list successfully retrieved from device: {Code}.\n", Validate = 1 };
             }
             catch (Exception exception)
             {
@@ -263,7 +250,6 @@ namespace Biovation.Brands.Paliz.Command
             }
             
             _palizServer._serverManager.MassUserInfoEvent -= GetMassUserInfoEventCallBack;
-            _massUserRetrieved = true;
         }
         public void Rollback()
         {
