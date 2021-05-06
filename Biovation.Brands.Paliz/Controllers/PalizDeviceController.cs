@@ -1,4 +1,5 @@
 ﻿//using Biovation.Brands.Paliz.Command;
+using Biovation.Brands.Paliz.Command;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.CommonClasses.Manager;
@@ -33,16 +34,17 @@ namespace Biovation.Brands.Paliz.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
+        private readonly CommandFactory _commandFactory;
 
         public PalizDeviceController(TaskService taskService, DeviceService deviceService,
             AccessGroupService accessGroupService, DeviceBrands deviceBrands,
             TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
-            BiovationConfigurationManager configurationManager)
+            BiovationConfigurationManager configurationManager, CommandFactory commandFactory)
         {
             //_palizServer = palizServer;
             _taskService = taskService;
             _deviceService = deviceService;
-            //_commandFactory = commandFactory;
+            _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
             _taskTypes = taskTypes;
             _taskItemTypes = taskItemTypes;
@@ -696,11 +698,16 @@ namespace Biovation.Brands.Paliz.Controllers
                         CurrentIndex = 0
                     });
 
-                    //var result = (ResultViewModel<List<User>>) _commandFactory.Factory(
-                    //        CommandType.RetrieveUsersListFromDevice,
-                    //        new List<object>
-                    //            {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
-                    //    .Execute();
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
+
+                    //return new List<ResultViewModel>
+                    //{new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
+                    var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
+                            CommandType.RetrieveUsersListFromDevice,
+                            new List<object>
+                                {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
+                        .Execute();
 
                     return new ResultViewModel<List<User>> { Validate = 1 }; 
                 }
