@@ -27,6 +27,7 @@ namespace Biovation.Brands.Paliz.Command
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserCardService _userCardService;
+        private UserInfoEventArgs _getUserResult;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
@@ -77,10 +78,35 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.UserInfoEvent += GetUserInfoEventCallBack;
                 var userIdModel = new UserIdModel(UserId);
                 _palizServer._serverManager.GetUserInfoAsyncTask(userIdModel, TerminalName);
-                System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n", Validate = 1 };
 
+                // Wait for the task to return its execution result in the callback method.
+                System.Threading.Thread.Sleep(1000);
+                while (_getUserResult == null)
+                {
+                    System.Threading.Thread.Sleep(1000);
+                }
+
+                _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
+                if (_getUserResult.Result)
+                {
+                    Logger.Log($"  +User {UserId} successfully retrieved from device: {Code}.\n");
+                    return new ResultViewModel
+                    {
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                        Id = TerminalId,
+                        Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n",
+                        Validate = 1
+                    };
+                }
+                Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}.\n");
+                return new ResultViewModel
+                {
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                    Id = TerminalId,
+                    Message = $"  +Cannot retrieve user {Code} from device: {Code}.\n",
+                    Validate = 0
+                };
             }
             catch (Exception exception)
             {
@@ -209,8 +235,8 @@ namespace Biovation.Brands.Paliz.Command
             //{
             //    return;
             //}
-
-            if (args.Result == false)
+            _getUserResult = args;
+            if (_getUserResult.Result == false)
             {
                 return;
             }
@@ -258,8 +284,6 @@ namespace Biovation.Brands.Paliz.Command
             {
                 Logger.Log(ex);
             }
-            _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
-            //_userRetrieved = true;
         }
         public void Rollback()
         {
