@@ -15,9 +15,6 @@ namespace Biovation.Brands.Paliz.Command
         private readonly LogEvents _logEvents;
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-        private readonly LogService _logService;
-        private readonly LogSubEvents _logSubEvents;
-        private readonly MatchingTypes _matchingTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
@@ -26,8 +23,8 @@ namespace Biovation.Brands.Paliz.Command
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;
 
-        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents
-            , LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings
+        public CommandFactory(PalizServer palizServer, LogEvents logEvents
+            , TaskService taskService, PalizCodeMappings palizCodeMappings
             , DeviceService deviceService, FingerTemplateService fingerTemplateService
             , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
             , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes
@@ -35,9 +32,7 @@ namespace Biovation.Brands.Paliz.Command
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
-            _logService = logService;
             _logEvents = logEvents;
-            _logSubEvents = logSubEvents;
             _taskService = taskService;
             _deviceService = deviceService;
             _fingerTemplateService = fingerTemplateService;
