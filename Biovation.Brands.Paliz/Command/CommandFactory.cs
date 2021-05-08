@@ -66,29 +66,29 @@ namespace Biovation.Brands.Paliz.Command
             switch (transferModelData.EventId)
             {
                 case CommandType.GetAllLogsOfDevice:
-                    //Gets all the device access(traffic) logs.
+                    // Gets all the device access(traffic) logs.
                     {
                         return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.GetLogsOfDeviceInPeriod:
-                    //Gets all the device access(traffic) logs in a period of time.
+                    // Gets all the device access(traffic) logs in a period of time.
                     {
                         return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.RetrieveUserFromDevice:
-                    //Gets a specific user info from device.
+                    // Gets a specific user info from device.
                     {
                         return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager,
                             _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
-                    //Gets a specific user info from device.
+                    // Gets a specific user info from device.
                     {
                         return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
                             _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
                 case CommandType.DeleteUserFromTerminal:
-                    //Deletes the user with a specified ID.
+                    // Deletes the user with a specified ID.
                 {
                     return new PalizDeleteUserFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
                         _matchingTypes);
