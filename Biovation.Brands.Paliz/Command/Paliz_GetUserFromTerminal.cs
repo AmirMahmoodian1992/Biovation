@@ -100,10 +100,6 @@ namespace Biovation.Brands.Paliz.Command
             var fingerTemplateList = new List<FingerTemplate>();
             if (user != null)
             {
-                // TODO - Ask why this is here
-                var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(user.Id))?.Data?.Data
-                    .Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
-
                 fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
                 {
                     // TODO - Ask this if casting is ok.
@@ -249,14 +245,14 @@ namespace Biovation.Brands.Paliz.Command
 
             try
             {
-                Logger.Log($"   +TotalCardCount:{userInfoModel?.Cards?.Length ?? 0}");
+                Logger.Log($"   +TotalCardCount:{userInfoModel.Cards?.Length ?? 0}");
                 ModifyUserCards(userInfoModel, user.Id);
                
                
-                Logger.Log($"   +TotalFingerCount:{userInfoModel?.Fingerprints?.Length ?? 0}");
+                Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints?.Length ?? 0}");
                 ModifyFingerTemplates(userInfoModel, user);
                 
-                Logger.Log($"   +TotalFaceCount:{userInfoModel?.Faces?.Length ?? 0}");
+                Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces?.Length ?? 0}");
                 ModifyFaceTemplates(userInfoModel, user);
             }
             catch (Exception ex)
