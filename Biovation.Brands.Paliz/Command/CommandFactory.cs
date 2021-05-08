@@ -22,13 +22,16 @@ namespace Biovation.Brands.Paliz.Command
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;
+        private readonly LogService _logService;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
 
         public CommandFactory(PalizServer palizServer, LogEvents logEvents
             , TaskService taskService, PalizCodeMappings palizCodeMappings
             , DeviceService deviceService, FingerTemplateService fingerTemplateService
             , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
             , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes
-            , UserCardService userCardService)
+            , UserCardService userCardService, LogService logService, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
@@ -42,6 +45,9 @@ namespace Biovation.Brands.Paliz.Command
             _faceTemplateTypes = faceTemplateTypes;
             _userService = userService;
             _userCardService = userCardService;
+            _logService = logService;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -81,6 +87,12 @@ namespace Biovation.Brands.Paliz.Command
                         return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
                             _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
+                case CommandType.DeleteUserFromTerminal:
+                    //Deletes the user with a specified ID.
+                {
+                    return new PalizDeleteUserFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
+                        _matchingTypes);
+                }
                 case CommandType.GetUsersOfDevice:
                     //Gets users of devices
                     throw new NotImplementedException();

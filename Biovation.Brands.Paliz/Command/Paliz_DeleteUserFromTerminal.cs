@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Biovation.CommonClasses.Interface;
 using PalizTiara.Api.CallBacks;
-using LogService = Biovation.Service.Api.v1.LogService;
+using LogService = Biovation.Service.Api.v2.LogService;
 
 namespace Biovation.Brands.Paliz.Command
 {
