@@ -114,7 +114,6 @@ namespace Biovation.Brands.Paliz.Command
 
             fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
             {
-                // TODO - Ask this if casting is ok.
                 UserId = fingerprint.UserId,
                 Template = fingerprint.Template,
                 FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
