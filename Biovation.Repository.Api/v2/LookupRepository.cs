@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Threading.Tasks;
+using Biovation.Domain;
 using RestSharp;
 
 namespace Biovation.Repository.Api.v2
@@ -11,7 +12,7 @@ namespace Biovation.Repository.Api.v2
             _restClient = restClient;
         }
 
-        public ResultViewModel<PagingResult<Lookup>> GetLookups(string code = default, string name = default,
+        public async Task<ResultViewModel<PagingResult<Lookup>>> GetLookups(string code = default, string name = default,
             int lookupCategoryId = default, string codePrefix = default, int pageNumber = default,
             int pageSize = default)
         {
@@ -22,8 +23,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("codePrefix", codePrefix ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
+            return requestResult.Data;
         }
     }
 }
