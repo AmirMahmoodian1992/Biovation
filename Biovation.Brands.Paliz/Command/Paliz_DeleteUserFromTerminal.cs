@@ -39,7 +39,7 @@ namespace Biovation.Brands.Paliz.Command
             TaskItemId = Convert.ToInt32(items[1]);
             var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            if (data != null) UserId = (int)data["userId"];
+            if (data != null) UserId = (int)data["userCode"];
             _palizServer = palizServer;
             _logService = logService;
             _logEvents = logEvents;
