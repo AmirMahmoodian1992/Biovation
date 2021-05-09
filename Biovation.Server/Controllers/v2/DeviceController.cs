@@ -63,10 +63,10 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Authorize]
         public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(int groupId = default, uint code = default,
-            int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
+            int brandId = default, string name = null, int modelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default)
         {
             return await _deviceService.GetDevices(groupId, code, brandId.ToString(), name,
-                modelId, typeId, pageNumber, pageSize, HttpContext.Items["Token"].ToString());
+                modelId, deviceIoTypeId, pageNumber, pageSize, HttpContext.Items["Token"].ToString());
         }
 
         [HttpPut]
