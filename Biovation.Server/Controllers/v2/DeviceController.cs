@@ -172,22 +172,22 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("RetrieveLogs")]
-        public async Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<List<ResultViewModel>> ReadOfflineLog(string ids, DateTime? fromDate = null, DateTime? toDate = null)
         {
             try
             {
                 var token = HttpContext.Items["Token"] as string;
-                var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
+                var deviceIds = JsonConvert.DeserializeObject<int[]>(ids);
 
                 var result = new List<ResultViewModel>();
-                for (var i = 0; i < deviceId.Length; i++)
+                for (var i = 0; i < deviceIds.Length; i++)
                 {
-                    var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
+                    var device = (await _deviceService.GetDevice(deviceIds[i], token)).Data;
                     if (device == null)
                     {
-                        Logger.Log($"DeviceId {deviceId[i]} does not exist.");
+                        Logger.Log($"DeviceId {deviceIds[i]} does not exist.");
                         result.Add(new ResultViewModel
-                        { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
+                        { Validate = 0, Message = $"DeviceId {deviceIds[i]} does not exist.", Id = ids[i] });
                         continue;
                     }
 
@@ -278,21 +278,21 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("ClearLogsOfDevices")]
-        public async Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<List<ResultViewModel>> ClearLogOfDevice(string ids, DateTime? fromDate = null, DateTime? toDate = null)
         {
             try
             {
                 var token = HttpContext.Items["Token"] as string;
-                var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
+                var deviceIds = JsonConvert.DeserializeObject<int[]>(ids);
                 var result = new List<ResultViewModel>();
-                for (var i = 0; i < deviceId.Length; i++)
+                for (var i = 0; i < deviceIds.Length; i++)
                 {
-                    var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
+                    var device = (await _deviceService.GetDevice(deviceIds[i], token)).Data;
                     if (device == null)
                     {
-                        Logger.Log($"DeviceId {deviceId[i]} does not exist.");
+                        Logger.Log($"DeviceId {deviceIds[i]} does not exist.");
                         result.Add(new ResultViewModel
-                        { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
+                        { Validate = 0, Message = $"DeviceId {deviceIds[i]} does not exist.", Id = ids[i] });
                         continue;
                     }
 
@@ -304,7 +304,7 @@ namespace Biovation.Server.Controllers.v2
                     var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
-                    restResult.Data.Id = deviceId[i];
+                    restResult.Data.Id = deviceIds[i];
                     result.Add(restResult.Data);
                 }
 
