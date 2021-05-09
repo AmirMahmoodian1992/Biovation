@@ -25,9 +25,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{userId}")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId([FromRoute] int userId = default, int pageNumber = default, int pageSize = default)
+        public async Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId([FromRoute] int userId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceService.GetAdminDeviceGroupsByUserId(userId, pageNumber, pageSize));
+            return await _adminDeviceService.GetAdminDeviceGroupsByUserId(userId, pageNumber, pageSize);
         }
 
         [HttpPost]
@@ -37,11 +37,10 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
+        public async Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
         {
-            var token = HttpContext.Items["Token"] as string;
             var adminDeviceSerializedData = JsonConvert.DeserializeObject<JObject>(JsonSerializer.Serialize(adminDevice));
-            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, token));
+            return await _adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, HttpContext.Items["Token"] as string);
         }
     }
 }

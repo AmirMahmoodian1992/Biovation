@@ -102,7 +102,7 @@ namespace Biovation.Brands.Eos.Commands
             try
             {
                 var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.Code).Value;
-                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Code)?.Data?.Data;
+                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Code).Result?.Data?.Data;
                 user.IsAdmin = adminDevices?.Any(x => x.DeviceId == device.DeviceId) ?? false;
                 var result = onlineDevice.TransferUser(user);
 
