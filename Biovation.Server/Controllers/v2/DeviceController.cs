@@ -92,10 +92,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
+        public async Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.AddDevice(device, token));
+            return await _deviceService.AddDevice(device, HttpContext.Items["Token"].ToString());
         }
 
         [HttpDelete]

@@ -59,9 +59,9 @@ namespace Biovation.Service.Api.v2
             return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)
+        public async Task<ResultViewModel> AddDevice(DeviceBasicInfo device = default, string token = default)
         {
-            return _deviceRepository.AddDevice(device, token);
+            return await _deviceRepository.AddDevice(device, token);
         }
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default, string token = default)

@@ -107,14 +107,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel AddDevice(DeviceBasicInfo device, string token = default)
+        public async Task<ResultViewModel> AddDevice(DeviceBasicInfo device, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/Device", Method.POST);
             restRequest.AddJsonBody(device);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel, string token = default)

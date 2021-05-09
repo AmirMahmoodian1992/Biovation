@@ -61,7 +61,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)
         {
-            return _deviceRepository.AddDevice(device, token);
+            return _deviceRepository.AddDevice(device, token).Result;
         }
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default, string token = default)
@@ -81,7 +81,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel ModifyDevice(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.ModifyDevice(device, token);
+            return _deviceRepository.ModifyDevice(device, token).Result;
         }
 
         public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
