@@ -43,45 +43,45 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup, string token = default)
+        public async Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/DeviceGroup", Method.PUT);
             restRequest.AddJsonBody(deviceGroup);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             
-            return requestResult.Result.Data;
+            return requestResult.Data;
         }
 
-        public ResultViewModel ModifyDeviceGroupMember(string node, int groupId, string token = default)
+        public async Task<ResultViewModel> ModifyDeviceGroupMember(string node, int groupId, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/DeviceGroup/ModifyDeviceGroupMember", Method.PUT);
             restRequest.AddQueryParameter("node", node);
             restRequest.AddQueryParameter("groupId", groupId.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-            return requestResult.Result.Data;
+            return requestResult.Data;
         }
 
-        public ResultViewModel DeleteDeviceGroup(int id, string token = default)
+        public async Task<ResultViewModel> DeleteDeviceGroup(int id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/DeviceGroup/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-            return requestResult.Result.Data;
+            return requestResult.Data;
         }
-        public ResultViewModel DeleteDeviceGroupMember(uint id, string token = default)
+        public async Task<ResultViewModel> DeleteDeviceGroupMember(uint id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/DeviceGroup/DeleteDeviceGroupMember/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("TemplateCount")]
         public async Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
-            return await _fingerTemplateService.GetTemplateCount(HttpContext.Items["Token"] as string));
+            return await _fingerTemplateService.GetTemplateCount(HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]

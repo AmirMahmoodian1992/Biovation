@@ -25,24 +25,24 @@ namespace Biovation.Service.Api.v2
             return await _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup =default, string token = default)
+        public async Task<ResultViewModel> ModifyDeviceGroup(DeviceGroup deviceGroup =default, string token = default)
         {
-            return _deviceGroupRepository.ModifyDeviceGroup(deviceGroup, token);
+            return await _deviceGroupRepository.ModifyDeviceGroup(deviceGroup, token);
         }
 
-        public ResultViewModel ModifyDeviceGroupMember(string node = default, int groupId =default, string token = default)
+        public async Task<ResultViewModel> ModifyDeviceGroupMember(string node = default, int groupId =default, string token = default)
         {
-            return _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId, token);
+            return await _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId, token);
         }
 
-        public ResultViewModel DeleteDeviceGroup(int id =default, string token = default)
+        public async Task<ResultViewModel> DeleteDeviceGroup(int id =default, string token = default)
         {
-            return _deviceGroupRepository.DeleteDeviceGroup(id,token);
+            return await _deviceGroupRepository.DeleteDeviceGroup(id,token);
         }
 
-        public ResultViewModel DeleteDeviceGroupMember(uint id = default, string token = default)
+        public async Task<ResultViewModel> DeleteDeviceGroupMember(uint id = default, string token = default)
         {
-            return _deviceGroupRepository.DeleteDeviceGroupMember(id,token);
+            return await _deviceGroupRepository.DeleteDeviceGroupMember(id,token);
         }
 
 
