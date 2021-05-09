@@ -39,7 +39,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel ModifyUser(User user = default, string token = default)
         {
-            return _userRepository.ModifyUser(user, token);
+            return _userRepository.ModifyUser(user, token).Result;
         }
 
         public ResultViewModel DeleteUser(long id = default, string token = default)
