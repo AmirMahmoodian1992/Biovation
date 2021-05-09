@@ -13,10 +13,10 @@ namespace Biovation.Service.Api.v2
             _userCardRepository = userCardRepository;
         }
 
-        public ResultViewModel<PagingResult<UserCard>> GetCardsByFilter(long userId = default, bool isActive = default,
+        public async Task<ResultViewModel<PagingResult<UserCard>>> GetCardsByFilter(long userId = default, bool isActive = default,
             int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize, token);
+            return await _userCardRepository.GetCardsByFilter(userId, isActive, pageNumber, pageSize, token);
         }
 
         public ResultViewModel<User> FindUserByCardNumber(string cardNumber = default, string token = default)
@@ -29,9 +29,9 @@ namespace Biovation.Service.Api.v2
             return _userCardRepository.ModifyUserCard(card, token);
         }
 
-        public ResultViewModel DeleteUserCard(int id = default, string token = default)
+        public async Task<ResultViewModel> DeleteUserCard(int id = default, string token = default)
         {
-            return _userCardRepository.DeleteUserCard(id, token);
+            return await _userCardRepository.DeleteUserCard(id, token);
         }
 
         public async Task<ResultViewModel<int>> ReadCardNumber(int deviceId = default, string token = default)

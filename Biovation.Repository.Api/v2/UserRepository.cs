@@ -111,7 +111,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1, string token = default)
+        public async Task<ResultViewModel> DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/UserGroupOfUser", Method.DELETE);
             token ??= _biovationConfigurationManager.DefaultToken;
@@ -119,19 +119,19 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             restRequest.AddQueryParameter("userTypeId", userTypeId.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel ModifyPassword(int id = default, string password = default, string token = default)
+        public async Task<ResultViewModel> ModifyPassword(int id = default, string password = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/Password/{id}", Method.PATCH);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("password", password ?? string.Empty);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
     }
 }

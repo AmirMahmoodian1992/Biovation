@@ -223,11 +223,10 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}/Card")]
-        public Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard([FromRoute] long id, bool isActive,
+        public async Task<ResultViewModel<PagingResult<UserCard>>> GetUserCard([FromRoute] long id, bool isActive,
             int pageNumber = default, int pageSize = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userCardService.GetCardsByFilter(id, isActive, pageNumber, pageSize, token));
+            return await _userCardService.GetCardsByFilter(id, isActive, pageNumber, pageSize, HttpContext.Items["Token"] as string);
         }
 
         ////batch delete
@@ -241,10 +240,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPatch]
         [Route("{id}/Password")]
-        public Task<ResultViewModel> ModifyPassword([FromRoute] int id = default, string password = default)
+        public async Task<ResultViewModel> ModifyPassword([FromRoute] int id = default, string password = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userService.ModifyPassword(id, password, token));
+            return await _userService.ModifyPassword(id, password, HttpContext.Items["Token"] as string);
         }
 
         ///// <param name="updateUsers">لیست افرادی که تغییر کرده و در گروه بایویی هم حضور دارند و باید به دستگاههای جدید ارسال شوند</param>
@@ -753,7 +751,7 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/UserFromDevice/{userId}", Method.DELETE);
+            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/UserFromDevice/{deviceId}", Method.DELETE);
             restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddUrlSegment("deviceId", id);
             restRequest.AddHeader("Authorization", token!);
@@ -793,7 +791,7 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> SendUserToDevice([FromRoute] int id = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/UserToDevice/{id}", Method.POST);
+            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/SendUser", Method.POST);
             restRequest.AddUrlSegment("id", id);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
