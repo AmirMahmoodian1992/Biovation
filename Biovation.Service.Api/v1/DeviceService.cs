@@ -39,17 +39,17 @@ namespace Biovation.Service.Api.v1
         public List<DeviceModel> GetDeviceModels(long id = default, string brandId = default,
             string deviceName = null, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDeviceModels(id, brandId, deviceName, pageNumber, pageSize)?.Data?.Data ?? new List<DeviceModel>();
+            return _deviceRepository.GetDeviceModels(id, brandId, deviceName, pageNumber, pageSize).Result?.Data?.Data ?? new List<DeviceModel>();
         }
 
         public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode, string token = default)
         {
-            return _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode);
+            return _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode).Result;
         }
 
         public ResultViewModel<DateTime> GetLastConnectedTime(int id, string token = default)
         {
-            return _deviceRepository.GetLastConnectedTime((uint)id);
+            return _deviceRepository.GetLastConnectedTime((uint)id).Result;
         }
 
         public List<Lookup> GetDeviceBrands(int code = default, string name = default,
@@ -66,7 +66,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default, string token = default)
         {
-            return _deviceRepository.AddDeviceModel(deviceModel, token);
+            return _deviceRepository.AddDeviceModel(deviceModel, token).Result;
         }
 
         public ResultViewModel DeleteDevice(uint id, string token = default)
@@ -76,7 +76,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel DeleteDevices(List<uint> ids, string token = default)
         {
-            return _deviceRepository.DeleteDevices(ids, token);
+            return _deviceRepository.DeleteDevices(ids, token).Result;
         }
 
         public ResultViewModel ModifyDevice(DeviceBasicInfo device, string token = default)
@@ -86,12 +86,12 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.AddNetworkConnectionLog(device, token);
+            return _deviceRepository.AddNetworkConnectionLog(device, token).Result;
         }
 
         public List<User> GetAuthorizedUsersOfDevice(int id, string token = default)
         {
-            return _deviceRepository.GetAuthorizedUsersOfDevice(id, token)?.Data?.Data ?? new List<User>();
+            return _deviceRepository.GetAuthorizedUsersOfDevice(id, token).Result?.Data?.Data ?? new List<User>();
         }
     }
 }
