@@ -69,9 +69,9 @@ namespace Biovation.Service.Api.v2
             return _deviceRepository.AddDeviceModel(deviceModel, token);
         }
 
-        public ResultViewModel DeleteDevice(uint id, string token = default)
+        public async Task<ResultViewModel> DeleteDevice(uint id, string token = default)
         {
-            return _deviceRepository.DeleteDevice(id, token);
+            return await _deviceRepository.DeleteDevice(id, token);
         }
 
         public ResultViewModel DeleteDevices(List<uint> ids, string token = default)

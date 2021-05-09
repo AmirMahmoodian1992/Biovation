@@ -71,7 +71,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel DeleteDevice(uint id, string token = default)
         {
-            return _deviceRepository.DeleteDevice(id, token);
+            return _deviceRepository.DeleteDevice(id, token).Result;
         }
 
         public ResultViewModel DeleteDevices(List<uint> ids, string token = default)

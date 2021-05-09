@@ -127,14 +127,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel DeleteDevice(uint id, string token = default)
+        public async Task<ResultViewModel> DeleteDevice(uint id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/Device/{id}", Method.DELETE);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddUrlSegment("id", id.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel DeleteDevices(List<uint> ids, string token = default)
