@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Threading.Tasks;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v2
@@ -33,9 +34,9 @@ namespace Biovation.Service.Api.v2
             return _userCardRepository.DeleteUserCard(id, token);
         }
 
-        public ResultViewModel<int> ReadCardNumber(int deviceId = default, string token = default)
+        public async Task<ResultViewModel<int>> ReadCardNumber(int deviceId = default, string token = default)
         {
-            return _userCardRepository.ReadCardNumber(deviceId, token);
+            return await _userCardRepository.ReadCardNumber(deviceId, token);
         }
     }
 }

@@ -293,10 +293,9 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("{Id}/readCardNumber")]
-        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
+        public async Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _userCardService.ReadCardNumber(id, token));
+            return await _userCardService.ReadCardNumber(id, HttpContext.Items["Token"].ToString());
         }
 
         [HttpGet]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
@@ -57,7 +58,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<int> ReadCardNumber(int deviceId = default, string token = default)
+        public async Task<ResultViewModel<int>> ReadCardNumber(int deviceId = default, string token = default)
         {
             throw new NotImplementedException();
         }
