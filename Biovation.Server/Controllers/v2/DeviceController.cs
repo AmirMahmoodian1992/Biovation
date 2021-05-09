@@ -2,7 +2,6 @@
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.Server.Attribute;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Logger = Biovation.CommonClasses.Logger;
 
@@ -51,18 +51,16 @@ namespace Biovation.Server.Controllers.v2
         }
 
 
-
         [HttpGet]
         [Route("{id:int}")]
-        [Attribute.Authorize]
+        [Authorize]
         public async Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return await _deviceService.GetDevice(id, token);
+            return await _deviceService.GetDevice(id, HttpContext.Items["Token"].ToString());
         }
 
         [HttpGet]
-        [Attribute.Authorize]
+        [Authorize]
         public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(int groupId = default, uint code = default,
             int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
         {
@@ -70,50 +68,30 @@ namespace Biovation.Server.Controllers.v2
                 modelId, typeId, pageNumber, pageSize, HttpContext.Items["Token"].ToString());
         }
 
-        ///////////////////////////////////
-        //[HttpGet]
-        //[Route("GetDeviceModels/{id}")]
-        //public Task<PagingResult<DeviceModel>> DeviceModels(int id = default, int brandId = default, string name = default, int pageNumber = default, int PageSize = default)
-        //{
-        //    var result = Task.Run(() => _deviceService.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
-        //    return result;
-        //}
-
-
-        //[HttpGet]
-        //[Route("BioAuthMode/{id}")]
-        //public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id = default, int authMode = default)
-        //{
-        //    var result = Task.Run(() => _deviceService.GetBioAuthModeWithDeviceId(id, authMode));
-        //    return result;
-        //}
-        //////////////////////////////////////////
-
-
-
         [HttpPut]
-        [Attribute.Authorize]
-        //[Route("ModifyDeviceInfo")]
-        public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
+        [Authorize]
+        public async Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
-            {
-                var result = _deviceService.ModifyDevice(device);
-                if (result.Validate != 1) return result;
+            var token = HttpContext.Items["Token"].ToString();
+            var result = await _deviceService.ModifyDevice(device, token);
+            if (result.Validate != 1) return result;
 
+            await Task.Run(async () =>
+            {
                 device = (await _deviceService.GetDevice(device.DeviceId, token)).Data;
 
-                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
+                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
+                    Method.POST);
                 restRequest.AddJsonBody(device);
+                restRequest.AddHeader("Authorization", token!);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            }).ConfigureAwait(false);
 
-                return result;
-            });
+            return result;
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -121,7 +99,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteDevice([FromRoute] uint id = default)
         {
@@ -130,7 +108,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RetrieveLogs")]
         public Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, string fromDate, string toDate)
         {
@@ -176,7 +154,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("RetrieveLogs")]
         public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
         {
@@ -192,7 +170,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
                         //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
-                        var device = (await  _deviceService.GetDevice(deviceId[i], token)).Data;
+                        var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -233,7 +211,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/ClearLogs")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel> ClearLogOfDevice([FromRoute] int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -268,7 +246,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("ClearLogsOfDevices")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -280,7 +258,7 @@ namespace Biovation.Server.Controllers.v2
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < deviceId.Length; i++)
                     {
-                        var device = (await  _deviceService.GetDevice(deviceId[i], token)).Data;
+                        var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -316,7 +294,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("DeleteDevices")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -325,7 +303,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{Id}/cardNumber")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -370,7 +348,7 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RetrieveUsers")]
         public Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userId = default)
         {
@@ -399,7 +377,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("{id}/FetchUsersList")]
-        [Attribute.Authorize]
+        [Authorize]
         public Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -439,7 +417,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RemoveUser/{userId}")]
         public Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
         {
@@ -463,7 +441,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/SendUsers")]
         public Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
         {
@@ -628,7 +606,7 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         //[AllowAnonymous]
         [Route("{id}/UserAdaptation")]
         public Task<ResultViewModel> UserAdaptation([FromRoute] int id, [FromBody] object equivalentCodesObject)
@@ -674,5 +652,25 @@ namespace Biovation.Server.Controllers.v2
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
             });
         }
+
+
+        ///////////////////////////////////
+        //[HttpGet]
+        //[Route("GetDeviceModels/{id}")]
+        //public Task<PagingResult<DeviceModel>> DeviceModels(int id = default, int brandId = default, string name = default, int pageNumber = default, int PageSize = default)
+        //{
+        //    var result = Task.Run(() => _deviceService.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
+        //    return result;
+        //}
+
+
+        //[HttpGet]
+        //[Route("BioAuthMode/{id}")]
+        //public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id = default, int authMode = default)
+        //{
+        //    var result = Task.Run(() => _deviceService.GetBioAuthModeWithDeviceId(id, authMode));
+        //    return result;
+        //}
+        //////////////////////////////////////////
     }
 }

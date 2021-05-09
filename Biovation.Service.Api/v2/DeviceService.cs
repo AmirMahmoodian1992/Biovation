@@ -79,9 +79,9 @@ namespace Biovation.Service.Api.v2
             return _deviceRepository.DeleteDevices(ids, token);
         }
 
-        public ResultViewModel ModifyDevice(DeviceBasicInfo device, string token = default)
+        public async Task<ResultViewModel> ModifyDevice(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.ModifyDevice(device, token);
+            return await _deviceRepository.ModifyDevice(device, token);
         }
 
         public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
