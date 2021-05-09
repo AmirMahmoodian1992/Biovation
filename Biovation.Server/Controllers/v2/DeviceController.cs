@@ -300,33 +300,36 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("OnlineDevices")]
-        public Task<List<DeviceBasicInfo>> OnlineDevices()
+        [Authorize]
+        public async Task<List<DeviceBasicInfo>> OnlineDevices()
         {
-            //var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
-            {
-                var resultList = new List<DeviceBasicInfo>();
-                //var deviceBrands = _deviceService.GetDeviceBrands(token: token);
-                var deviceBrands = _systemInformation.Services;
+            var token = HttpContext.Items["Token"].ToString();
+            return await Task.Run(async () =>
+           {
+               var onlineDevices = new List<DeviceBasicInfo>();
+               var deviceBrands = _systemInformation.Services;
 
-                Parallel.ForEach(deviceBrands, deviceBrand =>
-                {
-                    var restRequest =
-                        new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
-                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                    {
-                        restRequest.AddHeader("Authorization",
-                            HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                    }
+               Parallel.ForEach(deviceBrands, async deviceBrand =>
+               {
+                   var restRequest =
+                       new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
 
-                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+                   var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
 
-                    if (result.StatusCode == HttpStatusCode.OK)
-                        resultList.AddRange(result.Data);
-                });
+                   if (result.StatusCode != HttpStatusCode.OK) return;
+                   lock (onlineDevices)
+                       onlineDevices.AddRange(result.Data);
+               });
 
-                return resultList;
-            });
+               var permissibleDevices = (await _deviceService.GetDevices(token: token))?.Data?.Data;
+
+               if (permissibleDevices != null)
+               {
+                   permissibleDevices = onlineDevices.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
+               }
+
+               return new List<DeviceBasicInfo>();
+           });
         }
 
         ///// <summary>
