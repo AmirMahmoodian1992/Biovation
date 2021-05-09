@@ -34,138 +34,120 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+        [Route("{id:int}")]
+        public async Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 5)
         {
-            return Task.Run(() => _accessGroupService.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize, token: HttpContext.Items["Token"] as string));
+            return await _accessGroupService.GetAccessGroup(id, nestingDepthLevel, HttpContext.Items["Token"] as string);
+        }
+
+        [HttpGet]
+        public async Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+        {
+            return await _accessGroupService.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId,
+                pageNumber, pageSize, token: HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
-        public Task<ResultViewModel> AddAccessGroup([FromBody] AccessGroup accessGroup)
+        public async Task<ResultViewModel> AddAccessGroup([FromBody] AccessGroup accessGroup)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _accessGroupService.AddAccessGroup(accessGroup, token));
+            return await _accessGroupService.AddAccessGroup(accessGroup, HttpContext.Items["Token"] as string);
         }
 
         [HttpPatch]
-        public Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
+        public async Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() =>
+            var xmlDevice = $"{{ DeviceGroup: {deviceGroup} }}";
+            var xmlUser = $"{{ UserGroup: {userGroup} }}";
+            var xmlAdmin = $"{{AdminUsers: {adminUserIds} }}";
 
+            var xmlDevices = JsonConvert.DeserializeXmlNode(xmlDevice, "Root");
+            var xmlUsers = JsonConvert.DeserializeXmlNode(xmlUser, "Root");
+            var xmlAdmins = JsonConvert.DeserializeXmlNode(xmlAdmin, "Root");
+
+
+            var saved = await _accessGroupService.ModifyAccessGroup(JsonConvert.DeserializeObject<AccessGroup>(accessGroup ?? string.Empty));
+            ResultViewModel result;
+
+            if (saved.Validate != 1)
+                result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
+            else
             {
-                var xmlDevice = $"{{ DeviceGroup: {deviceGroup} }}";
-                var xmlUser = $"{{ UserGroup: {userGroup} }}";
-                var xmlAdmin = $"{{AdminUsers: {adminUserIds} }}";
 
-                var xmlDevices = JsonConvert.DeserializeXmlNode(xmlDevice, "Root");
-                var xmlUsers = JsonConvert.DeserializeXmlNode(xmlUser, "Root");
-                var xmlAdmins = JsonConvert.DeserializeXmlNode(xmlAdmin, "Root");
-
-
-
-                var saved = _accessGroupService.ModifyAccessGroup(JsonConvert.DeserializeObject<AccessGroup>(accessGroup ?? string.Empty));
-                ResultViewModel result;
-
-                if (saved.Validate != 1)
+                var deviceResult = await _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id, token);
+                if (deviceResult.Validate != 1)
                     result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                 else
                 {
 
-                    var deviceResult = _accessGroupService.ModifyAccessGroupDeviceGroup(xmlDevices?.OuterXml, (int)saved.Id, token);
-                    if (deviceResult.Validate != 1)
+                    var adminUsersResult = await _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id, token);
+                    if (adminUsersResult.Validate != 1)
                         result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
                     else
                     {
+                        var userGroupResult = await _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id, token);
 
-                        var adminUsersResult = _accessGroupService.ModifyAccessGroupAdminUsers(xmlAdmins?.OuterXml, (int)saved.Id, token);
-                        if (adminUsersResult.Validate != 1)
-                            result = new ResultViewModel { Validate = 0, Message = "ذخیره انجام نشد مجددا تلاش فرمایید" };
-                        else
-                        {
-                            var userGroupResult = _accessGroupService.ModifyAccessGroupUserGroup(xmlUsers?.OuterXml, (int)saved.Id, token);
-
-                            result = userGroupResult;
-                        }
+                        result = userGroupResult;
                     }
                 }
-
-                /*
-                  var restRequest = new RestRequest($"{deviceBrand.Name}/{device.Brand?.Name}AccessGroup/ModifyAccessGroup");
-
-                             restRequest.AddQueryParameter("DeviceGroup",deviceGroup);
-                            restRequest.AddQueryParameter(" UserGroup", userGroup);
-                            restRequest.AddQueryParameter("AdminUsers", adminUserIds); 
-
-                */
-
-                Task.Run(() =>
-                {
-                    var restRequest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
-                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                    {
-                        restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                    }
-
-                    var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
-                    foreach (var deviceBrand in deviceBrands)
-                    {
-                        restRequest =
-                           new RestRequest(
-                               $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                               Method.POST);
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
-
-                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
-                });
-
-                return result;
             }
-                );
-        }
 
-        [HttpGet]
-        [Route("{id:int}")]
-        public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 5)
-        {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _accessGroupService.GetAccessGroup(id, nestingDepthLevel, token));
+            /*
+              var restRequest = new RestRequest($"{deviceBrand.Name}/{device.Brand?.Name}AccessGroup/ModifyAccessGroup");
+
+                         restRequest.AddQueryParameter("DeviceGroup",deviceGroup);
+                        restRequest.AddQueryParameter(" UserGroup", userGroup);
+                        restRequest.AddQueryParameter("AdminUsers", adminUserIds); 
+
+            */
+
+            _ = Task.Run(() =>
+            {
+                var restRequest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
+                restRequest.AddHeader("Authorization", token!);
+
+                var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
+                foreach (var deviceBrand in deviceBrands)
+                {
+                    restRequest =
+                       new RestRequest(
+                           $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                           Method.POST);
+                    restRequest.AddHeader("Authorization", token!);
+
+                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                }
+            }).ConfigureAwait(false);
+
+            return result;
         }
 
         [HttpGet]
         [Route("{id}/UserGroups")]
-        public Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup([FromRoute] int id = default)
+        public async Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup([FromRoute] int id = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userGroupService.GetAccessControlUserGroup(id, token));
+            return await _userGroupService.GetAccessControlUserGroup(id, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]
         [Route("{id}/DeviceGroups")]
-        public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup([FromRoute] int id = default, int pageNumber = default, int pageSize = default)
+        public async Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup([FromRoute] int id = default, int pageNumber = default, int pageSize = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _deviceGroupService.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token));
+            return await _deviceGroupService.GetAccessControlDeviceGroup(id, pageNumber, pageSize, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]
         [Route("{id}/AdminUsers")]
-        public Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup([FromRoute] long id = default, int accessGroupId = default)
+        public async Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup([FromRoute] long id = default, int accessGroupId = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _accessGroupService.GetAdminUserOfAccessGroup(id, accessGroupId, token));
+            return await _accessGroupService.GetAdminUserOfAccessGroup(id, accessGroupId, HttpContext.Items["Token"] as string);
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteAccessGroups([FromRoute] int id = default)
+        public async Task<ResultViewModel> DeleteAccessGroups([FromRoute] int id = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _accessGroupService.DeleteAccessGroup(id, token));
+            return await _accessGroupService.DeleteAccessGroup(id, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
@@ -176,7 +158,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 var token = HttpContext.Items["Token"] as string;
                 var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
-                var accessGroup = _accessGroupService.GetAccessGroup(id, token: token).Data;
+                var accessGroup = (await _accessGroupService.GetAccessGroup(id, token: token)).Data;
                 if (accessGroup == null)
                 {
                     Logger.Log("No such access group found.\n");
@@ -210,10 +192,7 @@ namespace Biovation.Server.Controllers.v2
                                 Method.GET);
                         restRequest.AddParameter("code", device.Code);
                         restRequest.AddParameter("accessGroupId", id);
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
+                        restRequest.AddHeader("Authorization", token!);
                         await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
 
                         foreach (var userGroup in accessGroup.UserGroup)
@@ -238,10 +217,7 @@ namespace Biovation.Server.Controllers.v2
                                     Method.GET);
                             restRequest.AddParameter("code", device.Code);
                             restRequest.AddParameter("userId", userids);
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
+                            restRequest.AddHeader("Authorization", token!);
                             await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
                             //}
                         }
@@ -259,12 +235,11 @@ namespace Biovation.Server.Controllers.v2
 
 
         [HttpPost]
-        [Route("SendAccessGroupToDevices/{id}")]
-        public ResultViewModel SendAccessGroupToDevices([FromRoute] int id)
+        [Route("{id}/SendAccessGroupToDevices")]
+        public async Task<ResultViewModel> SendAccessGroupToDevices([FromRoute] int id)
         {
             var token = HttpContext.Items["Token"] as string;
-
-            var devices = _accessGroupService.GetDeviceOfAccessGroup(id, token: token).Data.Data;
+            var devices = (await _accessGroupService.GetDeviceOfAccessGroup(id, token: token)).Data.Data;
 
             foreach (var device in devices)
             {
@@ -274,18 +249,15 @@ namespace Biovation.Server.Controllers.v2
                         Method.GET);
                 restRequest.AddParameter("code", device.Code);
                 restRequest.AddParameter("accessGroupId", id);
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                restRequest.AddHeader("Authorization", token!);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
             return new ResultViewModel { Validate = 1 };
         }
 
         [HttpPost]
-        [Route("SendAccessGroupToDevice/{id}")]
-        public async Task<ResultViewModel> SendAccessGroupToDevice([FromRoute] int id, int deviceId)
+        [Route("{id}/SendAccessGroupToDevice/{deviceId}")]
+        public async Task<ResultViewModel> SendAccessGroupToDevice([FromRoute] int id, [FromRoute] int deviceId)
         {
             var token = HttpContext.Items["Token"] as string;
 
@@ -308,10 +280,7 @@ namespace Biovation.Server.Controllers.v2
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("accessGroupId", id);
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            restRequest.AddHeader("Authorization", token!);
             await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }

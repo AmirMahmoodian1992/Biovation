@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Threading.Tasks;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v2
@@ -18,10 +19,10 @@ namespace Biovation.Service.Api.v2
             return _deviceGroupRepository.GetDeviceGroups(deviceGroupId, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id =default,
+        public async Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id =default,
             int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token);
+            return await _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token);
         }
 
         public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup =default, string token = default)

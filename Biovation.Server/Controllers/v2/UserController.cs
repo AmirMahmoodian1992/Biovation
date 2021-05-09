@@ -325,14 +325,14 @@ namespace Biovation.Server.Controllers.v2
 
             try
             {
-                await Task.Run(() =>
+                _ = Task.Run(async () =>
                 {
                     //updateUsers = updateUsers.Trim(',');
                     //var lstupdateUsers = updateUsers.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
                     var count = lstUserGroupMember.Count();
                     for (var i = 0; i < count; i++)
                     {
-                        var accessGroups = _accessGroupService.GetAccessGroups(lstUserGroupMember[i].UserId, token: token).Data.Data;
+                        var accessGroups = (await _accessGroupService.GetAccessGroups(lstUserGroupMember[i].UserId, token: token)).Data.Data;
                         foreach (var accessGroup in accessGroups)
                         {
                             if (accessGroup.DeviceGroup == null)
@@ -359,7 +359,7 @@ namespace Biovation.Server.Controllers.v2
                                     restRequest.AddQueryParameter("code", device.Code.ToString());
                                     restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
                                     restRequest.AddHeader("Authorization", token!);
-                                    _restClient.ExecuteAsync(restRequest);
+                                    await _restClient.ExecuteAsync(restRequest);
                                 }
                             }
                         }
@@ -509,7 +509,7 @@ namespace Biovation.Server.Controllers.v2
                     var userGroupsOfUser = (await _userGroupService.UserGroups(token: token))?.Data?.Data;
                     foreach (var userGroup in userGroupsOfUser)
                     {
-                        var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id, token: token).Data.Data;
+                        var accessGroups = (await _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id, token: token)).Data.Data;
                         foreach (var accessGroup in accessGroups)
                         {
                             var deviceGroups = accessGroup.DeviceGroup;
@@ -586,7 +586,7 @@ namespace Biovation.Server.Controllers.v2
                             {
                                 var devicesToExistsOn = new List<DeviceBasicInfo>();
                                 //TODO ignore int nestingDepthLevel in getAccessGroups, is it correct?
-                                var accessGroups = _accessGroupService.GetAccessGroups(userId, token: token).Data.Data;
+                                var accessGroups = (await _accessGroupService.GetAccessGroups(userId, token: token)).Data.Data;
                                 foreach (var accessGroup in accessGroups)
                                 {
                                     if (accessGroup.DeviceGroup == null)
@@ -707,26 +707,28 @@ namespace Biovation.Server.Controllers.v2
                     groupIds.AddRange(group.Select(s => s.Id));
                 }
 
-                if (groupIds.Any())
-                {
-                    var grpIds = string.Join(",", groupIds.Distinct());
+                //TODO !important
+                //if (groupIds.Any())
+                //{
+                //    var grpIds = string.Join(",", groupIds.Distinct());
 
-                    var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
-                    restRequest.AddQueryParameter("userGroupId", grpIds);
-                    restRequest.AddHeader("Authorization", token!);
-                    var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
+                //    var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
+                //    restRequest.AddQueryParameter("userGroupId", grpIds);
+                //    restRequest.AddHeader("Authorization", token!);
+                //    var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
 
-                    var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
-                    foreach (var members in grpMember)
-                    {
-                        var strWp = JsonConvert.SerializeObject(members);
-                        var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
-                        var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
-                        var node = xDocument?.OuterXml;
+                //var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
+                //foreach (var members in grpMember)
+                //{
+                //TODO !important
+                //var strWp = JsonConvert.SerializeObject(members);
+                //var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
+                //var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
+                //var node = xDocument?.OuterXml;
 
-                        //_userGroupService.ModifyUserGroupMember(node, members.Key);
-                    }
-                }
+                //_userGroupService.ModifyUserGroupMember(node, members.Key);
+                //}
+                //}
 
                 foreach (var userMember in lstToAdd)
                 {
@@ -809,7 +811,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("UserToAllDevice")]
-        public async Task<List<ResultViewModel>> SendUsersToAllDevice([FromBody] string ids = default)
+        public async Task<List<ResultViewModel>> SendUsersToAllDevice([FromBody] string ids)
         {
             try
             {

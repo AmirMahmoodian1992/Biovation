@@ -27,14 +27,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id = default, string token = default)
+        public async Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/UserGroup/AccessControlUserGroup/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<UserGroup>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<List<UserGroup>>>(restRequest);
+            return requestResult.Data;
         }
 
         public async Task<ResultViewModel> SyncUserGroupMember(string lstUser, string token = default)

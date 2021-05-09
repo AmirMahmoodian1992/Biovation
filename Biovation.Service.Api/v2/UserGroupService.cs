@@ -20,9 +20,9 @@ namespace Biovation.Service.Api.v2
         }
 
 
-        public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id = default, string token = default)
+        public async Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default, string token = default)
         {
-            return _userGroupRepository.GetAccessControlUserGroup(id, token);
+            return await _userGroupRepository.GetAccessControlUserGroup(id, token);
         }
 
         public async Task<ResultViewModel> SyncUserGroupMember(string lstUser = default, string token = default)

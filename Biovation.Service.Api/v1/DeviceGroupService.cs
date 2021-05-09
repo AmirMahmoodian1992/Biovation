@@ -22,7 +22,7 @@ namespace Biovation.Service.Api.v1
         public List<DeviceGroup> GetAccessControlDeviceGroup(int id = default,
             int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token)?.Data?.Data ?? new List<DeviceGroup>();
+            return _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token).Result?.Data?.Data ?? new List<DeviceGroup>();
         }
 
         public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup = default, string token = default)

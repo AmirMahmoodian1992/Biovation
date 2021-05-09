@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
 
@@ -28,7 +29,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id,
+        public async Task<ResultViewModel<PagingResult<DeviceGroup>>> GetAccessControlDeviceGroup(int id,
             int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/DeviceGroup/GetAccessControlDeviceGroup", Method.GET);
@@ -37,9 +38,9 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceGroup>>>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceGroup>>>(restRequest);
 
-            return requestResult.Result.Data;
+            return requestResult.Data;
         }
 
         public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup, string token = default)
