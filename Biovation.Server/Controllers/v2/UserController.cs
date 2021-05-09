@@ -46,33 +46,88 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         //[Authorize(Policy = Policies.User)]
         //[Authorize(Policy = "OverrideTest")]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
+        public async Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            return Task.Run(() => _userService.GetUsers(from, size, getTemplatesData, userId, code, filterText, type,
-               withPicture, isAdmin, pageNumber, pageSize, HttpContext.Items["Token"] as string));
+            return await _userService.GetUsers(from, size, getTemplatesData, userId, code, filterText, type,
+               withPicture, isAdmin, pageNumber, pageSize, HttpContext.Items["Token"] as string);
         }
 
 
         [HttpGet]
         [Route("{id:long}")]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter([FromRoute] long id)
+        public async Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter([FromRoute] long id)
         {
-            return Task.Run(() => _userService.GetUsers(userId: id, token: HttpContext.Items["Token"] as string));
+            return await _userService.GetUsers(userId: id, token: HttpContext.Items["Token"] as string);
         }
-        //[HttpPost]
-        //public Task<IActionResult> AddUser([FromBody] User user)
-        //{
-        //}
+
+        [HttpPost]
+        public async Task<ResultViewModel> AddUser([FromBody] User user)
+        {
+            try
+            {
+                var token = HttpContext.Items["Token"] as string;
+                //var existingUser = (await _userService.GetUsers(userId: user.Id, token: token)).Data.Data.FirstOrDefault();
+
+                //if (existingUser != null)
+                //{
+                //    user.UserName = string.IsNullOrWhiteSpace(user.UserName)
+                //        ? existingUser.UserName
+                //        : user.UserName;
+
+                //    user.StartDate = user.StartDate == default ? existingUser.StartDate : user.StartDate;
+                //    user.EndDate = user.EndDate == default ? existingUser.EndDate : user.EndDate;
+                //    user.AdminLevel = user.AdminLevel == default ? existingUser.AdminLevel : user.AdminLevel;
+                //    user.Email = string.IsNullOrWhiteSpace(user.Email) ? existingUser.Email : user.Email;
+                //    user.FirstName = string.IsNullOrWhiteSpace(user.FirstName)
+                //        ? existingUser.FirstName
+                //        : user.FirstName;
+                //    user.SurName = string.IsNullOrWhiteSpace(user.SurName) ? existingUser.SurName : user.SurName;
+                //    user.FullName = string.IsNullOrWhiteSpace(user.FullName)
+                //        ? existingUser.FullName
+                //        : user.FullName;
+                //    user.IdentityCard ??= existingUser.IdentityCard;
+                //    user.Image = user.Image is null || user.Image.Length < 1 ? existingUser.Image : user.Image;
+                //    user.Type = user.Type == default ? existingUser.Type : user.Type;
+                //    user.TelNumber = string.IsNullOrWhiteSpace(user.TelNumber)
+                //        ? existingUser.TelNumber
+                //        : user.TelNumber;
+                //}
+
+                var result = _userService.ModifyUser(user, token);
+
+                await Task.Run(async () =>
+                {
+                    var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
+                    if (deviceBrands is null)
+                        return;
+
+                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
+                    {
+                        restRequest.AddJsonBody(user);
+                        restRequest.AddHeader("Authorization", token!);
+                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    }
+                });
+
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = exception.Message };
+            }
+        }
 
         [HttpPut]
         public async Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
-            var token = HttpContext.Items["Token"] as string;
             try
             {
+                var token = HttpContext.Items["Token"] as string;
                 var existingUser = (await _userService.GetUsers(userId: user.Id, token: token)).Data.Data.FirstOrDefault();
 
                 if (existingUser != null)
@@ -128,18 +183,16 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUser([FromRoute] int id = default)
+        public async Task<ResultViewModel> DeleteUser([FromRoute] int id = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userService.DeleteUser(id, token));
+            return await _userService.DeleteUser(id, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
         [Route("DeleteUsers")]
-        public Task<ResultViewModel> DeleteUsers([FromBody] List<int> ids = default)
+        public async Task<ResultViewModel> DeleteUsers([FromBody] List<int> ids = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userService.DeleteUsers(ids, token));
+            return await _userService.DeleteUsers(ids, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]
@@ -756,8 +809,8 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpDelete]
-        [Route("{id}/UserFromDevice/{deviceId}")]
         [Authorize]
+        [Route("{id}/UserFromDevice/{deviceId}")]
         public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
@@ -769,8 +822,8 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Route("UserFromDevice/{deviceId}")]
         [Authorize]
+        [Route("UserFromDevice/{deviceId}")]
         public async Task<ResultViewModel> RetrieveUserDevice([FromRoute] int deviceId = default, [FromBody] JArray userId = default)
         {
             if (userId is null)
@@ -796,8 +849,8 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Route("UserToDevice/{id}")]
         [Authorize]
+        [Route("UserToDevice/{id}")]
         public async Task<ResultViewModel> SendUserToDevice([FromRoute] int id = default)
         {
             var token = HttpContext.Items["Token"] as string;
@@ -808,13 +861,13 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Route("UserToAllDevice")]
         [Authorize]
+        [Route("UserToAllDevice")]
         public async Task<List<ResultViewModel>> SendUsersToAllDevice([FromBody] string ids = default)
         {
-            var token = HttpContext.Items["Token"] as string;
             try
             {
+            var token = HttpContext.Items["Token"] as string;
                 var userIds = JsonConvert.DeserializeObject<int[]>(ids);
                 var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                 var length = userIds.Length;

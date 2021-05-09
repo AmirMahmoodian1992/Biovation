@@ -82,23 +82,23 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-        public ResultViewModel DeleteUser(long id = default, string token = default)
+        public async Task<ResultViewModel> DeleteUser(long id = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel DeleteUsers(List<int> ids, string token = default)
+        public async Task<ResultViewModel> DeleteUsers(List<int> ids, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/DeleteUsers", Method.POST);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddJsonBody(ids);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
         public ResultViewModel DeleteUserGroupsOfUser(int userId, int userTypeId = 1, string token = default)
         {

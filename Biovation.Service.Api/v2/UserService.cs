@@ -38,14 +38,14 @@ namespace Biovation.Service.Api.v2
             return _userRepository.ModifyUser(user, token);
         }
 
-        public ResultViewModel DeleteUser(int id = default, string token = default)
+        public async Task<ResultViewModel> DeleteUser(int id = default, string token = default)
         {
-            return _userRepository.DeleteUser(id, token);
+            return await _userRepository.DeleteUser(id, token);
         }
 
-        public ResultViewModel DeleteUsers(List<int> ids = default, string token = default)
+        public async Task<ResultViewModel> DeleteUsers(List<int> ids = default, string token = default)
         {
-            return _userRepository.DeleteUsers(ids, token);
+            return await _userRepository.DeleteUsers(ids, token);
         }
 
         public ResultViewModel DeleteUserGroupsOfUser(int userId = default, int userTypeId = 1, string token = default)
