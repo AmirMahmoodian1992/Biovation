@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using RestSharp;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 
 namespace Biovation.Repository.Api.v2
@@ -15,7 +16,7 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<User>> GetUsers(int from = default,
+        public async Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
@@ -35,8 +36,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
+            return requestResult.Data;
         }
 
         /// <summary>

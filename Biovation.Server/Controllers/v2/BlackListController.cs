@@ -29,7 +29,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         public Task<List<ResultViewModel>> CreateBlackList([FromBody] List<BlackList> blackLists)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
                 try
@@ -95,14 +95,14 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel<PagingResult<BlackList>>> GetBlackList([FromRoute] int id = default, int userid = default, int deviceId = default, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _blackListService.GetBlacklist(id, userid, deviceId, startDate, endDate, isDeleted, token: token));
         }
 
         [HttpPut]
         public Task<ResultViewModel> ChangeBlackList([FromBody] BlackList blackList)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
 
@@ -151,7 +151,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteBlackList([FromRoute] int id)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
 

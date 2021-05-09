@@ -119,7 +119,7 @@ namespace Biovation.Brands.Suprema.Commands
 
 
 
-                    var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Id))?.Data?.Data.FirstOrDefault();
+                    var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Id)).Result?.Data?.Data.FirstOrDefault();
 
                     if (existUser != null)
                     {
@@ -144,7 +144,7 @@ namespace Biovation.Brands.Suprema.Commands
                     }
 
                     _userService.ModifyUser(user);
-                    user.Id = _userService.GetUsers(userId:userOfDevice.Id).Data.Data.FirstOrDefault().Id;
+                    user.Id = _userService.GetUsers(userId:userOfDevice.Id).Result.Data.Data.FirstOrDefault().Id;
 
                     //Card
                     try

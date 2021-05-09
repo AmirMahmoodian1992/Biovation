@@ -27,7 +27,7 @@ namespace Biovation.Server.Controllers.v2
                         int userId = default, bool? successTransfer = null, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
                         int pageSize = default, string where = default, string order = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _logService.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize, where, order, token));
         }
 
@@ -61,7 +61,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("OfflineLogs")]
         public Task<ResultViewModel> TransmitOfflineLogs(long userId = default, string logFilter = default, bool resendLogs = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(async () =>
             {
                 try

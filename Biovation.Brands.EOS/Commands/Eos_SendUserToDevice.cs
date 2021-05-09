@@ -70,7 +70,7 @@ namespace Biovation.Brands.Eos.Commands
                             $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}",
                         Validate = 0
                     };
-                user = _userService.GetUsers(userId: userId, getTemplatesData: true)?.Data?.Data.FirstOrDefault();
+                user = _userService.GetUsers(userId: userId, getTemplatesData: true).Result?.Data?.Data.FirstOrDefault();
 
                 if (user == null)
                 {

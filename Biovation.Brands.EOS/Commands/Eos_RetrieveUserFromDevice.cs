@@ -109,7 +109,7 @@ namespace Biovation.Brands.Eos.Commands
                     IsActive = true
                 };
 
-                var existUser = _userService.GetUsers(code: userOfDevice.Code)?.Data?.Data?.FirstOrDefault();
+                var existUser = _userService.GetUsers(code: userOfDevice.Code).Result?.Data?.Data?.FirstOrDefault();
 
                 if (existUser != null)
                 {
@@ -134,7 +134,7 @@ namespace Biovation.Brands.Eos.Commands
                 }
 
                 _userService.ModifyUser(user);
-                user.Id = _userService.GetUsers(code: user.Code)?.Data?.Data.FirstOrDefault()?.Id ?? -1;
+                user.Id = _userService.GetUsers(code: user.Code).Result?.Data?.Data.FirstOrDefault()?.Id ?? -1;
                 if (user.Id == -1)
                     return new ResultViewModel { Id = deviceId, Message = "Error on adding user to database", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 

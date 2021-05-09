@@ -39,7 +39,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("TaskItems")]
         public Task<ResultViewModel<TaskItem>> TaskItems(int taskItemId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _taskService.GetTaskItem(taskItemId,token));
         }
 
@@ -47,7 +47,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPatch]
         public Task<ResultViewModel> TaskExecutionStatus(int taskItemId = default, string taskStatusId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
                 try

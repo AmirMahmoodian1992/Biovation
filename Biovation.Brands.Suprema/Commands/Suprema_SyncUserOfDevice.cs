@@ -70,7 +70,7 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var user = _userService.GetUsers(userId:userId)?.Data?.Data.FirstOrDefault();
+            var user = _userService.GetUsers(userId:userId).Result?.Data?.Data.FirstOrDefault();
 
             if (user == null)
             {

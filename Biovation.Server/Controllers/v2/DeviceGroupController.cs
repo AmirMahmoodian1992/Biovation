@@ -34,7 +34,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel<PagingResult<DeviceGroup>>> GetDeviceGroup(int id = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _deviceGroupService.GetDeviceGroups(id, pageNumber, pageSize, HttpContext.Items["Token"].ToString()));
+            return Task.Run(() => _deviceGroupService.GetDeviceGroups(id, pageNumber, pageSize, HttpContext.Items["Token"] as string));
         }
 
         //[HttpPost]
@@ -47,7 +47,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyDeviceGroup([FromBody] DeviceGroup deviceGroup)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(async () =>
             {
                 try
@@ -202,7 +202,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteDeviceGroup([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _deviceGroupService.DeleteDeviceGroup(id, token));
         }
 
@@ -216,7 +216,7 @@ namespace Biovation.Server.Controllers.v2
                 try
                 {
                     return ids.Select(id =>
-                            _deviceGroupService.DeleteDeviceGroup(id, HttpContext.Items["Token"].ToString()))
+                            _deviceGroupService.DeleteDeviceGroup(id, HttpContext.Items["Token"] as string))
                         .ToList();
                 }
                 catch (Exception e)
@@ -230,7 +230,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/DeviceGroupsMembers")]
         public Task<ResultViewModel> DeleteDeviceGroup([FromRoute] uint id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _deviceGroupService.DeleteDeviceGroupMember(id, token));
         }
     }

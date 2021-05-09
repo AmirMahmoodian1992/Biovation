@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
@@ -10,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -37,7 +37,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id?}")]
         public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _userGroupService.UserGroups(id, token));
         }
 
@@ -50,7 +50,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(async () =>
             {
                 try
@@ -289,7 +289,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteUserGroup([FromRoute] int id = default)
         {
-            return Task.Run(() => _userGroupService.DeleteUserGroup(id, HttpContext.Items["Token"].ToString()));
+            return Task.Run(() => _userGroupService.DeleteUserGroup(id, HttpContext.Items["Token"] as string));
         }
 
         [HttpPost]
@@ -303,7 +303,7 @@ namespace Biovation.Server.Controllers.v2
                     var resultList = new List<ResultViewModel>();
                     foreach (var group in groupIds)
                     {
-                        var result = _userGroupService.DeleteUserGroup(group, HttpContext.Items["Token"].ToString());
+                        var result = _userGroupService.DeleteUserGroup(group, HttpContext.Items["Token"] as string);
                         resultList.Add(result);
                     }
 
@@ -319,104 +319,90 @@ namespace Biovation.Server.Controllers.v2
         //todo: re implement based on new signature
         [HttpPatch]
         [Route("{id}/UserGroupMember")]
-        public Task<ResultViewModel> ModifyUserGroupMember([FromRoute] int id, [FromBody] List<UserGroupMember> member)
+        public async Task<ResultViewModel> ModifyUserGroupMember([FromRoute] int id, [FromBody] List<UserGroupMember> member)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            var token = HttpContext.Items["Token"] as string;
+            //TODO we have problem here in convert string node to List<userGroupMemeber>????
+            try
             {
-                //TODO we have problem here in convert string node to List<userGroupMemeber>????
-                try
+                if (member.Count == 0)
+                    return new ResultViewModel { Validate = 1, Message = "Empty input" };
+
+                var strWp = JsonConvert.SerializeObject(member);
+                var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
+                var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
+                var node = xDocument?.OuterXml;
+
+                // var result = _userGroupService.ModifyUserGroupMember(node, member[0].GroupId);
+                var result = new ResultViewModel();
+
+                await Task.Run(async () =>
                 {
-                    if (member.Count == 0)
-                        return new ResultViewModel { Validate = 1, Message = "Empty input" };
-
-                    var strWp = JsonConvert.SerializeObject(member);
-                    var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
-                    var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
-                    var node = xDocument?.OuterXml;
-
-                    // var result = _userGroupService.ModifyUserGroupMember(node, member[0].GroupId);
-                    var result = new ResultViewModel();
-
-                    Task.Run(() =>
+                    var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
+                    if (deviceBrands == null) return;
+                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
+                        $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
+                        Method.POST)))
                     {
-                        var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
-                        if (deviceBrands == null) return;
-                        foreach (var deviceBrand in deviceBrands)
-                        {
-                            //_communicationManager.CallRest(
-                            //    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember", "Post", null, $"{JsonConvert.SerializeObject(member)}");
-                            var restRequest =
-                                new RestRequest(
-                                    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
-                                    Method.POST);
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                restRequest.AddHeader("Authorization",
-                                    HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
+                        restRequest.AddHeader("Authorization", token!);
 
-                            _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-                        }
-                    });
+                        await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).ConfigureAwait(false);
+                    }
+                }).ConfigureAwait(false);
 
-                    return result;
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                }
-            });
+                return result;
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+            }
         }
 
         [HttpPatch]
         [Route("{id}/UsersOfGroup")]
-        public Task<ResultViewModel> SendUsersOfGroup([FromRoute] int id)
+        public async Task<ResultViewModel> SendUsersOfGroup([FromRoute] int id)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            var token = HttpContext.Items["Token"] as string;
+            try
             {
-                try
+                var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
+                var userGroup = _userGroupService.UserGroups(userGroupId: id, token: token)?.Data?.Data.FirstOrDefault();
+                if (userGroup is null || deviceBrands is null) return new ResultViewModel { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = id };
+                foreach (var userGroupMember in userGroup.Users)
                 {
-                    var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
-                    var userGroup = _userGroupService.UserGroups(userGroupId: id, token: token)?.Data?.Data.FirstOrDefault();
-                    if (userGroup is null || deviceBrands is null) return new ResultViewModel { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = id };
-                    foreach (var userGroupMember in userGroup.Users)
+                    var user = (await _userService.GetUsers(code: userGroupMember.UserId, token: token))?.Data?.Data.FirstOrDefault();
+
+                    foreach (var deviceBrand in deviceBrands)
                     {
-                        var user = _userService.GetUsers(code: userGroupMember.UserId, token: token)?.Data?.Data.FirstOrDefault();
-
-                        foreach (var deviceBrand in deviceBrands)
+                        var restRequest =
+                            new RestRequest(
+                                $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                Method.POST);
+                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                         {
-                            var restRequest =
-                                new RestRequest(
-                                    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
-                                    Method.POST);
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
-
-                            restRequest.AddJsonBody(user);
-                            _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
                         }
-                    }
 
-                    return new ResultViewModel { Validate = 1, Id = id };
+                        restRequest.AddJsonBody(user);
+                        await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).ConfigureAwait(false);
+                    }
                 }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = "SendUsersToDevice Failed." };
-                }
-            });
+
+                return new ResultViewModel { Validate = 1, Id = id };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = "SendUsersToDevice Failed." };
+            }
         }
 
         [HttpPost]
         [Route("SyncUserGroupMember")]
         public Task<ResultViewModel> SyncUserGroupMember([FromBody] string listUsers = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
                 try

@@ -39,7 +39,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             var adminDeviceSerializedData = JsonConvert.DeserializeObject<JObject>(JsonSerializer.Serialize(adminDevice));
             return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, token));
         }

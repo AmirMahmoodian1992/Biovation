@@ -31,7 +31,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel<TimeZone>> TimeZones([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _timeZoneService.TimeZones(id, token));
         }
 
@@ -47,14 +47,14 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteTimeZone([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _timeZoneService.DeleteTimeZone(id, token));
         }
 
         [HttpPut]
         public Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _timeZoneService.ModifyTimeZone(timeZone, token));
         }
 
@@ -64,7 +64,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/SendDevice/{deviceId}")]
         public Task<ResultViewModel> SendTimeZoneDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(async () =>
             {
 

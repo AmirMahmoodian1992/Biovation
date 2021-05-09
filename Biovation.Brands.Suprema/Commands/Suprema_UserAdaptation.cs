@@ -95,7 +95,7 @@ namespace Biovation.Brands.Suprema.Commands
             if (!OnlineDevices.ContainsKey(device.Code))
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
-            var creatorUser = _userService.GetUsers(userId: CreatorUserId)?.Data?.Data?.FirstOrDefault();
+            var creatorUser = _userService.GetUsers(userId: CreatorUserId).Result?.Data?.Data?.FirstOrDefault();
             var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
 
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);

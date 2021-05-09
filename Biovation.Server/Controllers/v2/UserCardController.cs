@@ -28,7 +28,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ModifyUserCard([FromBody]UserCard card = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(()=> _userCardService.ModifyUserCard(card,token));
         }
 
@@ -37,7 +37,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteUserCard([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             return Task.Run(() => _userCardService.DeleteUserCard(id, token));
         }
     }

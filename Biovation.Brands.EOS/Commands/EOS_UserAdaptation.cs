@@ -86,7 +86,7 @@ namespace Biovation.Brands.EOS.Commands
                 return new ResultViewModel { Success = false, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
-            var creatorUser = _userService.GetUsers(userId: CreatorUserId)?.Data?.Data?.FirstOrDefault();
+            var creatorUser = _userService.GetUsers(userId: CreatorUserId).Result?.Data?.Data?.FirstOrDefault();
             var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.Code).Value;
 
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);

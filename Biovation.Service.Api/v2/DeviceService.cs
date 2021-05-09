@@ -52,11 +52,11 @@ namespace Biovation.Service.Api.v2
             return _deviceRepository.GetLastConnectedTime((uint)id, token);
         }
 
-        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
+        public async Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default, string token = default)
 
         {
-            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token);
+            return await _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token);
         }
 
         public async Task<ResultViewModel> AddDevice(DeviceBasicInfo device = default, string token = default)

@@ -92,7 +92,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
+        public async Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default, string token = default)
 
         {
@@ -103,8 +103,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
+            return requestResult.Data;
         }
 
         public async Task<ResultViewModel> AddDevice(DeviceBasicInfo device, string token = default)
