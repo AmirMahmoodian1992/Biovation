@@ -511,7 +511,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        [Route("{id}/SendUsers")]
+        [Route("{id}/SyncUsers")]
         public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
         {
             try
