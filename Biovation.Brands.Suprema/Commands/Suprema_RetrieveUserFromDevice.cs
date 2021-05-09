@@ -373,7 +373,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
                                     var onlineDevices =
-                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.SupremaCode).ToString())?.Data.Data;
+                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.SupremaCode).ToString()).Result?.Data.Data;
 
                                     if (onlineDevices == null) return;
                                     foreach (var deviceBasicInfo in onlineDevices)

@@ -62,7 +62,7 @@ namespace Biovation.Brands.Suprema.Commands
                 return new ResultViewModel { Id = TaskItem?.Id ?? 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem?.Id ?? 0}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode)?.Data?.Data?.FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
+            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).Result?.Data?.Data?.FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
             if (OnlineDevices.All(dev => dev.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");

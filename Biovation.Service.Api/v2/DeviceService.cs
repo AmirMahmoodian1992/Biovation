@@ -24,11 +24,11 @@ namespace Biovation.Service.Api.v2
         //{
         //    return _deviceRepository.GetDevice(adminUserId);
         //}
-        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = default,
+        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDevices(long adminUserId = default,
             int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
             int deviceModelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
+            return await _deviceRepository.GetDevices(deviceGroupId, code, brandId, deviceName, deviceModelId,
                 deviceIoTypeId, pageNumber, pageSize);
         }
 

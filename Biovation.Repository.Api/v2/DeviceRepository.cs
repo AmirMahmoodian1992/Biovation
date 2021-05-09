@@ -28,14 +28,13 @@ namespace Biovation.Repository.Api.v2
         //{
 
         //}
-        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
+        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDevices(int groupId = 0, uint code = 0,
             string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Device", Method.GET);
-            //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             restRequest.AddQueryParameter("groupId", groupId.ToString());
             restRequest.AddQueryParameter("code", code.ToString());
-            restRequest.AddQueryParameter("brandId", brandId);
+            restRequest.AddQueryParameter("brandId", brandId ?? string.Empty);
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("modelId", modelId.ToString());
             restRequest.AddQueryParameter("deviceIoTypeId", deviceIoTypeId.ToString());
@@ -43,9 +42,9 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token); 
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
 
-            return requestResult.Result.Data;
+            return requestResult.Data;
         }
 
         public async Task<ResultViewModel<DeviceBasicInfo>> GetDevice(long id = 0, string token = default)

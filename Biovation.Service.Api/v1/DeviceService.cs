@@ -27,8 +27,8 @@ namespace Biovation.Service.Api.v1
             int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
             int deviceModelId = default, int typeId = default, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
-                typeId, pageNumber, pageSize,token)?.Data?.Data ?? new List<DeviceBasicInfo>();
+            return _deviceRepository.GetDevices(deviceGroupId, code, brandId, deviceName, deviceModelId,
+                typeId, pageNumber, pageSize,token).Result?.Data?.Data ?? new List<DeviceBasicInfo>();
         }
 
         public DeviceBasicInfo GetDevice(long id = default, long adminUserId = default, string token = default)

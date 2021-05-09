@@ -99,9 +99,9 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/SendTimeZoneToAllDevices")]
         public Task<List<ResultViewModel>> SendTimeZoneToAllDevices([FromRoute]int id = default)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
-                var devices = _deviceService.GetDevices()?.Data?.Data;
+                var devices = (await _deviceService.GetDevices())?.Data?.Data;
                 if (devices is null)
                     return new List<ResultViewModel> { new ResultViewModel { Id = id, Success = false, Validate = 0, Message = "No device is found", Code = 404 } };
 
