@@ -40,7 +40,7 @@ namespace Biovation.Brands.Paliz.Controllers
         public PalizDeviceController(TaskService taskService, DeviceService deviceService,
             AccessGroupService accessGroupService, DeviceBrands deviceBrands,
             TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
-            BiovationConfigurationManager configurationManager, CommandFactory commandFactory)
+            BiovationConfigurationManager configurationManager, CommandFactory commandFactory, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             //_palizServer = palizServer;
             _taskService = taskService;
