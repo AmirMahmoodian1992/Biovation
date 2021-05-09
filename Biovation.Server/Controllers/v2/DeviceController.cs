@@ -476,7 +476,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpDelete]
         [Authorize]
         [Route("{id}/RemoveUser/{userId}")]
-        public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
+        public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] long userId = default)
         {
             var token = HttpContext.Items["Token"] as string;
             if (userId == default)
@@ -486,7 +486,25 @@ namespace Biovation.Server.Controllers.v2
 
             var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
-            restRequest.AddJsonBody(userId);
+            restRequest.AddJsonBody(new List<long>{userId});
+            restRequest.AddHeader("Authorization", token!);
+            return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{id}/RemoveUsers")]
+        public async Task<ResultViewModel> RemoveUsersFromDevice([FromBody] List<long> userIds, [FromRoute] int id = default)
+        {
+            var token = HttpContext.Items["Token"] as string;
+            if (userIds is null || !userIds.Any())
+                return new ResultViewModel { Validate = 0, Message = "No users selected." };
+
+            var device = (await _deviceService.GetDevice(id, token)).Data;
+
+            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddJsonBody(userIds);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
