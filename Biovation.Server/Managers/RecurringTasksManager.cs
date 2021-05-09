@@ -23,11 +23,12 @@ namespace Biovation.Server.Managers
             _scheduler = schedulerFactory.GetScheduler().Result;
         }
 
-        public Task ScheduleTasks(List<TaskInfo> recurringTasks)
+        public async Task ScheduleTasks(List<TaskInfo> recurringTasks)
         {
             try
             {
-                var storedRecurringTasks = _taskService.GetTasks(taskStatusCodes: new List<string> { TaskStatuses.RecurringCode })?.Data?.Data;
+                var storedRecurringTasks =
+                    (await _taskService.GetTasks(taskStatusCodes: new List<string> {TaskStatuses.RecurringCode}))?.Data?.Data;
                 if (storedRecurringTasks != null)
                 {
                     var upcomingRecurringTasks = storedRecurringTasks.Where(task => task.DueDate >= DateTimeOffset.Now);
@@ -38,7 +39,7 @@ namespace Biovation.Server.Managers
                         var job = JobBuilder.Create<ExecuteScheduledTaskJob>().WithIdentity(storedRecurringTask.Id.ToString(), "RecurringTasks")
                             .UsingJobData("TaskInfo", JsonConvert.SerializeObject(storedRecurringTask)).Build();
                         var trigger = TriggerBuilder.Create().StartAt(storedRecurringTask.DueDate).WithCronSchedule(storedRecurringTask.SchedulingPattern).Build();
-                        _scheduler.ScheduleJob(job, trigger);
+                        await _scheduler.ScheduleJob(job, trigger);
 
                         recurringTasks.Add(storedRecurringTask);
                     }
@@ -48,8 +49,6 @@ namespace Biovation.Server.Managers
             {
                 Logger.Log(exception);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -23,11 +23,12 @@ namespace Biovation.Server.Managers
             _scheduler = schedulerFactory.GetScheduler().Result;
         }
 
-        public Task ScheduleTasks(List<TaskInfo> scheduledTasks)
+        public async Task ScheduleTasks(List<TaskInfo> scheduledTasks)
         {
             try
             {
-                var storedScheduledTasks = _taskService.GetTasks(taskStatusCodes: new List<string> { TaskStatuses.ScheduledCode })?.Data?.Data;
+                var storedScheduledTasks =
+                    (await _taskService.GetTasks(taskStatusCodes: new List<string> {TaskStatuses.ScheduledCode}))?.Data?.Data;
                 if (storedScheduledTasks != null)
                 {
                     var upcomingScheduledTasks = storedScheduledTasks.Where(task => task.DueDate >= DateTimeOffset.Now);
@@ -38,7 +39,7 @@ namespace Biovation.Server.Managers
                         var job = JobBuilder.Create<ExecuteScheduledTaskJob>().WithIdentity(storedScheduledTask.Id.ToString(), "ScheduledTasks")
                             .UsingJobData("TaskInfo", JsonConvert.SerializeObject(storedScheduledTask)).Build();
                         var trigger = TriggerBuilder.Create().StartAt(storedScheduledTask.DueDate).Build();
-                        _scheduler.ScheduleJob(job, trigger);
+                        await _scheduler.ScheduleJob(job, trigger);
 
                         scheduledTasks.Add(storedScheduledTask);
                     }
@@ -48,8 +49,6 @@ namespace Biovation.Server.Managers
             {
                 Logger.Log(exception);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

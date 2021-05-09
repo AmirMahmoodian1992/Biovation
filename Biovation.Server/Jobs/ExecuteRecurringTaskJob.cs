@@ -24,7 +24,7 @@ namespace Biovation.Server.Jobs
             _taskStatuses = taskStatuses;
         }
 
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
         {
             try
             {
@@ -43,21 +43,19 @@ namespace Biovation.Server.Jobs
                     Parent = recurringTask
                 };
 
-                var insertionResult = _taskService.InsertTask(task);
+                var insertionResult = await _taskService.InsertTask(task);
                 if (insertionResult.Success)
                 {
                     task.Id = (int)insertionResult.Id;
                     var restRequest = new RestRequest($"{task.DeviceBrand.Name}/{task.DeviceBrand.Name}Task/ExecuteTask", Method.POST);
                     restRequest.AddJsonBody(task);
-                    return _restClient.ExecuteAsync(restRequest);
+                    await _restClient.ExecuteAsync(restRequest);
                 }
             }
             catch (Exception exception)
             {
                 _logger.LogWarning(exception, exception.Message);
             }
-
-            return Task.CompletedTask;
         }
     }
 }
