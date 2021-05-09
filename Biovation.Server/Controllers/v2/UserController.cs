@@ -506,7 +506,7 @@ namespace Biovation.Server.Controllers.v2
 
                     // for rolling back on problem occuring
                     var userExistingDevices = new List<DeviceBasicInfo>();
-                    var userGroupsOfUser = _userGroupService.UserGroups(token: token)?.Data?.Data;
+                    var userGroupsOfUser = (await _userGroupService.UserGroups(token: token))?.Data?.Data;
                     foreach (var userGroup in userGroupsOfUser)
                     {
                         var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id, token: token).Data.Data;
@@ -536,7 +536,7 @@ namespace Biovation.Server.Controllers.v2
                             {
                                 var userGroupMember =
                                     userGroup.Users.FirstOrDefault(userGroupMem => userGroupMem.UserId == userId);
-                                _userGroupService.AddUserGroup(userGroupMember, token);
+                                await _userGroupService.AddUserGroup(userGroupMember, token);
                             }
                             catch (Exception)
                             {
@@ -549,7 +549,7 @@ namespace Biovation.Server.Controllers.v2
 
                     foreach (var userGroupId in userGroupIdList[userId])
                     {
-                        _userGroupService.AddUserGroup(new UserGroupMember
+                        await _userGroupService.AddUserGroup(new UserGroupMember
                         {
                             UserId = userId,
                             GroupId = userGroupId,
@@ -694,55 +694,52 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPatch]
         [Route("UpdateUserGroupsMember")]
-        private Task<ResultViewModel> UpdateUserGroupMember(long[] userIds, [FromBody] List<UserGroupMember> lstToAdd)
+        private async Task<ResultViewModel> UpdateUserGroupMember(long[] userIds, [FromBody] List<UserGroupMember> lstToAdd)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() =>
+            try
             {
-                try
+                var token = HttpContext.Items["Token"] as string;
+                var count = userIds.Length;
+                var groupIds = new List<int>();
+                for (var i = 0; i < count; i++)
                 {
-                    var count = userIds.Length;
-                    var groupIds = new List<int>();
-                    for (var i = 0; i < count; i++)
-                    {
-                        var group = _userGroupService.UserGroups(token: token)?.Data?.Data;
-                        groupIds.AddRange(group.Select(s => s.Id));
-                    }
-
-                    if (groupIds.Any())
-                    {
-                        var grpIds = string.Join(",", groupIds.Distinct());
-
-                        var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
-                        restRequest.AddQueryParameter("userGroupId", grpIds);
-                        restRequest.AddHeader("Authorization", token!);
-                        var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
-
-                        var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
-                        foreach (var members in grpMember)
-                        {
-                            var strWp = JsonConvert.SerializeObject(members);
-                            var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
-                            var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
-                            var node = xDocument?.OuterXml;
-
-                            //_userGroupService.ModifyUserGroupMember(node, members.Key);
-                        }
-                    }
-
-                    foreach (var userMember in lstToAdd)
-                    {
-                        _userGroupService.AddUserGroup(userMember, token);
-                    }
-
-                    return new ResultViewModel { Success = true };
+                    var group = (await _userGroupService.UserGroups(token: token))?.Data?.Data;
+                    groupIds.AddRange(group.Select(s => s.Id));
                 }
-                catch (Exception exception)
+
+                if (groupIds.Any())
                 {
-                    Logger.Log(exception, "Error on Get User Group Member");
-                    return new ResultViewModel { Success = true };
+                    var grpIds = string.Join(",", groupIds.Distinct());
+
+                    var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
+                    restRequest.AddQueryParameter("userGroupId", grpIds);
+                    restRequest.AddHeader("Authorization", token!);
+                    var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
+
+                    var grpMember = member.Data.GroupBy(g => g.GroupId).ToList();
+                    foreach (var members in grpMember)
+                    {
+                        var strWp = JsonConvert.SerializeObject(members);
+                        var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
+                        var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
+                        var node = xDocument?.OuterXml;
+
+                        //_userGroupService.ModifyUserGroupMember(node, members.Key);
+                    }
                 }
-            });
+
+                foreach (var userMember in lstToAdd)
+                {
+                    await _userGroupService.AddUserGroup(userMember, token);
+                }
+
+                return new ResultViewModel { Success = true };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, "Error on Get User Group Member");
+                return new ResultViewModel { Success = true };
+            }
         }
 
         [HttpDelete]

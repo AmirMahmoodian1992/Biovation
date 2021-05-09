@@ -35,10 +35,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id?}")]
-        public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup([FromRoute] int id = default)
+        public async Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroup([FromRoute] int id = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userGroupService.UserGroups(id, token));
+            return await _userGroupService.UserGroups(id, HttpContext.Items["Token"] as string);
         }
 
         //[HttpPost]
@@ -48,241 +47,232 @@ namespace Biovation.Server.Controllers.v2
         //}//TODO...
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
+        public async Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(async () =>
+            try
             {
-                try
+                var token = HttpContext.Items["Token"] as string;
+                if (userGroup is null)
+                    return new ResultViewModel
+                    { Success = false, Validate = 0, Code = 404, Message = "Null user group is provided!" };
+
+                var existingUserGroup = userGroup.Id == 0 ? null : (await _userGroupService.UserGroups(userGroup.Id, token))?.Data?.Data.FirstOrDefault();
+                if (existingUserGroup is null && userGroup.Id != 0)
                 {
-                    if (userGroup is null)
-                        return new ResultViewModel
-                        { Success = false, Validate = 0, Code = 404, Message = "Null user group is provided!" };
-
-                    var existingUserGroup = userGroup.Id == 0 ? null : _userGroupService.UserGroups(userGroup.Id, token: token)?.Data?.Data.FirstOrDefault();
-                    if (existingUserGroup is null && userGroup.Id != 0)
+                    return new ResultViewModel
                     {
-                        return new ResultViewModel
-                        {
-                            Validate = 0,
-                            Code = 400,
-                            Message = "Provided user group id is wrong, the user group does not exist."
-                        };
-                    }
+                        Validate = 0,
+                        Code = 400,
+                        Message = "Provided user group id is wrong, the user group does not exist."
+                    };
+                }
 
-                    var usersToDelete = existingUserGroup?.Users.ExceptBy(userGroup.Users, member => member.UserId).ToList() ?? new List<UserGroupMember>();
+                var usersToDelete = existingUserGroup?.Users.ExceptBy(userGroup.Users, member => member.UserId).ToList() ?? new List<UserGroupMember>();
 
-                    var usersToAdd = (existingUserGroup is null ? userGroup.Users :
-                        userGroup.Users?.ExceptBy(existingUserGroup.Users, member => member.UserId).ToList()) ?? new List<UserGroupMember>();
+                var usersToAdd = (existingUserGroup is null ? userGroup.Users :
+                    userGroup.Users?.ExceptBy(existingUserGroup.Users, member => member.UserId).ToList()) ?? new List<UserGroupMember>();
 
-                    var existingAuthorizedDevicesOfUserToDelete = new Dictionary<long, List<DeviceBasicInfo>>();
-                    var existingAuthorizedDevicesOfUserToAdd = new Dictionary<long, List<DeviceBasicInfo>>();
+                var existingAuthorizedDevicesOfUserToDelete = new Dictionary<long, List<DeviceBasicInfo>>();
+                var existingAuthorizedDevicesOfUserToAdd = new Dictionary<long, List<DeviceBasicInfo>>();
 
-                    var existingAuthorizedUsersOfDevicesToDelete = new Dictionary<int, List<UserGroupMember>>();
-                    var newAuthorizedUsersOfDevicesToDelete = new Dictionary<int, List<UserGroupMember>>();
+                var existingAuthorizedUsersOfDevicesToDelete = new Dictionary<int, List<UserGroupMember>>();
+                var newAuthorizedUsersOfDevicesToDelete = new Dictionary<int, List<UserGroupMember>>();
 
-                    var computeExistingDeletion = Task.Run(() => Parallel.ForEach(usersToDelete, user =>
+                var computeExistingDeletion = Task.Run(() => Parallel.ForEach(usersToDelete, user =>
+                {
+                    var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
+                    if (!existingAuthorizedDevicesOfUserToDelete.ContainsKey(user.UserId))
+                        existingAuthorizedDevicesOfUserToDelete.Add(user.UserId, new List<DeviceBasicInfo>());
+
+                    existingAuthorizedDevicesOfUserToDelete[user.UserId].AddRange(authorizedDevicesOfUser);
+
+                })).ContinueWith(_ =>
+                    Parallel.For(0, existingAuthorizedDevicesOfUserToDelete.Count, index =>
                     {
-                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
-                        if (!existingAuthorizedDevicesOfUserToDelete.ContainsKey(user.UserId))
-                            existingAuthorizedDevicesOfUserToDelete.Add(user.UserId, new List<DeviceBasicInfo>());
+                        var element = existingAuthorizedDevicesOfUserToDelete.ElementAt(index);
+                        var devices = element.Value.DistinctBy(device => device.DeviceId).ToList();
+                        existingAuthorizedDevicesOfUserToDelete[element.Key] = devices;
+                    }));
 
-                        existingAuthorizedDevicesOfUserToDelete[user.UserId].AddRange(authorizedDevicesOfUser);
+                var existingAuthorizedUsersOfDevicesToAdd = new Dictionary<int, List<UserGroupMember>>();
+                var newAuthorizedUsersOfDevicesToAdd = new Dictionary<int, List<UserGroupMember>>();
 
-                    })).ContinueWith(_ =>
-                        Parallel.For(0, existingAuthorizedDevicesOfUserToDelete.Count, index =>
+                var computeExistingAddition = Task.Run(() => Parallel.ForEach(usersToAdd, user =>
+                {
+                    var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
+                    if (!existingAuthorizedDevicesOfUserToAdd.ContainsKey(user.UserId))
+                        existingAuthorizedDevicesOfUserToAdd.Add(user.UserId, new List<DeviceBasicInfo>());
+
+                    existingAuthorizedDevicesOfUserToAdd[user.UserId].AddRange(authorizedDevicesOfUser);
+                })).ContinueWith(_ =>
+                    Parallel.For(0, existingAuthorizedDevicesOfUserToAdd.Count, index =>
+                    {
+                        var element = existingAuthorizedDevicesOfUserToAdd.ElementAt(index);
+                        var devices = element.Value.DistinctBy(device => device.DeviceId).ToList();
+                        existingAuthorizedDevicesOfUserToAdd[element.Key] = devices;
+                    }));
+
+                Task.WaitAll(computeExistingAddition, computeExistingDeletion);
+
+                var result = await _userGroupService.ModifyUserGroup(userGroup, token);
+                if (result.Validate != 1) return result;
+
+                var computeNewDeletion = Task.Run(() => Parallel.ForEach(usersToDelete, user =>
+                {
+                    var oldAuthorizedDevicesOfUser =
+                        existingAuthorizedDevicesOfUserToDelete.ContainsKey(user.UserId)
+                            ? existingAuthorizedDevicesOfUserToDelete[user.UserId]
+                            : new List<DeviceBasicInfo>();
+
+                    var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
+
+                    var computeNewStateTask = Task.Run(() => Parallel.ForEach(authorizedDevicesOfUser, device =>
+                    {
+                        lock (newAuthorizedUsersOfDevicesToDelete)
+                            if (!newAuthorizedUsersOfDevicesToDelete.ContainsKey(device.DeviceId))
+                                newAuthorizedUsersOfDevicesToDelete.Add(device.DeviceId,
+                                    new List<UserGroupMember>());
+
+                        newAuthorizedUsersOfDevicesToDelete[device.DeviceId].Add(user);
+                    }));
+
+                    var computeOldStateTask = Task.Run(() => Parallel.ForEach(oldAuthorizedDevicesOfUser, device =>
+                    {
+                        lock (existingAuthorizedUsersOfDevicesToDelete)
+                            if (!existingAuthorizedUsersOfDevicesToDelete.ContainsKey(device.DeviceId))
+                                existingAuthorizedUsersOfDevicesToDelete.Add(device.DeviceId,
+                                    new List<UserGroupMember>());
+
+                        existingAuthorizedUsersOfDevicesToDelete[device.DeviceId].Add(user);
+                    }));
+
+                    Task.WaitAll(computeOldStateTask, computeNewStateTask);
+
+                })).ContinueWith(_ =>
+                {
+                    var computeNewStateTask = Task.Run(() => Parallel.For(0, newAuthorizedUsersOfDevicesToDelete.Count,
+                        index =>
                         {
-                            var element = existingAuthorizedDevicesOfUserToDelete.ElementAt(index);
-                            var devices = element.Value.DistinctBy(device => device.DeviceId).ToList();
-                            existingAuthorizedDevicesOfUserToDelete[element.Key] = devices;
+                            var element = newAuthorizedUsersOfDevicesToDelete.ElementAt(index);
+                            var users = element.Value.DistinctBy(user => user.UserId).ToList();
+                            newAuthorizedUsersOfDevicesToDelete[element.Key] = users;
                         }));
 
-                    var existingAuthorizedUsersOfDevicesToAdd = new Dictionary<int, List<UserGroupMember>>();
-                    var newAuthorizedUsersOfDevicesToAdd = new Dictionary<int, List<UserGroupMember>>();
-
-                    var computeExistingAddition = Task.Run(() => Parallel.ForEach(usersToAdd, user =>
-                    {
-                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
-                        if (!existingAuthorizedDevicesOfUserToAdd.ContainsKey(user.UserId))
-                            existingAuthorizedDevicesOfUserToAdd.Add(user.UserId, new List<DeviceBasicInfo>());
-
-                        existingAuthorizedDevicesOfUserToAdd[user.UserId].AddRange(authorizedDevicesOfUser);
-                    })).ContinueWith(_ =>
-                        Parallel.For(0, existingAuthorizedDevicesOfUserToAdd.Count, index =>
-                        {
-                            var element = existingAuthorizedDevicesOfUserToAdd.ElementAt(index);
-                            var devices = element.Value.DistinctBy(device => device.DeviceId).ToList();
-                            existingAuthorizedDevicesOfUserToAdd[element.Key] = devices;
-                        }));
-
-                    Task.WaitAll(computeExistingAddition, computeExistingDeletion);
-
-                    var result = _userGroupService.ModifyUserGroup(userGroup, token);
-                    if (result.Validate != 1) return result;
-
-                    var computeNewDeletion = Task.Run(() => Parallel.ForEach(usersToDelete, user =>
-                    {
-                        var oldAuthorizedDevicesOfUser =
-                            existingAuthorizedDevicesOfUserToDelete.ContainsKey(user.UserId)
-                                ? existingAuthorizedDevicesOfUserToDelete[user.UserId]
-                                : new List<DeviceBasicInfo>();
-
-                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
-
-                        var computeNewStateTask = Task.Run(() => Parallel.ForEach(authorizedDevicesOfUser, device =>
-                        {
-                            lock (newAuthorizedUsersOfDevicesToDelete)
-                                if (!newAuthorizedUsersOfDevicesToDelete.ContainsKey(device.DeviceId))
-                                    newAuthorizedUsersOfDevicesToDelete.Add(device.DeviceId,
-                                        new List<UserGroupMember>());
-
-                            newAuthorizedUsersOfDevicesToDelete[device.DeviceId].Add(user);
-                        }));
-
-                        var computeOldStateTask = Task.Run(() => Parallel.ForEach(oldAuthorizedDevicesOfUser, device =>
-                        {
-                            lock (existingAuthorizedUsersOfDevicesToDelete)
-                                if (!existingAuthorizedUsersOfDevicesToDelete.ContainsKey(device.DeviceId))
-                                    existingAuthorizedUsersOfDevicesToDelete.Add(device.DeviceId,
-                                        new List<UserGroupMember>());
-
-                            existingAuthorizedUsersOfDevicesToDelete[device.DeviceId].Add(user);
-                        }));
-
-                        Task.WaitAll(computeOldStateTask, computeNewStateTask);
-
-                    })).ContinueWith(_ =>
-                    {
-                        var computeNewStateTask = Task.Run(() => Parallel.For(0, newAuthorizedUsersOfDevicesToDelete.Count,
+                    var computeOldStateTask = Task.Run(() => Parallel.For(0, existingAuthorizedUsersOfDevicesToDelete.Count,
                             index =>
                             {
-                                var element = newAuthorizedUsersOfDevicesToDelete.ElementAt(index);
+                                var element = existingAuthorizedUsersOfDevicesToDelete.ElementAt(index);
                                 var users = element.Value.DistinctBy(user => user.UserId).ToList();
-                                newAuthorizedUsersOfDevicesToDelete[element.Key] = users;
+                                existingAuthorizedUsersOfDevicesToDelete[element.Key] = users;
                             }));
 
-                        var computeOldStateTask = Task.Run(() => Parallel.For(0, existingAuthorizedUsersOfDevicesToDelete.Count,
-                                index =>
-                                {
-                                    var element = existingAuthorizedUsersOfDevicesToDelete.ElementAt(index);
-                                    var users = element.Value.DistinctBy(user => user.UserId).ToList();
-                                    existingAuthorizedUsersOfDevicesToDelete[element.Key] = users;
-                                }));
+                    Task.WaitAll(computeOldStateTask, computeNewStateTask);
+                });
 
-                        Task.WaitAll(computeOldStateTask, computeNewStateTask);
-                    });
-
-                    var computeNewAddition = Task.Run(() => Parallel.ForEach(usersToAdd, user =>
+                var computeNewAddition = Task.Run(() => Parallel.ForEach(usersToAdd, user =>
+                {
+                    var oldAuthorizedDevicesOfUser =
+                        existingAuthorizedDevicesOfUserToAdd.ContainsKey(user.UserId)
+                            ? existingAuthorizedDevicesOfUserToAdd[user.UserId]
+                            : new List<DeviceBasicInfo>();
+                    var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
+                    var computeNewStateTask = Task.Run(() => Parallel.ForEach(authorizedDevicesOfUser, device =>
                     {
-                        var oldAuthorizedDevicesOfUser =
-                            existingAuthorizedDevicesOfUserToAdd.ContainsKey(user.UserId)
-                                ? existingAuthorizedDevicesOfUserToAdd[user.UserId]
-                                : new List<DeviceBasicInfo>();
-                        var authorizedDevicesOfUser = _userService.GetAuthorizedDevicesOfUser((int)(user.UserId), token).Data;
-                        var computeNewStateTask = Task.Run(() => Parallel.ForEach(authorizedDevicesOfUser, device =>
-                        {
-                            lock (newAuthorizedUsersOfDevicesToAdd)
-                                if (!newAuthorizedUsersOfDevicesToAdd.ContainsKey(device.DeviceId))
-                                    newAuthorizedUsersOfDevicesToAdd.Add(device.DeviceId, new List<UserGroupMember>());
+                        lock (newAuthorizedUsersOfDevicesToAdd)
+                            if (!newAuthorizedUsersOfDevicesToAdd.ContainsKey(device.DeviceId))
+                                newAuthorizedUsersOfDevicesToAdd.Add(device.DeviceId, new List<UserGroupMember>());
 
-                            newAuthorizedUsersOfDevicesToAdd[device.DeviceId].Add(user);
+                        newAuthorizedUsersOfDevicesToAdd[device.DeviceId].Add(user);
+                    }));
+
+                    var computeOldStateTask = Task.Run(() => Parallel.ForEach(oldAuthorizedDevicesOfUser, device =>
+                    {
+                        lock (existingAuthorizedUsersOfDevicesToAdd)
+                            if (!existingAuthorizedUsersOfDevicesToAdd.ContainsKey(device.DeviceId))
+                                existingAuthorizedUsersOfDevicesToAdd.Add(device.DeviceId,
+                                    new List<UserGroupMember>());
+
+                        existingAuthorizedUsersOfDevicesToAdd[device.DeviceId].Add(user);
+                    }));
+
+                    Task.WaitAll(computeOldStateTask, computeNewStateTask);
+                })).ContinueWith(_ =>
+                {
+                    var computeNewStateTask = Task.Run(() => Parallel.For(0, newAuthorizedUsersOfDevicesToAdd.Count,
+                        index =>
+                        {
+                            var element = newAuthorizedUsersOfDevicesToAdd.ElementAt(index);
+                            var users = element.Value.DistinctBy(user => user.UserId).ToList();
+                            newAuthorizedUsersOfDevicesToAdd[element.Key] = users;
                         }));
 
-                        var computeOldStateTask = Task.Run(() => Parallel.ForEach(oldAuthorizedDevicesOfUser, device =>
-                        {
-                            lock (existingAuthorizedUsersOfDevicesToAdd)
-                                if (!existingAuthorizedUsersOfDevicesToAdd.ContainsKey(device.DeviceId))
-                                    existingAuthorizedUsersOfDevicesToAdd.Add(device.DeviceId,
-                                        new List<UserGroupMember>());
-
-                            existingAuthorizedUsersOfDevicesToAdd[device.DeviceId].Add(user);
-                        }));
-
-                        Task.WaitAll(computeOldStateTask, computeNewStateTask);
-                    })).ContinueWith(_ =>
-                    {
-                        var computeNewStateTask = Task.Run(() => Parallel.For(0, newAuthorizedUsersOfDevicesToAdd.Count,
+                    var computeOldStateTask = Task.Run(() =>
+                        Parallel.For(0, existingAuthorizedUsersOfDevicesToAdd.Count,
                             index =>
                             {
-                                var element = newAuthorizedUsersOfDevicesToAdd.ElementAt(index);
+                                var element = existingAuthorizedUsersOfDevicesToAdd.ElementAt(index);
                                 var users = element.Value.DistinctBy(user => user.UserId).ToList();
-                                newAuthorizedUsersOfDevicesToAdd[element.Key] = users;
+                                existingAuthorizedUsersOfDevicesToAdd[element.Key] = users;
                             }));
 
-                        var computeOldStateTask = Task.Run(() =>
-                            Parallel.For(0, existingAuthorizedUsersOfDevicesToAdd.Count,
-                                index =>
-                                {
-                                    var element = existingAuthorizedUsersOfDevicesToAdd.ElementAt(index);
-                                    var users = element.Value.DistinctBy(user => user.UserId).ToList();
-                                    existingAuthorizedUsersOfDevicesToAdd[element.Key] = users;
-                                }));
+                    Task.WaitAll(computeOldStateTask, computeNewStateTask);
+                });
 
-                        Task.WaitAll(computeOldStateTask, computeNewStateTask);
-                    });
+                Task.WaitAll(computeNewAddition, computeNewDeletion);
 
-                    Task.WaitAll(computeNewAddition, computeNewDeletion);
-
-                    foreach (var deviceKey in existingAuthorizedUsersOfDevicesToDelete.Keys)
-                    {
-                        await Task.Run(async () =>
-                        {
-                            var device = (await _deviceService.GetDevice(deviceKey, token: token)).Data;
-                            var usersToDeleteFromDevice = (newAuthorizedUsersOfDevicesToDelete.ContainsKey(deviceKey) && newAuthorizedUsersOfDevicesToDelete[deviceKey]?.Count > 0
-                                ? existingAuthorizedUsersOfDevicesToDelete[deviceKey]
-                                    .ExceptBy(newAuthorizedUsersOfDevicesToDelete[deviceKey], member => member.UserId)
-                                : existingAuthorizedUsersOfDevicesToDelete[deviceKey]).Select(user =>
-                                new User { Code = user.UserCode, UserName = user.UserName });
-
-                            var deleteUserRestRequest =
-                                new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
-                                    Method.POST);
-                            deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                            deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Code));
-                            /*var deletionResult =*/
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
-                            await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
-
-                            //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
-                        });
-                    }
-
-                    foreach (var deviceKey in newAuthorizedUsersOfDevicesToAdd.Keys)
-                    {
-                        await Task.Run(async () =>
-                        {
-                            var device = (await _deviceService.GetDevice(deviceKey, token: token)).Data;
-                            var usersToDeleteFromDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
-                                ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
-                                    .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
-                                : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
-                                new User { Code = user.UserCode, UserName = user.UserName });
-
-                            var sendUserRestRequest =
-                                new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
-                            sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                            sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
-                            /*var additionResult =*/
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                            }
-                            await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
-
-                            //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
-                        });
-                    }
-                    return result;
-                }
-                catch (Exception exception)
+                foreach (var deviceKey in existingAuthorizedUsersOfDevicesToDelete.Keys)
                 {
-                    Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+                    await Task.Run(async () =>
+                    {
+                        var device = (await _deviceService.GetDevice(deviceKey, token)).Data;
+                        var usersToDeleteFromDevice = (newAuthorizedUsersOfDevicesToDelete.ContainsKey(deviceKey) && newAuthorizedUsersOfDevicesToDelete[deviceKey]?.Count > 0
+                            ? existingAuthorizedUsersOfDevicesToDelete[deviceKey]
+                                .ExceptBy(newAuthorizedUsersOfDevicesToDelete[deviceKey], member => member.UserId)
+                            : existingAuthorizedUsersOfDevicesToDelete[deviceKey]).Select(user =>
+                            new User { Code = user.UserCode, UserName = user.UserName });
+
+                        var deleteUserRestRequest =
+                            new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
+                                Method.POST);
+                        deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
+                        deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Code));
+                        /*var deletionResult =*/
+                            deleteUserRestRequest.AddHeader("Authorization", token!);
+                        await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
+
+                        //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
+                    });
                 }
-            });
+
+                foreach (var deviceKey in newAuthorizedUsersOfDevicesToAdd.Keys)
+                {
+                    await Task.Run(async () =>
+                    {
+                        var device = (await _deviceService.GetDevice(deviceKey, token)).Data;
+                        var usersToDeleteFromDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
+                            ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
+                                .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
+                            : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
+                            new User { Code = user.UserCode, UserName = user.UserName });
+
+                        var sendUserRestRequest =
+                            new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
+                        sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
+                        sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
+                        /*var additionResult =*/
+                            sendUserRestRequest.AddHeader("Authorization", token!);
+                        await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
+
+                        //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = deviceId, Validate = 0, Message = result.ErrorMessage } };
+                    });
+                }
+                return result;
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+            }
         }
 
         [HttpDelete]
@@ -364,7 +354,7 @@ namespace Biovation.Server.Controllers.v2
             try
             {
                 var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
-                var userGroup = _userGroupService.UserGroups(userGroupId: id, token: token)?.Data?.Data.FirstOrDefault();
+                var userGroup = (await _userGroupService.UserGroups(id, token))?.Data?.Data.FirstOrDefault();
                 if (userGroup is null || deviceBrands is null) return new ResultViewModel { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = id };
                 foreach (var userGroupMember in userGroup.Users)
                 {
@@ -376,10 +366,7 @@ namespace Biovation.Server.Controllers.v2
                             new RestRequest(
                                 $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                 Method.POST);
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
+                            restRequest.AddHeader("Authorization", token!);
 
                         restRequest.AddJsonBody(user);
                         await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).ConfigureAwait(false);
@@ -397,17 +384,15 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("SyncUserGroupMember")]
-        public Task<ResultViewModel> SyncUserGroupMember([FromBody] string listUsers = default)
+        public async Task<ResultViewModel> SyncUserGroupMember([FromBody] string listUsers = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() =>
-            {
                 try
                 {
+            var token = HttpContext.Items["Token"] as string;
                     var xml = $"{{Users: {listUsers} }}";
 
                     var xmlObject = JsonConvert.DeserializeXmlNode(xml, "Root");
-                    var firstStep = _userGroupService.SyncUserGroupMember(xmlObject?.OuterXml, token);
+                    var firstStep = await _userGroupService.SyncUserGroupMember(xmlObject?.OuterXml, token);
 
                     //if (firstStep.Validate == 1)
                     //{
@@ -427,7 +412,6 @@ namespace Biovation.Server.Controllers.v2
                     Logger.Log(e.Message);
                     return new ResultViewModel { Validate = 0, Message = "SyncUserGroupMember Failed." };
                 }
-            });
         }
     }
 }
