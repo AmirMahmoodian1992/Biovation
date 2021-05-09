@@ -98,7 +98,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var result = _userService.ModifyUser(user, token);
 
-                await Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                     if (deviceBrands is null)
@@ -110,8 +110,7 @@ namespace Biovation.Server.Controllers.v2
                         restRequest.AddHeader("Authorization", token!);
                         await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                     }
-                });
-
+                }).ConfigureAwait(false);
 
                 return result;
             }
@@ -157,7 +156,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var result = _userService.ModifyUser(user, token);
 
-                await Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                     if (deviceBrands is null)
@@ -169,8 +168,7 @@ namespace Biovation.Server.Controllers.v2
                         restRequest.AddHeader("Authorization", token!);
                         await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                     }
-                });
-
+                }).ConfigureAwait(false);
 
                 return result;
             }
@@ -197,10 +195,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}/FingerTemplates")]
-        public Task<ResultViewModel<PagingResult<FingerTemplate>>> GetFingerTemplateByUserId([FromRoute] int id = default, string fingerTemplateType = default, int templateIndex = default, int pageNumber = default, int pageSize = default)
+        public async Task<ResultViewModel<PagingResult<FingerTemplate>>> GetFingerTemplateByUserId([FromRoute] int id = default, string fingerTemplateType = default, int templateIndex = default, int pageNumber = default, int pageSize = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _fingerTemplateService.FingerTemplates(id, templateIndex, fingerTemplateType, pageNumber, pageSize, token));
+            return await _fingerTemplateService.FingerTemplates(id, templateIndex, fingerTemplateType, pageNumber, pageSize, HttpContext.Items["Token"] as string));
         }
 
         [HttpPost]
@@ -212,10 +209,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPatch]
         [Route("{id}/FingerTemplate")]
-        public Task<ResultViewModel> ModifyUserFingerTemplate([FromRoute] int id, [FromBody] FingerTemplate fingerTemplate = default)
+        public async Task<ResultViewModel> ModifyUserFingerTemplate([FromRoute] int id, [FromBody] FingerTemplate fingerTemplate = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _fingerTemplateService.ModifyFingerTemplate(fingerTemplate, token));
+            return await _fingerTemplateService.ModifyFingerTemplate(fingerTemplate, HttpContext.Items["Token"] as string);
         }
 
         [HttpDelete]

@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
 
@@ -23,7 +24,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<PagingResult<FingerTemplate>> FingerTemplates(int userId, int templateIndex,
+        public async Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex,
             string fingerTemplateType, int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/FingerTemplate", Method.GET);
@@ -33,8 +34,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<FingerTemplate>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<FingerTemplate>>>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel<PagingResult<Lookup>> GetFingerTemplateTypes(string brandId, string token = default)
@@ -57,14 +58,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate, string token = default)
+        public async Task<ResultViewModel> ModifyFingerTemplate(FingerTemplate fingerTemplate, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/FingerTemplate", Method.PATCH);
             restRequest.AddJsonBody(fingerTemplate);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel DeleteFingerTemplate(int userId, int fingerIndex, string token = default)
