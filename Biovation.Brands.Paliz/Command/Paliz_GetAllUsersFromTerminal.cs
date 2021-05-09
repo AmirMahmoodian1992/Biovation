@@ -85,7 +85,6 @@ namespace Biovation.Brands.Paliz.Command
                             Code = Convert.ToInt64(TaskStatuses.DoneCode)
                         };
                 }
-                Logger.Log($"  +Cannot retrieve users from device: {Code}.\n");
                 return new ResultViewModel<List<User>>
                 {
                     Code = Convert.ToInt64(TaskStatuses.FailedCode), 
@@ -231,9 +230,10 @@ namespace Biovation.Brands.Paliz.Command
             UserInfoModel[] userInfoModels = { };
 
             // First check if the users are fetched, then add them to the users list in order to sent them in the view model.
-            if (args.Result || args.Users != null)
+            if (args.Result && args.Users != null)
             {
                 userInfoModels = args.Users.UserInfoModels;
+                _users = new List<User>();
                 foreach (var userInfoModel in userInfoModels)
                 {
                     _users.Add(new User
@@ -256,10 +256,12 @@ namespace Biovation.Brands.Paliz.Command
 
             if (_getAllUsersResult.Result == false)
             {
+                Logger.Log($"  +Cannot retrieve users from device: {Code}.\n");
                 return;
             }
+            Logger.Log($"  +Successfully retrieved users from device: {Code}.\n");
 
-            for(var i = 0; userInfoModels.Length > 0; ++i)
+            for (var i = 0; userInfoModels.Length > 0; ++i)
             {
                 var existingUser = _userService.GetUsers(code: _users[i].Code)?.Data?.Data?.FirstOrDefault();
                 if (existingUser != null)

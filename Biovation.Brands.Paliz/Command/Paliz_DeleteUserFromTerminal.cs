@@ -85,7 +85,6 @@ namespace Biovation.Brands.Paliz.Command
                 {
                     return new ResultViewModel
                     { 
-                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
                         Id = TerminalId,
                         Message = $"  +User {UserId} successfully deleted from device: {Code}.\n",
                         Validate = 1
@@ -112,6 +111,7 @@ namespace Biovation.Brands.Paliz.Command
             _userDeletionResult = args;
             if (_userDeletionResult.Result == false)
             {
+                Logger.Log($"  +Cannot delete user {UserId} from device: {Code}.\n");
                 return;
             }
             Logger.Log($"  +User {UserId} successfully deleted from device: {Code}.\n");

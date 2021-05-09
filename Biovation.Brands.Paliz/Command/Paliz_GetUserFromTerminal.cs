@@ -34,6 +34,7 @@ namespace Biovation.Brands.Paliz.Command
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
+
         public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
             , DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager
             , FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService
@@ -81,16 +82,15 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(GetDescription());
 
                 // Wait for the task to return its execution result in the callback method.
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(500);
                 while (_getUserResult == null)
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(500);
                 }
 
                 _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
                 if (_getUserResult.Result)
                 {
-                    Logger.Log($"  +User {UserId} successfully retrieved from device: {Code}.\n");
                     return new ResultViewModel
                     {
                         Code = Convert.ToInt64(TaskStatuses.DoneCode),
@@ -99,7 +99,6 @@ namespace Biovation.Brands.Paliz.Command
                         Validate = 1
                     };
                 }
-                Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}.\n");
                 return new ResultViewModel
                 {
                     Code = Convert.ToInt64(TaskStatuses.FailedCode),
@@ -238,8 +237,10 @@ namespace Biovation.Brands.Paliz.Command
             _getUserResult = args;
             if (_getUserResult.Result == false)
             {
+                Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}.\n");
                 return;
             }
+            Logger.Log($"  +User {UserId} successfully retrieved from device: {Code}.\n");
 
             var userInfoModel = args.UserInfoModel;
             var user = new User

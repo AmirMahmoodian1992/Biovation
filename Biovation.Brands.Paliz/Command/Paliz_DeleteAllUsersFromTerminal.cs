@@ -87,7 +87,6 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.DeleteAllUsersEvent -= DeleteAllUsersEventCallBack;
                 if (_allUsersDeletionResult.Result)
                 {
-                    Logger.Log($"  +Users successfully deleted from device: {Code}.\n");
                     return new ResultViewModel
                     {
                         Code = Convert.ToInt64(TaskStatuses.DoneCode),
@@ -96,7 +95,7 @@ namespace Biovation.Brands.Paliz.Command
                         Validate = 1
                     };
                 }
-                Logger.Log($"  +Cannot delete all users from device: {Code}.\n");
+
                 return new ResultViewModel
                 {
                     Code = Convert.ToInt64(TaskStatuses.FailedCode),
@@ -118,8 +117,11 @@ namespace Biovation.Brands.Paliz.Command
             _allUsersDeletionResult = args;
             if (_allUsersDeletionResult.Result == false)
             {
+                Logger.Log($"  +Cannot delete all users from device: {Code}.\n");
                 return;
             }
+
+            Logger.Log($"  +Users successfully deleted from device: {Code}.\n");
 
             var log = new Log
             {
