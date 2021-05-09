@@ -22,12 +22,12 @@ namespace Biovation.Service.Api.v1
 
         public User FindUserByCardNumber(string cardNumber = default, string token = default)
         {
-            return _userCardRepository.FindUserByCardNumber(cardNumber, token)?.Data ?? new User();
+            return _userCardRepository.FindUserByCardNumber(cardNumber, token).Result?.Data ?? new User();
         }
 
         public ResultViewModel ModifyUserCard(UserCard card = default, string token = default)
         {
-            return _userCardRepository.ModifyUserCard(card, token);
+            return _userCardRepository.ModifyUserCard(card, token).Result;
         }
 
         public async Task<ResultViewModel> DeleteUserCard(int id = default, string token = default)

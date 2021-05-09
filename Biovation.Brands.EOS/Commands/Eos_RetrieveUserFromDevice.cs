@@ -133,7 +133,7 @@ namespace Biovation.Brands.Eos.Commands
                     };
                 }
 
-                _userService.ModifyUser(user);
+                _userService.ModifyUser(user).Wait();
                 user.Id = _userService.GetUsers(code: user.Code).Result?.Data?.Data.FirstOrDefault()?.Id ?? -1;
                 if (user.Id == -1)
                     return new ResultViewModel { Id = deviceId, Message = "Error on adding user to database", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
@@ -155,7 +155,7 @@ namespace Biovation.Brands.Eos.Commands
                                     //UserId = userOfDevice.Id
                                     UserId = user.Id
                                 };
-                                _userCardService.ModifyUserCard(card);
+                                _userCardService.ModifyUserCard(card).Wait();
                             }
                     }
                 }

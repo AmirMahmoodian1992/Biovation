@@ -26,10 +26,9 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyUserCard([FromBody] UserCard card = default)
+        public async Task<ResultViewModel> ModifyUserCard([FromBody] UserCard card = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _userCardService.ModifyUserCard(card, token));
+            return await _userCardService.ModifyUserCard(card, HttpContext.Items["Token"] as string);
         }
 
 
