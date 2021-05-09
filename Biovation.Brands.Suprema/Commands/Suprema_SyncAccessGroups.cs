@@ -40,7 +40,7 @@ namespace Biovation.Brands.Suprema.Commands
         {
 
 
-            var accessGroups = _accessGroupService.GetAccessGroups()?.Data?.Data;
+            var accessGroups = _accessGroupService.GetAccessGroups().Result?.Data?.Data;
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
             //var o fflineEventService = new OfflineEventService();

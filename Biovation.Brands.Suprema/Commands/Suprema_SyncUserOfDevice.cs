@@ -78,7 +78,7 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var userAccess = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+            var userAccess = _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
 
             var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
             var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
