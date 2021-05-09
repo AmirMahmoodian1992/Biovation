@@ -109,7 +109,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("{id}/RetrieveLogs")]
-        public async Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, DateTime fromDate, DateTime toDate)
+        public async Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, DateTime? fromDate = null, DateTime? toDate = null)
         {
             try
             {
@@ -123,8 +123,32 @@ namespace Biovation.Server.Controllers.v2
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                 restRequest.AddQueryParameter("code", device.Code.ToString());
-                restRequest.AddQueryParameter("fromDate", fromDate.ToString(CultureInfo.InvariantCulture));
-                restRequest.AddQueryParameter("toDate", toDate.ToString(CultureInfo.InvariantCulture));
+                switch (fromDate.HasValue)
+                {
+                    case false when !toDate.HasValue:
+                        restRequest.AddQueryParameter("fromDate", new DateTime(1970, 1, 1).ToString(CultureInfo.InvariantCulture));
+                        restRequest.AddQueryParameter("toDate", DateTime.Now.AddYears(5).ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case false:
+                        restRequest.AddQueryParameter("fromDate", new DateTime(1970, 1, 1).ToString(CultureInfo.InvariantCulture));
+                        restRequest.AddQueryParameter("toDate", toDate.Value.ToString(CultureInfo.InvariantCulture));
+                        break;
+                    default:
+                        {
+                            if (toDate is null)
+                            {
+                                restRequest.AddQueryParameter("toDate", DateTime.Now.AddYears(5).ToString(CultureInfo.InvariantCulture));
+                                restRequest.AddQueryParameter("fromDate", fromDate.Value.ToString(CultureInfo.InvariantCulture));
+                            }
+                            else
+                            {
+                                restRequest.AddQueryParameter("fromDate", fromDate.Value.ToString(CultureInfo.InvariantCulture));
+                                restRequest.AddQueryParameter("toDate", toDate.Value.ToString(CultureInfo.InvariantCulture));
+                            }
+
+                            break;
+                        }
+                }
                 restRequest.AddHeader("Authorization", token!);
 
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -295,14 +319,14 @@ namespace Biovation.Server.Controllers.v2
         [HttpDelete]
         [Authorize]
         [Route("DeleteDevices")]
-        public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
+        public async Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
-            return Task.Run(() => _deviceService.DeleteDevices(ids, HttpContext.Items["Token"] as string));
+            return await _deviceService.DeleteDevices(ids, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
         [Authorize]
-        [Route("{Id}/readCardNumber")]
+        [Route("{Id}/ReadCardNumber")]
         public async Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
             return await _userCardService.ReadCardNumber(id, HttpContext.Items["Token"] as string);
@@ -501,31 +525,28 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("DeviceModels")]
-        public Task<ResultViewModel<PagingResult<DeviceModel>>> DeviceModels(int brandCode = default, string name = default, bool loadedBrandsOnly = true)
+        public async Task<ResultViewModel<PagingResult<DeviceModel>>> DeviceModels(int brandCode = default, string name = default, bool loadedBrandsOnly = true)
         {
-            return Task.Run(() =>
+            var deviceModels = await _deviceService.GetDeviceModels(brandId: brandCode, name: name);
+            if (!loadedBrandsOnly) return deviceModels;
+
+            var loadedDeviceModels = deviceModels.Data.Data?.Where(dm => _systemInformation.Services.Any(db =>
+                string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
+
+            return new ResultViewModel<PagingResult<DeviceModel>>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode, name: name);
-                if (!loadedBrandsOnly) return deviceModels;
-
-                var loadedDeviceModels = deviceModels.Data.Data?.Where(dm => _systemInformation.Services.Any(db =>
-                    string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
-
-                return new ResultViewModel<PagingResult<DeviceModel>>
+                Success = true,
+                Validate = 1,
+                Code = 200,
+                Data = new PagingResult<DeviceModel>
                 {
-                    Success = true,
-                    Validate = 1,
-                    Code = 200,
-                    Data = new PagingResult<DeviceModel>
-                    {
-                        Count = loadedDeviceModels?.Count ?? 0,
-                        From = 0,
-                        PageNumber = 0,
-                        PageSize = loadedDeviceModels?.Count ?? 0,
-                        Data = loadedDeviceModels
-                    }
-                };
-            });
+                    Count = loadedDeviceModels?.Count ?? 0,
+                    From = 0,
+                    PageNumber = 0,
+                    PageSize = loadedDeviceModels?.Count ?? 0,
+                    Data = loadedDeviceModels
+                }
+            };
         }
 
         //TODO make compatible with.net core

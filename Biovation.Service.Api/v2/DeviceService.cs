@@ -36,20 +36,20 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.GetDevice(id, token);
         }
 
-        public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = default, int brandId = default,
+        public async Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels(long id = default, int brandId = default,
             string name = null, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), name, pageNumber, pageSize, token);
+            return await _deviceRepository.GetDeviceModels(id, brandId.ToString(), name, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode, string token)
+        public async Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id, int authMode, string token)
         {
-            return _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode, token);
+            return await _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode, token);
         }
 
-        public ResultViewModel<DateTime> GetLastConnectedTime(int id, string token)
+        public async Task<ResultViewModel<DateTime>> GetLastConnectedTime(int id, string token)
         {
-            return _deviceRepository.GetLastConnectedTime((uint)id, token);
+            return await _deviceRepository.GetLastConnectedTime((uint)id, token);
         }
 
         public async Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
@@ -64,9 +64,9 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.AddDevice(device, token);
         }
 
-        public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default, string token = default)
+        public async Task<ResultViewModel> AddDeviceModel(DeviceModel deviceModel = default, string token = default)
         {
-            return _deviceRepository.AddDeviceModel(deviceModel, token);
+            return await _deviceRepository.AddDeviceModel(deviceModel, token);
         }
 
         public async Task<ResultViewModel> DeleteDevice(uint id, string token = default)
@@ -74,9 +74,9 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.DeleteDevice(id, token);
         }
 
-        public ResultViewModel DeleteDevices(List<uint> ids, string token = default)
+        public async Task<ResultViewModel> DeleteDevices(List<uint> ids, string token = default)
         {
-            return _deviceRepository.DeleteDevices(ids, token);
+            return await _deviceRepository.DeleteDevices(ids, token);
         }
 
         public async Task<ResultViewModel> ModifyDevice(DeviceBasicInfo device, string token = default)
@@ -84,14 +84,14 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.ModifyDevice(device, token);
         }
 
-        public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
+        public async Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.AddNetworkConnectionLog(device, token);
+            return await _deviceRepository.AddNetworkConnectionLog(device, token);
         }
 
-        public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int id, string token = default)
+        public async Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int id, string token = default)
         {
-            return _deviceRepository.GetAuthorizedUsersOfDevice(id, token);
+            return await _deviceRepository.GetAuthorizedUsersOfDevice(id, token);
         }
     }
 }

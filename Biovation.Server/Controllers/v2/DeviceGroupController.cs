@@ -74,7 +74,7 @@ namespace Biovation.Server.Controllers.v2
                         Task.Run(() => Parallel.ForEach(deletedDevices, device =>
                         {
                             var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token)?.Data?.Data;
+                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token).Result?.Data?.Data;
 
                             if (authorizedUsersOfDevice is null)
                                 return;
@@ -97,7 +97,7 @@ namespace Biovation.Server.Controllers.v2
                         Task.Run(() => Parallel.ForEach(addedDevices, device =>
                         {
                             var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token)?.Data?.Data;
+                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token).Result?.Data?.Data;
 
                             if (authorizedUsersOfDevice is null)
                                 return;
@@ -129,7 +129,7 @@ namespace Biovation.Server.Controllers.v2
                                 var device = (await _deviceService.GetDevice(deviceId, token: token)).Data;
 
                                 var newAuthorizedUsersOfDevice =
-                                    _deviceService.GetAuthorizedUsersOfDevice(deviceId, token)?.Data?.Data;
+                                   (await _deviceService.GetAuthorizedUsersOfDevice(deviceId, token))?.Data?.Data;
 
                                 var usersToDelete = newAuthorizedUsersOfDevice?.Count > 0
                                     ? existingAuthorizedUsersOfDeletedDevice[deviceId].ExceptBy(
@@ -160,7 +160,7 @@ namespace Biovation.Server.Controllers.v2
                                 var device = (await _deviceService.GetDevice(deviceId, token: token)).Data;
 
                                 var newAuthorizedUsersOfDevice =
-                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId, token)?.Data?.Data;
+                                        (await _deviceService.GetAuthorizedUsersOfDevice(deviceId, token))?.Data?.Data;
 
                                 var usersToAdd = existingAuthorizedUsersOfDeletedDevice.ContainsKey(deviceId) &&
                                                      existingAuthorizedUsersOfDeletedDevice[deviceId]?.Count > 0
