@@ -111,11 +111,9 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/RetrieveLogs")]
         public async Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, DateTime fromDate, DateTime toDate)
         {
-            var token = (string)HttpContext.Items["Token"];
             try
             {
-                //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
-                //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
+                var token = (string)HttpContext.Items["Token"];
                 var device = (await _deviceService.GetDevice(id, token)).Data;
                 if (device == null)
                 {
@@ -132,7 +130,7 @@ namespace Biovation.Server.Controllers.v2
                 var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 if (requestResult.StatusCode != HttpStatusCode.OK)
                     return new ResultViewModel
-                        {Id = device.DeviceId, Validate = 0, Message = requestResult.ErrorMessage};
+                    { Id = device.DeviceId, Validate = 0, Message = requestResult.ErrorMessage };
 
                 var resultData = requestResult.Data;
                 resultData.Id = device.DeviceId;
@@ -147,95 +145,92 @@ namespace Biovation.Server.Controllers.v2
             }
         }
 
+        //[HttpPost]
+        //[Authorize]
+        //[Route("RetrieveLogs")]
+        //public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
+        //{
+        //    var token = (string)HttpContext.Items["Token"];
+        //    return Task.Run(async () =>
+        //    {
+        //        try
+        //        {
+        //            var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
+
+        //            var result = new List<ResultViewModel>();
+        //            for (var i = 0; i < deviceId.Length; i++)
+        //            {
+        //                //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
+        //                //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
+        //                var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
+        //                if (device == null)
+        //                {
+        //                    Logger.Log($"DeviceId {deviceId[i]} does not exist.");
+        //                    result.Add(new ResultViewModel
+        //                    { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
+        //                    continue;
+        //                }
+
+        //                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
+        //                restRequest.AddQueryParameter("code", device.Code.ToString());
+        //                restRequest.AddQueryParameter("fromDate", fromDate);
+        //                restRequest.AddQueryParameter("toDate", toDate);
+        //                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+        //                {
+        //                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+        //                }
+        //                var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+        //                if (requestResult.StatusCode == HttpStatusCode.OK)
+        //                {
+        //                    var resultData = requestResult.Data;
+        //                    resultData.Id = device.DeviceId;
+        //                    resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
+        //                    result.Add(resultData);
+        //                }
+        //                else
+        //                    result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = requestResult.ErrorMessage });
+        //            }
+
+        //            return result;
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception);
+        //            return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
+        //        }
+        //    });
+        //}
+
         [HttpPost]
         [Authorize]
-        [Route("RetrieveLogs")]
-        public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
-            {
-                try
-                {
-                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
-
-                    var result = new List<ResultViewModel>();
-                    for (var i = 0; i < deviceId.Length; i++)
-                    {
-                        //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
-                        //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
-                        var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
-                            result.Add(new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
-                            continue;
-                        }
-
-                        var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
-                        var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        if (requestResult.StatusCode == HttpStatusCode.OK)
-                        {
-                            var resultData = requestResult.Data;
-                            resultData.Id = device.DeviceId;
-                            resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
-                            result.Add(resultData);
-                        }
-                        else
-                            result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = requestResult.ErrorMessage });
-                    }
-
-                    return result;
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
-                }
-            });
-        }
-
-        [HttpPost]
         [Route("{id}/ClearLogs")]
-        [Authorize]
-        public Task<ResultViewModel> ClearLogOfDevice([FromRoute] int id, string fromDate, string toDate)
+        public async Task<ResultViewModel> ClearLogOfDevice([FromRoute] int id, DateTime fromDate, DateTime toDate)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
+            try
             {
-                try
+                var token = (string)HttpContext.Items["Token"];
+                var device = (await _deviceService.GetDevice(id, token)).Data;
+                if (device == null)
                 {
-                    var device = (await _deviceService.GetDevice(id, token)).Data;
-                    if (device == null)
-                    {
-                        Logger.Log($"DeviceId {id} does not exist.");
-                        return new ResultViewModel
-                        { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
-                    }
-
-                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                    restRequest.AddQueryParameter("code", device.Code.ToString());
-                    restRequest.AddQueryParameter("fromDate", fromDate);
-                    restRequest.AddQueryParameter("toDate", toDate);
-
-                    var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
-                        return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                    return restResult.Data;
+                    Logger.Log($"DeviceId {id} does not exist.");
+                    return new ResultViewModel
+                    { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
                 }
-                catch (Exception)
-                {
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddQueryParameter("fromDate", fromDate.ToString(CultureInfo.InvariantCulture));
+                restRequest.AddQueryParameter("toDate", toDate.ToString(CultureInfo.InvariantCulture));
+
+                var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
                     return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                }
-            });
+                return restResult.Data;
+            }
+            catch (Exception)
+            {
+                return new ResultViewModel { Validate = 0, Message = "error", Id = id };
+            }
         }
 
         [HttpPost]
