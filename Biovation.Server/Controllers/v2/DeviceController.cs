@@ -429,6 +429,50 @@ namespace Biovation.Server.Controllers.v2
             return usersOfDevice;
         }
 
+        [HttpPost]
+        [Route("{id}/SendUsers")]
+        public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int id, [FromBody] List<long> userIds)
+        {
+            try
+            {
+                var token = HttpContext.Items["Token"] as string;
+                if (userIds == null || !userIds.Any())
+                {
+                    return new ResultViewModel { Validate = 0, Message = "User list is empty" };
+                }
+
+                var result = new List<ResultViewModel>();
+                if (id == 0)
+                    return
+                        result.Any(e => e.Success == false)
+                            ? new ResultViewModel { Validate = 0, Message = "" }
+                            : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" };
+
+                foreach (var userId in userIds)
+                {
+                    var deviceBasic = (await _deviceService.GetDevice(id, token)).Data;
+                    if (deviceBasic == null)
+                    {
+                        Logger.Log($"DeviceId {id} does not exist.");
+                        return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist." };
+                    }
+
+                    var restRequest = new RestRequest($"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice", Method.GET);
+                    restRequest.AddParameter("code", deviceBasic.Code);
+                    restRequest.AddParameter("userId", userId);
+                    restRequest.AddHeader("Authorization", token!);
+                    result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                }
+
+                return result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = "SendUserToDevice Failed." };
+            }
+        }
+
         [HttpDelete]
         [Authorize]
         [Route("{id}/RemoveUser/{userId}")]

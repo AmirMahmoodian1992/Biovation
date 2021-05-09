@@ -73,14 +73,14 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<DeviceBasicInfo>>>(restRequest);
             return requestResult.Result.Data;
         }
-        public ResultViewModel ModifyUser(User user, string token = default)
+        public async Task<ResultViewModel> ModifyUser(User user, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User", Method.PUT);
             restRequest.AddJsonBody(user);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
         public async Task<ResultViewModel> DeleteUser(long id = default, string token = default)
         {

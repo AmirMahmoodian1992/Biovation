@@ -96,7 +96,7 @@ namespace Biovation.Server.Controllers.v2
                 //        : user.TelNumber;
                 //}
 
-                var result = _userService.ModifyUser(user, token);
+                var result = await _userService.ModifyUser(user, token);
 
                 _ = Task.Run(async () =>
                 {
@@ -154,7 +154,7 @@ namespace Biovation.Server.Controllers.v2
                         : user.TelNumber;
                 }
 
-                var result = _userService.ModifyUser(user, token);
+                var result = await _userService.ModifyUser(user, token);
 
                 _ = Task.Run(async () =>
                 {
@@ -236,62 +236,6 @@ namespace Biovation.Server.Controllers.v2
         //public Task<IActionResult> DeleteUser([FromBody]List<int> ids = default)
         //{
         //    throw null;
-        //}
-
-
-        //if deviceId == 0 then send ids to all of device
-        //TODO: Fix signature !important
-        //[HttpPut]
-        //[Route("SendUsersToDevices")]
-        //public Task<ResultViewModel> SendUsersToDevice([FromBody] int[] ids, [FromBody] int[] deviceIds = default)
-        //{
-        //    var token = HttpContext.Items["Token"] as string;
-        //    try
-        //    {
-        //        if (!ids.Any())
-        //        {
-        //            return Task.Run(() => new ResultViewModel { Validate = 0, Message = "User is empty" });
-        //        }
-
-        //        var result = new List<ResultViewModel>();
-        //        if (deviceIds == null)
-        //            return Task.Run(() =>
-        //                result.Any(e => e.Success == false)
-        //                    ? new ResultViewModel { Validate = 0, Message = "" }
-        //                    : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
-        //        foreach (var device in deviceIds)
-        //        {
-        //            foreach (var id in ids)
-        //            {
-        //                var deviceBasic = _deviceService.GetDevice(device, token: token).Data;
-        //                if (deviceBasic == null)
-        //                {
-        //                    var msg = "DeviceId " + device + " does not exist.";
-        //                    Logger.Log(msg);
-        //                    return Task.Run(() => new ResultViewModel { Validate = 0, Message = msg });
-        //                }
-
-        //                var restRequest =
-        //                    new RestRequest(
-        //                        $"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
-        //                        Method.GET);
-        //                restRequest.AddParameter("code", deviceBasic.Code);
-        //                restRequest.AddParameter("userId", id);
-        //                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-        //                {
-        //                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-        //                }
-        //                result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
-        //            }
-        //        }
-
-        //        return Task.Run(() => result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" });
-        //    }
-        //    catch (Exception exception)
-        //    {
-        //        Logger.Log(exception);
-        //        return Task.Run(() => new ResultViewModel { Validate = 0, Message = "SendUserToDevice Failed." });
-        //    }
         //}
 
 
@@ -818,7 +762,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        [Route("UserFromDevice/{deviceId}")]
+        [Route("RetrieveUserFromDevice/{deviceId}")]
         public async Task<ResultViewModel> RetrieveUserDevice([FromRoute] int deviceId = default, [FromBody] JArray userId = default)
         {
             if (userId is null)
@@ -833,11 +777,11 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
-        [Route("UsersListFromDevice/{deviceId}")]
+        [Route("FetchUsersListFromDevice/{deviceId}")]
         public async Task<List<User>> RetrieveUsersOfDevice([FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/UsersListFromDevice", Method.POST);
+            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/FetchUsersList", Method.POST);
             restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<List<User>>(restRequest)).Data;
@@ -845,12 +789,24 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        [Route("UserToDevice/{id}")]
+        [Route("SendUserToDevice/{id}")]
         public async Task<ResultViewModel> SendUserToDevice([FromRoute] int id = default)
         {
             var token = HttpContext.Items["Token"] as string;
             var restRequest = new RestRequest("Biovation/api/v2/Device/UserToDevice/{id}", Method.POST);
             restRequest.AddUrlSegment("id", id);
+            restRequest.AddHeader("Authorization", token!);
+            return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
+        }
+
+        [HttpPost]
+        [Route("SendUsersToDevice/{deviceId}")]
+        public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int deviceId, [FromBody] List<long> userIds)
+        {
+            var token = HttpContext.Items["Token"] as string;
+            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/SendUsers", Method.POST);
+            restRequest.AddUrlSegment("id", deviceId);
+            restRequest.AddJsonBody(userIds);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
@@ -862,7 +818,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
-            var token = HttpContext.Items["Token"] as string;
+                var token = HttpContext.Items["Token"] as string;
                 var userIds = JsonConvert.DeserializeObject<int[]>(ids);
                 var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                 var length = userIds.Length;

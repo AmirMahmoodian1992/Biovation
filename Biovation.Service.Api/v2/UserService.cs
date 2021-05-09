@@ -33,9 +33,9 @@ namespace Biovation.Service.Api.v2
             return _userRepository.GetAuthorizedDevicesOfUser(userId,token);
         }
 
-        public ResultViewModel ModifyUser(User user = default, string token = default)
+        public async Task<ResultViewModel> ModifyUser(User user = default, string token = default)
         {
-            return _userRepository.ModifyUser(user, token);
+            return await _userRepository.ModifyUser(user, token);
         }
 
         public async Task<ResultViewModel> DeleteUser(int id = default, string token = default)
