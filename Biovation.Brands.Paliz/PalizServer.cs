@@ -51,7 +51,7 @@ namespace Biovation.Brands.Paliz
         public static bool GetLogTaskFinished = true;
         public static bool GetLogInPeriodTaskFinished = true;
         private PalizCodeMappings _palizCodeMappings;
-        private static Dictionary<uint, DeviceBasicInfo> _onlineDevices;
+        private readonly Dictionary<uint, DeviceBasicInfo> _onlineDevices;
         private static List<string> _onlineTerminals;
         internal readonly TiaraServerManager _serverManager;
         internal readonly object LoadFingerTemplateLock = new object();

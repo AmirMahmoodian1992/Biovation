@@ -33,11 +33,12 @@ namespace Biovation.Brands.Paliz.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
+        private readonly Dictionary<uint, DeviceBasicInfo> _onlineDevices;
 
         public PalizDeviceController(TaskService taskService, DeviceService deviceService,
             AccessGroupService accessGroupService, DeviceBrands deviceBrands,
             TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
-            BiovationConfigurationManager configurationManager)
+            BiovationConfigurationManager configurationManager, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             //_palizServer = palizServer;
             _taskService = taskService;
@@ -50,6 +51,7 @@ namespace Biovation.Brands.Paliz.Controllers
             _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
             _configurationManager = configurationManager;
+            _onlineDevices = onlineDevices;
         }
 
         [HttpGet]
@@ -60,21 +62,21 @@ namespace Biovation.Brands.Paliz.Controllers
             {
                 var onlineDevices = new List<DeviceBasicInfo>();
 
-                //foreach (var onlineDevice in _palizServer.GetOnlineDevices())
-                //{
-                //    if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
-                //    {
-                //        var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.PalizCode)
-                //            .FirstOrDefault();
-                //        if (device is null)
-                //            continue;
+                foreach (var onlineDevice in _onlineDevices)
+                {
+                    if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
+                    {
+                        var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.PalizCode)
+                            .FirstOrDefault();
+                        if (device is null)
+                            continue;
 
-                //        onlineDevice.Value.Name = device.Name;
-                //        onlineDevice.Value.DeviceId = device.DeviceId;
-                //    }
+                        onlineDevice.Value.Name = device.Name;
+                        onlineDevice.Value.DeviceId = device.DeviceId;
+                    }
 
-                //    onlineDevices.Add(onlineDevice.Value);
-                //}
+                    onlineDevices.Add(onlineDevice.Value);
+                }
 
                 return onlineDevices;
             });
