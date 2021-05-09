@@ -15,9 +15,6 @@ namespace Biovation.Brands.Paliz.Command
         private readonly LogEvents _logEvents;
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-        private readonly LogService _logService;
-        private readonly LogSubEvents _logSubEvents;
-        private readonly MatchingTypes _matchingTypes;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
@@ -25,19 +22,20 @@ namespace Biovation.Brands.Paliz.Command
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;
+        private readonly LogService _logService;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
 
-        public CommandFactory(PalizServer palizServer, LogService logService, LogEvents logEvents
-            , LogSubEvents logSubEvents, TaskService taskService, PalizCodeMappings palizCodeMappings
+        public CommandFactory(PalizServer palizServer, LogEvents logEvents
+            , TaskService taskService, PalizCodeMappings palizCodeMappings
             , DeviceService deviceService, FingerTemplateService fingerTemplateService
             , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
             , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes
-            , UserCardService userCardService)
+            , UserCardService userCardService, LogService logService, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
-            _logService = logService;
             _logEvents = logEvents;
-            _logSubEvents = logSubEvents;
             _taskService = taskService;
             _deviceService = deviceService;
             _fingerTemplateService = fingerTemplateService;
@@ -47,6 +45,9 @@ namespace Biovation.Brands.Paliz.Command
             _faceTemplateTypes = faceTemplateTypes;
             _userService = userService;
             _userCardService = userCardService;
+            _logService = logService;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -65,25 +66,33 @@ namespace Biovation.Brands.Paliz.Command
             switch (transferModelData.EventId)
             {
                 case CommandType.GetAllLogsOfDevice:
-                    //Gets all the device access(traffic) logs.
+                    // Gets all the device access(traffic) logs.
                     {
                         return new PalizGetAllTrafficLogs(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.GetLogsOfDeviceInPeriod:
-                    //Gets all the device access(traffic) logs in a period of time.
+                    // Gets all the device access(traffic) logs in a period of time.
                     {
                         return new PalizGetTrafficLogsInPeriod(transferModelData.Items, _palizServer, _taskService, _deviceService, _logEvents, _palizCodeMappings);
                     }
                 case CommandType.RetrieveUserFromDevice:
-                    //Gets a specific user info from device.
+                    // Gets a specific user info from device.
                     {
-                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
+                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager,
+                            _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
-                    //Gets a specific user info from device.
+                    // Gets a specific user info from device.
                     {
-                        return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager, _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes);
+                        return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
+                            _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
+                case CommandType.DeleteUserFromTerminal:
+                    // Deletes the user with a specified ID.
+                {
+                    return new PalizDeleteUserFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
+                        _matchingTypes);
+                }
                 case CommandType.GetUsersOfDevice:
                     //Gets users of devices
                     throw new NotImplementedException();

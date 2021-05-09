@@ -113,6 +113,24 @@ namespace Biovation.Brands.Paliz.Manager
 
                             break;
                         }
+                    case TaskItemTypes.DeleteUserFromTerminalCode:
+                    {
+                        try
+                        {
+                            executeTask = Task.Run(() =>
+                            {
+                                result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+
+                        }
+
+                        break;
+                    }
                     case TaskItemTypes.SendBlackListCode:
                         {
                             try
@@ -245,26 +263,6 @@ namespace Biovation.Brands.Paliz.Manager
                             catch (Exception exception)
                             {
                                 Logger.Log(exception);
-                            }
-
-                            break;
-                        }
-
-                    case TaskItemTypes.DeleteUserFromTerminalCode:
-                        {
-                            try
-                            {
-                                executeTask = Task.Run(() =>
-                                {
-                                    //result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                                    //    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                                    result = new ResultViewModel { Validate = 1 };
-                                });
-                            }
-                            catch (Exception exception)
-                            {
-                                Logger.Log(exception);
-
                             }
 
                             break;
