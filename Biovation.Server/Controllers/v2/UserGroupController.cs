@@ -287,33 +287,30 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUserGroup([FromRoute] int id = default)
+        public async Task<ResultViewModel> DeleteUserGroup([FromRoute] int id = default)
         {
-            return Task.Run(() => _userGroupService.DeleteUserGroup(id, HttpContext.Items["Token"] as string));
+            return await _userGroupService.DeleteUserGroup(id, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
         [Route("DeleteUserGroups")]
-        public Task<List<ResultViewModel>> DeleteUserGroups([FromBody] List<int> groupIds)
+        public async Task<List<ResultViewModel>> DeleteUserGroups([FromBody] List<int> groupIds)
         {
-            return Task.Run(() =>
+            try
             {
-                try
+                var resultList = new List<ResultViewModel>();
+                foreach (var group in groupIds)
                 {
-                    var resultList = new List<ResultViewModel>();
-                    foreach (var group in groupIds)
-                    {
-                        var result = _userGroupService.DeleteUserGroup(group, HttpContext.Items["Token"] as string);
-                        resultList.Add(result);
-                    }
+                    var result = await _userGroupService.DeleteUserGroup(group, HttpContext.Items["Token"] as string);
+                    resultList.Add(result);
+                }
 
-                    return resultList;
-                }
-                catch (Exception exception)
-                {
-                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
-                }
-            });
+                return resultList;
+            }
+            catch (Exception exception)
+            {
+                return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
+            }
         }
 
         //todo: re implement based on new signature
@@ -321,10 +318,10 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/UserGroupMember")]
         public async Task<ResultViewModel> ModifyUserGroupMember([FromRoute] int id, [FromBody] List<UserGroupMember> member)
         {
-            var token = HttpContext.Items["Token"] as string;
             //TODO we have problem here in convert string node to List<userGroupMemeber>????
             try
             {
+                var token = HttpContext.Items["Token"] as string;
                 if (member.Count == 0)
                     return new ResultViewModel { Validate = 1, Message = "Empty input" };
 

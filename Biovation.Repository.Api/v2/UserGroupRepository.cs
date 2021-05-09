@@ -2,6 +2,7 @@
 using Biovation.Domain;
 using RestSharp;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -63,14 +64,14 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
         }
-        public ResultViewModel DeleteUserGroup(int id = default, string token = default)
+        public async Task<ResultViewModel> DeleteUserGroup(int id = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/UserGroup/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)

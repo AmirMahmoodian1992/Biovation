@@ -41,7 +41,7 @@ namespace Biovation.Brands.Suprema.Commands
         {
             //var forceUpdate = new ForceUpdateService();
             //  var userService = new UserService();
-            var allUserEvents = _userService.GetUsers(getTemplatesData: false)?.Data?.Data;
+            var allUserEvents = _userService.GetUsers(getTemplatesData: false).Result?.Data?.Data;
             //forceUpdate.DeleteAllEvents(ConnectionType);
 
             #region sync users
@@ -82,7 +82,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             foreach (var @event in allUserEvents)
             {
-                var user = _userService.GetUsers(userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                var user = _userService.GetUsers(userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
 
                 if (user != null)
                 {
@@ -185,7 +185,7 @@ namespace Biovation.Brands.Suprema.Commands
             foreach (var @event in allUserEvents)
             {
                 //todo:usrcode
-                var userE = _userService.GetUsers(userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                var userE = _userService.GetUsers(userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
                 //var accessGroupService = new AccessGroupService();
                 if (userE != null)
                 {
@@ -277,7 +277,7 @@ namespace Biovation.Brands.Suprema.Commands
                         tasks.Add(Task.Run(() =>
                             {
                                 //todo:usercode
-                                var user = _userService.GetUsers(userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                                var user = _userService.GetUsers(userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
 
                                 //var localDevice = tempDevice;
                                 //var device = deviceFactory.Factory(tempDevice.Value, ConnectionType);

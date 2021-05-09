@@ -59,12 +59,12 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel DeleteUserGroupOfUser(int userId = default, int userGroupId = default, int userTypeId = 1, string token = default)
         {
-            return _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId, token);
+            return _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId, token).Result;
         }
 
         public ResultViewModel ModifyPassword(int id = default, string password = default, string token = default)
         {
-            return _userRepository.ModifyPassword(id, password, token);
+            return _userRepository.ModifyPassword(id, password, token).Result;
         }
     }
 }

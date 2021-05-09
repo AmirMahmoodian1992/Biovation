@@ -27,7 +27,7 @@ namespace Biovation.Brands.Suprema.Commands
         public SupremaSyncUser(int userId, Dictionary<uint, Device> onlineDevices, UserService userService, AccessGroupService accessGroupService)
         {
             //todo:usercode
-            User = _userService.GetUsers(userId)?.Data?.Data.FirstOrDefault();
+            User = _userService.GetUsers(userId).Result?.Data?.Data.FirstOrDefault();
             OnlineDevices = onlineDevices;
             _userService = userService;
             _accessGroupService = accessGroupService;

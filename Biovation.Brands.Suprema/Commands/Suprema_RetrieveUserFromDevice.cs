@@ -226,7 +226,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Data.Data.Count(ft =>
+                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id).Result?.Data.Data.Count(ft =>
                                         ft.FingerIndex.Code ==
                                         userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
                                     TemplateIndex = 0,
@@ -241,7 +241,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Data.Data.Count(ft =>
+                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id).Result?.Data.Data.Count(ft =>
                                         ft.FingerIndex.Code ==
                                         userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
                                     TemplateIndex = 1,

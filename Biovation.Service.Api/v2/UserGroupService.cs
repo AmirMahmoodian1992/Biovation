@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -39,9 +40,9 @@ namespace Biovation.Service.Api.v2
             return _userGroupRepository.ModifyUserGroup(userGroup, token);
         }
 
-        public ResultViewModel DeleteUserGroup(int groupId = default, string token = default)
+        public async Task<ResultViewModel> DeleteUserGroup(int groupId = default, string token = default)
         {
-            return _userGroupRepository.DeleteUserGroup(groupId, token);
+            return await _userGroupRepository.DeleteUserGroup(groupId, token);
         }
         public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
         {
