@@ -233,66 +233,66 @@ namespace Biovation.Server.Controllers.v2
             }
         }
 
+        //[HttpPost]
+        //[Authorize]
+        //[Route("ClearLogsOfDevices")]
+        //public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
+        //{
+        //    var token = (string)HttpContext.Items["Token"];
+        //    return Task.Run(async () =>
+        //    {
+        //        try
+        //        {
+        //            var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
+        //            var result = new List<ResultViewModel>();
+        //            for (var i = 0; i < deviceId.Length; i++)
+        //            {
+        //                var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
+        //                if (device == null)
+        //                {
+        //                    Logger.Log($"DeviceId {deviceId[i]} does not exist.");
+        //                    result.Add(new ResultViewModel
+        //                    { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
+        //                    continue;
+        //                }
+
+        //                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+        //                restRequest.AddQueryParameter("code", device.Code.ToString());
+        //                restRequest.AddQueryParameter("fromDate", fromDate);
+        //                restRequest.AddQueryParameter("toDate", toDate);
+
+        //                var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+        //                //var address = _localBioAddress +
+        //                //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
+        //                //var data = _restCall.CallRestAsync(address, null, null, "POST");
+        //                //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
+        //                if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
+        //                restResult.Data.Id = deviceId[i];
+        //                result.Add(restResult.Data);
+        //            }
+
+        //            return result;
+        //        }
+        //        catch (Exception)
+        //        {
+        //            return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
+        //        }
+        //    });
+        //}
+
+        //[HttpPost]
+        //[Route("DeleteDevices")]
+        //[Authorize]
+        //public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
+        //{
+        //    var token = (string)HttpContext.Items["Token"];
+        //    return Task.Run(() => _deviceService.DeleteDevices(ids, token));
+        //}
+
         [HttpPost]
-        [Route("ClearLogsOfDevices")]
         [Authorize]
-        public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
-            {
-                try
-                {
-                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
-                    var result = new List<ResultViewModel>();
-                    for (var i = 0; i < deviceId.Length; i++)
-                    {
-                        var device = (await _deviceService.GetDevice(deviceId[i], token)).Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
-                            result.Add(new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
-                            continue;
-                        }
-
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
-
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                        //var address = _localBioAddress +
-                        //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
-                        //var data = _restCall.CallRestAsync(address, null, null, "POST");
-                        //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
-                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
-                        restResult.Data.Id = deviceId[i];
-                        result.Add(restResult.Data);
-                    }
-
-                    return result;
-                }
-                catch (Exception)
-                {
-                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
-                }
-            });
-        }
-
-        [HttpPost]
-        [Route("DeleteDevices")]
-        [Authorize]
-        public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.DeleteDevices(ids, token));
-        }
-
-        [HttpPost]
-        [Route("{Id}/cardNumber")]
-        [Authorize]
+        [Route("{Id}/readCardNumber")]
         public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
