@@ -88,7 +88,7 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var device = _deviceService.GetDevice(deviceId)?.Data;
+            var device = _deviceService.GetDevice(deviceId).Result?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 

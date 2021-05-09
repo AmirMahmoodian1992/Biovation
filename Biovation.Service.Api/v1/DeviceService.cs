@@ -33,7 +33,7 @@ namespace Biovation.Service.Api.v1
 
         public DeviceBasicInfo GetDevice(long id = default, long adminUserId = default, string token = default)
         {
-            return _deviceRepository.GetDevice(id, (int)adminUserId)?.Data ?? new DeviceBasicInfo();
+            return _deviceRepository.GetDevice(id, token).Result?.Data ?? new DeviceBasicInfo();
         }
 
         public List<DeviceModel> GetDeviceModels(long id = default, string brandId = default,

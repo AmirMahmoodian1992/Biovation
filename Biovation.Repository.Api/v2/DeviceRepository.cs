@@ -3,6 +3,7 @@ using Biovation.Domain;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -47,15 +48,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<DeviceBasicInfo> GetDevice(long id = 0, int adminUserId = 0, string token = default)
+        public async Task<ResultViewModel<DeviceBasicInfo>> GetDevice(long id = 0, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Device/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
-            //restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest);
+            return requestResult.Data;
         }
         public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = 0, string brandId = default,
             string name = default, int pageNumber = default, int pageSize = default, string token = default)

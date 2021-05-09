@@ -133,7 +133,7 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel<AccessGroup>> AccessGroup([FromRoute] int id, int nestingDepthLevel = 5)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _accessGroupService.GetAccessGroup(id, nestingDepthLevel, token: token));
+            return Task.Run(() => _accessGroupService.GetAccessGroup(id, nestingDepthLevel, token));
         }
 
         [HttpGet]
@@ -179,7 +179,7 @@ namespace Biovation.Server.Controllers.v2
                 {
 
                     var deviceBrands = _deviceService.GetDeviceBrands()?.Data?.Data;
-                    var accessGroup = _accessGroupService.GetAccessGroup(id: id, token: token).Data;
+                    var accessGroup = _accessGroupService.GetAccessGroup(id, token: token).Data;
                     if (accessGroup == null)
                     {
                         Logger.Log("No such access group found.\n");
@@ -289,11 +289,11 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("SendAccessGroupToDevice/{id}")]
-        public ResultViewModel SendAccessGroupToDevice([FromRoute] int id, int deviceId)
+        public async Task<ResultViewModel> SendAccessGroupToDevice([FromRoute] int id, int deviceId)
         {
             var token = (string)HttpContext.Items["Token"];
 
-            var device = _deviceService.GetDevice(deviceId, token: token)?.Data;
+            var device = (await _deviceService.GetDevice(deviceId, token))?.Data;
             if (device is null)
             {
                 return new ResultViewModel
@@ -316,7 +316,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
             }
-            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
     }

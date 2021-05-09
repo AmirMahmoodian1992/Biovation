@@ -65,10 +65,10 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> SendTimeZoneDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
 
-                var device = _deviceService.GetDevice(deviceId, token: token)?.Data;
+                var device = (await _deviceService.GetDevice(deviceId, token))?.Data;
                 if (device is null)
                     return new ResultViewModel
                     {

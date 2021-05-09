@@ -126,7 +126,7 @@ namespace Biovation.Server.Controllers.v2
                         {
                             await Task.Run(async () =>
                             {
-                                var device = _deviceService.GetDevice(deviceId, token: token).Data;
+                                var device = (await _deviceService.GetDevice(deviceId, token: token)).Data;
 
                                 var newAuthorizedUsersOfDevice =
                                     _deviceService.GetAuthorizedUsersOfDevice(deviceId, token)?.Data?.Data;
@@ -157,7 +157,7 @@ namespace Biovation.Server.Controllers.v2
                         {
                             await Task.Run(async () =>
                             {
-                                var device = _deviceService.GetDevice(deviceId, token: token).Data;
+                                var device = (await _deviceService.GetDevice(deviceId, token: token)).Data;
 
                                 var newAuthorizedUsersOfDevice =
                                         _deviceService.GetAuthorizedUsersOfDevice(deviceId, token)?.Data?.Data;

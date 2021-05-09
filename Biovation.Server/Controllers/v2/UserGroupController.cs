@@ -227,7 +227,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         await Task.Run(async () =>
                         {
-                            var device = _deviceService.GetDevice(deviceKey, token: token).Data;
+                            var device = (await _deviceService.GetDevice(deviceKey, token: token)).Data;
                             var usersToDeleteFromDevice = (newAuthorizedUsersOfDevicesToDelete.ContainsKey(deviceKey) && newAuthorizedUsersOfDevicesToDelete[deviceKey]?.Count > 0
                                 ? existingAuthorizedUsersOfDevicesToDelete[deviceKey]
                                     .ExceptBy(newAuthorizedUsersOfDevicesToDelete[deviceKey], member => member.UserId)
@@ -254,7 +254,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         await Task.Run(async () =>
                         {
-                            var device = _deviceService.GetDevice(deviceKey, token: token).Data;
+                            var device = (await _deviceService.GetDevice(deviceKey, token: token)).Data;
                             var usersToDeleteFromDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
                                 ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
                                     .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)

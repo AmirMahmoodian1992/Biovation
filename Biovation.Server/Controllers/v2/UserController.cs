@@ -505,7 +505,7 @@ namespace Biovation.Server.Controllers.v2
                 if (user is null)
                     return new ResultViewModel { Validate = 0, Id = id, Message = "Wrong user id is provided." };
 
-                var device = _deviceService.GetDevice(deviceId, token: token).Data;
+                var device = (await _deviceService.GetDevice(deviceId, token: token)).Data;
                 if (device is null)
                     return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
 

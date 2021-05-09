@@ -2,6 +2,7 @@
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Logger = Biovation.CommonClasses.Logger;
 
@@ -55,10 +55,10 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Route("{id:int}")]
         [Attribute.Authorize]
-        public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = default, long adminUserId = default)
+        public async Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.GetDevice(id, adminUserId, token));
+            return await _deviceService.GetDevice(id, token);
         }
 
         [HttpGet]
@@ -103,7 +103,7 @@ namespace Biovation.Server.Controllers.v2
                 var result = _deviceService.ModifyDevice(device);
                 if (result.Validate != 1) return result;
 
-                device = _deviceService.GetDevice(id: device.DeviceId, token: token).Data;
+                device = (await _deviceService.GetDevice(device.DeviceId, token)).Data;
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
                 restRequest.AddJsonBody(device);
@@ -118,7 +118,7 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.AddDevice(device, token: token));
+            return Task.Run(() => _deviceService.AddDevice(device, token));
         }
 
         [HttpDelete]
@@ -136,13 +136,13 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, string fromDate, string toDate)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 try
                 {
                     //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
                     //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
-                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    var device = (await _deviceService.GetDevice(id, token)).Data;
                     if (device == null)
                     {
                         Logger.Log($"DeviceId {id} does not exist.");
@@ -193,7 +193,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
                         //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
-                        var device = _deviceService.GetDevice(id: deviceId[i], token: token).Data;
+                        var device = (await  _deviceService.GetDevice(deviceId[i], token)).Data;
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -242,7 +242,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
-                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    var device = (await _deviceService.GetDevice(id, token)).Data;
                     if (device == null)
                     {
                         Logger.Log($"DeviceId {id} does not exist.");
@@ -281,7 +281,7 @@ namespace Biovation.Server.Controllers.v2
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < deviceId.Length; i++)
                     {
-                        var device = _deviceService.GetDevice(deviceId[i], token: token).Data;
+                        var device = (await  _deviceService.GetDevice(deviceId[i], token)).Data;
                         if (device == null)
                         {
                             Logger.Log($"DeviceId {deviceId[i]} does not exist.");
@@ -376,9 +376,9 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userId = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            return Task.Run(async () =>
            {
-               var device = _deviceService.GetDevice(id, token: token).Data;
+               var device = (await _deviceService.GetDevice(id, token)).Data;
 
                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
@@ -406,7 +406,7 @@ namespace Biovation.Server.Controllers.v2
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () =>
             {
-                var device = _deviceService.GetDevice(id, token: token).Data;
+                var device = (await _deviceService.GetDevice(id, token)).Data;
                 var userAwaiter = Task.Run(() => _userService.GetUsers(token: token)?.Data?.Data);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
@@ -445,12 +445,12 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            return Task.Run(async () =>
            {
                if (userId == default)
                    return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
-               var device = _deviceService.GetDevice(id, token: token).Data;
+               var device = (await _deviceService.GetDevice(id, token)).Data;
 
                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
                restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -469,11 +469,11 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            return Task.Run(async () =>
            {
                try
                {
-                   var device = _deviceService.GetDevice(id, token: token).Data;
+                   var device = (await _deviceService.GetDevice(id, token)).Data;
                    if (device == null)
                    {
                        Logger.Log($"DeviceId {id} does not exist.");
@@ -505,9 +505,9 @@ namespace Biovation.Server.Controllers.v2
         public Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            return Task.Run(async () =>
            {
-               var device = _deviceService.GetDevice(id, token: token).Data;
+               var device = (await _deviceService.GetDevice(id, token)).Data;
 
                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
                restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -640,7 +640,7 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(async () =>
             {
                 var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
-                var device = _deviceService.GetDevice(id).Data;
+                var device = (await _deviceService.GetDevice(id)).Data;
 
 
                 var task = new TaskInfo

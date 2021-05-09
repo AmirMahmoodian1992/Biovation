@@ -2,6 +2,7 @@
 using Biovation.Repository.Api.v2;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -31,9 +32,9 @@ namespace Biovation.Service.Api.v2
                 deviceIoTypeId, pageNumber, pageSize);
         }
 
-        public ResultViewModel<DeviceBasicInfo> GetDevice(long id = default, long adminUserId = default, string token = default)
+        public async Task<ResultViewModel<DeviceBasicInfo>> GetDevice(long id = default, string token = default)
         {
-            return _deviceRepository.GetDevice(id, (int)adminUserId, token);
+            return await _deviceRepository.GetDevice(id, token);
         }
 
         public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = default, int brandId = default,

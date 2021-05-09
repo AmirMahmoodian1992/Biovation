@@ -115,7 +115,7 @@ namespace Biovation.Brands.EOS.Controllers
 
             foreach (var deviceId in deviceIds)
             {
-                var device = _deviceService.GetDevice(deviceId)?.Data;
+                var device = _deviceService.GetDevice(deviceId).Result?.Data;
                 if (device is null)
                     continue;
 
