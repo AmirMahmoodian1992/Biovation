@@ -24,8 +24,7 @@ namespace Biovation.Service.Api.v2
         //{
         //    return _deviceRepository.GetDevice(adminUserId);
         //}
-        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDevices(long adminUserId = default,
-            int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
+        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDevices(int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
             int deviceModelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default, string token = default)
         {
             return await _deviceRepository.GetDevices(deviceGroupId, code, brandId, deviceName, deviceModelId,
