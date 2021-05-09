@@ -48,7 +48,7 @@ namespace Biovation.Brands.EOS.Controllers
         {
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data?.FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel { Validate = 0, Message = $"Wrong device code is provided : {code}." };
 
