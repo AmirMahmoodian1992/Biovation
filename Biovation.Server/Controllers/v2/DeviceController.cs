@@ -77,7 +77,7 @@ namespace Biovation.Server.Controllers.v2
             var result = await _deviceService.ModifyDevice(device, token);
             if (result.Validate != 1) return result;
 
-            await Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 device = (await _deviceService.GetDevice(device.DeviceId, token)).Data;
 
@@ -357,12 +357,10 @@ namespace Biovation.Server.Controllers.v2
 
                var permissibleDevices = (await _deviceService.GetDevices(token: token))?.Data?.Data;
 
-               if (permissibleDevices != null)
-               {
-                   permissibleDevices = onlineDevices.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
-               }
+               if (permissibleDevices == null) return new List<DeviceBasicInfo>();
+               permissibleDevices = onlineDevices.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
+               return permissibleDevices;
 
-               return new List<DeviceBasicInfo>();
            });
         }
 
