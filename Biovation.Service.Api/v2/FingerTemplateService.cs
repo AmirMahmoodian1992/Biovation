@@ -40,9 +40,9 @@ namespace Biovation.Service.Api.v2
             return await _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate, token);
         }
 
-        public ResultViewModel DeleteFingerTemplate(int userId = default, int fingerIndex = default, string token = default)
+        public async Task<ResultViewModel> DeleteFingerTemplate(int userId = default, int fingerIndex = default, string token = default)
         {
-            return _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex, token);
+            return await _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex, token);
         }
     }
 }

@@ -68,14 +68,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public ResultViewModel DeleteFingerTemplate(int userId, int fingerIndex, string token = default)
+        public async Task<ResultViewModel> DeleteFingerTemplate(int userId, int fingerIndex, string token = default)
         {
             var restRequest = new RestRequest($"Commands/v2/FingerTemplate/{userId}", Method.PATCH);
             restRequest.AddQueryParameter("fingerIndex", fingerIndex.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
 

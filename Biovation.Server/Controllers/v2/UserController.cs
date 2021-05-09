@@ -197,7 +197,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/FingerTemplates")]
         public async Task<ResultViewModel<PagingResult<FingerTemplate>>> GetFingerTemplateByUserId([FromRoute] int id = default, string fingerTemplateType = default, int templateIndex = default, int pageNumber = default, int pageSize = default)
         {
-            return await _fingerTemplateService.FingerTemplates(id, templateIndex, fingerTemplateType, pageNumber, pageSize, HttpContext.Items["Token"] as string));
+            return await _fingerTemplateService.FingerTemplates(id, templateIndex, fingerTemplateType, pageNumber, pageSize, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
@@ -216,10 +216,9 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}/FingerTemplates")]
-        public Task<ResultViewModel> DeleteFingerTemplateByUserId([FromRoute] int id = default, int templateIndex = default)
+        public async Task<ResultViewModel> DeleteFingerTemplateByUserId([FromRoute] int id = default, int templateIndex = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _fingerTemplateService.DeleteFingerTemplate(id, templateIndex, token));
+            return await _fingerTemplateService.DeleteFingerTemplate(id, templateIndex, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]

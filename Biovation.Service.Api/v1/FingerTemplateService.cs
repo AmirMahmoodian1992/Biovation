@@ -23,7 +23,7 @@ namespace Biovation.Service.Api.v1
             int pageSize = default, string token = default)
         {
             return _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType,
-                pageNumber, pageSize, token)?.Data?.Data ?? new List<FingerTemplate>();
+                pageNumber, pageSize, token).Result?.Data?.Data ?? new List<FingerTemplate>();
         }
 
         public List<Lookup> GetFingerTemplateTypes(string brandId = default, string token = default)
@@ -39,12 +39,12 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel ModifyFingerTemplate(FingerTemplate fingerTemplate = default, string token = default)
         {
-            return _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate, token);
+            return _fingerTemplateRepository.ModifyFingerTemplate(fingerTemplate, token).Result;
         }
 
         public ResultViewModel DeleteFingerTemplate(int userId = default, int fingerIndex = default, string token = default)
         {
-            return _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex, token);
+            return _fingerTemplateRepository.DeleteFingerTemplate(userId, fingerIndex, token).Result;
         }
     }
 }
