@@ -84,7 +84,7 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.RetrieveUsersListFromDevice:
                     // Gets a specific user info from device.
                     {
-                        return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
+                        return new PalizGetAllUsersFromTerminal(transferModelData.Items, _palizServer, _deviceService, _userService, _biometricTemplateManager,
                             _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
                 case CommandType.DeleteUserFromTerminal:

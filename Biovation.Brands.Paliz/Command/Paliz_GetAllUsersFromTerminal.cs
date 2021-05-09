@@ -30,7 +30,9 @@ namespace Biovation.Brands.Paliz.Command
         private int TerminalId { get; }
         private uint Code { get; }
         private readonly PalizServer _palizServer;
-        public PalizGetAllUsersFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService,
+        private MassUserInfoEventArgs _getAllUsersResult;
+        private List<User> _users;
+        public PalizGetAllUsersFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, DeviceService deviceService,
             UserService userService, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService,
             FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
         {
@@ -64,15 +66,45 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.MassUserInfoEvent += GetMassUserInfoEventCallBack;
                 var massUserIdModel = new MassUserIdModel(1, long.MaxValue);
                 _palizServer._serverManager.GetMassUserInfoTask(TerminalName, massUserIdModel);
-                System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = TerminalId, Message = $"  +Users list successfully retrieved from device: {Code}.\n", Validate = 1 };
+                System.Threading.Thread.Sleep(500);
+                while (_getAllUsersResult == null)
+                {
+                    System.Threading.Thread.Sleep(500);
+                }
+
+                _palizServer._serverManager.MassUserInfoEvent -= GetMassUserInfoEventCallBack;
+                if (_getAllUsersResult.Result)
+                {
+                    return new ResultViewModel<List<User>>
+                        { 
+                            Data = _users,
+                            Id = TerminalId,
+                            Message = "0",
+                            Validate = 1,
+                            Code = Convert.ToInt64(TaskStatuses.DoneCode)
+                        };
+                }
+                Logger.Log($"  +Cannot retrieve users from device: {Code}.\n");
+                return new ResultViewModel<List<User>>
+                {
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode), 
+                    Data = new List<User>(),
+                    Id = TerminalId, 
+                    Message = "0",
+                    Validate = 1
+                };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = TerminalId, Message = $"Exeption: {exception}", Validate = 0 };
-
+                return new ResultViewModel
+                {
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                    Id = TerminalId,
+                    Message = $"Exception: {exception}",
+                    Validate = 0
+                };
             }
         }
         private void ModifyFingerTemplates(UserInfoModel userInfoModel, User user)
@@ -195,56 +227,67 @@ namespace Biovation.Brands.Paliz.Command
             //    return;
             //}
 
-            if (args.Result == false)
+            // Must initialize the array before accessing.
+            UserInfoModel[] userInfoModels = { };
+
+            // First check if the users are fetched, then add them to the users list in order to sent them in the view model.
+            if (args.Result || args.Users != null)
+            {
+                userInfoModels = args.Users.UserInfoModels;
+                foreach (var userInfoModel in userInfoModels)
+                {
+                    _users.Add(new User
+                    {
+                        Code = userInfoModel.Id,
+                        AdminLevel = (int)userInfoModel.Level,
+                        StartDate = DateTime.Parse("1970/01/01"),
+                        EndDate = DateTime.Parse("2050/01/01"),
+                        AuthMode = userInfoModel.Locked ? 0 : 1,
+                        Password = userInfoModel.Password,
+                        FullName = userInfoModel.Name,
+                        IsActive = userInfoModel.Locked,
+                        ImageBytes = userInfoModel.Image
+                    });
+                }
+            }
+
+            // After getting all the users, add the args parameter to remove the null state of the result value.
+            _getAllUsersResult = args;
+
+            if (_getAllUsersResult.Result == false)
             {
                 return;
             }
 
-            var userInfoModels = args.Users.UserInfoModels;
-            foreach(var userInfoModel in userInfoModels)
+            for(var i = 0; userInfoModels.Length > 0; ++i)
             {
-                var user = new User
-                {
-                    Code = userInfoModel.Id,
-                    AdminLevel = (int)userInfoModel.Level,
-                    StartDate = DateTime.Parse("1970/01/01"),
-                    EndDate = DateTime.Parse("2050/01/01"),
-                    AuthMode = userInfoModel.Locked ? 0 : 1,
-                    Password = userInfoModel.Password,
-                    FullName = userInfoModel.Name,
-                    IsActive = userInfoModel.Locked,
-                    ImageBytes = userInfoModel.Image
-                };
-
-                var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
+                var existingUser = _userService.GetUsers(code: _users[i].Code)?.Data?.Data?.FirstOrDefault();
                 if (existingUser != null)
                 {
-                    user.Id = existingUser.Id;
+                    _users[i].Id = existingUser.Id;
                 }
 
-                var userInsertionResult = _userService.ModifyUser(user);
+                var userInsertionResult = _userService.ModifyUser(_users[i]);
                 Logger.Log("<--User is Modified");
 
-                user.Id = userInsertionResult.Id;
+                _users[i].Id = userInsertionResult.Id;
                 try
                 {
-                    Logger.Log($"   +TotalCardCount:{userInfoModel.Cards?.Length ?? 0}");
-                    ModifyUserCards(userInfoModel, user.Id);
+                    Logger.Log($"   +TotalCardCount:{userInfoModels[i].Cards?.Length ?? 0}");
+                    ModifyUserCards(userInfoModels[i], _users[i].Id);
 
 
-                    Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints?.Length ?? 0}");
-                    ModifyFingerTemplates(userInfoModel, user);
+                    Logger.Log($"   +TotalFingerCount:{userInfoModels[i].Fingerprints?.Length ?? 0}");
+                    ModifyFingerTemplates(userInfoModels[i], _users[i]);
 
-                    Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces?.Length ?? 0}");
-                    ModifyFaceTemplates(userInfoModel, user);
+                    Logger.Log($"   +TotalFaceCount:{userInfoModels[i].Faces?.Length ?? 0}");
+                    ModifyFaceTemplates(userInfoModels[i], _users[i]);
                 }
                 catch (Exception ex)
                 {
                     Logger.Log(ex);
                 }
             }
-            
-            _palizServer._serverManager.MassUserInfoEvent -= GetMassUserInfoEventCallBack;
         }
         public void Rollback()
         {

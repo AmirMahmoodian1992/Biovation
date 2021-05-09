@@ -74,10 +74,10 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(GetDescription());
 
                 // Waiting for the deletion result to get sent to the callback method.
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(500);
                 while (_userDeletionResult == null)
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(500);
                 }
 
                 _palizServer._serverManager.DeleteUserEvent -= DeleteUserByIdEventCallBack;
