@@ -150,9 +150,9 @@ namespace Biovation.Server.Controllers.v2
         [Route("RetrieveLogs")]
         public async Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var token = HttpContext.Items["Token"] as string;
             try
             {
+                var token = HttpContext.Items["Token"] as string;
                 var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
 
                 var result = new List<ResultViewModel>();
@@ -256,9 +256,9 @@ namespace Biovation.Server.Controllers.v2
         [Route("ClearLogsOfDevices")]
         public async Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var token = HttpContext.Items["Token"] as string;
             try
             {
+                var token = HttpContext.Items["Token"] as string;
                 var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
                 var result = new List<ResultViewModel>();
                 for (var i = 0; i < deviceId.Length; i++)
@@ -279,10 +279,6 @@ namespace Biovation.Server.Controllers.v2
 
                     var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-                    //var address = _localBioAddress +
-                    //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
-                    //var data = _restCall.CallRestAsync(address, null, null, "POST");
-                    //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
                     if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
                     restResult.Data.Id = deviceId[i];
                     result.Add(restResult.Data);
@@ -301,8 +297,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("DeleteDevices")]
         public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
-            var token = HttpContext.Items["Token"] as string;
-            return Task.Run(() => _deviceService.DeleteDevices(ids, token));
+            return Task.Run(() => _deviceService.DeleteDevices(ids, HttpContext.Items["Token"] as string));
         }
 
         [HttpPost]
@@ -419,16 +414,16 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-               if (userId == default)
-                   return new ResultViewModel { Validate = 0, Message = "No users selected." };
+            if (userId == default)
+                return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
-               var device = (await _deviceService.GetDevice(id, token)).Data;
+            var device = (await _deviceService.GetDevice(id, token)).Data;
 
-               var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
-               restRequest.AddQueryParameter("code", device.Code.ToString());
-               restRequest.AddJsonBody(userId);
-               restRequest.AddHeader("Authorization", token!);
-               return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
+            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddJsonBody(userId);
+            restRequest.AddHeader("Authorization", token!);
+            return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
 
         [HttpPost]
@@ -436,9 +431,9 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/SendUsers")]
         public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
         {
-            var token = HttpContext.Items["Token"] as string;
             try
             {
+                var token = HttpContext.Items["Token"] as string;
                 var device = (await _deviceService.GetDevice(id, token)).Data;
                 if (device == null)
                 {
