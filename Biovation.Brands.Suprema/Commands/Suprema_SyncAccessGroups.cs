@@ -46,7 +46,7 @@ namespace Biovation.Brands.Suprema.Commands
             //var o fflineEventService = new OfflineEventService();
             // var timeZoneService = new TimeZoneService();
 
-            var timeZones = _timeZoneService.GetTimeZones()?.Data;
+            var timeZones = _timeZoneService.GetTimeZones().Result?.Data;
 
             Task.WaitAll(Devices.Select(device => Task.Run(() =>
             {

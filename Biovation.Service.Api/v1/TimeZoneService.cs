@@ -15,22 +15,22 @@ namespace Biovation.Service.Api.v1
 
         public TimeZone TimeZones(int id = default, string token = default)
         {
-            return _timeZoneRepository.TimeZones(id, token)?.Data ?? new TimeZone();
+            return _timeZoneRepository.TimeZones(id, token).Result?.Data ?? new TimeZone();
         }
 
         public List<TimeZone> GetTimeZones(string token = default)
         {
-            return _timeZoneRepository.GetTimeZones()?.Data ?? new List<TimeZone>();
+            return _timeZoneRepository.GetTimeZones().Result?.Data ?? new List<TimeZone>();
         }
 
         public ResultViewModel ModifyTimeZone(TimeZone timeZone, string token = default)
         {
-            return _timeZoneRepository.ModifyTimeZone(timeZone, token);
+            return _timeZoneRepository.ModifyTimeZone(timeZone, token).Result;
         }
 
         public ResultViewModel DeleteTimeZone(int id, string token = default)
         {
-            return _timeZoneRepository.DeleteTimeZone(id, token);
+            return _timeZoneRepository.DeleteTimeZone(id, token).Result;
         }
     }
 }

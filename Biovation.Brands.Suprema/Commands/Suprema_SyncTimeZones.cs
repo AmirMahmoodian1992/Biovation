@@ -35,7 +35,7 @@ namespace Biovation.Brands.Suprema.Commands
         {
 
 
-            var timeZones = _timeZoneService.GetTimeZones()?.Data;
+            var timeZones = _timeZoneService.GetTimeZones().Result?.Data;
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
             //var offlineEventService = new OfflineEventService();
