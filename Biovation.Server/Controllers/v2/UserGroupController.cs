@@ -41,10 +41,11 @@ namespace Biovation.Server.Controllers.v2
         }
 
         //[HttpPost]
-        //public Task<IActionResult> AddUserGroup([FromBody]UserGroup userGroup = default)
+        //public Task<ResultViewModel> AddUserGroup([FromBody] UserGroup userGroup = default)
         //{
-        //    throw null;
-        //}//TODO...
+        //    var result = await _userGroupService.AddUserGroup(userGroup, token);
+        //    if (result.Validate != 1) return result;
+        //}
 
         [HttpPut]
         public async Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
