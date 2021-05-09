@@ -360,7 +360,6 @@ namespace Biovation.Server.Controllers.v2
                if (permissibleDevices == null) return new List<DeviceBasicInfo>();
                permissibleDevices = onlineDevices.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
                return permissibleDevices;
-
            });
         }
 
