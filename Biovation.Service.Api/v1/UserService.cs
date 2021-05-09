@@ -44,12 +44,12 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel DeleteUser(long id = default, string token = default)
         {
-            return _userRepository.DeleteUser(id, token);
+            return _userRepository.DeleteUser(id, token).Result;
         }
 
         public ResultViewModel DeleteUsers(List<int> ids = default, string token = default)
         {
-            return _userRepository.DeleteUsers(ids, token);
+            return _userRepository.DeleteUsers(ids, token).Result;
         }
 
         public ResultViewModel DeleteUserGroupsOfUser(int userId = default, int userTypeId = 1, string token = default)
