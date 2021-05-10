@@ -19,7 +19,7 @@ namespace Biovation.Service.Api.v2
             return await _timeZoneRepository.TimeZones(id, token);
         }
 
-        public async Task<ResultViewModel<List<TimeZone>>> GetTimeZones(string token = default)
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(string token = default)
         {
             return await _timeZoneRepository.GetTimeZones(token);
         }

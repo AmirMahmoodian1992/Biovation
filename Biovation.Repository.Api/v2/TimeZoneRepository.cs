@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -26,12 +25,12 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<List<TimeZone>>> GetTimeZones(string token = default)
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/TimeZone", Method.GET);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<List<TimeZone>>>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<TimeZone>>>(restRequest);
             return requestResult.Data;
         }
 
@@ -44,10 +43,11 @@ namespace Biovation.Repository.Api.v2
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
         }
+
         public async Task<ResultViewModel> DeleteTimeZone(int id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/TimeZone/{id}", Method.DELETE);
-            restRequest.AddUrlSegment("id", id.ToString()); 
+            restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);

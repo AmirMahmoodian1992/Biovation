@@ -14,7 +14,6 @@ namespace Biovation.Server.Controllers.v2
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class TimeZoneController : ControllerBase
     {
-        //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly TimeZoneService _timeZoneService;
         private readonly DeviceService _deviceService;
         private readonly RestClient _restClient;
@@ -28,9 +27,16 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<ResultViewModel<TimeZone>> TimeZones([FromRoute] int id = default)
+        public async Task<ResultViewModel<TimeZone>> TimeZone([FromRoute] int id = default)
         {
             return await _timeZoneService.TimeZones(id, HttpContext.Items["Token"] as string);
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> TimeZones()
+        {
+            return await _timeZoneService.GetTimeZones(HttpContext.Items["Token"] as string);
         }
 
         //TODO
