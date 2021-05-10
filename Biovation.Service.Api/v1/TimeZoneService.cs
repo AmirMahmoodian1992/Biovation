@@ -20,7 +20,7 @@ namespace Biovation.Service.Api.v1
 
         public List<TimeZone> GetTimeZones(string token = default)
         {
-            return _timeZoneRepository.GetTimeZones().Result?.Data ?? new List<TimeZone>();
+            return _timeZoneRepository.GetTimeZones().Result?.Data?.Data ?? new List<TimeZone>();
         }
 
         public ResultViewModel ModifyTimeZone(TimeZone timeZone, string token = default)
