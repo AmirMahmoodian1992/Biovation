@@ -101,22 +101,22 @@ namespace Biovation.Server.Controllers.v2
 
             */
 
-            _ = Task.Run(() =>
+            _ = Task.Run(async () =>
             {
-                var restRequest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
-                restRequest.AddHeader("Authorization", token!);
+                //var restRequest = new RestRequest("Queries/v2/Device/DeviceBrands", Method.GET);
+                //restRequest.AddHeader("Authorization", token!);
 
-                var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
-                foreach (var deviceBrand in deviceBrands)
-                {
-                    restRequest =
-                       new RestRequest(
-                           $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                           Method.POST);
-                    restRequest.AddHeader("Authorization", token!);
+                //var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
+                var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
 
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                }
+                if (deviceBrands != null)
+                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
+                        $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                        Method.POST)))
+                    {
+                        restRequest.AddHeader("Authorization", token!);
+                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    }
             }).ConfigureAwait(false);
 
             return result;
