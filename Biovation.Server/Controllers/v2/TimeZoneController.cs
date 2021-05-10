@@ -33,7 +33,6 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        [Route("{id}")]
         public async Task<ResultViewModel<PagingResult<TimeZone>>> TimeZones()
         {
             return await _timeZoneService.GetTimeZones(HttpContext.Items["Token"] as string);
