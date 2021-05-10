@@ -1,8 +1,7 @@
 ﻿using Biovation.Domain;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Biovation.Repository.Sql.v2;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Data.Queries.Controllers.v2
@@ -21,7 +20,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Route("{id}")]
         [Authorize]
-
         public Task<ResultViewModel<TimeZone>> TimeZones([FromRoute] int id = default)
         {
             return Task.Run(() => _timeZoneRepository.GetTimeZone(id));
@@ -29,8 +27,7 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-
-        public Task<ResultViewModel<List<TimeZone>>> GetTimeZones()
+        public Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones()
         {
             return Task.Run(() => _timeZoneRepository.GetTimeZones());
         }
