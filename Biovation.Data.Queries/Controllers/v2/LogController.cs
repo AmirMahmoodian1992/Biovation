@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using Biovation.CommonClasses.Extension;
 using Biovation.Repository.Sql.v2;
 
@@ -33,7 +34,10 @@ namespace Biovation.Data.Queries.Controllers.v2
             var result = new PagingResult<Log>
             {
                 Data = logResult,
-                Count = logResult.Count
+                PageSize = pageSize,
+                PageNumber = pageNumber,
+                From = pageNumber * pageSize,
+                Count = logResult.FirstOrDefault()?.Total ?? 0
             };
 
             return new ResultViewModel<PagingResult<Log>>
