@@ -553,7 +553,7 @@ namespace Biovation.Server.Controllers.v2
                         {
                             UserId = userId,
                             GroupId = userGroupId,
-                            UserType = 1.ToString(),
+                            UserType = 1,
                             UserTypeTitle = string.Empty
                         }, token);
                     }

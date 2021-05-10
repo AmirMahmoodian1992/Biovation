@@ -49,6 +49,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public async Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
         {
+            //TODO: Fix null values and question marks
             try
             {
                 var token = HttpContext.Items["Token"] as string;
@@ -67,7 +68,7 @@ namespace Biovation.Server.Controllers.v2
                     };
                 }
 
-                var usersToDelete = existingUserGroup?.Users.ExceptBy(userGroup.Users, member => member.UserId).ToList() ?? new List<UserGroupMember>();
+                var usersToDelete = existingUserGroup?.Users.ExceptBy(userGroup?.Users, member => member?.UserId).ToList() ?? new List<UserGroupMember>();
 
                 var usersToAdd = (existingUserGroup is null ? userGroup.Users :
                     userGroup.Users?.ExceptBy(existingUserGroup.Users, member => member.UserId).ToList()) ?? new List<UserGroupMember>();
