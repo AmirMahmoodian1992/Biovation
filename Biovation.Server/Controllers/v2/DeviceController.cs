@@ -372,7 +372,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("{id}/RetrieveUsers")]
-        public async Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userIds = default)
+        public async Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] List<uint> userIds = default)
         {
             if (userIds is null)
                 return new ResultViewModel { Success = false, Code = 404, Message = "Empty user list provided" };
