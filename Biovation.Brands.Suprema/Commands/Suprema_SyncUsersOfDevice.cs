@@ -91,7 +91,7 @@ namespace Biovation.Brands.Suprema.Commands
                 //todo:usercode
                 var user = _userService.GetUsers( userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
 
-                var userAccess = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                var userAccess = _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
 
                 var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
                 var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
@@ -100,7 +100,7 @@ namespace Biovation.Brands.Suprema.Commands
                 //var validDevice = _deviceService.GetUserValidDevices(user.Id, ConnectionType);
 
                 var validDevice = new List<DeviceBasicInfo>();
-                var accessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                var accessGroups = _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
                 if (!accessGroups.Any())
                 {
                     continue;

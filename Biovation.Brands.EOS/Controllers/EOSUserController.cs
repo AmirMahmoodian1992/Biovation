@@ -106,7 +106,7 @@ namespace Biovation.Brands.EOS.Controllers
         [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+            var accessGroups = _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
             if (accessGroups == null || !accessGroups.Any())
             {
                 return new ResultViewModel { Id = user.Id, Validate = 0 };

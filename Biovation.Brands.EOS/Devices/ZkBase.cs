@@ -220,11 +220,11 @@ namespace Biovation.Brands.EOS.Devices
                 DeviceCode = DeviceInfo.Code,
                 LogDateTime = DateTime.Now,
                 EventLog = LogEvents.Connect
-            });
+            }).ConfigureAwait(false);
 
             if (_isGetLogEnable)
             {
-                var creatorUser = _userService.GetUsers(code: 123456789)?.Data?.Data?.FirstOrDefault();
+                var creatorUser = _userService.GetUsers(code: 987654321).Result?.Data?.Data?.FirstOrDefault();
                 var task = new TaskInfo
                 {
                     CreatedAt = DateTimeOffset.Now,
@@ -574,7 +574,7 @@ namespace Biovation.Brands.EOS.Devices
                             //}
                         }
 
-                        var userAccessGroups = user.Id == default ? null : _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                        var userAccessGroups = user.Id == default ? null : _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
                         var validAccessGroup =
                             userAccessGroups?.FirstOrDefault(ag =>
                                 ag.DeviceGroup.Any(dg => dg.Devices.Any(d => d.DeviceId == DeviceInfo.DeviceId)));
@@ -1112,7 +1112,7 @@ namespace Biovation.Brands.EOS.Devices
                             Password = password,
                             UserName = name,
                         };
-                        var existUser = UserService.GetUsers(code: userId)?.Data?.Data?.FirstOrDefault();
+                        var existUser = UserService.GetUsers(code: userId).Result?.Data?.Data?.FirstOrDefault();
                         if (existUser != null)
                         {
                             user = new User

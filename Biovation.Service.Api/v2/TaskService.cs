@@ -14,7 +14,7 @@ namespace Biovation.Service.Api.v2
             _taskRepository = taskRepository;
         }
 
-        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default,
             int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = default,
             List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default, string token = default)
@@ -45,13 +45,13 @@ namespace Biovation.Service.Api.v2
                 excludedTaskStatusCodesString += ')';
             }
 
-            return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodesString,
+            return await _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodesString,
                 excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token);
         }
 
-        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default, string token = default)
+        public async Task<ResultViewModel<TaskItem>> GetTaskItem(int taskItemId = default, string token = default)
         {
-            return _taskRepository.GetTaskItem(taskItemId, token);
+            return await _taskRepository.GetTaskItem(taskItemId, token);
         }
 
         /* public ResultViewModel InsertTask(TaskInfo task)
@@ -82,13 +82,13 @@ namespace Biovation.Service.Api.v2
              return taskInsertionResult;
          }*/
 
-        public ResultViewModel InsertTask(TaskInfo task, string token = default)
+        public async Task<ResultViewModel> InsertTask(TaskInfo task, string token = default)
         {
-            return _taskRepository.InsertTask(task,token);
+            return await _taskRepository.InsertTask(task,token);
         }
-        public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
+        public async Task<ResultViewModel> UpdateTaskStatus(TaskItem taskItem)
         {
-            return _taskRepository.UpdateTaskStatus(taskItem);
+            return await _taskRepository.UpdateTaskStatus(taskItem);
         }
 
         public async Task<ResultViewModel> ProcessQueue(Lookup brand, int deviceId = default, string token = default)

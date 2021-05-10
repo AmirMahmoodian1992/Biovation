@@ -30,23 +30,23 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public ResultViewModel<User> FindUserByCardNumber(string cardNumber, string token = default)
+        public async Task<ResultViewModel<User>> FindUserByCardNumber(string cardNumber, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/UserCard/UserByCardNumber", Method.GET);
             restRequest.AddQueryParameter("cardNumber", cardNumber);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<User>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<User>>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel ModifyUserCard(UserCard card, string token = default)
+        public async Task<ResultViewModel> ModifyUserCard(UserCard card, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/UserCard", Method.PUT);
             restRequest.AddJsonBody(card);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
         public async Task<ResultViewModel> DeleteUserCard(int id = default, string token = default)
         {

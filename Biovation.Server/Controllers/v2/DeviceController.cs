@@ -698,7 +698,7 @@ namespace Biovation.Server.Controllers.v2
                     TotalCount = 1
                 });
 
-                _taskService.InsertTask(task);
+                await _taskService.InsertTask(task);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);

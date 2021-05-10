@@ -13,9 +13,9 @@ namespace Biovation.Service.Api.v2
             _fingerTemplateRepository = fingerTemplateRepository;
         }
 
-        public ResultViewModel<PagingResult<UserTemplateCount>> GetTemplateCount(string token = default)
+        public async Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount(string token = default)
         {
-            return _fingerTemplateRepository.GetTemplateCount(token);
+            return await _fingerTemplateRepository.GetTemplateCount(token);
         }
 
         public async Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId = default, int templateIndex = default,
@@ -24,15 +24,15 @@ namespace Biovation.Service.Api.v2
             return await _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<PagingResult<Lookup>> GetFingerTemplateTypes(string brandId = default, string token = default)
+        public async Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId = default, string token = default)
         {
-            return _fingerTemplateRepository.GetFingerTemplateTypes(brandId, token);
+            return await _fingerTemplateRepository.GetFingerTemplateTypes(brandId, token);
 
         }
 
-        public ResultViewModel<int> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType, string token = default)
+        public async Task<ResultViewModel<int>> GetFingerTemplatesCountByFingerTemplateType(Lookup fingerTemplateType, string token = default)
         {
-            return _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType, token);
+            return await _fingerTemplateRepository.GetFingerTemplatesCountByFingerTemplateType(fingerTemplateType, token);
         }
 
         public async Task<ResultViewModel> ModifyFingerTemplate(FingerTemplate fingerTemplate = default, string token = default)

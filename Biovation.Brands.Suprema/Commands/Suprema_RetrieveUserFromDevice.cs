@@ -368,7 +368,7 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 //todo
                                 //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4)?.Data.Data;
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4).Result?.Data.Data;
 
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
