@@ -3,7 +3,6 @@ using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
@@ -46,26 +45,21 @@ namespace Biovation.Server.Controllers.v2
         }
 
         /// <summary>
-        /// 
+        /// Convert offline logs
         /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="logFilter"></param>
-        /// <param name="resendLogs"></param>
         /// <returns></returns>
-        //convert offline logs
         [HttpPost]
-        [Route("OfflineLogs")]
-        public async Task<ResultViewModel> TransmitOfflineLogs(long userId = default, string logFilter = default, bool resendLogs = default)
+        [Route("TransmitLogs")]
+        public async Task<ResultViewModel> TransmitOfflineLogs([FromQuery] int deviceId = default, [FromQuery] int userId = default,
+            [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null, [FromQuery] string where = default, [FromQuery] bool resendLogs = false)
         {
             try
             {
                 var token = HttpContext.Items["Token"] as string;
-                var obj = JsonConvert.DeserializeObject<DeviceTraffic>(logFilter ?? string.Empty);
-                obj.OnlineUserId = userId;
-                obj.State = resendLogs ? (bool?)null : false;
-                var logs = await _logService.SelectSearchedOfflineLogs(obj, token);
+                var logs = (await _logService.Logs(default, deviceId, userId, resendLogs ? (bool?)null : false,
+                    fromDate, toDate, default, default, where, default, token))?.Data?.Data;
                 await _logService.TransferLogBulk(logs, token);
-                return new ResultViewModel { Validate = 1, Code = logs.Count, Message = logs.Count.ToString() };
+                return new ResultViewModel { Validate = 1, Code = logs?.Count ?? 0, Message = logs?.Count.ToString() };
             }
             catch (Exception exception)
             {
