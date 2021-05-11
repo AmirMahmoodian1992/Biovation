@@ -11,10 +11,10 @@ namespace Biovation.Brands.EOS.Controllers
     public class EosSystemInfoController : ControllerBase
     {
         [HttpGet]
-        public ResultViewModel<ServiceInfo> GetInfo()
+        public ResultViewModel<ServiceInstance> GetInfo()
         {
-            var brandInfo = new ServiceInfo();
-            var result = new ResultViewModel<ServiceInfo>();
+            var brandInfo = new ServiceInstance();
+            var result = new ResultViewModel<ServiceInstance>();
             brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name?.Split('.').LastOrDefault();
             brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
             result.Data = brandInfo;

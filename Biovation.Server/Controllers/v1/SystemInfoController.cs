@@ -36,11 +36,11 @@ namespace Biovation.Server.Controllers.v1
 
 
         [HttpPost]
-        public Task<List<ResultViewModel<ServiceInfo>>> RestartServices(List<ServiceInfo> services)
+        public Task<List<ResultViewModel<ServiceInstance>>> RestartServices(List<ServiceInstance> services)
         {
             return Task.Run(async () =>
             {
-                var resultList = new List<ResultViewModel<ServiceInfo>>();
+                var resultList = new List<ResultViewModel<ServiceInstance>>();
 
                 var loadedServices = _systemInfo.Services;
 
@@ -49,7 +49,7 @@ namespace Biovation.Server.Controllers.v1
                     var moduleInfo = loadedServices.FirstOrDefault(brand => string.Equals(brand.Name, service.Name));
                     if (moduleInfo == null)
                     {
-                        resultList.Add(new ResultViewModel<ServiceInfo> { Validate = 1, Message = $"Module : {service.Name } Not Loaded", Data = service });
+                        resultList.Add(new ResultViewModel<ServiceInstance> { Validate = 1, Message = $"Module : {service.Name } Not Loaded", Data = service });
                         continue;
                     }
                     try
@@ -60,12 +60,12 @@ namespace Biovation.Server.Controllers.v1
 
                         Logger.Log($"Module : {moduleInfo.Name} Restart");
 
-                        resultList.Add(new ResultViewModel<ServiceInfo> { Validate = 1, Message = $"Module : {moduleInfo.Name} Restart", Data = services.FirstOrDefault(brand => brand.Name == moduleInfo.Name) });
+                        resultList.Add(new ResultViewModel<ServiceInstance> { Validate = 1, Message = $"Module : {moduleInfo.Name} Restart", Data = services.FirstOrDefault(brand => brand.Name == moduleInfo.Name) });
 
                     }
                     catch (Exception e)
                     {
-                        resultList.Add(new ResultViewModel<ServiceInfo> { Validate = 0, Message = e.Message, Data = services.FirstOrDefault(brand => brand.Name == moduleInfo.Name) });
+                        resultList.Add(new ResultViewModel<ServiceInstance> { Validate = 0, Message = e.Message, Data = services.FirstOrDefault(brand => brand.Name == moduleInfo.Name) });
                         Console.WriteLine(e);
                         throw;
                     }

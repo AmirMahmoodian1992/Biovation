@@ -9,7 +9,7 @@ namespace Biovation.Domain
         public static string Version;
 
         public  string MinimumPatchVersionRequired = "9.2.6";
-        public  List<ServiceInfo> Services { get; set; }
+        public  List<ServiceInstance> Services { get; set; }
         public  string LockEndTime { get; set; }
     }
 }

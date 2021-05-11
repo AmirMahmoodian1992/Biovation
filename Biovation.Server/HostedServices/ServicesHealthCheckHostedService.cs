@@ -39,7 +39,7 @@ namespace Biovation.Server.HostedServices
         {
             _logger.LogInformation("Services Health Check Hosted Service running.");
 
-            _systemInformation.Services = new List<ServiceInfo>();
+            _systemInformation.Services = new List<ServiceInstance>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
             _lockTimer = new Timer(CheckLockStatus, null, TimeSpan.Zero, TimeSpan.FromHours(1));
@@ -64,7 +64,7 @@ namespace Biovation.Server.HostedServices
                 if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy", StringComparison.InvariantCultureIgnoreCase))
                 {
                     if (!_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                        _systemInformation.Services.Add(new ServiceInfo { Name = deviceBrand.Name });
+                        _systemInformation.Services.Add(new ServiceInstance { Name = deviceBrand.Name });
                 }
                 else
                 {

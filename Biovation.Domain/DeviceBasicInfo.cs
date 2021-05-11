@@ -63,7 +63,7 @@ namespace Biovation.Domain
 
 
         [OneToOne]
-        public ServiceInfo ServiceInfoId { get; set; }
+        public ServiceInstance ServiceInstance { get; set; }
 
 
         /*

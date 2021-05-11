@@ -11,10 +11,10 @@ namespace Biovation.Brands.Suprema.Controllers
     public class SupremaSystemInfoController : ControllerBase
     {
         [HttpGet]
-        public ResultViewModel<ServiceInfo> GetInfo()
+        public ResultViewModel<ServiceInstance> GetInfo()
         {
-            var brandInfo = new ServiceInfo();
-            var result = new ResultViewModel<ServiceInfo>();
+            var brandInfo = new ServiceInstance();
+            var result = new ResultViewModel<ServiceInstance>();
             var name = Assembly.GetExecutingAssembly().GetName().Name;
             if (name != null)
                 brandInfo.Name = name.Split('.').LastOrDefault();
