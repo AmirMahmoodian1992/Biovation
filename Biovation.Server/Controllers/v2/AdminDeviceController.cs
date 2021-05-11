@@ -24,6 +24,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [Authorize]
         [Route("{userId}")]
         public async Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId([FromRoute] int userId = default, int pageNumber = default, int pageSize = default)
         {
@@ -31,12 +32,14 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
+        [Authorize]
         public Task<IActionResult> AddAdminDevice([FromBody] AdminDevice adminDevice = default)
         {
             throw new NotImplementedException();
         }
 
         [HttpPut]
+        [Authorize]
         public async Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
         {
             var adminDeviceSerializedData = JsonConvert.DeserializeObject<JObject>(JsonSerializer.Serialize(adminDevice));
