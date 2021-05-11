@@ -61,6 +61,11 @@ namespace Biovation.Domain
         [OneToOne]
         public Lookup Brand { get; set; }
 
+
+        [OneToOne]
+        public ServiceInfo ServiceInfoId { get; set; }
+
+
         /*
         public string BrandId
         {
