@@ -5,7 +5,6 @@ using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -372,10 +371,11 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("{id}/RetrieveUsers")]
-        public async Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] List<uint> userIds = default)
+        public async Task<List<ResultViewModel>> RetrieveUserDevice([FromRoute] int id = default, [FromBody] List<uint> userIds = default)
         {
             if (userIds is null)
-                return new ResultViewModel { Success = false, Code = 404, Message = "Empty user list provided" };
+                return new List<ResultViewModel>
+                    {new ResultViewModel {Success = false, Code = 404, Message = "Empty user list provided"}};
 
             var token = HttpContext.Items["Token"] as string;
             var device = (await _deviceService.GetDevice(id, token)).Data;
@@ -385,12 +385,12 @@ namespace Biovation.Server.Controllers.v2
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddJsonBody(userIds);
             var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-            var result = restResult.Data.Any(e => e.Validate == 0)
-                ? new ResultViewModel { Validate = 0, Id = id }
-                : new ResultViewModel { Validate = 1, Id = id };
-            return result;
+            //var result = restResult.Data.Any(e => e.Validate == 0)
+            //    ? new ResultViewModel { Validate = 0, Id = id }
+            //    : new ResultViewModel { Validate = 1, Id = id };
+            //return result;
 
-            //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = id, Validate = 0, Message = result.ErrorMessage } };
+            return restResult.StatusCode == HttpStatusCode.OK ? restResult.Data : new List<ResultViewModel> { new ResultViewModel { Id = id, Validate = 0, Message = restResult.ErrorMessage } };
         }
 
         [HttpPost]
@@ -430,6 +430,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
+        [Authorize]
         [Route("{id}/SendUsers")]
         public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int id, [FromBody] List<long> userIds)
         {
@@ -448,21 +449,25 @@ namespace Biovation.Server.Controllers.v2
                             ? new ResultViewModel { Validate = 0, Message = "" }
                             : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" };
 
-                foreach (var userId in userIds)
+                var device = (await _deviceService.GetDevice(id, token))?.Data;
+                if (device == null)
                 {
-                    var deviceBasic = (await _deviceService.GetDevice(id, token)).Data;
-                    if (deviceBasic == null)
-                    {
-                        Logger.Log($"DeviceId {id} does not exist.");
-                        return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist." };
-                    }
-
-                    var restRequest = new RestRequest($"/biovation/api/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice", Method.GET);
-                    restRequest.AddParameter("code", deviceBasic.Code);
-                    restRequest.AddParameter("userId", userId);
-                    restRequest.AddHeader("Authorization", token!);
-                    result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                    var msg = "DeviceId " + id + " does not exist.";
+                    Logger.Log(msg);
+                    return new ResultViewModel { Validate = 0, Message = msg };
                 }
+
+                var restRequest =
+                    new RestRequest(
+                        $"/{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
+                        Method.GET);
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddQueryParameter("userId", JsonSerializer.Serialize(userIds));
+                restRequest.AddHeader("Authorization", token!);
+                var requestResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
+                    result.AddRange(requestResult.Data);
 
                 return result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" };
             }
@@ -486,7 +491,7 @@ namespace Biovation.Server.Controllers.v2
 
             var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
-            restRequest.AddJsonBody(new List<long>{userId});
+            restRequest.AddJsonBody(new List<long> { userId });
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }

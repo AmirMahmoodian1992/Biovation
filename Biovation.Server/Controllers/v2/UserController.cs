@@ -351,9 +351,6 @@ namespace Biovation.Server.Controllers.v2
 
                                 foreach (var device in deviceGroup.Devices)
                                 {
-                                    //var parameters = new List<object> { $"code={device.Code}", $"userId=[{lstUserGroupMember[i].UserId}]", };
-                                    //_communicationManager.CallRest($"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice","Get", parameters, null);
-
                                     var deviceBrand = deviceBrands.First(devBrand => devBrand.Code == device.Brand.Code);
                                     var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
                                     restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -750,7 +747,7 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/UserFromDevice/{deviceId}", Method.DELETE);
+            var restRequest = new RestRequest("v2/Device/{id}/UserFromDevice/{deviceId}", Method.DELETE);
             restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddUrlSegment("deviceId", id);
             restRequest.AddHeader("Authorization", token!);
@@ -766,7 +763,7 @@ namespace Biovation.Server.Controllers.v2
                 return new ResultViewModel { Success = false, Code = 404, Message = "The provided user list is empty" };
 
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/UserFromDevice", Method.POST);
+            var restRequest = new RestRequest("v2/Device/{id}/UserFromDevice", Method.POST);
             restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddJsonBody(userId);
             restRequest.AddHeader("Authorization", token!);
@@ -778,7 +775,7 @@ namespace Biovation.Server.Controllers.v2
         public async Task<List<User>> RetrieveUsersOfDevice([FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/FetchUsersList", Method.POST);
+            var restRequest = new RestRequest("v2/Device/{id}/FetchUsersList", Method.POST);
             restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<List<User>>(restRequest)).Data;
@@ -786,22 +783,24 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        [Route("SendUserToDevice/{id}")]
-        public async Task<ResultViewModel> SendUserToDevice([FromRoute] int id = default)
+        [Route("SendUserToDevice/{deviceId}")]
+        public async Task<ResultViewModel> SendUserToDevice([FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/SendUser", Method.POST);
-            restRequest.AddUrlSegment("id", id);
+            var restRequest = new RestRequest("v2/Device/{id}/SendUser", Method.POST);
+            restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
 
         [HttpPost]
+        [Authorize]
         [Route("SendUsersToDevice/{deviceId}")]
         public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int deviceId, [FromBody] List<long> userIds)
         {
+            //Todo: User global token instead of private services token
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("Biovation/api/v2/Device/{id}/SendUsers", Method.POST);
+            var restRequest = new RestRequest("v2/Device/{id}/SendUsers", Method.POST);
             restRequest.AddUrlSegment("id", deviceId);
             restRequest.AddJsonBody(userIds);
             restRequest.AddHeader("Authorization", token!);
