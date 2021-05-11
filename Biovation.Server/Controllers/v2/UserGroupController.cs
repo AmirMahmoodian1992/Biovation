@@ -331,7 +331,7 @@ namespace Biovation.Server.Controllers.v2
                     var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                     if (deviceBrands == null) return;
                     foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
-                        $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
+                        $"{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
                         Method.POST)))
                     {
                         restRequest.AddHeader("Authorization", token!);
@@ -369,7 +369,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         var restRequest =
                             new RestRequest(
-                                $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                $"{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
                                 Method.POST);
                         restRequest.AddHeader("Authorization", token!);
                         restRequest.AddJsonBody(user);
