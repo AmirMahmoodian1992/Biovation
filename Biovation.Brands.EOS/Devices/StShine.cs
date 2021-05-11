@@ -40,6 +40,7 @@ namespace Biovation.Brands.EOS.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
+        private const int _maxRecordCount = 350000;
 
         public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger, TaskService taskService, DeviceBrands deviceBrands)
          : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
@@ -159,7 +160,7 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool IsConnected()
         {
-            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
+            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 500);
 
             lock (_clockInstantiationLock)
                 _clock = new Clock(connection, ProtocolType.Hdlc, 1, _protocolType);
@@ -1358,15 +1359,15 @@ namespace Biovation.Brands.EOS.Devices
             var invalidTime = false;
             Logger.Log($"The datetime start with {startTime}");
             if (startTime is null ||
-                startTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day) ||
+                startTime < new DateTime(DateTime.Now.Year - 2, DateTime.Now.Month, DateTime.Now.Day) ||
                 startTime > DateTime.Now)
             {
-                startTime = new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day);
+                startTime = new DateTime(DateTime.Now.Year - 2, DateTime.Now.Month, DateTime.Now.Day);
                 invalidTime = true;
             }
 
             if (endTime is null || endTime > DateTime.Now ||
-                endTime < new DateTime(DateTime.Now.Year - 1, DateTime.Now.Month, DateTime.Now.Day))
+                endTime < new DateTime(DateTime.Now.Year - 2, DateTime.Now.Month, DateTime.Now.Day))
             {
                 //endTime = new DateTime(2021, 3, 19);
                 invalidTime = true;
@@ -1419,27 +1420,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     var initialReadPointer = writePointer;
                     Logger.Log($"The initial pointer is: {initialReadPointer}");
-                    for (var i = 0; i < 5; i++)
-                    {
-                        try
-                        {
-                            lock (_clock)
-                            {
-                                Thread.Sleep(500);
-                                initialReadPointer = _clock.GetReadPointer();
-                            }
 
-                            break;
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception, exception.Message);
-                            Thread.Sleep(++i * 100);
-                        }
-
-                    }
-
-                    var rightBoundary = writePointer;
                     var leftBoundary = writePointer - 1;
 
                     for (var i = 0; i < 5; i++)
@@ -1450,6 +1431,9 @@ namespace Biovation.Brands.EOS.Devices
                             {
                                 Thread.Sleep(500);
                                 successSetPointer = _clock.SetReadPointer(leftBoundary);
+                                if (!successSetPointer) continue;
+                                var reconnect = Connect();
+                                if (!reconnect) continue;
                             }
 
                             break;
@@ -1462,17 +1446,12 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
-                    var reconnect = Connect();
+                    
 
                     Logger.Log(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
                     if (successSetPointer)
                     {
-                        var dic = new Dictionary<int, int>()
-                        {
-                            {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0},
-                            {12, 0}
-                        };
-                        var index = leftBoundary;
+                        var firstIndex = leftBoundary;
                         var clockRecord = new ClockRecord();
                         try
                         {
@@ -1494,8 +1473,41 @@ namespace Biovation.Brands.EOS.Devices
                             }
 
                             Logger.Log($"First datetime {clockRecord.DateTime}");
-                            EOSsearch(ref index, new DateTime(2020, 8, 6), 10, clockRecord.DateTime, dic,
-                                clockRecord.DateTime.Month);
+                            var goalDateTime = new DateTime(startTime.Value.Year, startTime.Value.Month, startTime.Value.Day - 1);
+                            var firstReturnedDateTime = EOSsearch(ref firstIndex, goalDateTime, 0, leftBoundary, clockRecord.DateTime);
+                            if ( goalDateTime.Subtract(firstReturnedDateTime)> new TimeSpan(1,0,0,0) || goalDateTime.Subtract(firstReturnedDateTime) < new TimeSpan(-1,0,0,0))
+                            {
+                                var secondIndex = firstIndex;
+                                var secondReturnedDateTime = EOSsearch(ref secondIndex, goalDateTime, leftBoundary, _maxRecordCount, clockRecord.DateTime);
+                                if ((firstReturnedDateTime > goalDateTime && secondReturnedDateTime > goalDateTime && firstReturnedDateTime.Subtract(goalDateTime) < secondReturnedDateTime.Subtract(goalDateTime)) ||
+                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime < goalDateTime && goalDateTime.Subtract(firstReturnedDateTime) < goalDateTime.Subtract(secondReturnedDateTime)) ||
+                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime > goalDateTime && goalDateTime.Subtract(firstReturnedDateTime) < secondReturnedDateTime.Subtract(goalDateTime)) ||
+                                    (firstReturnedDateTime > goalDateTime && secondReturnedDateTime < goalDateTime && firstReturnedDateTime.Subtract(goalDateTime) < goalDateTime.Subtract(secondReturnedDateTime)))
+                                {
+                                    for (var i = 0; i < 5; i++)
+                                    {
+                                        try
+                                        {
+                                            lock (_clock)
+                                            {
+                                                Thread.Sleep(500);
+                                                successSetPointer = _clock.SetReadPointer(firstIndex);
+                                                if (!successSetPointer) continue;
+                                                var reconnect = Connect();
+                                                if (!reconnect) continue;
+                                            }
+
+                                            break;
+                                        }
+                                        catch (Exception exception)
+                                        {
+                                            Logger.Log(exception, exception.Message);
+                                            Thread.Sleep(++i * 100);
+                                        }
+
+                                    }
+                                }
+                            }
                         }
                         catch (Exception e)
                         {
@@ -1668,16 +1680,19 @@ namespace Biovation.Brands.EOS.Devices
             }
         }
 
-        private void EOSsearch(ref int currentIndex, DateTime startDateTime, int stepLenght, DateTime prevDateTime, IDictionary<int, int> seenMonth, int firstSeenMonth)
+        private DateTime EOSsearch(ref int currentIndex, DateTime goalDateTime, int beginingOfInterval, int endOfInterval, DateTime prevDateTime)
         {
             var successSetPointer = false;
             ClockRecord clockRecord = null;
-            if (currentIndex < stepLenght)
+            //if (currentIndex < stepLenght)
+            //{
+            //    return;
+            //}
+            if (Math.Abs(beginingOfInterval - endOfInterval) < 1)
             {
-                return;
+                return prevDateTime;
             }
-
-            currentIndex -= stepLenght;
+            currentIndex = (beginingOfInterval + endOfInterval) / 2;
             for (var i = 0; i < 5; i++)
             {
                 try
@@ -1688,9 +1703,11 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             Thread.Sleep(500);
                             successSetPointer = _clock.SetReadPointer(currentIndex);
+                            if(!successSetPointer) continue;
                         }
-
+                        Thread.Sleep(500);
                         var reconnect = Connect();
+                        if(!reconnect) continue;
                         Thread.Sleep(500);
                         clockRecord = (ClockRecord)_clock.GetRecord();
                     }
@@ -1705,51 +1722,15 @@ namespace Biovation.Brands.EOS.Devices
 
             if (clockRecord == null)
             {
-                //ignore
+                return EOSsearch(ref currentIndex, goalDateTime, beginingOfInterval, currentIndex, prevDateTime);
             }
-            else
+            var recordDateTime = clockRecord.DateTime;
+            Logger.Log($"NEW datetime {recordDateTime}");
+            if (recordDateTime > goalDateTime)
             {
-                var recordDateTime = clockRecord.DateTime;
-                Logger.Log($"NEW datetime {recordDateTime}");
-                if (recordDateTime.Month > firstSeenMonth)
-                {
-                    recordDateTime = recordDateTime.AddYears(1);
-                }
-                if (prevDateTime.Month != recordDateTime.Month)
-                {
-                    seenMonth[recordDateTime.Month]++;
-                    if (seenMonth[recordDateTime.Month] > 1)
-                    {
-                        return;
-                    }
-                }
-
-                if (recordDateTime.Month > startDateTime.Month)
-                {
-                    if (prevDateTime - recordDateTime < recordDateTime - startDateTime)
-                    {
-                        stepLenght += stepLenght * 2 <= 80 ? stepLenght * 2 : stepLenght;
-                    }
-                    EOSsearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth, firstSeenMonth);
-                }
-                else if (recordDateTime.Month < startDateTime.Month)
-                {
-                    stepLenght += stepLenght * 2 <= 80 ? stepLenght * 2 : stepLenght;
-                    EOSsearch(ref currentIndex, startDateTime, stepLenght , recordDateTime, seenMonth, firstSeenMonth);
-                }
-                else
-                {
-                    if (recordDateTime.Day > startDateTime.Day - 1)
-                    {
-                        EOSsearch(ref currentIndex, startDateTime, 1, recordDateTime, seenMonth, firstSeenMonth);
-                    }
-                    else if (recordDateTime.Day + 2 < startDateTime.Day - 1)
-                    {
-                        EOSsearch(ref currentIndex, startDateTime, -1, recordDateTime, seenMonth, firstSeenMonth);
-                    }
-
-                }
+                return EOSsearch(ref currentIndex, goalDateTime,beginingOfInterval,currentIndex,recordDateTime);
             }
+            return recordDateTime < goalDateTime ? EOSsearch(ref currentIndex, goalDateTime, currentIndex, endOfInterval, recordDateTime) : recordDateTime;
 
         }
 
