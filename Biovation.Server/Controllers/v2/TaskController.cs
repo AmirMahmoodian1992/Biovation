@@ -5,6 +5,7 @@ using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
@@ -24,19 +25,19 @@ namespace Biovation.Server.Controllers.v2
             _taskStatuses = taskStatuses;
         }
 
-        //[HttpGet]
-        //public Task<List<TaskInfo>> Tasks(int taskId = default, string brandCode = default,
-        //    int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
-        //    string excludedTaskStatusCodes = default, int pageNumber = default,
-        //    int pageSize = default, int taskItemId = default)
-        //{
-        //    return _taskService.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-        //        excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
-        //}
+        [HttpGet]
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> Tasks(int id = default, string brandCode = default,
+            int deviceId = default, string taskTypeCode = default, [FromQuery] List<string> taskStatusCodes = default,
+            [FromQuery] List<string> excludedTaskStatusCodes = default, int pageNumber = default,
+            int pageSize = default, int taskItemId = default)
+        {
+            return await _taskService.GetTasks(id, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
+        }
 
 
         [HttpGet]
-        [Route("TaskItems")]
+        [Route("TaskItems/{taskItemId}")]
         public async Task<ResultViewModel<TaskItem>> TaskItems(int taskItemId = default)
         {
             return await _taskService.GetTaskItem(taskItemId, HttpContext.Items["Token"] as string);

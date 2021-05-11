@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
@@ -20,7 +21,7 @@ namespace Biovation.Service.Api.v2
             int pageSize = default, int taskItemId = default, string token = default)
         {
             var taskStatusCodesString = string.Empty;
-            if (taskStatusCodes != null)
+            if (taskStatusCodes != null && taskStatusCodes.Any())
             {
                 taskStatusCodesString += '(';
                 foreach (var taskStatusCode in taskStatusCodes)
@@ -33,7 +34,7 @@ namespace Biovation.Service.Api.v2
             }
 
             var excludedTaskStatusCodesString = string.Empty;
-            if (excludedTaskStatusCodes != null)
+            if (excludedTaskStatusCodes != null && excludedTaskStatusCodes.Any())
             {
                 excludedTaskStatusCodesString += '(';
                 foreach (var excludedTaskStatusCode in excludedTaskStatusCodes)
