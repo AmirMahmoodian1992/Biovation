@@ -79,7 +79,7 @@ namespace Biovation.Server.Controllers.v2
 
             var restRequest =
                 new RestRequest(
-                    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                    $"{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("timeZoneId", id);
@@ -101,7 +101,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 var restRequest =
                     new RestRequest(
-                        $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                        $"{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
                         Method.GET);
                 restRequest.AddParameter("code", device.Code);
                 restRequest.AddParameter("timeZoneId", id);
