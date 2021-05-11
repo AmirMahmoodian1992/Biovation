@@ -566,6 +566,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [Authorize]
         [Route("DeviceBrands")]
         public async Task<ResultViewModel<PagingResult<Lookup>>> DeviceBrands(bool loadedOnly = true)
         {
@@ -588,6 +589,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [Authorize]
         [Route("DeviceModels")]
         public async Task<ResultViewModel<PagingResult<DeviceModel>>> DeviceModels(int brandCode = default, string name = default, bool loadedBrandsOnly = true)
         {
