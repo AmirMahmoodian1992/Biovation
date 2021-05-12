@@ -51,7 +51,6 @@ namespace Biovation.Brands.ZK.Devices
         private readonly LogEvents _logEvents;
         private readonly ZkCodeMappings _zkCodeMappings;
 
-        private readonly TaskManager _taskManager;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
@@ -62,9 +61,14 @@ namespace Biovation.Brands.ZK.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
+        private readonly List<char> _persianLetters = new List<char>
+        {
+            'آ', 'ا', 'ب', 'پ', 'ت', 'ث', 'ج', 'چ', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'ژ', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ',
+            'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی', 'ي', 'ء', 'إ', 'أ', 'ؤ', 'ئ', 'ة', 'ك'
+        };
 
         protected static readonly object LockObject = new object();
-        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, TaskManager taskManager, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
+        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
         {
             DeviceInfo = info;
             _taskService = taskService;
@@ -86,7 +90,6 @@ namespace Biovation.Brands.ZK.Devices
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
-            _taskManager = taskManager;
             _matchingTypes = matchingTypes;
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateTypes = fingerTemplateTypes;
@@ -134,7 +137,7 @@ namespace Biovation.Brands.ZK.Devices
                             //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
                             //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
                             //Thread.Sleep(500);
-                    Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                            Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
                             ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
                             ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
                             //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
@@ -156,7 +159,7 @@ namespace Biovation.Brands.ZK.Devices
                         //_zkTecoSdk.OnFinger += _zkTecoSdk_OnFinger;
                         //_zkTecoSdk.OnVerify += _zkTecoSdk_OnVerify;
                         //Thread.Sleep(500);
-                    Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
                         ZkTecoSdk.OnAttTransaction += OnAttendanceTransactionCallback;
                         ZkTecoSdk.OnAttTransactionEx += OnAttendanceTransactionExCallback;
                         //_zkTecoSdk.OnFingerFeature += _zkTecoSdk_OnFingerFeature;
@@ -610,8 +613,18 @@ namespace Biovation.Brands.ZK.Devices
                     }
                 }
 
-                var name = user.FirstName + " " + user.SurName;
-                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
+                var isoEncoding = Encoding.GetEncoding(28591);
+                var windowsEncoding = Encoding.GetEncoding(1256);
+                var userName = (string.IsNullOrWhiteSpace(user.UserName) ? user.FirstName + " " + user.SurName : user.UserName).Trim();
+                var convertedUserName = string.IsNullOrEmpty(userName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(userName));
+
+                if (userName.Count(c => _persianLetters.Contains(c)) > 3)
+                {
+                    var replacements = new Dictionary<string, string> { { "\u0098", "˜" }, { "\u008e", "Ž" } };
+                    convertedUserName = replacements.Aggregate(convertedUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                }
+
+                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), convertedUserName?.Trim() ?? string.Empty, user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
                     _logger.Information($"UserId {user.Code} successfully added to DeviceId {DeviceInfo.Code}.");
@@ -1108,8 +1121,9 @@ namespace Biovation.Brands.ZK.Devices
             {
                 if (ZkTecoSdk.ReadAllUserID((int)DeviceInfo.Code))
                 {
-                    var lstUsers = new List<User>();
-
+                    var retrievedUsers = new List<User>();
+                    var isoEncoding = Encoding.GetEncoding(28591);
+                    var windowsEncoding = Encoding.GetEncoding(1256);
                     var index = 0;
 
                     while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
@@ -1121,10 +1135,15 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 _logger.Debug($"Retrieved user {iUserId}, index: {index}");
 
+                                var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                                var userName = replacements.Aggregate(name, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                                userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
                                 var user = new User
                                 {
                                     Code = Convert.ToInt64(iUserId),
-                                    UserName = name,
+                                    UserName = userName,
                                     IsActive = enable,
                                     AdminLevel = privilege,
                                     Password = password,
@@ -1232,7 +1251,7 @@ namespace Biovation.Brands.ZK.Devices
                                 }
 
                                 //_zkLogService.AddLog(log);
-                                lstUsers.Add(user);
+                                retrievedUsers.Add(user);
                             }
                             catch (Exception)
                             {
@@ -1241,7 +1260,7 @@ namespace Biovation.Brands.ZK.Devices
                         }
                     }
 
-                    return lstUsers;
+                    return retrievedUsers;
                 }
 
                 var error = 0;
@@ -1465,17 +1484,26 @@ namespace Biovation.Brands.ZK.Devices
 
                     if (!ZkTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
                         out var password, out var privilege, out var enabled)) return new User();
+
+                    var isoEncoding = Encoding.GetEncoding(28591);
+                    var windowsEncoding = Encoding.GetEncoding(1256);
+
+                    var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                    var userName = replacements.Aggregate(name, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                    userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
                     var user = new User
                     {
                         Code = userId,
                         AdminLevel = privilege,
                         IsActive = enabled,
-                        SurName = name.Split(' ').LastOrDefault(),
-                        FirstName = name.Split(' ').FirstOrDefault(),
+                        SurName = userName?.Split(' ').LastOrDefault(),
+                        FirstName = userName?.Split(' ').FirstOrDefault(),
                         StartDate = DateTime.Parse("1970/01/01"),
                         EndDate = DateTime.Parse("2050/01/01"),
                         Password = password,
-                        UserName = name,
+                        UserName = userName,
                         FingerTemplates = new List<FingerTemplate>(),
                         FaceTemplates = new List<FaceTemplate>(),
                     };
