@@ -1,5 +1,4 @@
 ﻿using Biovation.CommonClasses.Extension;
-using Biovation.Data.Commands.Sinks;
 using Biovation.Domain;
 using Biovation.Repository.MessageBus;
 using Biovation.Repository.Sql.v2;
@@ -15,13 +14,13 @@ namespace Biovation.Data.Commands.Controllers.v2
     //[ApiVersion("2.0")]
     public class TaskController : ControllerBase
     {
-        private readonly TaskApiSink _taskApiSink;
+        //private readonly TaskApiSink _taskApiSink;
         private readonly TaskRepository _taskRepository;
         private readonly TaskMessageBusRepository _taskMessageBusRepository;
 
-        public TaskController(TaskRepository taskRepository, TaskMessageBusRepository taskMessageBusRepository, TaskApiSink taskApiSink)
+        public TaskController(TaskRepository taskRepository, TaskMessageBusRepository taskMessageBusRepository/*, TaskApiSink taskApiSink*/)
         {
-            _taskApiSink = taskApiSink;
+            //_taskApiSink = taskApiSink;
             _taskRepository = taskRepository;
             _taskMessageBusRepository = taskMessageBusRepository;
         }
@@ -37,7 +36,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             //integration
             var taskList = new List<TaskInfo> { task };
-            _ = _taskApiSink.TransmitTaskInfo(task).ConfigureAwait(false);
+            //_ = _taskApiSink.TransmitTaskInfo(task).ConfigureAwait(false);
             _ = _taskMessageBusRepository.SendTask(taskList).ConfigureAwait(false);
 
             return taskInsertionResult;
@@ -52,7 +51,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             //integration
             var taskList = new List<TaskInfo> { task };
-            _ = _taskApiSink.TransmitTaskInfo(task).ConfigureAwait(false);
+            //_ = _taskApiSink.TransmitTaskInfo(task).ConfigureAwait(false);
             _ = _taskMessageBusRepository.SendTask(taskList).ConfigureAwait(false);
 
             return taskInsertionResult;
