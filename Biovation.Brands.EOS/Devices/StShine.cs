@@ -1383,7 +1383,7 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_onlineDevices)
             {
-                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType} from {startTime}");
             }
 
             bool deviceConnected;
@@ -1506,6 +1506,11 @@ namespace Biovation.Brands.EOS.Devices
                                         }
 
                                     }
+                                    Logger.Log($@"SUccessfully First Read Offline log from {firstReturnedDateTime} with index {firstIndex}");
+                                }
+                                else
+                                {
+                                    Logger.Log($@"SUccessfully Second Read Offline log from {secondReturnedDateTime} with index {secondIndex}");
                                 }
                             }
                         }
