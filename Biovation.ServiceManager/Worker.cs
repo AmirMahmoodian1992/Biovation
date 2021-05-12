@@ -2,6 +2,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
@@ -40,7 +41,7 @@ namespace Biovation.ServiceManager
 
                 var services = ServiceController.GetServices();
                 var biovationBrandsServices = services.Where(service => service.ServiceName.ToLower().Contains("biovation.brands"));
-                
+
                 if (!startBaseServices)
                 {
                     Parallel.ForEach(biovationBrandsServices, brandService =>
@@ -50,7 +51,7 @@ namespace Biovation.ServiceManager
                     });
 
                     await Task.Delay(3000, stoppingToken);
-                    waitValue = 1.584; 
+                    waitValue = 1.584;
                     continue;
                 }
 
@@ -67,7 +68,7 @@ namespace Biovation.ServiceManager
         }
 
 
-        private bool CheckServiceStatus(string serviceName)
+        private static bool CheckServiceStatus(string serviceName)
         {
             var service = new ServiceController(serviceName);
 
@@ -76,14 +77,15 @@ namespace Biovation.ServiceManager
                 if (service.Status == ServiceControllerStatus.Running)
                     return true;
 
-                if (service.Status != ServiceControllerStatus.Stopped)
-                {
-                    service.Stop();
-                    service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(3));
-                }
+                //if (service.Status != ServiceControllerStatus.Stopped)
+                //{
+                //service.Stop();
+                //service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(3));
+                StopService(serviceName);
+                //}
 
                 service.Start();
-                service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromSeconds(20));
+                service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(1));
                 return true;
             }
             catch
@@ -98,16 +100,16 @@ namespace Biovation.ServiceManager
             }
         }
 
-        private void StopService(string serviceName)
+        private static void StopService(string serviceName)
         {
             var service = new ServiceController(serviceName);
 
             try
             {
                 if (service.Status == ServiceControllerStatus.Stopped) return;
-                
+
                 service.Stop();
-                service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(3));
+                service.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(15));
             }
             catch
             {
@@ -117,6 +119,28 @@ namespace Biovation.ServiceManager
             {
                 service.Close();
                 service.Dispose();
+            }
+
+            StopProcess(serviceName);
+        }
+
+        private static void StopProcess(string processName)
+        {
+            var serviceProcesses = new List<Process>();
+            serviceProcesses.AddRange(Process.GetProcessesByName(processName));
+            serviceProcesses.AddRange(Process.GetProcessesByName(processName + ".exe"));
+            foreach (var serviceProcess in serviceProcesses)
+            {
+                try
+                {
+                    serviceProcess.Kill();
+                    serviceProcess.WaitForExit(10000);
+                    serviceProcess.Dispose();
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
             }
         }
     }

@@ -92,7 +92,7 @@ namespace Biovation.Server.HostedServices
                 }
 
                 //var response = requests.RequestInfo("127.0.0.1", 2105, "info", "1", "1");
-                if (response?.Data == null)
+                if (response == null)
                 {
                     CallStopServices();
                     return;
