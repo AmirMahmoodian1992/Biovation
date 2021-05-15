@@ -178,7 +178,7 @@ namespace Biovation.Server.Controllers.v2
                                     TotalCount = 1
                                 });
                             }
-                            _taskService.InsertTask(task);
+                            await _taskService.InsertTask(task);
                             await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                             var deleteUserRestRequest =
@@ -211,6 +211,37 @@ namespace Biovation.Server.Controllers.v2
 
                             if (usersToAdd is null)
                                 return;
+
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendUsers,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = device.Brand,
+                                TaskItems = new List<TaskItem>(),
+                                DueDate = DateTime.Today
+                            };
+
+                            foreach (var userId in usersToAdd.Select(user => user.Id))
+                            {
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendUser,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = device.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { userId }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1,
+                                    CurrentIndex = 0,
+                                    TotalCount = 1
+                                });
+                            }
+
+                            await _taskService.InsertTask(task);
+                            await _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
                             var sendUserRestRequest =
                                     new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",

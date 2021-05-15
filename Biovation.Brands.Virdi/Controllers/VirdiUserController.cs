@@ -121,43 +121,16 @@ namespace Biovation.Brands.Virdi.Controllers
                 if (device is null)
                     return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists" } };
 
-                var creatorUser = HttpContext.GetUser();
                 var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.SendUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
 
                 foreach (var id in userIds)
                 {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.SendUser,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { UserId = id }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
 
                     if (!updateServerSideIdentification) continue;
                     // ReSharper disable once AssignmentIsFullyDiscarded
                     _ =_virdiServer.AddUserToDeviceFastSearch(code, (int)id).ConfigureAwait(false);
                 }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi, device.DeviceId).ConfigureAwait(false);
 
                 resultList.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
                 return resultList;

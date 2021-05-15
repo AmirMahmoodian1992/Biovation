@@ -62,38 +62,15 @@ namespace Biovation.Brands.ZK.Controllers
                         var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                         if (devices != null)
                         {
-                            var deviceId = devices.DeviceId;
 
-                            var task = new TaskInfo
-                            {
-                                CreatedAt = DateTimeOffset.Now,
-                                CreatedBy = creatorUser,
-                                TaskType = _taskTypes.SendUsers,
-                                Priority = _taskPriorities.Medium,
-                                DeviceBrand = _deviceBrands.ZkTeco,
-                                TaskItems = new List<TaskItem>()
-                            };
 
                             foreach (var id in userIds)
                             {
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.SendUser,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = deviceId,
-                                    Data = JsonConvert.SerializeObject(new { UserId = id }),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-
                                 listResult.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
                             }
-                            _taskService.InsertTask(task);
+
                         }
 
-                        _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
                         //_taskManager.ProcessQueue();
                     }
                     catch (Exception e)

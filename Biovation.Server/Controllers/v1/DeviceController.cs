@@ -38,7 +38,7 @@ namespace Biovation.Server.Controllers.v1
 
         private readonly string _kasraAdminToken;
 
-        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator tokenGenerator, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator tokenGenerator, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _lookups = lookups;
             _restClient = restClient;
@@ -48,6 +48,8 @@ namespace Biovation.Server.Controllers.v1
             _biovationConfigurationManager = biovationConfigurationManager;
             _tokenGenerator = tokenGenerator;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+
+            _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
@@ -426,7 +428,7 @@ namespace Biovation.Server.Controllers.v1
                         CurrentIndex = 0,
                         TotalCount = 1
                     });
-                };
+                }
                 _taskService.InsertTask(task);
                 await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 

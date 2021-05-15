@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -24,13 +26,25 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserGroupService _userGroupService;
         private readonly DeviceGroupService _deviceGroupService;
 
-        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, UserGroupService userGroupService, DeviceGroupService deviceGroupService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, UserGroupService userGroupService, DeviceGroupService deviceGroupService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _restClient = restClient;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
             _deviceGroupService = deviceGroupService;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -156,6 +170,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
                 var accessGroup = (await _accessGroupService.GetAccessGroup(id, token: token)).Data;
@@ -211,6 +226,38 @@ namespace Biovation.Server.Controllers.v2
                             //parameters = new List<object> { $"code={device.Code}", $"userId={userids}", };
                             //_communicationManager.CallRest(
                             //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice", "Get", parameters, null);
+
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendUsers,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = device.Brand,
+                                TaskItems = new List<TaskItem>(),
+                                DueDate = DateTime.Today
+                            };
+
+                            foreach (var userId in userids)
+                            {
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendUser,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = device.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { userId }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1,
+                                    CurrentIndex = 0,
+                                    TotalCount = 1
+                                });
+                            }
+
+                            await _taskService.InsertTask(task);
+                            await _taskService.ProcessQueue(device.Brand, device.DeviceId);
+
                             restRequest =
                                 new RestRequest(
                                     $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",

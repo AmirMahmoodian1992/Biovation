@@ -297,18 +297,47 @@ namespace Biovation.Server.Controllers.v2
                     await Task.Run(async () =>
                     {
                         var device = (await _deviceService.GetDevice(deviceKey, token)).Data;
-                        var usersToDeleteFromDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
+                        var usersToAdd = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
                             ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
                                 .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
                             : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
                             new User { Code = user.UserCode, UserName = user.UserName });
 
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.SendUsers,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = device.Brand,
+                            TaskItems = new List<TaskItem>(),
+                            DueDate = DateTime.Today
+                        };
 
+                        foreach (var id in usersToAdd.Select(user => user.Id))
+                        {
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.SendUser,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { userId = id }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                                CurrentIndex = 0,
+                                TotalCount = 1
+                            });
+                        }
+
+                        await _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
                         var sendUserRestRequest =
                             new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
                         sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                        sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
+                        sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAdd.Select(user => user.Code)));
                         /*var additionResult =*/
                         sendUserRestRequest.AddHeader("Authorization", token!);
                         await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);

@@ -34,7 +34,7 @@ namespace Biovation.Server.Controllers.v1
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _deviceGroupService = deviceGroupService;
@@ -44,6 +44,7 @@ namespace Biovation.Server.Controllers.v1
             _tokenGenerator = tokenGenerator;
             _userService = userService;
 
+            _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
@@ -173,7 +174,7 @@ namespace Biovation.Server.Controllers.v1
                                         CurrentIndex = 0,
                                         TotalCount = 1
                                     });
-                                };
+                                }
                                 _taskService.InsertTask(task);
                                 await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
@@ -205,13 +206,43 @@ namespace Biovation.Server.Controllers.v1
                                         ? newAuthorizedUsersOfDevice.ExceptBy(
                                             existingAuthorizedUsersOfAddedDevice[deviceId], user => user.Id)
                                         : newAuthorizedUsersOfDevice;
+                                
+                                var task = new TaskInfo
+                                {
+                                    CreatedAt = DateTimeOffset.Now,
+                                    CreatedBy = creatorUser,
+                                    TaskType = _taskTypes.SendUsers,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceBrand = device.Brand,
+                                    TaskItems = new List<TaskItem>(),
+                                    DueDate = DateTime.Today
+                                };
+
+                                foreach (var id in usersToAdd.Select(user=> user.Code))
+                                {
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendUser,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId = id }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+                                }
+
+                                _taskService.InsertTask(task);
+                                await _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
                                 var sendUserRestRequest =
                                         new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
                                             Method.GET);
                                 sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                                sendUserRestRequest.AddQueryParameter("userId",
-                                    JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
+                                sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
                                 /*var additionResult =*/
                                 sendUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);

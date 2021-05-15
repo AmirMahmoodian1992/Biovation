@@ -94,44 +94,6 @@ namespace Biovation.Brands.Suprema.Controllers
         {
             try
             {
-                var userIds = JsonConvert.DeserializeObject<long[]>(userId);
-                var creatorUser = HttpContext.GetUser();
-
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
-                if (devices != null)
-                {
-                    var deviceId = devices.DeviceId;
-
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.SendUsers,
-                        Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Suprema,
-                        TaskItems = new List<TaskItem>()
-                    };
-
-                    foreach (var receivedUserId in userIds)
-                    {
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.SendUser,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = deviceId,
-                            Data = JsonConvert.SerializeObject(new { UserId = receivedUserId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-
-                        //listResult.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
-                    }
-                    _taskService.InsertTask(task);
-                }
-
-                await _taskService.ProcessQueue(_deviceBrands.Suprema, devices?.DeviceId ?? 0).ConfigureAwait(false);
                 return new ResultViewModel { Validate = 1, Message = "Sending user queued" };
             }
             catch (Exception e)
