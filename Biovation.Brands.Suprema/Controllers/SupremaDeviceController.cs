@@ -89,38 +89,38 @@ namespace Biovation.Brands.Suprema.Controllers
         {
             try
             {
-                var creatorUser = HttpContext.GetUser();
+                //var creatorUser = HttpContext.GetUser();
                 var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Suprema,
-                    TaskItems = new List<TaskItem>()
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.DeleteUsers,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceBrand = _deviceBrands.Suprema,
+                //    TaskItems = new List<TaskItem>()
+                //};
 
-                foreach (var userCode in userCodes)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1
-                    });
-                }
+                //foreach (var userCode in userCodes)
+                //{
+                //    task.TaskItems.Add(new TaskItem
+                //    {
+                //        Status = _taskStatuses.Queued,
+                //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                //        Priority = _taskPriorities.Medium,
+                //        DeviceId = device.DeviceId,
+                //        Data = JsonConvert.SerializeObject(new { userCode }),
+                //        IsParallelRestricted = true,
+                //        IsScheduled = false,
+                //        OrderIndex = 1
+                //    });
+                //}
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
 
                 var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
                 return result;

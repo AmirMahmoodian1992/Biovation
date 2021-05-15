@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -26,7 +28,13 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly RestClient _restClient;
 
-        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _deviceGroupService = deviceGroupService;
@@ -35,6 +43,11 @@ namespace Biovation.Server.Controllers.v1
             _restClient = restClient;
             _tokenGenerator = tokenGenerator;
             _userService = userService;
+
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -53,6 +66,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var existingDeviceGroup = deviceGroup.Id == 0 ? null : _deviceGroupService.GetDeviceGroups(deviceGroup.Id, token: _kasraAdminToken).FirstOrDefault();
                     if (existingDeviceGroup is null && deviceGroup.Id != 0)
                         return new ResultViewModel
@@ -131,6 +145,37 @@ namespace Biovation.Server.Controllers.v1
                                         newAuthorizedUsersOfDevice,
                                         user => user.Id)
                                     : existingAuthorizedUsersOfDeletedDevice[deviceId];
+
+                                var task = new TaskInfo
+                                {
+                                    CreatedAt = DateTimeOffset.Now,
+                                    CreatedBy = creatorUser,
+                                    TaskType = _taskTypes.DeleteUsers,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceBrand = device.Brand,
+                                    TaskItems = new List<TaskItem>(),
+                                    DueDate = DateTime.Today
+                                };
+
+                                foreach (var userCode in usersToDelete.Select(user => user.Code))
+                                {
+
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userCode }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+                                };
+                                _taskService.InsertTask(task);
+                                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                                 var deleteUserRestRequest =
                                     new RestRequest(

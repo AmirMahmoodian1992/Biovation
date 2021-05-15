@@ -14,6 +14,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -31,6 +33,12 @@ namespace Biovation.Server.Controllers.v1
         private readonly TokenGenerator _tokenGenerator;
 
         private readonly RestClient _restClient;
+
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
 
         public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator)
         {
@@ -638,6 +646,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var resultList = new List<ResultViewModel>();
                 //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
                 var userGroupIdList = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(usersGroupIds);
@@ -773,6 +782,34 @@ namespace Biovation.Server.Controllers.v1
                                 {
                                     var deviceBrand = deviceBrands.First(devBrand => devBrand.Code == deviceToDelete.Brand.Code);
                                     var listOfUserId = new List<int> { userId };
+
+                                    var task = new TaskInfo
+                                    {
+                                        CreatedAt = DateTimeOffset.Now,
+                                        CreatedBy = creatorUser,
+                                        TaskType = _taskTypes.DeleteUsers,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceBrand = deviceBrand,
+                                        TaskItems = new List<TaskItem>(),
+                                        DueDate = DateTime.Today
+                                    };
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = deviceToDelete.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+                                    _taskService.InsertTask(task);
+                                    await _taskService.ProcessQueue(deviceToDelete.Brand).ConfigureAwait(false);
+
+
                                     var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice", Method.POST);
                                     restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
                                     restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);

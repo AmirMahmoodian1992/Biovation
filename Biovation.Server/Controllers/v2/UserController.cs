@@ -14,6 +14,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -30,9 +32,15 @@ namespace Biovation.Server.Controllers.v2
         private readonly AccessGroupService _accessGroupService;
         private readonly FingerTemplateService _fingerTemplateService;
 
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskService _taskService;
+
         private readonly RestClient _restClient;
 
-        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, RestClient restClient, FingerTemplateService fingerTemplateService, UserCardService userCardService)
+        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, RestClient restClient, FingerTemplateService fingerTemplateService, UserCardService userCardService, TaskStatuses taskStatuses, TaskTypes taskTypes, TaskItemTypes taskItemTypes,TaskPriorities taskPriorities,TaskService taskService)
         {
             _userService = userService;
             _deviceService = deviceService;
@@ -41,6 +49,12 @@ namespace Biovation.Server.Controllers.v2
             _fingerTemplateService = fingerTemplateService;
             _userCardService = userCardService;
             _accessGroupService = accessGroupService;
+           
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -489,6 +503,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var resultList = new List<ResultViewModel>();
                 //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
@@ -641,10 +656,38 @@ namespace Biovation.Server.Controllers.v2
                                 {
                                     if (deviceBrands is null)
                                         continue;
-
                                     var deviceBrand = deviceBrands.First(devBrand =>
                                         devBrand.Code == deviceToDelete.Brand.Code);
                                     var listOfUserId = new List<int> { userId };
+
+                                    var task = new TaskInfo
+                                    {
+                                        CreatedAt = DateTimeOffset.Now,
+                                        CreatedBy = creatorUser,
+                                        TaskType = _taskTypes.DeleteUsers,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceBrand = deviceToDelete.Brand,
+                                        TaskItems = new List<TaskItem>(),
+                                        DueDate = DateTime.Today
+                                    };
+
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = deviceToDelete.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+
+                                    _taskService.InsertTask(task);
+                                    await _taskService.ProcessQueue(deviceToDelete.Brand).ConfigureAwait(false);
+
                                     var restRequest = new RestRequest(
                                         $"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice",
                                         Method.POST);

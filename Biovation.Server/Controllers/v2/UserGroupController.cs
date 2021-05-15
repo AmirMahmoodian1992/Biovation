@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -24,13 +26,22 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
-
-        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, RestClient restClient)
+        private readonly TaskService _taskService;
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, RestClient restClient, TaskService taskService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _userService = userService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
             _restClient = restClient;
+            _taskService = taskService;
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
         }
 
         [HttpGet]
@@ -50,6 +61,9 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public async Task<ResultViewModel> ModifyUserGroup([FromBody] UserGroup userGroup)
         {
+
+            var creatorUser = HttpContext.GetUser();
+
             //TODO: Fix null values and question marks
             try
             {
@@ -233,6 +247,38 @@ namespace Biovation.Server.Controllers.v2
                             : existingAuthorizedUsersOfDevicesToDelete[deviceKey]).Select(user =>
                             new User { Code = user.UserCode, UserName = user.UserName });
 
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.DeleteUsers,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = device.Brand,
+                            TaskItems = new List<TaskItem>(),
+                            DueDate = DateTime.Today
+                        };
+
+                        //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                        foreach (var userCode in usersToDeleteFromDevice.Select(user => user.Code))
+                        {
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { userCode }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                                CurrentIndex = 0,
+                                TotalCount = 1
+                            });
+                        }
+                        _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
                         var deleteUserRestRequest =
                             new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
                                 Method.POST);
@@ -256,6 +302,8 @@ namespace Biovation.Server.Controllers.v2
                                 .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
                             : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
                             new User { Code = user.UserCode, UserName = user.UserName });
+
+
 
                         var sendUserRestRequest =
                             new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
@@ -364,7 +412,7 @@ namespace Biovation.Server.Controllers.v2
                     var user = (await _userService.GetUsers(code: userGroupMember.UserId, token: token))?.Data?.Data.FirstOrDefault();
                     if (user is null)
                         continue;
-                    
+
                     foreach (var deviceBrand in deviceBrands)
                     {
                         var restRequest =

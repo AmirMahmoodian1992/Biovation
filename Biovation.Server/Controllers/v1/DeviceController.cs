@@ -13,6 +13,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -29,9 +30,15 @@ namespace Biovation.Server.Controllers.v1
         private readonly TokenGenerator _tokenGenerator;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
         private readonly string _kasraAdminToken;
 
-        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator tokenGenerator)
+        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator tokenGenerator, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _lookups = lookups;
             _restClient = restClient;
@@ -41,6 +48,10 @@ namespace Biovation.Server.Controllers.v1
             _biovationConfigurationManager = biovationConfigurationManager;
             _tokenGenerator = tokenGenerator;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         //[HttpGet]
@@ -377,6 +388,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
+                var creatorUser = HttpContext.GetUser();
                 var result = new List<ResultViewModel>();
                 if (userIds == null || userIds.Count == 0)
                     return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "No users selected." } };
@@ -387,6 +399,38 @@ namespace Biovation.Server.Controllers.v1
 
                 //foreach (var user in users)
                 //{
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.DeleteUsers,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+
+                foreach (var userCode in userIds)
+                {
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { userCode }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+                };
+                _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", user.ToString());

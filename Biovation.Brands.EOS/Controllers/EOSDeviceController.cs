@@ -147,41 +147,41 @@ namespace Biovation.Brands.EOS.Controllers
                 if (device is null)
                     return new ResultViewModel { Validate = 1, Message = $"Wrong device code is provided : {code}." };
 
-                var creatorUser = HttpContext.GetUser();
+                //var creatorUser = HttpContext.GetUser();
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Eos,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.DeleteUsers,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceBrand = _deviceBrands.Eos,
+                //    TaskItems = new List<TaskItem>(),
+                //    DueDate = DateTime.Today
+                //};
 
-                //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                ////var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
 
-                foreach (var id in userIds)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode = id }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
+                //foreach (var id in userIds)
+                //{
+                //    task.TaskItems.Add(new TaskItem
+                //    {
+                //        Status = _taskStatuses.Queued,
+                //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                //        Priority = _taskPriorities.Medium,
+                //        DeviceId = device.DeviceId,
+                //        Data = JsonConvert.SerializeObject(new { userCode = id }),
+                //        IsParallelRestricted = true,
+                //        IsScheduled = false,
+                //        OrderIndex = 1,
+                //        CurrentIndex = 0,
+                //        TotalCount = 1
+                //    });
 
-                }
+                //}
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
 
                 //foreach (var id in userIds)
                 //{

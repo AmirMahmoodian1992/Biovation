@@ -483,11 +483,40 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/RemoveUser/{userId}")]
         public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] long userId = default)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             if (userId == default)
                 return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
             var device = (await _deviceService.GetDevice(id, token)).Data;
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.DeleteUsers,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { userId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                CurrentIndex = 0,
+                TotalCount = 1
+            });
+
+            _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
             var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -501,11 +530,43 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/RemoveUsers")]
         public async Task<ResultViewModel> RemoveUsersFromDevice([FromBody] List<long> userIds, [FromRoute] int id = default)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             if (userIds is null || !userIds.Any())
                 return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
             var device = (await _deviceService.GetDevice(id, token)).Data;
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.DeleteUsers,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+
+            foreach (var userCode in userIds)
+            {
+
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { userCode }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0,
+                    TotalCount = 1
+                });
+            }
+            _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
             var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());

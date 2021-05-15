@@ -934,10 +934,10 @@ namespace Biovation.Brands.Virdi.Controllers
         {
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                //var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
+                ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                //var creatorUser = HttpContext.GetUser();
 
                 /*var task = new TaskInfo
                 {
@@ -947,38 +947,38 @@ namespace Biovation.Brands.Virdi.Controllers
                     Priority = _taskPriorities.Medium,
                     TaskItems = new List<TaskItem>()
                 };*/
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.DeleteUsers,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceBrand = _deviceBrands.Virdi,
+                //    TaskItems = new List<TaskItem>(),
+                //    DueDate = DateTime.Today
+                //};
 
-                //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                foreach (var userCode in userCodes)
-                {
+                ////var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                //foreach (var userCode in userCodes)
+                //{
 
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
-                }
+                //    task.TaskItems.Add(new TaskItem
+                //    {
+                //        Status = _taskStatuses.Queued,
+                //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                //        Priority = _taskPriorities.Medium,
+                //        DeviceId = device.DeviceId,
+                //        Data = JsonConvert.SerializeObject(new { userCode }),
+                //        IsParallelRestricted = true,
+                //        IsScheduled = false,
+                //        OrderIndex = 1,
+                //        CurrentIndex = 0,
+                //        TotalCount = 1
+                //    });
+                //}
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
 
 
                 if (updateServerSideIdentification)
