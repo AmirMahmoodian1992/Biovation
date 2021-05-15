@@ -230,6 +230,7 @@ namespace Biovation.Brands.Paliz.Command
 
         private void GetUserInfoEventCallBack(object sender, UserInfoEventArgs args)
         {
+            var t = sender.ToString();
             //if (TerminalId != TaskItemId)
             //{
             //    return;
