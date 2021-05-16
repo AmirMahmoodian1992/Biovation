@@ -153,20 +153,6 @@ namespace Biovation.Brands.ZK.Controllers
             {
                 try
                 {
-                    var accessGroups = _accessGroupService.GetAccessGroups((uint)device.DeviceId);
-
-                    foreach (var accessGroup in accessGroups)
-                    {
-                        foreach (var userGroup in accessGroup.UserGroup)
-                        {
-                            foreach (var userGroupMember in userGroup.Users)
-                            {
-                                var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
-                                    new List<object> { device.Code, userGroupMember.UserCode });
-                                addUserToTerminalCommand.Execute();
-                            }
-                        }
-                    }
 
                     return new ResultViewModel { Validate = 1, Id = device.DeviceId };
                 }

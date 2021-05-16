@@ -22,6 +22,7 @@ namespace Biovation.Server.Controllers.v2
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class DeviceController : ControllerBase
     {
+        private readonly AccessGroupService _accessGroupService;
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
         private readonly UserService _userService;
@@ -35,8 +36,9 @@ namespace Biovation.Server.Controllers.v2
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public DeviceController(AccessGroupService accessGroupService,DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
+            _accessGroupService = accessGroupService;
             _deviceService = deviceService;
             _userService = userService;
             _systemInformation = systemInformation;
@@ -865,6 +867,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var device = (await _deviceService.GetDevice(id, token)).Data;
                 if (device == null)
@@ -872,6 +875,44 @@ namespace Biovation.Server.Controllers.v2
                     Logger.Log($"DeviceId {id} does not exist.");
                     return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist." };
                 }
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    DeviceBrand = device.Brand,
+                    TaskType = _taskTypes.SendUsers,
+                    Priority = _taskPriorities.Medium,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+                var accessGroups = (await _accessGroupService.GetAccessGroups(deviceId: device.DeviceId))?.Data?.Data ?? new List<AccessGroup>();
+
+                foreach (var accessGroup in accessGroups)
+                {
+                    foreach (var userGroup in accessGroup.UserGroup)
+                    {
+                        foreach (var userGroupMember in userGroup.Users)
+                        {
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.SendUser,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserCode }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                                TotalCount = 1,
+                                CurrentIndex = 0
+                            });
+                        }
+                    }
+                }
+
+                await _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
                 restRequest.AddJsonBody(device);

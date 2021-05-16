@@ -379,45 +379,6 @@ namespace Biovation.Brands.Virdi.Controllers
             try
             {
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskType = _taskTypes.SendUsers,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-                var accessGroups = _accessGroupService.GetAccessGroups(deviceId: device.DeviceId);
-
-                foreach (var accessGroup in accessGroups)
-                {
-                    foreach (var userGroup in accessGroup.UserGroup)
-                    {
-                        foreach (var userGroupMember in userGroup.Users)
-                        {
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.SendUser,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserCode }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-                                TotalCount = 1,
-                                CurrentIndex = 0
-                            });
-                        }
-                    }
-                }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
 
                 return new ResultViewModel { Validate = 1, Message = "Sending users queued" };
             }

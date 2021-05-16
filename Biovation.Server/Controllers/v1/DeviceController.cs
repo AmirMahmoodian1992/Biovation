@@ -29,16 +29,18 @@ namespace Biovation.Server.Controllers.v1
         private readonly SystemInfo _systemInformation;
         private readonly TokenGenerator _tokenGenerator;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly AccessGroupService _accessGroupService;
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
+        
 
         private readonly string _kasraAdminToken;
 
-        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator tokenGenerator, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public DeviceController(RestClient restClient, DeviceService deviceService, UserService userService, Lookups lookups, SystemInfo systemInformation, BiovationConfigurationManager biovationConfigurationManager, TokenGenerator tokenGenerator, AccessGroupService accessGroupService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _lookups = lookups;
             _restClient = restClient;
@@ -48,6 +50,7 @@ namespace Biovation.Server.Controllers.v1
             _biovationConfigurationManager = biovationConfigurationManager;
             _tokenGenerator = tokenGenerator;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+            _accessGroupService = accessGroupService;
 
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
@@ -628,12 +631,51 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
                     if (device == null)
                     {
                         Logger.Log($"DeviceId {deviceId} does not exist.");
                         return new ResultViewModel { Validate = 0, Message = $"DeviceId {deviceId} does not exist." };
                     }
+                    
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        DeviceBrand = device.Brand,
+                        TaskType = _taskTypes.SendUsers,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DueDate = DateTime.Today
+                    };
+                    var accessGroups = _accessGroupService.GetAccessGroups(deviceId: device.DeviceId);
+
+                    foreach (var accessGroup in accessGroups)
+                    {
+                        foreach (var userGroup in accessGroup.UserGroup)
+                        {
+                            foreach (var userGroupMember in userGroup.Users)
+                            {
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendUser,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = device.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserCode }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1,
+                                    TotalCount = 1,
+                                    CurrentIndex = 0
+                                });
+                            }
+                        }
+                    }
+
+                    _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                     var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
                     restRequest.AddJsonBody(device);
