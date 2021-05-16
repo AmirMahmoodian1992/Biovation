@@ -662,6 +662,7 @@ namespace Biovation.Brands.Paliz.Controllers
         */
         [HttpGet]
         [Authorize]
+        // TODO - Should get refactored to distinguish instances
         public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code,
             bool embedTemplate = false)
         {
