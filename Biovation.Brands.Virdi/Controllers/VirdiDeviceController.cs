@@ -309,41 +309,12 @@ namespace Biovation.Brands.Virdi.Controllers
         [Authorize]
         public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
-            var creatorUser = HttpContext.GetUser();
-            var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
             if (device.Active)
             {
-                return await Task.Run(async () =>
+                return await Task.Run( () =>
                 {
                     try
                     {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            DeviceBrand = _deviceBrands.Virdi,
-                            TaskType = _taskTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DueDate = DateTime.Today
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = devices.DeviceId,
-                            Data = JsonConvert.SerializeObject(devices.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                            TotalCount = 1,
-                            CurrentIndex = 0
-                        });
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
                         return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                     }
                     catch (Exception exception)
@@ -355,42 +326,17 @@ namespace Biovation.Brands.Virdi.Controllers
 
             if (_configurationManager.LockDevice)
             {
-                return await Task.Run(async () =>
-            {
-                try
+                return await Task.Run( () =>
                 {
-                    var task = new TaskInfo
+                    try
                     {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.LockDevice,
-                        Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>(),
-                        DeviceBrand = _deviceBrands.Virdi,
-                        DueDate = DateTime.Today
-                    };
-
-                    task.TaskItems.Add(new TaskItem
+                        return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
+                    }
+                    catch (Exception exception)
                     {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.LockDevice,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = devices.DeviceId,
-                        Data = JsonConvert.SerializeObject(devices.DeviceId),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                    });
-
-                    _taskService.InsertTask(task);
-                    await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
-                    return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
-                }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                }
-            });
+                        return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+                    }
+                });
             }
 
             return new ResultViewModel { Validate = 0, Message = "The LockDevice option is False" };

@@ -73,6 +73,7 @@ namespace Biovation.Server.Controllers.v2
         [Authorize]
         public async Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             var result = await _deviceService.ModifyDevice(device, token);
             if (result.Validate != 1) return result;
@@ -80,6 +81,59 @@ namespace Biovation.Server.Controllers.v2
             _ = Task.Run(async () =>
             {
                 device = (await _deviceService.GetDevice(device.DeviceId, token)).Data;
+                if (device.Active)
+                {
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.UnlockDevice,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.UnlockDevice,
+                        Priority = _taskPriorities.Medium,
+
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(device.DeviceId),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+                    await _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(device.Brand, device.DeviceId).ConfigureAwait(false);
+                }
+                else
+                {
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = device.Brand
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
+
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(device.DeviceId),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+
+                    });
+                    await _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(device.Brand, device.DeviceId).ConfigureAwait(false);
+                }
 
                 var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
                     Method.POST);
