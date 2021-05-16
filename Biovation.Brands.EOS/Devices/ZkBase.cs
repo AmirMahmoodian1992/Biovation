@@ -1291,7 +1291,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
         }
-        public Dictionary<string, string> GetAdditionalData(int code)
+        public override Dictionary<string, string> GetAdditionalData(int code)
         {
             lock (ZkTecoSdk)
             {
