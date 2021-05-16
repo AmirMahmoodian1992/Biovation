@@ -1,9 +1,14 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 using System.Collections.Generic;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
+using Newtonsoft.Json;
+using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -18,13 +23,25 @@ namespace Biovation.Server.Controllers.v1
         private readonly string _kasraAdminToken;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskService _taskService;
+
+        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskStatuses taskStatuses, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _timeZoneService = timeZoneService;
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -59,11 +76,40 @@ namespace Biovation.Server.Controllers.v1
         [Route("SendTimeZoneToAllDevices")]
         public List<ResultViewModel> SendTimeZoneToAllDevices(int timeZone)
         {
+            var creatorUser = HttpContext.GetUser();
             var resultList = new List<ResultViewModel>();
             var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
 
             foreach (var deviceBrand in deviceBrands)
             {
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendTimeZoneToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = deviceBrand,
+                    TaskItems = new List<TaskItem>()
+                };
+                var devices = _deviceService.GetDevices(brandId: deviceBrand.Code);
+                foreach (var device in devices)
+                {
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { timeZone }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+                }
+                _taskService.InsertTask(task);
+                _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
+
                 var restRequest =
                     new RestRequest(
                         $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}TimeZone/SendTimeZoneToAllDevices",

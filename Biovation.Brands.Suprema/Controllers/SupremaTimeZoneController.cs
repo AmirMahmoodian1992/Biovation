@@ -40,39 +40,6 @@ namespace Biovation.Brands.Suprema.Controllers
         {
             try
             {
-                var devices = _deviceService.GetDevices(brandId: DeviceBrands.SupremaCode);
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.SendTimeZoneToTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Suprema,
-                    TaskItems = new List<TaskItem>()
-                };
-
-                foreach (var device in devices)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { timeZoneId }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1
-                    });
-                }
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Suprema).ConfigureAwait(false);
-
-
                 return new ResultViewModel { Validate = 1, Message = "Sending TimeZoneToTerminal queued" };
             }
             catch (Exception exception)
