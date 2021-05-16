@@ -16,6 +16,7 @@ namespace Biovation.Server.Jobs
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
         private readonly ILogger<ExecuteRecurringTaskJob> _logger;
+
         public ExecuteRecurringTaskJob(ILogger<ExecuteRecurringTaskJob> logger, RestClient restClient, TaskService taskService, TaskStatuses taskStatuses)
         {
             _logger = logger;
@@ -24,40 +25,42 @@ namespace Biovation.Server.Jobs
             _taskStatuses = taskStatuses;
         }
 
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
         {
             try
             {
                 _logger.LogDebug("Inside the ExecuteRecurringTaskJob");
-                var recurringTask = JsonConvert.DeserializeObject<TaskInfo>(context.MergedJobDataMap.GetString("TaskInfo"));
-                var task = new TaskInfo
+                var taskInfoJson = context.MergedJobDataMap.GetString("TaskInfo");
+                if (string.IsNullOrWhiteSpace(taskInfoJson))
+                    return;
+
+                var recurringTaskInfo = JsonConvert.DeserializeObject<TaskInfo>(taskInfoJson);
+                var executingTaskInfo = new TaskInfo
                 {
-                    Priority = recurringTask.Priority,
-                    DeviceBrand = recurringTask.DeviceBrand,
-                    DueDate = recurringTask.DueDate,
+                    Priority = recurringTaskInfo.Priority,
+                    DeviceBrand = recurringTaskInfo.DeviceBrand,
+                    DueDate = recurringTaskInfo.DueDate,
                     CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = recurringTask.CreatedBy,
+                    CreatedBy = recurringTaskInfo.CreatedBy,
                     Status = _taskStatuses.Queued,
-                    TaskItems = recurringTask.TaskItems,
-                    TaskType = recurringTask.TaskType,
-                    Parent = recurringTask
+                    TaskItems = recurringTaskInfo.TaskItems,
+                    TaskType = recurringTaskInfo.TaskType,
+                    Parent = recurringTaskInfo
                 };
 
-                var insertionResult = _taskService.InsertTask(task);
-                if (insertionResult.Success)
+                executingTaskInfo.TaskItems.ForEach(taskItem => taskItem.Status = _taskStatuses.Queued);
+                var insertionResult = _taskService.InsertTask(executingTaskInfo);
+                
+                if (insertionResult?.Success ?? false)
                 {
-                    task.Id = (int)insertionResult.Id;
-                    var restRequest = new RestRequest($"{task.DeviceBrand.Name}/{task.DeviceBrand.Name}Task/ExecuteTask", Method.POST);
-                    restRequest.AddJsonBody(task);
-                    return _restClient.ExecuteAsync(restRequest);
+                    var restRequest = new RestRequest($"{executingTaskInfo.DeviceBrand.Name}/{executingTaskInfo.DeviceBrand.Name}Task/RunProcessQueue", Method.POST);
+                    await _restClient.ExecuteAsync(restRequest);
                 }
             }
             catch (Exception exception)
             {
                 _logger.LogWarning(exception, exception.Message);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

@@ -30,14 +30,14 @@ namespace Biovation.Server.Managers
                 var storedRecurringTasks = _taskService.GetTasks(taskStatusCodes: new List<string> { TaskStatuses.RecurringCode })?.Data?.Data;
                 if (storedRecurringTasks != null)
                 {
-                    var upcomingRecurringTasks = storedRecurringTasks.Where(task => task.DueDate >= DateTimeOffset.Now);
-                    foreach (var storedRecurringTask in upcomingRecurringTasks)
+                    //var upcomingRecurringTasks = storedRecurringTasks.Where(task => task.DueDate >= DateTimeOffset.Now);
+                    foreach (var storedRecurringTask in storedRecurringTasks)
                     {
                         if (recurringTasks.Any(task => task.Id == storedRecurringTask.Id)) continue;
 
-                        var job = JobBuilder.Create<ExecuteScheduledTaskJob>().WithIdentity(storedRecurringTask.Id.ToString(), "RecurringTasks")
+                        var job = JobBuilder.Create<ExecuteRecurringTaskJob>().WithIdentity(storedRecurringTask.Id.ToString(), "RecurringTasks")
                             .UsingJobData("TaskInfo", JsonConvert.SerializeObject(storedRecurringTask)).Build();
-                        var trigger = TriggerBuilder.Create().StartAt(storedRecurringTask.DueDate).WithCronSchedule(storedRecurringTask.SchedulingPattern).Build();
+                        var trigger = TriggerBuilder.Create().StartAt(storedRecurringTask.DueDate < DateTimeOffset.Now ? DateTimeOffset.Now.AddSeconds(3) : storedRecurringTask.DueDate).WithCronSchedule(storedRecurringTask.SchedulingPattern).Build();
                         _scheduler.ScheduleJob(job, trigger);
 
                         recurringTasks.Add(storedRecurringTask);
