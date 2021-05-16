@@ -125,7 +125,34 @@ namespace Biovation.Server.Controllers.v1
         [Route("SendTimeZoneToDevice")]
         public ResultViewModel SendTimeZoneToDevice(int timeZoneId, int deviceId)
         {
+            var creatorUser = HttpContext.GetUser();
             var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.SendTimeZoneToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>()
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { timeZoneId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+
+                OrderIndex = 1
+            });
+
+            _taskService.InsertTask(task);
+            _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
             var restRequest =
                 new RestRequest(
                     $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
