@@ -67,7 +67,7 @@ namespace Biovation.Brands.EOS.Controllers
                         if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
                         {
                             onlineDevice.Value.GetDeviceInfo().Name = _deviceService
-                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault()
+                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode).Result?.Data?.Data?.FirstOrDefault()
                                 ?.Name;
                         }
                     }
@@ -115,7 +115,7 @@ namespace Biovation.Brands.EOS.Controllers
 
             foreach (var deviceId in deviceIds)
             {
-                var device = _deviceService.GetDevice(deviceId)?.Data;
+                var device = _deviceService.GetDevice(deviceId).Result?.Data;
                 if (device is null)
                     continue;
 
@@ -142,7 +142,7 @@ namespace Biovation.Brands.EOS.Controllers
         {
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel { Validate = 1, Message = $"Wrong device code is provided : {code}." };
@@ -219,7 +219,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (device is null)
                     return new List<ResultViewModel>
@@ -265,7 +265,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
+        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             try
             {
@@ -283,7 +283,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var devices = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (devices is null)
                     return new ResultViewModel<List<User>>
@@ -341,7 +341,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (device is null)
                 {

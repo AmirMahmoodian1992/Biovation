@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
-using Newtonsoft.Json;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -19,20 +19,28 @@ namespace Biovation.Repository.Sql.v2
             _repository = repository;
         }
 
-        public List<TaskInfo> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int taskItemId = default)
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int taskItemId = default, int pageNumber = default, int pageSize = default)
         {
-            var parameters = new List<SqlParameter>
+            return await Task.Run(() =>
             {
-                new SqlParameter("@taskId", taskId),
-                 new SqlParameter("@taskItemId", taskItemId),
-                new SqlParameter("@brandId", brandCode),
-                new SqlParameter("@deviceId", deviceId),
-                new SqlParameter("@taskTypeCode", taskTypeCode),
-                new SqlParameter("@taskStatusCodes", string.IsNullOrWhiteSpace(taskStatusCodes) ? null : taskStatusCodes),
-                new SqlParameter("@excludedTaskStatusCodes", string.IsNullOrWhiteSpace(excludedTaskStatusCodes) ? null : excludedTaskStatusCodes)
-            };
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@taskId", taskId),
+                    new SqlParameter("@taskItemId", taskItemId),
+                    new SqlParameter("@brandId", brandCode),
+                    new SqlParameter("@deviceId", deviceId),
+                    new SqlParameter("@pageNumber", pageNumber),
+                    new SqlParameter("@pageSize", pageSize),
+                    new SqlParameter("@taskTypeCode", taskTypeCode),
+                    new SqlParameter("@taskStatusCodes",
+                        string.IsNullOrWhiteSpace(taskStatusCodes) ? null : taskStatusCodes),
+                    new SqlParameter("@excludedTaskStatusCodes",
+                        string.IsNullOrWhiteSpace(excludedTaskStatusCodes) ? null : excludedTaskStatusCodes)
+                };
 
-            return _repository.ToResultList<TaskInfo>("SelectTasks", parameters, fetchCompositions: true, compositionDepthLevel: 3).Data;
+                return _repository.ToResultList<PagingResult<TaskInfo>>("SelectTasks", parameters, fetchCompositions: true,
+                    compositionDepthLevel: 3).FetchFromResultList();
+            });
         }
 
 

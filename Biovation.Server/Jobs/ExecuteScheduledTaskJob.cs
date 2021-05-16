@@ -49,7 +49,7 @@ namespace Biovation.Server.Jobs
                 };
 
                 executingTaskInfo.TaskItems.ForEach(taskItem => taskItem.Status = _taskStatuses.Queued);
-                var insertionResult = _taskService.InsertTask(executingTaskInfo);
+                var insertionResult = await _taskService.InsertTask(executingTaskInfo);
                 
                 if (insertionResult?.Success ?? false)
                 {

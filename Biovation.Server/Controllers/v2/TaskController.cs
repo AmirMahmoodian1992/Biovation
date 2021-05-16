@@ -1,11 +1,12 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.CommonClasses;
+﻿using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -25,53 +26,48 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        //public Task<List<TaskInfo>> Tasks(int taskId = default, string brandCode = default,
-        //    int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
-        //    string excludedTaskStatusCodes = default, int pageNumber = default,
-        //    int pageSize = default, int taskItemId = default)
-        //{
-        //    return _taskService.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-        //        excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
-        //}
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> Tasks(int id = default, string brandCode = default,
+            int deviceId = default, string taskTypeCode = default, [FromQuery] List<string> taskStatusCodes = default,
+            [FromQuery] List<string> excludedTaskStatusCodes = default, int pageNumber = default,
+            int pageSize = default, int taskItemId = default)
+        {
+            return await _taskService.GetTasks(id, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
+        }
 
 
         [HttpGet]
-        [Route("TaskItems")]
-        public Task<ResultViewModel<TaskItem>> TaskItems(int taskItemId = default)
+        [Route("TaskItems/{taskItemId}")]
+        public async Task<ResultViewModel<TaskItem>> TaskItems(int taskItemId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _taskService.GetTaskItem(taskItemId,token));
+            return await _taskService.GetTaskItem(taskItemId, HttpContext.Items["Token"] as string);
         }
 
 
         [HttpPatch]
-        public Task<ResultViewModel> TaskExecutionStatus(int taskItemId = default, string taskStatusId = default)
+        public async Task<ResultViewModel> TaskExecutionStatus(int taskItemId = default, string taskStatusId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            try
             {
-                try
-                {
-                    var taskItem = _taskService.GetTaskItem(taskItemId,token).Data;
-                    if (taskItem is null)
-                        return new ResultViewModel
-                            { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };
-
-                    var taskStatus = _taskStatuses.GetTaskStatusByCode(taskStatusId);
-                    if (taskStatus is null)
-                        return new ResultViewModel
-                            { Validate = 0, Code = Convert.ToInt64(taskStatusId), Message = "The provided task status id is wrong" };
-
-                    taskItem.Status = taskStatus;
-                    return _taskService.UpdateTaskStatus(taskItem);
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
+                var taskItem = (await _taskService.GetTaskItem(taskItemId, HttpContext.Items["Token"] as string)).Data;
+                if (taskItem is null)
                     return new ResultViewModel
-                        { Validate = 0, Code = taskItemId, Message = exception.ToString() };
-                }
-            });
+                    { Validate = 0, Code = taskItemId, Message = "The provided task item id is wrong" };
+
+                var taskStatus = _taskStatuses.GetTaskStatusByCode(taskStatusId);
+                if (taskStatus is null)
+                    return new ResultViewModel
+                    { Validate = 0, Code = Convert.ToInt64(taskStatusId), Message = "The provided task status id is wrong" };
+
+                taskItem.Status = taskStatus;
+                return await _taskService.UpdateTaskStatus(taskItem);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel
+                { Validate = 0, Code = taskItemId, Message = exception.ToString() };
+            }
         }
     }
 }
