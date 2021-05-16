@@ -707,6 +707,7 @@ namespace Biovation.Server.Controllers.v1
         {
             return Task.Run(async () =>
             {
+                var creatorUser = HttpContext.GetUser();
                 var user = _userService.GetUsers(userId, token: _kasraAdminToken).FirstOrDefault();
                 if (user is null)
                     return new ResultViewModel { Validate = 0, Id = userId, Message = "Wrong user id is provided." };
@@ -714,6 +715,34 @@ namespace Biovation.Server.Controllers.v1
                 var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
                 if (device is null)
                     return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.EnrollFaceFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.EnrollFaceFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = deviceId,
+                    Data = JsonConvert.SerializeObject(new { UserId = user.Id }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    TotalCount = 1,
+                    CurrentIndex = 0
+                });
+
+                _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand, deviceId).ConfigureAwait(false);
 
                 var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
                 restRequest.AddQueryParameter("userId", userId.ToString());

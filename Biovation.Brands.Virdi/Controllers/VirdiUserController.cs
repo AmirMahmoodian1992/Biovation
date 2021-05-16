@@ -194,35 +194,6 @@ namespace Biovation.Brands.Virdi.Controllers
             try
             {
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.EnrollFaceFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.EnrollFaceFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new { UserId = userId }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    TotalCount = 1,
-                    CurrentIndex = 0
-                });
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi, deviceId).ConfigureAwait(false);
 
                 return new ResultViewModel { Id = userId, Validate = 1, Message = $"Enrolling face from device {deviceId} started successfully." };
             }

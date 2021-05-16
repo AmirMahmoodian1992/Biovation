@@ -546,6 +546,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/EnrollFaceTemplate")]
         public async Task<ResultViewModel> EnrollFaceTemplate([FromRoute] int id = default, int deviceId = default)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             var user = await _userService.GetUsers(userId: id, token: token);
             if (user is null)
@@ -554,6 +555,34 @@ namespace Biovation.Server.Controllers.v2
             var device = (await _deviceService.GetDevice(deviceId, token)).Data;
             if (device is null)
                 return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.EnrollFaceFromTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.EnrollFaceFromTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceId = deviceId,
+                Data = JsonConvert.SerializeObject(new { UserId = user.Id }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                TotalCount = 1,
+                CurrentIndex = 0
+            });
+
+            await _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand, deviceId).ConfigureAwait(false);
 
             var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
             restRequest.AddQueryParameter("userId", id.ToString());
