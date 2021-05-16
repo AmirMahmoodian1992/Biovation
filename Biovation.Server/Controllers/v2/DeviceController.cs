@@ -432,12 +432,39 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/RetrieveUsers")]
         public async Task<List<ResultViewModel>> RetrieveUserDevice([FromRoute] int id = default, [FromBody] List<uint> userIds = default)
         {
+            var creatorUser = HttpContext.GetUser();
             if (userIds is null)
                 return new List<ResultViewModel>
                     {new ResultViewModel {Success = false, Code = 404, Message = "Empty user list provided"}};
 
             var token = HttpContext.Items["Token"] as string;
             var device = (await _deviceService.GetDevice(id, token)).Data;
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                DeviceBrand = device.Brand,
+                TaskType = _taskTypes.RetrieveUserFromTerminal,
+                Priority = _taskPriorities.Medium,
+                TaskItems = new List<TaskItem>()
+            };
+            foreach (var numericUserId in userIds)
+            {
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { userId = numericUserId }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1
+                });
+            }
+            await _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
             restRequest.AddHeader("Authorization", token!);

@@ -206,54 +206,7 @@ namespace Biovation.Brands.EOS.Controllers
         {
             try
             {
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.Eos,
-                    TaskType = _taskTypes.RetrieveUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
-                    ?.FirstOrDefault();
-                if (device is null)
-                    return new List<ResultViewModel>
-                            {new ResultViewModel {Validate = 1, Message = $"Wrong device code is provided : {code}."}};
-
-                foreach (var id in userIds)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode = id }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = userIds.Count
-                    });
-                }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
-
-                //    foreach (var id in userIds)
-                //    {
-                //        var getUser = _commandFactory.Factory(CommandType.RetrieveUserFromDevice,
-                //new List<object> { deviceId, id });
-                //        var getUserResult = getUser.Execute();
-                //    }
-
-                return new List<ResultViewModel>
-                        {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
+                return new List<ResultViewModel> {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
             }
 
             catch (Exception exception)

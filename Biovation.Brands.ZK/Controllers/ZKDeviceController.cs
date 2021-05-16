@@ -323,42 +323,6 @@ namespace Biovation.Brands.ZK.Controllers
             {
                 try
                 {
-                    var creatorUser = HttpContext.GetUser();
-                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
-                    if (device is null)
-                        return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists." } };
-
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        DeviceBrand = _deviceBrands.ZkTeco,
-                        TaskType = _taskTypes.RetrieveUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>()
-                    };
-
-                    //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-
-                    foreach (var numericUserId in userIds)
-                    {
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { userId = numericUserId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                    }
-
-                    _taskService.InsertTask(task);
-                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
-                    //_taskManager.ProcessQueue();
-
                     return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
                 }
