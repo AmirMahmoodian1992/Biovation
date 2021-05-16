@@ -91,7 +91,7 @@ namespace Biovation.Repository.Api.v2
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
         }
-        public async Task<ResultViewModel> DeleteUsers(List<int> ids, string token = default)
+        public async Task<ResultViewModel> DeleteUsers(List<long> ids, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/DeleteUsers", Method.POST);
             token ??= _biovationConfigurationManager.DefaultToken;

@@ -188,7 +188,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("DeleteUsers")]
-        public async Task<ResultViewModel> DeleteUsers([FromBody] List<int> ids = default)
+        public async Task<ResultViewModel> DeleteUsers([FromBody] List<long> ids = default)
         {
             return await _userService.DeleteUsers(ids, HttpContext.Items["Token"] as string);
         }

@@ -47,7 +47,7 @@ namespace Biovation.Service.Api.v1
             return _userRepository.DeleteUser(id, token).Result;
         }
 
-        public ResultViewModel DeleteUsers(List<int> ids = default, string token = default)
+        public ResultViewModel DeleteUsers(List<long> ids = default, string token = default)
         {
             return _userRepository.DeleteUsers(ids, token).Result;
         }
