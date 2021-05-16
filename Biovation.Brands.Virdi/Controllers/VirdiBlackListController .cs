@@ -40,53 +40,12 @@ namespace Biovation.Brands.Virdi.Controllers
         public async Task<List<ResultViewModel>> SendBlackLisDevice(List<BlackList> blackLists)
         {
             var resultList = new List<ResultViewModel>();
-            try
-            {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.SendBlackList,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
 
-                foreach (var blacklist in blackLists)
-                {
-                    var devices = _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-                    if (devices is null)
-                        continue;
+            //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+            resultList.Add(new ResultViewModel { Message = "Sending BlackList queued", Validate = 1 });
 
-                    var deviceId = devices.DeviceId;
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.SendBlackList,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = deviceId,
-                        Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Code }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1
-                    });
+            return resultList;
 
-                    _taskService.InsertTask(task);
-                    await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
-
-                    resultList.Add(new ResultViewModel { Message = "Sending BlackList queued", Validate = 1 });
-
-                }
-                return resultList;
-            }
-            catch (Exception exception)
-            {
-                resultList.Add(new ResultViewModel { Message = exception.ToString(), Validate = 0 });
-                return resultList;
-            }
         }
     }
 }

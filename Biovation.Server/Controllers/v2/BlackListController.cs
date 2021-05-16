@@ -7,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
+using Newtonsoft.Json;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -19,11 +22,25 @@ namespace Biovation.Server.Controllers.v2
 
         private readonly BlackListService _blackListService;
         private readonly RestClient _restClient;
+        private readonly DeviceService _deviceService;
 
-        public BlackListController(BlackListService blackListService, RestClient restClient)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskService _taskService;
+
+        public BlackListController(BlackListService blackListService, RestClient restClient, DeviceService deviceService, TaskStatuses taskStatuses, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _blackListService = blackListService;
             _restClient = restClient;
+            _deviceService = deviceService;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpPost]
@@ -34,6 +51,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var resultsBlackLists = blackLists.Select(blackList => _blackListService.CreateBlackList(blackList, token)).ToList();
 
                     Task.Run(async () =>
@@ -55,8 +73,44 @@ namespace Biovation.Server.Controllers.v2
 
                             foreach (var list in groupByList)
                             {
-                                var brandName = list.FirstOrDefault()?.Device.Brand.Name;
+                                var blackListItem = list.FirstOrDefault();
+                                var brandName = blackListItem?.Device?.Brand?.Name;
                                 if (brandName == null) continue;
+
+                                var task = new TaskInfo
+                                {
+                                    CreatedAt = DateTimeOffset.Now,
+                                    CreatedBy = creatorUser,
+                                    TaskType = _taskTypes.SendBlackList,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceBrand = blackListItem.Device?.Brand,
+                                    TaskItems = new List<TaskItem>(),
+                                    DueDate = DateTime.Today
+                                };
+
+                                foreach (var blacklist in blackLists)
+                                {
+                                    var devices =(await _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.VirdiCode)).Data?.Data?.FirstOrDefault();
+                                    if (devices is null)
+                                        continue;
+
+                                    var deviceId = devices.DeviceId;
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendBlackList,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = deviceId,
+                                        Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Code }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1
+                                    });
+
+                                    await _taskService.InsertTask(task);
+                                    await _taskService.ProcessQueue(blackListItem.Device?.Brand).ConfigureAwait(false);
+
+                                }
                                 var restRequest =
                                     new RestRequest($"/{brandName}/{brandName}BlackList/SendBlackLisDevice",
                                         Method.POST);
@@ -102,6 +156,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpPut]
         public Task<ResultViewModel> ChangeBlackList([FromBody] BlackList blackList)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
@@ -125,6 +180,40 @@ namespace Biovation.Server.Controllers.v2
 
                         if (brand?.Name != null)
                         {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendBlackList,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = brand,
+                                TaskItems = new List<TaskItem>(),
+                                DueDate = DateTime.Today
+                            };
+
+                            foreach (var blacklist in successBlackList)
+                            {
+                                var devices = (await _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.VirdiCode)).Data?.Data?.FirstOrDefault();
+                                if (devices is null)
+                                    continue;
+
+                                var deviceId = devices.DeviceId;
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendBlackList,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = deviceId,
+                                    Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Code }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1
+                                });
+
+                                await _taskService.InsertTask(task);
+                                await _taskService.ProcessQueue(brand).ConfigureAwait(false);
+
+                            }
                             var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
@@ -151,6 +240,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}")]
         public Task<ResultViewModel> DeleteBlackList([FromRoute] int id)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             return Task.Run(() =>
             {
@@ -176,6 +266,41 @@ namespace Biovation.Server.Controllers.v2
 
                         if (brand != null)
                         {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendBlackList,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = brand,
+                                TaskItems = new List<TaskItem>(),
+                                DueDate = DateTime.Today
+                            };
+
+                            foreach (var blacklist in successBlackList)
+                            {
+                                var devices = (await _deviceService.GetDevices(code: blacklist.Device.Code, brandId: DeviceBrands.VirdiCode)).Data?.Data?.FirstOrDefault();
+                                if (devices is null)
+                                    continue;
+
+                                var deviceId = devices.DeviceId;
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendBlackList,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = deviceId,
+                                    Data = JsonConvert.SerializeObject(new { BlackListId = blacklist.Id, UserId = blacklist.User.Code }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1
+                                });
+
+                                await _taskService.InsertTask(task);
+                                await _taskService.ProcessQueue(brand).ConfigureAwait(false);
+
+                            }
+
                             var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
                                 Method.POST);
                             restRequest.AddJsonBody(successBlackList);
