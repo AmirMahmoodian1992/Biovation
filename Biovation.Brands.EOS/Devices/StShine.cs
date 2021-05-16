@@ -299,7 +299,27 @@ namespace Biovation.Brands.EOS.Devices
                                                 }
                                                 catch (Exception)
                                                 {
-                                                    _logger.Debug("Error in parsing bad record.");
+                                                    var rp = 0;
+                                                    for (var i = 0; i < 5; i++)
+                                                    {
+                                                        try
+                                                        {
+                                                            lock (_clock)
+                                                            {
+                                                                Thread.Sleep(500);
+                                                                rp = _clock.GetReadPointer();
+                                                            }
+
+                                                            break;
+                                                        }
+                                                        catch (Exception exception)
+                                                        {
+                                                            Logger.Log(exception, exception.Message);
+                                                            Thread.Sleep(++i * 100);
+                                                        }
+
+                                                    }
+                                                    _logger.Debug("Clock " + _deviceInfo.Code + ": " + "Error in parsing bad record." + "with Read Pointer: " + rp + "and" + badRecordRawData);
                                                 }
                                             }
 
@@ -356,7 +376,31 @@ namespace Biovation.Brands.EOS.Devices
                                     {
                                         if (!exceptionTester)
                                         {
-                                            _logger.Debug("Null record.");
+                                            var rp = 0;
+                                            for (var i = 0; i < 5; i++)
+                                            {
+                                                try
+                                                {
+                                                    lock (_clock)
+                                                    {
+                                                        Thread.Sleep(500);
+                                                        rp = _clock.GetReadPointer();
+                                                    }
+
+                                                    break;
+                                                }
+                                                catch (Exception exception)
+                                                {
+                                                    Logger.Log(exception, exception.Message);
+                                                    Thread.Sleep(++i * 100);
+                                                }
+
+                                            }
+                                            _logger.Debug("Clock " + _deviceInfo.Code + ": " +" Read Pointer: " + rp + " and " + "Null record.");
+                                            lock (_clock)
+                                            {
+                                                _clock.NextRecord();
+                                            }
                                         }
                                     }
                                 }
@@ -1399,7 +1443,7 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_onlineDevices)
             {
-                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType} from {startTime}");
+                Logger.Log($"-->ReadOfflineLogInPeriod Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType} from {startTime}");
             }
 
             bool deviceConnected;
@@ -1431,6 +1475,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             lock (_clock)
+            {
 
                 if (deviceConnected && Valid && writePointer != -1)
                 {
@@ -1462,7 +1507,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
-                    
+
 
                     Logger.Log(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
                     if (successSetPointer)
@@ -1477,8 +1522,9 @@ namespace Biovation.Brands.EOS.Devices
                                 {
                                     lock (_clock)
                                     {
-                                        clockRecord = (ClockRecord)_clock.GetRecord();
+                                        clockRecord = (ClockRecord) _clock.GetRecord();
                                     }
+
                                     break;
                                 }
                                 catch (Exception exception)
@@ -1489,16 +1535,28 @@ namespace Biovation.Brands.EOS.Devices
                             }
 
                             Logger.Log($"First datetime {clockRecord.DateTime}");
-                            var goalDateTime = new DateTime(startTime.Value.Year, startTime.Value.Month, startTime.Value.Day - 1);
-                            var firstReturnedDateTime = EOSsearch(ref firstIndex, goalDateTime, 0, leftBoundary, clockRecord.DateTime);
-                            if ( goalDateTime.Subtract(firstReturnedDateTime)> new TimeSpan(1,0,0,0) || goalDateTime.Subtract(firstReturnedDateTime) < new TimeSpan(-1,0,0,0))
+                            var goalDateTime = new DateTime(startTime.Value.Year, startTime.Value.Month,
+                                startTime.Value.Day - 1);
+                            var firstReturnedDateTime = EOSsearch(ref firstIndex, goalDateTime, 0, leftBoundary,
+                                clockRecord.DateTime);
+                            if (goalDateTime.Subtract(firstReturnedDateTime) > new TimeSpan(1, 0, 0, 0) ||
+                                goalDateTime.Subtract(firstReturnedDateTime) < new TimeSpan(-1, 0, 0, 0))
                             {
                                 var secondIndex = firstIndex;
-                                var secondReturnedDateTime = EOSsearch(ref secondIndex, goalDateTime, leftBoundary, _maxRecordCount, clockRecord.DateTime);
-                                if ((firstReturnedDateTime > goalDateTime && secondReturnedDateTime > goalDateTime && firstReturnedDateTime.Subtract(goalDateTime) < secondReturnedDateTime.Subtract(goalDateTime)) ||
-                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime < goalDateTime && goalDateTime.Subtract(firstReturnedDateTime) < goalDateTime.Subtract(secondReturnedDateTime)) ||
-                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime > goalDateTime && goalDateTime.Subtract(firstReturnedDateTime) < secondReturnedDateTime.Subtract(goalDateTime)) ||
-                                    (firstReturnedDateTime > goalDateTime && secondReturnedDateTime < goalDateTime && firstReturnedDateTime.Subtract(goalDateTime) < goalDateTime.Subtract(secondReturnedDateTime)))
+                                var secondReturnedDateTime = EOSsearch(ref secondIndex, goalDateTime, leftBoundary,
+                                    _maxRecordCount, clockRecord.DateTime);
+                                if ((firstReturnedDateTime > goalDateTime && secondReturnedDateTime > goalDateTime &&
+                                     firstReturnedDateTime.Subtract(goalDateTime) <
+                                     secondReturnedDateTime.Subtract(goalDateTime)) ||
+                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime < goalDateTime &&
+                                     goalDateTime.Subtract(firstReturnedDateTime) <
+                                     goalDateTime.Subtract(secondReturnedDateTime)) ||
+                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime > goalDateTime &&
+                                     goalDateTime.Subtract(firstReturnedDateTime) <
+                                     secondReturnedDateTime.Subtract(goalDateTime)) ||
+                                    (firstReturnedDateTime > goalDateTime && secondReturnedDateTime < goalDateTime &&
+                                     firstReturnedDateTime.Subtract(goalDateTime) <
+                                     goalDateTime.Subtract(secondReturnedDateTime)))
                                 {
                                     for (var i = 0; i < 5; i++)
                                     {
@@ -1522,12 +1580,20 @@ namespace Biovation.Brands.EOS.Devices
                                         }
 
                                     }
-                                    Logger.Log($@"SUccessfully First Read Offline log from {firstReturnedDateTime} with index {firstIndex}");
+
+                                    Logger.Log(
+                                        $@"YYYYYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEESSSSSSSSS First Read Offline log from {firstReturnedDateTime} with index {firstIndex}");
                                 }
                                 else
                                 {
-                                    Logger.Log($@"SUccessfully Second Read Offline log from {secondReturnedDateTime} with index {secondIndex}");
+                                    Logger.Log(
+                                        $@"YYYYYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEESSSSSSSSS Second Read Offline log from {secondReturnedDateTime} with index {secondIndex}");
                                 }
+                            }
+                            else
+                            {
+                                Logger.Log(
+                                    $@"YYYYYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEESSSSSSSSS First Read Offline log from {firstReturnedDateTime} with index {firstIndex} without computing the second one");
                             }
                         }
                         catch (Exception e)
@@ -1591,6 +1657,7 @@ namespace Biovation.Brands.EOS.Devices
                         };
                     }
                 }
+            }
 
             return new ResultViewModel
             {
@@ -1709,12 +1776,14 @@ namespace Biovation.Brands.EOS.Devices
             //{
             //    return;
             //}
-            if (Math.Abs(beginingOfInterval - endOfInterval) < 1)
+            Logger.Log("THe beginingOfInterval: " + beginingOfInterval);
+            Logger.Log("THe endOfInterval: " + endOfInterval);
+            if (Math.Abs(beginingOfInterval - endOfInterval) < 2)
             {
                 return prevDateTime;
             }
             currentIndex = (beginingOfInterval + endOfInterval) / 2;
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 15; i++) //15 may seems too much for that but trust me!!!
             {
                 try
                 {
