@@ -56,8 +56,6 @@ namespace Biovation.Brands.ZK.Controllers
                     {
                         var userIds = JsonConvert.DeserializeObject<long[]>(userId);
 
-                        //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                        var creatorUser = HttpContext.GetUser();
 
                         var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                         if (devices != null)

@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -24,14 +26,25 @@ namespace Biovation.Server.Controllers.v1
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
         private readonly string _kasraAdminToken;
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
 
-        public LogController(DeviceService deviceService, LogService logService, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        public LogController(DeviceService deviceService, LogService logService, RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _logService = logService;
             _commonDeviceService = deviceService;
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
             _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         //[HttpGet]
@@ -244,6 +257,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
                     var result = new List<ResultViewModel>();
                     for (var i = 0; i < deviceId.Length; i++)
@@ -256,6 +270,34 @@ namespace Biovation.Server.Controllers.v1
                             { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
                             continue;
                         }
+
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.ClearLog,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = device.Brand,
+                            TaskItems = new List<TaskItem>()
+                        };
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.ClearLog,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new
+                            {
+                                fromDate,
+                                toDate
+                            }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1
+                        });
+
+                        _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                         var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
                         restRequest.AddQueryParameter("code", device.Code.ToString());

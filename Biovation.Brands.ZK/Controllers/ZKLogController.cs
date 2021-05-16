@@ -45,40 +45,12 @@ namespace Biovation.Brands.ZK.Controllers
             {
                 try
                 {
-                    var creatorUser = HttpContext.GetUser();
                     var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault();
                     if (device is null)
                         return new ResultViewModel { Success = false, Message = $"Device {code} does not exists" };
 
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.ClearLog,
-                        Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.ZkTeco,
-                        TaskItems = new List<TaskItem>()
-                    };
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.ClearLog,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new
-                        {
-                            fromDate,
-                            toDate
-                        }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1
-                    });
 
 
-                    _taskService.InsertTask(task);
-                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
-                    //_taskManager.ProcessQueue();
                     return new ResultViewModel { Validate = 1, Message = "Clear LOg queued" };
                 }
                 catch (Exception exception)

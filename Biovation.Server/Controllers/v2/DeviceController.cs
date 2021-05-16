@@ -43,6 +43,7 @@ namespace Biovation.Server.Controllers.v2
             _lookups = lookups;
             _restClient = restClient;
             _userCardService = userCardService;
+
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
@@ -248,6 +249,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var device = (await _deviceService.GetDevice(id, token)).Data;
                 if (device == null)
@@ -256,6 +258,34 @@ namespace Biovation.Server.Controllers.v2
                     return new ResultViewModel
                     { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
                 }
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.ClearLog,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>()
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.ClearLog,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new
+                    {
+                        fromDate,
+                        toDate
+                    }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1
+                });
+
+                await _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
                 restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -281,6 +311,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var deviceIds = JsonConvert.DeserializeObject<int[]>(ids);
                 var result = new List<ResultViewModel>();
@@ -294,6 +325,34 @@ namespace Biovation.Server.Controllers.v2
                         { Validate = 0, Message = $"DeviceId {deviceIds[i]} does not exist.", Id = ids[i] });
                         continue;
                     }
+                    
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.ClearLog,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.ClearLog,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new
+                        {
+                            fromDate,
+                            toDate
+                        }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+
+                    await _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                     var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
                     restRequest.AddQueryParameter("code", device.Code.ToString());
