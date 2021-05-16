@@ -106,48 +106,7 @@ namespace Biovation.Brands.ZK.Controllers
         {
             return await Task.Run(() =>
             {
-                var onlineDevice = _onlineDevices;
-                var result = new List<ResultViewModel>();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.ZkTeco,
-                    TaskItems = new List<TaskItem>()
-                };
-                foreach (var device in onlineDevice)
-                {
-                    var zkDevice = _deviceService.GetDevices(code: device.Key, brandId: DeviceBrands.ZkTecoCode)
-                        .FirstOrDefault();
-
-                    foreach (var userCode in userCodes)
-                    {
-                        if (zkDevice != null)
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = zkDevice.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { userCode }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1
-                            });
-
-                        result.Add(new ResultViewModel { Id = userCode, Validate = 1 });
-                    }
-                    _taskService.InsertTask(task);
-                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
-                    //_taskManager.ProcessQueue();
-                }
-                return result;
+                return userCodes.Select(code=> new ResultViewModel { Id = code, Validate = 1 }).ToList() ;
             });
         }
     }

@@ -452,7 +452,40 @@ namespace Biovation.Server.Controllers.v1
                 {
                     foreach (var deviceBrand in deviceBrands)
                     {
-                        //_communicationManager.CallRest($"/biovation/api/{brand.Name}/{brand.Name}User/DeleteUserFromAllTerminal", "Post", null, $"{JsonConvert.SerializeObject(lstchangeUsers)}");
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.DeleteUserFromTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = deviceBrand,
+                            TaskItems = new List<TaskItem>()
+                        };
+
+                        var devices = _deviceService.GetDevices(brandId: deviceBrand.Code);
+                        foreach (var device in devices)
+                        {
+                            foreach (var userCode in usersToSync)
+                            {
+                                if (device != null)
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userCode }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1
+                                    });
+                            }
+                        }
+
+                        _taskService.InsertTask(task);
+                        _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
+
+
                         var restRequest =
                             new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
                         restRequest.AddJsonBody(usersToSync);
