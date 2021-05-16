@@ -147,13 +147,38 @@ namespace Biovation.Server.Controllers.v1
         [Route("SendAccessGroupToDevices")]
         public List<ResultViewModel> SendAccessGroupToDevices(int accessGroupId)
         {
+            var creatorUser = HttpContext.GetUser();
             var resultList = new List<ResultViewModel>();
-
 
             var devices = _accessGroupService.GetDeviceOfAccessGroup(accessGroupId, token: _kasraAdminToken);
 
             foreach (var device in devices)
             {
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendAccessGroupToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>()
+                };
+
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                    Priority = _taskPriorities.Medium,
+
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { accessGroupId }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+
+                    OrderIndex = 1
+                });
+                _taskService.InsertTask(task);
+                _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
                 var restRequest =
                     new RestRequest(
                         $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
@@ -170,7 +195,34 @@ namespace Biovation.Server.Controllers.v1
         [Route("SendAccessGroupToDevice")]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, int deviceId)
         {
+            var creatorUser = HttpContext.GetUser();
             var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.SendAccessGroupToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>()
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                Priority = _taskPriorities.Medium,
+
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { accessGroupId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+
+                OrderIndex = 1
+            });
+            _taskService.InsertTask(task);
+            _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
             var restRequest =
                 new RestRequest(
                     $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
@@ -215,6 +267,33 @@ namespace Biovation.Server.Controllers.v1
                     foreach (var device in deviceGroup.Devices)
                     {
                         var deviceBrand = deviceBrands.FirstOrDefault(devBrand => devBrand.Code == device.Brand.Code);
+                        
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = device.Brand,
+                            TaskItems = new List<TaskItem>()
+                        };
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
+
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { accessGroupId }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+
+                            OrderIndex = 1
+                        });
+                        _taskService.InsertTask(task);
+                        _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
                         var restRequest =
                             new RestRequest(
                                 $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
@@ -238,7 +317,7 @@ namespace Biovation.Server.Controllers.v1
                             //var userids = string.Join(",", userGroup.Users.Select(s => s.Id).ToArray());
                             var userids = JsonConvert.SerializeObject(userGroup.Users.Select(s => s.UserId).ToArray());
 
-                            var task = new TaskInfo
+                            task = new TaskInfo
                             {
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,

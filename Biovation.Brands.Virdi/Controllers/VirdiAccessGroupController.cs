@@ -107,12 +107,7 @@ namespace Biovation.Brands.Virdi.Controllers
         [Authorize]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, uint code)
         {
-            var sendAccessGroupCommand = _commandFactory.Factory(CommandType.SendAccessGroupToDevice,
-                new List<object> { code, accessGroupId });
-
-            var result = (bool)sendAccessGroupCommand.Execute();
-
-            return new ResultViewModel { Validate = result ? 1 : 0, Message = code.ToString() };
+            return new ResultViewModel { Validate = 1 , Message = code.ToString() };
         }
 
         [HttpPost]

@@ -201,6 +201,32 @@ namespace Biovation.Server.Controllers.v2
                         //var parameters = new List<object> { $"accessGroupId={accessGroupId}", $"code={device.Code}" };
                         //_communicationManager.CallRest(
                         //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice", "Get", parameters, null);
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = device.Brand,
+                            TaskItems = new List<TaskItem>()
+                        };
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
+
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { id }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+
+                            OrderIndex = 1
+                        });
+                        await _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
                         var restRequest =
                             new RestRequest(
                                 $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
@@ -227,7 +253,7 @@ namespace Biovation.Server.Controllers.v2
                             //_communicationManager.CallRest(
                             //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice", "Get", parameters, null);
 
-                            var task = new TaskInfo
+                            task = new TaskInfo
                             {
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
@@ -285,11 +311,37 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/SendAccessGroupToDevices")]
         public async Task<ResultViewModel> SendAccessGroupToDevices([FromRoute] int id)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             var devices = (await _accessGroupService.GetDeviceOfAccessGroup(id, token: token)).Data.Data;
 
             foreach (var device in devices)
             {
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendAccessGroupToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>()
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                    Priority = _taskPriorities.Medium,
+
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { id }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+
+                    OrderIndex = 1
+                });
+                await _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
                 var restRequest =
                     new RestRequest(
                         $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
@@ -306,6 +358,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{id}/SendAccessGroupToDevice/{deviceId}")]
         public async Task<ResultViewModel> SendAccessGroupToDevice([FromRoute] int id, [FromRoute] int deviceId)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
 
             var device = (await _deviceService.GetDevice(deviceId, token))?.Data;
@@ -320,6 +373,31 @@ namespace Biovation.Server.Controllers.v2
                     Message = "Provided device Id is wrong."
                 };
             }
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.SendAccessGroupToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>()
+            };
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                Priority = _taskPriorities.Medium,
+
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { id }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+
+                OrderIndex = 1
+            });
+            await _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
             var restRequest =
                 new RestRequest(
