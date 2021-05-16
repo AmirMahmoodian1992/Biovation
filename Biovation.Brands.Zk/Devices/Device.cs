@@ -1280,18 +1280,27 @@ namespace Biovation.Brands.ZK.Devices
                     if (ZkTecoSdk.SSR_GetUserInfo((int)DeviceInfo.Code, userId.ToString(), out var name,
                         out var password, out var privilege, out var enabled))
                     {
+                        var isoEncoding = Encoding.GetEncoding(28591);
+                        var windowsEncoding = Encoding.GetEncoding(1256);
+
+                        var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                        var userName = replacements.Aggregate(name, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                        userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
                         var user = new User
                         {
                             Code = userId,
                             AdminLevel = privilege,
                             IsActive = enabled,
-                            SurName = name.Split(' ').LastOrDefault(),
-                            FirstName = name.Split(' ').FirstOrDefault(),
+                            SurName = string.Join(' ', userName?.Split(' ').Skip(1) ?? new List<string>()),
+                            FirstName = userName?.Split(' ').FirstOrDefault(),
                             StartDate = DateTime.Parse("1970/01/01"),
                             EndDate = DateTime.Parse("2050/01/01"),
                             Password = password,
-                            UserName = name,
+                            UserName = userName,
                         };
+
                         var existUser = UserService.GetUsers(code: userId).FirstOrDefault();
                         if (existUser != null)
                         {
@@ -1498,7 +1507,7 @@ namespace Biovation.Brands.ZK.Devices
                         Code = userId,
                         AdminLevel = privilege,
                         IsActive = enabled,
-                        SurName = userName?.Split(' ').LastOrDefault(),
+                        SurName = string.Join(' ', userName?.Split(' ').Skip(1) ?? new List<string>()),
                         FirstName = userName?.Split(' ').FirstOrDefault(),
                         StartDate = DateTime.Parse("1970/01/01"),
                         EndDate = DateTime.Parse("2050/01/01"),
