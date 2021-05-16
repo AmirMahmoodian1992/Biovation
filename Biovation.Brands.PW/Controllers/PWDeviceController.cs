@@ -102,80 +102,9 @@ namespace Biovation.Brands.PW.Controllers
         public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
 
-            try
-            {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault();
-                if (device != null)
-                {
-                    var deviceId = device.DeviceId;
-                    //var creatorUser = _userService.GetUsers(123456789)?.FirstOrDefault();
-                    var creatorUser = HttpContext.GetUser();
+            var result = new ResultViewModel { Validate = 1, Message = $"Reading logs of device {code} queued" };
+            return result;
 
-                    if (fromDate.HasValue || toDate.HasValue)
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.ProcessingWorld,
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                        });
-
-                        _taskService.InsertTask(task);
-                    }
-
-                    else
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetServeLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.ProcessingWorld,
-                            TaskItems = new List<TaskItem>(),
-                            DueDate = DateTime.Today
-                        };
-                        task.TaskItems.Add(new TaskItem
-                        {
-
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetServeLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { deviceId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-
-                        _taskService.InsertTask(task);
-                    }
-                }
-
-                await _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, device?.DeviceId ?? 0).ConfigureAwait(false);
-
-                var result = new ResultViewModel { Validate = 1, Message = $"Reading logs of device {code} queued" };
-                return result;
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 1, Message = $"Error ,Reading logs of device {code} queued!{exception}" };
-            }
         }
 
         [HttpPost]

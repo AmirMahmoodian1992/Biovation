@@ -137,6 +137,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
 
                     var result = new List<ResultViewModel>();
@@ -149,6 +150,60 @@ namespace Biovation.Server.Controllers.v1
                             result.Add(new ResultViewModel
                             { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
                             continue;
+                        }
+
+                        if (!string.IsNullOrEmpty(fromDate) && !string.IsNullOrEmpty(toDate))
+                        {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                TaskItems = new List<TaskItem>(),
+                                DeviceBrand = device.Brand,
+                            };
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                            });
+                            _taskService.InsertTask(task);
+                            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.GetLogs,
+                                Priority = _taskPriorities.Medium,
+                                TaskItems = new List<TaskItem>(),
+                                DeviceBrand = device.Brand,
+                            };
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetLogs,
+                                Priority = _taskPriorities.Medium,
+
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(device.DeviceId),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1
+                            });
+                            _taskService.InsertTask(task);
+                            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
                         }
 
                         var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");

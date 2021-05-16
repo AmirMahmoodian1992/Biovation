@@ -278,66 +278,7 @@ namespace Biovation.Brands.EOS.Controllers
         [Authorize]
         public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-
-            try
-            {
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetLogsInPeriod,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Eos,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
-                    ?.FirstOrDefault();
-                if (device is null)
-                {
-                    return new ResultViewModel { Validate = 0, Message = "Device with code is not exist" };
-                }
-
-                if (fromDate is null && toDate is null)
-                {
-                    fromDate = new DateTime(1970, 1, 1);
-                    toDate = DateTime.Now.AddYears(5);
-                }
-                else if (fromDate is null)
-                {
-                    fromDate = new DateTime(1970, 1, 1);
-                }
-                else if (toDate is null)
-                {
-                    toDate = DateTime.Now.AddYears(5);
-                }
-
-                var deviceId = device.DeviceId;
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    CurrentIndex = 0
-                });
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
-
-                return new ResultViewModel { Validate = 1 };
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 0, Message = exception.Message };
-            }
+            return new ResultViewModel { Validate = 1 };
         }
     }
 }

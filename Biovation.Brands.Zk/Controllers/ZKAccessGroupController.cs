@@ -63,7 +63,6 @@ namespace Biovation.Brands.ZK.Controllers
             {
                 try
                 {
-
                     return new ResultViewModel { Validate = 1, Message = "Sending AccessGroupToTerminal queued" };
                 }
                 catch (Exception exception)
