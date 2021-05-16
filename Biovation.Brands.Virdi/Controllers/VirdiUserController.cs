@@ -146,25 +146,6 @@ namespace Biovation.Brands.Virdi.Controllers
         [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
-            if (!accessGroups.Any())
-            {
-                return new ResultViewModel { Id = user.Id, Validate = 0 };
-            }
-            foreach (var accessGroup in accessGroups)
-            {
-                foreach (var deviceGroup in accessGroup.DeviceGroup)
-                {
-                    foreach (var deviceGroupMember in deviceGroup.Devices)
-                    {
-                        var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
-                            new List<object> { deviceGroupMember.Code, user.Code });
-
-                        addUserToTerminalCommand.Execute();
-                    }
-                }
-            }
-
             return new ResultViewModel { Id = user.Id, Validate = 1 };
         }
 

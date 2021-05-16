@@ -317,6 +317,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var userIds = JsonConvert.DeserializeObject<int[]>(ids);
                     var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
                     var length = userIds.Length;
@@ -335,6 +336,47 @@ namespace Biovation.Server.Controllers.v1
                         {
                             //var restResult = _communicationManager.CallRest(
                             //            $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", "Post", null, $"{JsonConvert.SerializeObject(user)}");
+
+                            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
+                            var userId = user.Code;
+
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendUsers,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = deviceBrand,
+                                TaskItems = new List<TaskItem>()
+                            };
+
+                            if (!accessGroups.Any())
+                            {
+                                return new List<ResultViewModel>{ new ResultViewModel { Id = user.Id, Validate = 0 }};
+                            }
+                            foreach (var accessGroup in accessGroups)
+                            {
+                                foreach (var deviceGroup in accessGroup.DeviceGroup)
+                                {
+                                    foreach (var deviceGroupMember in deviceGroup.Devices)
+                                    {
+                                        task.TaskItems.Add(new TaskItem
+                                        {
+                                            Status = _taskStatuses.Queued,
+                                            TaskItemType = _taskItemTypes.SendUser,
+                                            Priority = _taskPriorities.Medium,
+                                            DeviceId = deviceGroupMember.DeviceId,
+                                            Data = JsonConvert.SerializeObject(new { UserId = userId }),
+                                            IsParallelRestricted = true,
+                                            IsScheduled = false,
+                                            OrderIndex = 1
+                                        });
+
+                                    }
+                                }
+                            }
+                            _taskService.InsertTask(task);
+                            await _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
 
                             var restRequest =
                                 new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",

@@ -96,52 +96,6 @@ namespace Biovation.Brands.ZK.Controllers
         {
             return await Task.Run(() =>
                 {
-                    var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
-                    var userId = user.Code;
-
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                    var creatorUser = HttpContext.GetUser();
-
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.SendUsers,
-                        Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.ZkTeco,
-                        TaskItems = new List<TaskItem>()
-                    };
-
-                    if (!accessGroups.Any())
-                    {
-                        return new ResultViewModel { Id = user.Id, Validate = 0 };
-                    }
-                    foreach (var accessGroup in accessGroups)
-                    {
-                        foreach (var deviceGroup in accessGroup.DeviceGroup)
-                        {
-                            foreach (var deviceGroupMember in deviceGroup.Devices)
-                            {
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.SendUser,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = deviceGroupMember.DeviceId,
-                                    Data = JsonConvert.SerializeObject(new { UserId = userId }),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-
-                                return new ResultViewModel { Message = "Sending user queued", Validate = 1 };
-
-                            }
-                        }
-                    }
-                    _taskService.InsertTask(task);
-                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
-                    //_taskManager.ProcessQueue();
                     return new ResultViewModel { Id = user.Id, Validate = 1 };
                 });
         }

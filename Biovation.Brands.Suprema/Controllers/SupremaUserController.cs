@@ -107,45 +107,6 @@ namespace Biovation.Brands.Suprema.Controllers
         [Authorize]
         public async Task<ResultViewModel> SendUserToAllDevices([FromBody] User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroups(user.Id);
-            var userId = user.Code;
-
-            //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-            var creatorUser = HttpContext.GetUser();
-
-            var task = new TaskInfo
-            {
-                CreatedAt = DateTimeOffset.Now,
-                CreatedBy = creatorUser,
-                TaskType = _taskTypes.SendUsers,
-                Priority = _taskPriorities.Medium,
-                DeviceBrand = _deviceBrands.Suprema,
-                TaskItems = new List<TaskItem>()
-            };
-
-            if (!accessGroups.Any())
-            {
-                return new ResultViewModel { Id = user.Id, Validate = 0 };
-            }
-
-            foreach (var deviceGroupMember in accessGroups.SelectMany(accessGroup => accessGroup.DeviceGroup.SelectMany(deviceGroup => deviceGroup.Devices)))
-            {
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.SendUser,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = deviceGroupMember.DeviceId,
-                    Data = JsonConvert.SerializeObject(new { UserId = userId }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1
-                });
-
-                return new ResultViewModel { Message = "Sending user queued", Validate = 1 };
-            }
-            _taskService.InsertTask(task);
-            await _taskService.ProcessQueue(_deviceBrands.Suprema).ConfigureAwait(false);
             return new ResultViewModel { Id = user.Id, Validate = 1 };
         }
     }

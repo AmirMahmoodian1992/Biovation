@@ -21,8 +21,8 @@ namespace Biovation.Server.Controllers.v2
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class UserGroupController : ControllerBase
     {
+        private readonly AccessGroupService _accessGroupService;
         private readonly RestClient _restClient;
-
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserGroupService _userGroupService;
@@ -31,7 +31,7 @@ namespace Biovation.Server.Controllers.v2
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
-        public UserGroupController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, RestClient restClient, TaskService taskService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public UserGroupController(AccessGroupService accessGroupService,UserService userService, DeviceService deviceService, UserGroupService userGroupService, RestClient restClient, TaskService taskService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _userService = userService;
             _deviceService = deviceService;
@@ -42,6 +42,7 @@ namespace Biovation.Server.Controllers.v2
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
+            _accessGroupService = accessGroupService;
         }
 
         [HttpGet]
@@ -433,6 +434,7 @@ namespace Biovation.Server.Controllers.v2
             var token = HttpContext.Items["Token"] as string;
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                 var userGroup = (await _userGroupService.UserGroups(id, token))?.Data?.Data.FirstOrDefault();
                 if (userGroup is null || deviceBrands is null) return new ResultViewModel { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = id };
@@ -444,6 +446,47 @@ namespace Biovation.Server.Controllers.v2
 
                     foreach (var deviceBrand in deviceBrands)
                     {
+                        var accessGroups =(await _accessGroupService.GetAccessGroups(user.Id))?.Data?.Data ?? new List<AccessGroup>();
+                        var userId = user.Code;
+                        
+                        var task = new TaskInfo
+                        {
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.SendUsers,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = deviceBrand,
+                            TaskItems = new List<TaskItem>()
+                        };
+
+                        if (!accessGroups.Any())
+                        {
+                            return new ResultViewModel { Id = user.Id, Validate = 0 };
+                        }
+                        foreach (var accessGroup in accessGroups)
+                        {
+                            foreach (var deviceGroup in accessGroup.DeviceGroup)
+                            {
+                                foreach (var deviceGroupMember in deviceGroup.Devices)
+                                {
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendUser,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = deviceGroupMember.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { UserId = userId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1
+                                    });
+
+                                }
+                            }
+                        }
+                        await _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
+
                         var restRequest =
                             new RestRequest(
                                 $"{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
