@@ -13,9 +13,9 @@ namespace Biovation.Service.Sql.v1
             _serviceInstanceRepository = serviceInstanceRepository;
         }
 
-        public Task<ResultViewModel> AddServiceInstance(string name, string version, string ip, int port, string description)
+        public Task<ResultViewModel> AddServiceInstance(ServiceInstance serviceInstance)
         {
-            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(name, version, ip, port, description));
+            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance));
         }
 
         public Task<ResultViewModel> ModifyServiceInstance(ServiceInstance serviceInstance)

@@ -17,17 +17,17 @@ namespace Biovation.Repository.Sql.v1
             _repository = repository;
         }
 
-        public Task<ResultViewModel> AddServiceInstance(string name, string version, string ip, int port, string description)
+        public Task<ResultViewModel> AddServiceInstance(ServiceInstance serviceInstance)
         {
             return Task.Run(() =>
             {
                 var parameters = new List<SqlParameter>
                 {
-                    new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
-                    new SqlParameter("@Version", SqlDbType.NVarChar) {Value = version},
-                    new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = ip},
-                    new SqlParameter("@Port", SqlDbType.Int) {Value = port},
-                    new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
+                    new SqlParameter("@Name", SqlDbType.NVarChar) {Value = serviceInstance.Name},
+                    new SqlParameter("@Version", SqlDbType.NVarChar) {Value = serviceInstance.Version},
+                    new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.Ip},
+                    new SqlParameter("@Port", SqlDbType.Int) {Value = serviceInstance.Port},
+                    new SqlParameter("@Description", SqlDbType.NVarChar) {Value = serviceInstance.Description},
                 };
 
                 return _repository.ToResultList<ResultViewModel>("InsertServiceInstance", parameters).Data.FirstOrDefault();
