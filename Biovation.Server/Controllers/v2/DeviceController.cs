@@ -342,17 +342,35 @@ namespace Biovation.Server.Controllers.v2
                var onlineDevices = new List<DeviceBasicInfo>();
                var deviceBrands = _systemInformation.Services;
 
-               Parallel.ForEach(deviceBrands, async deviceBrand =>
-               {
-                   var restRequest =
-                       new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+               // Parallel.ForEach(deviceBrands, deviceBrand =>
+               // {
+                    
+               //     var restRequest =
+               //         new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+               //     if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+               //     {
+               //         restRequest.AddHeader("Authorization",
+               //             HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+               //     }
 
-                   var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+               //    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
 
-                   if (result.StatusCode != HttpStatusCode.OK) return;
-                   lock (onlineDevices)
-                       onlineDevices.AddRange(result.Data);
-               });
+               //    if (result.StatusCode != HttpStatusCode.OK) return;
+               //    lock (onlineDevices)
+               //        onlineDevices.AddRange(result.Data);
+               //});
+                Parallel.ForEach(deviceBrands, async deviceBrand =>
+                {
+                    // TODO - An example of correct request with paying attention to instances : {deviceBrand.Name}/InstanceId/{deviceBrand.Name}Device/GetOnlineDevices
+                    var restRequest =
+                        new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+
+                    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+
+                    if (result.StatusCode != HttpStatusCode.OK) return;
+                    lock (onlineDevices)
+                        onlineDevices.AddRange(result.Data);
+                });
 
                var permissibleDevices = (await _deviceService.GetDevices(token: token))?.Data?.Data;
 
