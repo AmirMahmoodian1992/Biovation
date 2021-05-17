@@ -250,6 +250,7 @@ namespace Biovation.Brands.ZK.Controllers
                                 Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.ZkTeco,
+                                Status = _taskStatuses.Queued
                             };
 
                             task.TaskItems.Add(new TaskItem
