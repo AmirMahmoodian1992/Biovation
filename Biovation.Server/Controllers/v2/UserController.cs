@@ -313,21 +313,22 @@ namespace Biovation.Server.Controllers.v2
                     var devices = (await _deviceService.GetDevices(brandId: deviceBrand.Code))?.Data?.Data ?? new List<DeviceBasicInfo>();
                     foreach (var device in devices)
                     {
-                        foreach (var userCode in usersToSync)
-                        {
-                            if (device != null)
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = device.DeviceId,
-                                    Data = JsonConvert.SerializeObject(new {userCode}),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-                        }
+                        if (usersToSync != null)
+                            foreach (var userCode in usersToSync)
+                            {
+                                if (device != null)
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new {userCode}),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1
+                                    });
+                            }
                     }
 
                     await _taskService.InsertTask(task);
@@ -868,7 +869,8 @@ namespace Biovation.Server.Controllers.v2
                 for (var i = 0; i < count; i++)
                 {
                     var group = (await _userGroupService.UserGroups(token: token))?.Data?.Data;
-                    groupIds.AddRange(group.Select(s => s.Id));
+                    if (group !=null)
+                        groupIds.AddRange(group.Select(s => s.Id));
                 }
 
                 //TODO !important

@@ -84,7 +84,7 @@ namespace Biovation.Server.Controllers.v2
                     };
                 }
 
-                var usersToDelete = existingUserGroup?.Users.ExceptBy(userGroup?.Users, member => member?.UserId).ToList() ?? new List<UserGroupMember>();
+                var usersToDelete = existingUserGroup?.Users.ExceptBy(userGroup.Users, member => member.UserId).ToList() ?? new List<UserGroupMember>();
 
                 var usersToAdd = (existingUserGroup is null ? userGroup.Users :
                     userGroup.Users?.ExceptBy(existingUserGroup.Users, member => member.UserId).ToList()) ?? new List<UserGroupMember>();
@@ -260,7 +260,7 @@ namespace Biovation.Server.Controllers.v2
                         };
 
                         //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                        foreach (var userCode in usersToDeleteFromDevice.Select(user => user.Code))
+                        foreach (var userCode in usersToDeleteFromDevice?.Select(user => user.Code))
                         {
 
                             task.TaskItems.Add(new TaskItem
@@ -277,7 +277,7 @@ namespace Biovation.Server.Controllers.v2
                                 TotalCount = 1
                             });
                         }
-                        _taskService.InsertTask(task);
+                        await _taskService.InsertTask(task);
                         await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
                         var deleteUserRestRequest =
@@ -298,7 +298,7 @@ namespace Biovation.Server.Controllers.v2
                     await Task.Run(async () =>
                     {
                         var device = (await _deviceService.GetDevice(deviceKey, token)).Data;
-                        var usersToAdd = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
+                        var usersToAddToDevice = (existingAuthorizedUsersOfDevicesToAdd.ContainsKey(deviceKey) && existingAuthorizedUsersOfDevicesToAdd[deviceKey]?.Count > 0
                             ? newAuthorizedUsersOfDevicesToAdd[deviceKey]
                                 .ExceptBy(existingAuthorizedUsersOfDevicesToAdd[deviceKey], member => member.UserId)
                             : newAuthorizedUsersOfDevicesToAdd[deviceKey]).Select(user =>
@@ -315,7 +315,7 @@ namespace Biovation.Server.Controllers.v2
                             DueDate = DateTime.Today
                         };
 
-                        foreach (var id in usersToAdd.Select(user => user.Id))
+                        foreach (var id in usersToAddToDevice.Select(user => user.Id))
                         {
                             task.TaskItems.Add(new TaskItem
                             {
@@ -338,7 +338,7 @@ namespace Biovation.Server.Controllers.v2
                         var sendUserRestRequest =
                             new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
                         sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                        sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAdd.Select(user => user.Code)));
+                        sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAddToDevice.Select(user => user.Code)));
                         /*var additionResult =*/
                         sendUserRestRequest.AddHeader("Authorization", token!);
                         await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);

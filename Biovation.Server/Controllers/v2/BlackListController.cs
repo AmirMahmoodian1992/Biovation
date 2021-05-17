@@ -117,7 +117,7 @@ namespace Biovation.Server.Controllers.v2
                                 restRequest.AddJsonBody(list);
                                 if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                                 {
-                                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                    restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
                                 }
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
@@ -219,7 +219,7 @@ namespace Biovation.Server.Controllers.v2
                             restRequest.AddJsonBody(successBlackList);
                             if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                             {
-                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? String.Empty);
                             }
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
@@ -306,7 +306,7 @@ namespace Biovation.Server.Controllers.v2
                             restRequest.AddJsonBody(successBlackList);
                             if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                             {
-                                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? String.Empty);
                             }
                             await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
