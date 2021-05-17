@@ -63,7 +63,7 @@ namespace Biovation.Brands.EOS
 
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public async Task ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
                 .AddJsonOptions(options =>
@@ -80,7 +80,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton(BiovationConfiguration.Configuration);
 
             ConfigureRepositoriesServices(services);
-            await ConfigureConstantValues(services);
+            ConfigureConstantValues(services).GetAwaiter().GetResult();
             ConfigureEosServices(services);
 
             services.AddHostedService<PingCollectorHostedService>();
