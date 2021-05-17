@@ -78,7 +78,7 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.RetrieveUserFromDevice:
                     // Gets a specific user info from device.
                     {
-                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer,  _taskService, _deviceService, _userService, _biometricTemplateManager,
+                        return new PalizGetUserFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
                             _fingerTemplateTypes, _fingerTemplateService, _faceTemplateService, _faceTemplateTypes, _userCardService);
                     }
                 case CommandType.RetrieveUsersListFromDevice:
@@ -89,13 +89,15 @@ namespace Biovation.Brands.Paliz.Command
                     }
                 case CommandType.DeleteUserFromTerminal:
                     // Deletes the user with a specified ID.
-                {
-                    return new PalizDeleteUserFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
-                        _matchingTypes);
-                }
-                case CommandType.GetUsersOfDevice:
-                    //Gets users of devices
-                    throw new NotImplementedException();
+                    {
+                        return new PalizDeleteUserFromTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
+                            _matchingTypes);
+                    }
+                case CommandType.SendTimeZoneToDevice:
+                // Sends the time zone to the device
+                //return new PalizSendTimeZoneToTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
+                //    _matchingTypes);
+
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
                     throw new NotImplementedException();
