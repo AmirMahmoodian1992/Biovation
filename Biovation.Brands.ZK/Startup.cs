@@ -32,7 +32,7 @@ namespace Biovation.Brands.ZK
 {
     public class Startup
     {
-        private IHostEnvironment _environment;
+        private readonly IHostEnvironment _environment;
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
