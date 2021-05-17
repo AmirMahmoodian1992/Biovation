@@ -156,6 +156,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.SendAccessGroupToTerminal,
@@ -199,6 +200,7 @@ namespace Biovation.Server.Controllers.v1
             var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
             var task = new TaskInfo
             {
+                Status = _taskStatuses.Queued,
                 CreatedAt = DateTimeOffset.Now,
                 CreatedBy = creatorUser,
                 TaskType = _taskTypes.SendAccessGroupToTerminal,
@@ -270,6 +272,7 @@ namespace Biovation.Server.Controllers.v1
                         
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.SendAccessGroupToTerminal,
@@ -319,6 +322,7 @@ namespace Biovation.Server.Controllers.v1
 
                             task = new TaskInfo
                             {
+                                Status = _taskStatuses.Queued,
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
                                 TaskType = _taskTypes.SendUsers,

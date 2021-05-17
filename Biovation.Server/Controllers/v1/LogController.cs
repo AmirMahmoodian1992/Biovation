@@ -273,6 +273,7 @@ namespace Biovation.Server.Controllers.v1
 
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.ClearLog,

@@ -87,6 +87,7 @@ namespace Biovation.Server.Controllers.v2
                 {
                     var task = new TaskInfo
                     {
+                        Status = _taskStatuses.Queued,
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.UnlockDevice,
@@ -113,6 +114,7 @@ namespace Biovation.Server.Controllers.v2
                 {
                     var task = new TaskInfo
                     {
+                        Status = _taskStatuses.Queued,
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.LockDevice,
@@ -182,12 +184,13 @@ namespace Biovation.Server.Controllers.v2
                 {
                     var task = new TaskInfo
                     {
+                        Status = _taskStatuses.Queued,
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.GetLogsInPeriod,
                         Priority = _taskPriorities.Medium,
                         TaskItems = new List<TaskItem>(),
-                        DeviceBrand = device.Brand,
+                        DeviceBrand = device.Brand
                     };
 
                     task.TaskItems.Add(new TaskItem
@@ -208,6 +211,7 @@ namespace Biovation.Server.Controllers.v2
                 {
                     var task = new TaskInfo
                     {
+                        Status = _taskStatuses.Queued,
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.GetLogs,
@@ -307,6 +311,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.GetLogsInPeriod,
@@ -333,6 +338,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.GetLogs,
@@ -428,6 +434,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.ClearLog,
@@ -495,6 +502,7 @@ namespace Biovation.Server.Controllers.v2
                     
                     var task = new TaskInfo
                     {
+                        Status = _taskStatuses.Queued,
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
                         TaskType = _taskTypes.ClearLog,
@@ -609,6 +617,7 @@ namespace Biovation.Server.Controllers.v2
 
             var task = new TaskInfo
             {
+                Status = _taskStatuses.Queued,
                 CreatedAt = DateTimeOffset.Now,
                 CreatedBy = creatorUser,
                 DeviceBrand = device.Brand,
@@ -713,6 +722,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.SendUsers,
@@ -777,6 +787,7 @@ namespace Biovation.Server.Controllers.v2
 
             var task = new TaskInfo
             {
+                Status = _taskStatuses.Queued,
                 CreatedAt = DateTimeOffset.Now,
                 CreatedBy = creatorUser,
                 TaskType = _taskTypes.DeleteUsers,
@@ -824,6 +835,7 @@ namespace Biovation.Server.Controllers.v2
 
             var task = new TaskInfo
             {
+                Status = _taskStatuses.Queued,
                 CreatedAt = DateTimeOffset.Now,
                 CreatedBy = creatorUser,
                 TaskType = _taskTypes.DeleteUsers,
@@ -878,6 +890,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     DeviceBrand = device.Brand,
@@ -1068,6 +1081,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.UserAdaptation,

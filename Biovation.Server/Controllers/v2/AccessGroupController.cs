@@ -203,6 +203,7 @@ namespace Biovation.Server.Controllers.v2
                         //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice", "Get", parameters, null);
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.SendAccessGroupToTerminal,
@@ -255,6 +256,7 @@ namespace Biovation.Server.Controllers.v2
 
                             task = new TaskInfo
                             {
+                                Status = _taskStatuses.Queued,
                                 CreatedAt = DateTimeOffset.Now,
                                 CreatedBy = creatorUser,
                                 TaskType = _taskTypes.SendUsers,
@@ -319,6 +321,7 @@ namespace Biovation.Server.Controllers.v2
             {
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.SendAccessGroupToTerminal,
@@ -376,6 +379,7 @@ namespace Biovation.Server.Controllers.v2
 
             var task = new TaskInfo
             {
+                Status = _taskStatuses.Queued,
                 CreatedAt = DateTimeOffset.Now,
                 CreatedBy = creatorUser,
                 TaskType = _taskTypes.SendAccessGroupToTerminal,

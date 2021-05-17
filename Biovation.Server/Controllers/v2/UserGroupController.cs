@@ -250,6 +250,7 @@ namespace Biovation.Server.Controllers.v2
 
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.DeleteUsers,
@@ -306,6 +307,7 @@ namespace Biovation.Server.Controllers.v2
 
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.SendUsers,
@@ -451,6 +453,7 @@ namespace Biovation.Server.Controllers.v2
                         
                         var task = new TaskInfo
                         {
+                            Status = _taskStatuses.Queued,
                             CreatedAt = DateTimeOffset.Now,
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.SendUsers,
