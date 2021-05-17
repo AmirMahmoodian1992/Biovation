@@ -262,3 +262,4 @@ Atency/logs/*
 /Biovation.Data.Queries/Startup.cs.rej
 /Biovation.Data.Commands/LogPic/
 /Biovation.Dashboard/libman.json
+/Biovation.Data.Queries/libman.json

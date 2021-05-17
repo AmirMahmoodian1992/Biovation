@@ -10,6 +10,7 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
 using DeviceService = Biovation.Service.Api.v2.DeviceService;
 
 namespace Biovation.Brands.Suprema.Commands
@@ -31,8 +32,9 @@ namespace Biovation.Brands.Suprema.Commands
 
         private readonly AccessGroupService _accessGroupService;
         private readonly UserService _userService;
+        private readonly AdminDeviceService _adminDeviceService;
 
-        public SupremaSyncUserOfDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, AccessGroupService accessGroupService, UserService userService, DeviceService deviceService)
+        public SupremaSyncUserOfDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, AccessGroupService accessGroupService, UserService userService, DeviceService deviceService, AdminDeviceService adminDeviceService)
         {
             TaskItem = taskItem;
             _onlineDevices = onlineDevices;
@@ -40,6 +42,7 @@ namespace Biovation.Brands.Suprema.Commands
             _accessGroupService = accessGroupService;
             _userService = userService;
             _deviceService = deviceService;
+            _adminDeviceService = adminDeviceService;
         }
 
         /// <summary>
@@ -84,7 +87,8 @@ namespace Biovation.Brands.Suprema.Commands
             var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
             var disable = userAccess.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
 
-
+            var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Id);
+            user.AdminLevel = adminDevices.Any(x => x.DeviceId == deviceBasicInfo.DeviceId) ? 240 : 0;
             #region transferUserToDevice
 
             try
