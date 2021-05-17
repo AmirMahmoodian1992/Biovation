@@ -23,14 +23,16 @@ namespace Biovation.Server.HostedServices
         private readonly Lookups _lookups;
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
+        private readonly IHostEnvironment _environment;
         private readonly ILogger<ServicesHealthCheckHostedService> _logger;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager)
+        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager, IHostEnvironment environment)
         {
             _logger = logger;
             _lookups = lookups;
             _restClient = restClient;
+            _environment = environment;
             _systemInformation = systemInformation;
             _biovationConfigurationManager = biovationConfigurationManager;
         }
@@ -42,7 +44,10 @@ namespace Biovation.Server.HostedServices
             _systemInformation.Services = new List<ServiceInfo>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
-            _lockTimer = new Timer(CheckLockStatus, null, TimeSpan.Zero, TimeSpan.FromHours(1));
+            if (!_environment.IsDevelopment())
+            {
+                _lockTimer = new Timer(CheckLockStatus, null, TimeSpan.Zero, TimeSpan.FromHours(1));
+            }
 
             return Task.CompletedTask;
         }

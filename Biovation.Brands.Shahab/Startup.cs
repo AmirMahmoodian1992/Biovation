@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Shahab.Devices;
@@ -22,6 +18,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading;
 using Log = Serilog.Log;
 
 namespace Biovation.Brands.Shahab
@@ -29,6 +29,7 @@ namespace Biovation.Brands.Shahab
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        private readonly IHostEnvironment _environment;
         public IConfiguration Configuration { get; }
 
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
@@ -36,6 +37,7 @@ namespace Biovation.Brands.Shahab
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
 
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -83,39 +85,42 @@ namespace Biovation.Brands.Shahab
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-            #region checkLock
-
-            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            try
+            if (!_environment.IsDevelopment())
             {
-                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-                if (!requestResult.Result.Data.Success)
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
                 {
-                    Logger.Log("The Lock is not active", logType: LogType.Warning);
-                    try
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
                     {
-                        if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
                         {
-                            Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            }
                         }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
                     }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
                     Environment.Exit(0);
                 }
-            }
-            catch (Exception)
-            {
-                Logger.Log("The connection with Lock service has a problem");
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-                Environment.Exit(0);
-            }
 
 
-            #endregion
+                #endregion
+            }
 
             services.AddSingleton(restClient);
 
@@ -237,7 +242,7 @@ namespace Biovation.Brands.Shahab
         private void ConfigureShahabServices(IServiceCollection services)
         {
             services.AddSingleton(OnlineDevices);
-            
+
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<ShahabServer, ShahabServer>();
 
