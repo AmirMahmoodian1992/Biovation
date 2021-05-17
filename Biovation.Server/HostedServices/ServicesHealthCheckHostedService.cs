@@ -39,7 +39,6 @@ namespace Biovation.Server.HostedServices
         {
             _logger.LogInformation("Services Health Check Hosted Service running.");
 
-            _systemInformation.Services = new List<ServiceInfo>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
             _lockTimer = new Timer(CheckLockStatus, null, TimeSpan.Zero, TimeSpan.FromHours(1));
@@ -49,33 +48,37 @@ namespace Biovation.Server.HostedServices
 
         private void CheckServicesStatus(object state)
         {
-            //var count = Interlocked.Increment(ref _executionCount);
-
             if (!_biovationConfigurationManager.UseHealthCheck)
                 return;
+
+            _systemInformation.Services ??= new List<ServiceInfo>();
 
             var deviceBrands = _lookups.DeviceBrands;
             Parallel.ForEach(deviceBrands, deviceBrand =>
             {
-                var restRequest = new RestRequest(
-                    $"{deviceBrand.Name}/health");
-                var result = _restClient.Execute(restRequest);
+                try
+                {
+                    var restRequest = new RestRequest(
+                        $"{deviceBrand.Name}/health");
+                    var result = _restClient.Execute(restRequest);
 
-                if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    if (!_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                        _systemInformation.Services.Add(new ServiceInfo { Name = deviceBrand.Name });
+                    if (result.StatusCode == HttpStatusCode.OK && result.Content.ToLowerInvariant().Contains("Healthy".ToLowerInvariant()))
+                    {
+                        if (!_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
+                            _systemInformation.Services.Add(new ServiceInfo { Name = deviceBrand.Name });
+                    }
+                    else
+                    {
+                        if (_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
+                            _systemInformation.Services.Remove(
+                                _systemInformation.Services.Find(service => service.Name.Contains(deviceBrand.Name)));
+                    }
                 }
-                else
+                catch (Exception exception)
                 {
-                    if (_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                        _systemInformation.Services.Remove(
-                            _systemInformation.Services.Find(service => service.Name.Contains(deviceBrand.Name)));
+                    _logger.LogWarning(exception, exception.Message);
                 }
             });
-
-            //_logger.LogInformation(
-            //    "Timed Hosted Service is working. Count: {Count}", count);
         }
 
         private void CheckLockStatus(object state)
@@ -91,7 +94,6 @@ namespace Biovation.Server.HostedServices
                     response = requests.RequestInfo(_biovationConfigurationManager.SoftwareLockAddress, _biovationConfigurationManager.SoftwareLockPort, "info", "1", "1");
                 }
 
-                //var response = requests.RequestInfo("127.0.0.1", 2105, "info", "1", "1");
                 if (response == null)
                 {
                     CallStopServices();
@@ -103,8 +105,9 @@ namespace Biovation.Server.HostedServices
                 {
                     lockInfo = JsonConvert.DeserializeObject<JObject>(response.Message);
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
+                    _logger.LogWarning(exception, exception.Message);
                     CallStopServices();
                     return;
                 }
@@ -112,38 +115,54 @@ namespace Biovation.Server.HostedServices
                 string expirationDate = null;
                 if (!(lockInfo is null))
                 {
-                    var subsystemsInfo =
-                        JsonConvert.DeserializeObject<JArray>(lockInfo["SubSystems"]?.ToString() ?? string.Empty);
-                    foreach (var subsystemInfo in subsystemsInfo)
+                    try
                     {
-                        if (!string.Equals(subsystemInfo["SubSystemId"]?.ToString(), "92"
-                            , StringComparison.InvariantCultureIgnoreCase)) continue;
-                        if (subsystemInfo["ExpirationDate"]?.ToString() != null)
+                        var subsystemsInfo =
+                            JsonConvert.DeserializeObject<JArray>(lockInfo["SubSystems"]?.ToString() ?? string.Empty);
+                        foreach (var subsystemInfo in subsystemsInfo)
                         {
-                            expirationDate = subsystemInfo["ExpirationDate"].ToString();
+                            if (!string.Equals(subsystemInfo["SubSystemId"]?.ToString(), "92"
+                                , StringComparison.InvariantCultureIgnoreCase)) continue;
+                            if (subsystemInfo["ExpirationDate"]?.ToString() != null)
+                            {
+                                expirationDate = subsystemInfo["ExpirationDate"].ToString();
+                            }
                         }
+
+                        if (expirationDate != null && DateTime.Parse(expirationDate) >= DateTime.Now) return;
+                    }
+                    catch (Exception innerException)
+                    {
+                        _logger.LogWarning(innerException, innerException.Message);
+                        CallStopServices();
                     }
 
-                    if (expirationDate != null && DateTime.Parse(expirationDate) >= DateTime.Now) return;
                     CallStopServices();
                     return;
-
                 }
 
                 CallStopServices();
             }
-            catch (Exception)
+            catch (Exception exception)
             {
+                _logger.LogWarning(exception, exception.Message);
                 CallStopServices();
             }
         }
 
         private void CallStopServices()
         {
-            var deviceBrands = _lookups.DeviceBrands;
-            foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
+            try
             {
-                _restClient.ExecuteAsync(restRequest);
+                var deviceBrands = _lookups.DeviceBrands;
+                foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}SystemInfo/StopService", Method.GET)))
+                {
+                    _restClient.ExecuteAsync(restRequest);
+                }
+            }
+            catch (Exception exception)
+            {
+                _logger.LogWarning(exception, exception.Message);
             }
         }
 
@@ -152,6 +171,7 @@ namespace Biovation.Server.HostedServices
             _logger.LogInformation("Services Health Check Hosted Service is stopping.");
 
             _timer?.Change(Timeout.Infinite, 0);
+            _lockTimer?.Change(Timeout.Infinite, 0);
 
             return Task.CompletedTask;
         }
