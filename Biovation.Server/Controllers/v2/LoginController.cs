@@ -3,6 +3,7 @@ using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -23,10 +24,10 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Route("{id}")]
         [AllowAnonymous]
-        public IActionResult Login([FromRoute] long id = default)
+        public async Task<IActionResult> Login([FromRoute] long id = default)
         {
             IActionResult response = Unauthorized();
-            var user = _userService.GetUsers(code: id)?.Data?.Data?.FirstOrDefault();
+            var user = (await _userService.GetUsers(code: id))?.Data?.Data?.FirstOrDefault();
             if (user == null) return response;
 
             var tokenString = _generateToken.GenerateJWTLoginToken(user);
@@ -40,10 +41,10 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Attribute.Authorize]
         [Route("InternalLogin/{id}")]
-        public IActionResult InternalLogin([FromRoute] long id = default)
+        public async Task<IActionResult> InternalLogin([FromRoute] long id = default)
         {
             IActionResult response = Unauthorized();
-            var user = _userService.GetUsers(userId: id)?.Data?.Data?.FirstOrDefault();
+            var user = (await _userService.GetUsers(userId: id))?.Data?.Data?.FirstOrDefault();
             if (user == null) return response;
 
             var tokenString = _generateToken.GenerateToken(user);

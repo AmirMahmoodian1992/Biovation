@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
@@ -13,24 +14,24 @@ namespace Biovation.Service.Api.v2
             _timeZoneRepository = timeZoneRepository;
         }
 
-        public ResultViewModel<TimeZone> TimeZones(int id = default, string token = default)
+        public async Task<ResultViewModel<TimeZone>> TimeZones(int id = default, string token = default)
         {
-            return _timeZoneRepository.TimeZones(id, token);
+            return await _timeZoneRepository.TimeZones(id, token);
         }
 
-        public ResultViewModel<List<TimeZone>> GetTimeZones(string token = default)
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(string token = default)
         {
-            return _timeZoneRepository.GetTimeZones(token);
+            return await _timeZoneRepository.GetTimeZones(token);
         }
 
-        public ResultViewModel ModifyTimeZone(TimeZone timeZone, string token = default)
+        public async Task<ResultViewModel> ModifyTimeZone(TimeZone timeZone, string token = default)
         {
-            return _timeZoneRepository.ModifyTimeZone(timeZone, token);
+            return await _timeZoneRepository.ModifyTimeZone(timeZone, token);
         }
 
-        public ResultViewModel DeleteTimeZone(int id, string token = default)
+        public async Task<ResultViewModel> DeleteTimeZone(int id, string token = default)
         {
-            return _timeZoneRepository.DeleteTimeZone(id, token);
+            return await _timeZoneRepository.DeleteTimeZone(id, token);
         }
 
     }

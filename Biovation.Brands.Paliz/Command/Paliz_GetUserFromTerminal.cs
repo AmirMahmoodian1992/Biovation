@@ -42,7 +42,7 @@ namespace Biovation.Brands.Paliz.Command
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
+            var taskItem = taskService.GetTaskItem(TaskItemId)?.GetAwaiter().GetResult().Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null) UserId = (int) data["userId"];
             _palizServer = palizServer;
@@ -54,7 +54,7 @@ namespace Biovation.Brands.Paliz.Command
             _faceTemplateTypes = faceTemplateTypes;
             _userCardService = userCardService;
 
-            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             if (devices is null)
             {
                 OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
@@ -133,7 +133,7 @@ namespace Biovation.Brands.Paliz.Command
                     FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
                     EnrollQuality = fingerprint.Quality,
                     FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = _fingerTemplateService.FingerTemplates(userId: (int) (user.Id))?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+                    Index = _fingerTemplateService.FingerTemplates(userId: (int)user.Id)?.GetAwaiter().GetResult().Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
                 }));
             }
 
@@ -259,7 +259,7 @@ namespace Biovation.Brands.Paliz.Command
                 FirstName = userInfoModel.Name.Split(' ').FirstOrDefault()
             };
 
-            var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.Data?.Data?.FirstOrDefault();
+            var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.GetAwaiter().GetResult().Data?.Data?.FirstOrDefault();
             if (existingUser != null)
             {
                 user.Id = existingUser.Id;

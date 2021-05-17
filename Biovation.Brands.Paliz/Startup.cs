@@ -28,6 +28,7 @@ using PalizTiara.Api;
 using Biovation.Brands.Paliz.Devices;
 using Biovation.Brands.Paliz.Command;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Paliz
 {
@@ -78,7 +79,7 @@ namespace Biovation.Brands.Paliz
 
 
             ConfigureRepositoriesServices(services);
-            ConfigureConstantValues(services);
+            ConfigureConstantValues(services).GetAwaiter().GetResult();
             ConfigurePalizServices(services);
         }
 
@@ -163,7 +164,7 @@ namespace Biovation.Brands.Paliz
             services.AddSingleton<UserRepository, UserRepository>();
         }
 
-        public void ConfigureConstantValues(IServiceCollection services)
+        public async Task ConfigureConstantValues(IServiceCollection services)
         {
             //var serviceCollection = new ServiceCollection();
             //var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
@@ -178,17 +179,17 @@ namespace Biovation.Brands.Paliz
 
             var lookupService = serviceProvider.GetService<LookupService>();
 
-            var taskStatusesQuery = lookupService.GetLookups(lookupCategoryId: 1);
-            var taskTypesQuery = lookupService.GetLookups(lookupCategoryId: 2);
-            var taskItemTypesQuery = lookupService.GetLookups(lookupCategoryId: 3);
-            var taskPrioritiesQuery = lookupService.GetLookups(lookupCategoryId: 4);
-            var fingerIndexNamesQuery = lookupService.GetLookups(lookupCategoryId: 5);
-            var deviceBrandsQuery = lookupService.GetLookups(lookupCategoryId: 6);
-            var logEventsQuery = lookupService.GetLookups(lookupCategoryId: 7);
-            var logSubEventsQuery = lookupService.GetLookups(lookupCategoryId: 8);
-            var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
-            var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
-            var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+            var taskStatusesQuery = await lookupService.GetLookups(lookupCategoryId: 1);
+            var taskTypesQuery = await lookupService.GetLookups(lookupCategoryId: 2);
+            var taskItemTypesQuery = await lookupService.GetLookups(lookupCategoryId: 3);
+            var taskPrioritiesQuery = await lookupService.GetLookups(lookupCategoryId: 4);
+            var fingerIndexNamesQuery = await lookupService.GetLookups(lookupCategoryId: 5);
+            var deviceBrandsQuery = await lookupService.GetLookups(lookupCategoryId: 6);
+            var logEventsQuery = await lookupService.GetLookups(lookupCategoryId: 7);
+            var logSubEventsQuery = await lookupService.GetLookups(lookupCategoryId: 8);
+            var fingerTemplateTypeQuery = await lookupService.GetLookups(lookupCategoryId: 9);
+            var faceTemplateTypeQuery = await lookupService.GetLookups(lookupCategoryId: 10);
+            var matchingTypeQuery = await lookupService.GetLookups(lookupCategoryId: 11);
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
 

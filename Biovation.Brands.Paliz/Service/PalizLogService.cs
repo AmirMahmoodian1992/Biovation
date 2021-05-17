@@ -23,7 +23,7 @@ namespace Biovation.Brands.Paliz.Service
         public async Task<ResultViewModel> AddLog(Log log)
         {
 
-            var deviceViewModel = _commonDeviceService.GetDevices(code: log.DeviceCode, brandId: DeviceBrands.PalizCode);
+            var deviceViewModel = _commonDeviceService.GetDevices(code: log.DeviceCode, brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             var device = deviceViewModel?.Data?.Data.FirstOrDefault();
             log.DeviceId = device?.DeviceId ?? log.DeviceId;
             log.InOutMode = device?.DeviceTypeId ?? 0;
@@ -37,7 +37,7 @@ namespace Biovation.Brands.Paliz.Service
             {
                 foreach (var deviceCode in logs.GroupBy(g => g.DeviceCode).Select(s => s.Key).Where(s => s != 0))
                 {
-                    var deviceViewModel = _commonDeviceService.GetDevices(code: deviceCode, brandId: DeviceBrands.PalizCode);
+                    var deviceViewModel = _commonDeviceService.GetDevices(code: deviceCode, brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
                     var device = deviceViewModel?.Data?.Data.FirstOrDefault();
                     logs.Where(x => x.DeviceCode == deviceCode).ToList().ForEach(x =>
                     {

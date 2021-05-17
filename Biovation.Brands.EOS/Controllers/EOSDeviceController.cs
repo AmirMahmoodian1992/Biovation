@@ -7,6 +7,7 @@ using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +31,11 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly ILogger _logger;
+
         public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices,
             EosServer eosServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes,
-            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, ILogger logger)
         {
             _eosServer = eosServer;
             _deviceService = deviceService;
@@ -45,6 +48,8 @@ namespace Biovation.Brands.EOS.Controllers
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _deviceBrands = deviceBrands;
+
+            _logger = logger.ForContext<EosDeviceController>();
         }
 
         [HttpGet]
@@ -53,16 +58,33 @@ namespace Biovation.Brands.EOS.Controllers
         {
             var onlineDevices = new List<DeviceBasicInfo>();
 
-            foreach (var onlineDevice in _onlineDevices)
+            lock (_onlineDevices)
             {
-                if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                foreach (var onlineDevice in _onlineDevices)
                 {
-                    onlineDevice.Value.GetDeviceInfo().Name = _deviceService
-                        .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault()
-                        ?.Name;
-                }
+                    try
+                    {
+                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                        {
+                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService
+                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.EosCode).Result?.Data?.Data?.FirstOrDefault()
+                                ?.Name;
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
 
-                onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    try
+                    {
+                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
+                }
             }
 
             return onlineDevices;
@@ -93,7 +115,7 @@ namespace Biovation.Brands.EOS.Controllers
 
             foreach (var deviceId in deviceIds)
             {
-                var device = _deviceService.GetDevice(deviceId)?.Data;
+                var device = _deviceService.GetDevice(deviceId).Result?.Data;
                 if (device is null)
                     continue;
 
@@ -120,7 +142,7 @@ namespace Biovation.Brands.EOS.Controllers
         {
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel { Validate = 1, Message = $"Wrong device code is provided : {code}." };
@@ -158,7 +180,7 @@ namespace Biovation.Brands.EOS.Controllers
 
                 }
 
-                _taskService.InsertTask(task);
+                await _taskService.InsertTask(task);
                 await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
 
                 //foreach (var id in userIds)
@@ -197,7 +219,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (device is null)
                     return new List<ResultViewModel>
@@ -220,7 +242,7 @@ namespace Biovation.Brands.EOS.Controllers
                     });
                 }
 
-                _taskService.InsertTask(task);
+                await _taskService.InsertTask(task);
                 await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
 
                 //    foreach (var id in userIds)
@@ -243,7 +265,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpGet]
         [Authorize]
-        public ResultViewModel<List<User>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
+        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
         {
             try
             {
@@ -261,7 +283,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var devices = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (devices is null)
                     return new ResultViewModel<List<User>>
@@ -319,7 +341,7 @@ namespace Biovation.Brands.EOS.Controllers
                     DueDate = DateTime.Today
                 };
 
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
                     ?.FirstOrDefault();
                 if (device is null)
                 {
@@ -354,7 +376,7 @@ namespace Biovation.Brands.EOS.Controllers
                     CurrentIndex = 0
                 });
 
-                _taskService.InsertTask(task);
+                await _taskService.InsertTask(task);
                 await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
 
                 return new ResultViewModel { Validate = 1 };
@@ -363,6 +385,53 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 return new ResultViewModel { Validate = 0, Message = exception.Message };
             }
+        }
+
+
+        [HttpGet]
+        [Authorize]
+        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        {
+            var creatorUser = HttpContext.GetUser();
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.GetLogsInPeriod,
+                Priority = _taskPriorities.Immediate,
+                DeviceBrand = _deviceBrands.Eos,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+            var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
+                ?.FirstOrDefault();
+
+            if (device is null)
+            {
+                return null;
+            }
+
+            var deviceId = device.DeviceId;
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Done,
+                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                Priority = _taskPriorities.Immediate,
+                DeviceId = deviceId,
+                Data = JsonConvert.SerializeObject(new { deviceId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                CurrentIndex = 0
+            });
+
+            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                new List<object> { task.TaskItems.FirstOrDefault() });
+
+            var result = getAdditionalData.Execute();
+
+            return (Dictionary<string, string>)result;
         }
     }
 }

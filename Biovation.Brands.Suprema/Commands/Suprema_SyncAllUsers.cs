@@ -41,7 +41,7 @@ namespace Biovation.Brands.Suprema.Commands
         {
             //var forceUpdate = new ForceUpdateService();
             //  var userService = new UserService();
-            var allUserEvents = _userService.GetUsers(getTemplatesData: false)?.Data?.Data;
+            var allUserEvents = _userService.GetUsers(getTemplatesData: false).Result?.Data?.Data;
             //forceUpdate.DeleteAllEvents(ConnectionType);
 
             #region sync users
@@ -82,11 +82,11 @@ namespace Biovation.Brands.Suprema.Commands
 
             foreach (var @event in allUserEvents)
             {
-                var user = _userService.GetUsers(userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                var user = _userService.GetUsers(userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
 
                 if (user != null)
                 {
-                    var userAccess = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                    var userAccess = _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
 
                     var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
                     var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
@@ -98,7 +98,7 @@ namespace Biovation.Brands.Suprema.Commands
                 //var validDevice = deviceService.GetUserValidDevices(user.Id, ConnectionType);
 
                 var validDevice = new List<DeviceBasicInfo>();
-                var accessGroups = _accessGroupService.GetAccessGroups(@event.Id)?.Data?.Data;
+                var accessGroups = _accessGroupService.GetAccessGroups(@event.Id).Result?.Data?.Data;
                 if (!accessGroups.Any())
                 {
                     continue;
@@ -185,11 +185,11 @@ namespace Biovation.Brands.Suprema.Commands
             foreach (var @event in allUserEvents)
             {
                 //todo:usrcode
-                var userE = _userService.GetUsers(userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                var userE = _userService.GetUsers(userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
                 //var accessGroupService = new AccessGroupService();
                 if (userE != null)
                 {
-                    var userAccess = _accessGroupService.GetAccessGroups(userE.Id)?.Data?.Data;
+                    var userAccess = _accessGroupService.GetAccessGroups(userE.Id).Result?.Data?.Data;
 
                     var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
                     var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
@@ -197,7 +197,7 @@ namespace Biovation.Brands.Suprema.Commands
 
                     //var validDevice = deviceService.GetUserValidDevices(Event.Id, ConnectionType);
                     var validDevice = new List<DeviceBasicInfo>();
-                    var accessGroups = _accessGroupService.GetAccessGroups(userE.Id)?.Data?.Data;
+                    var accessGroups = _accessGroupService.GetAccessGroups(userE.Id).Result?.Data?.Data;
                     if (!accessGroups.Any())
                     {
                         continue;
@@ -277,7 +277,7 @@ namespace Biovation.Brands.Suprema.Commands
                         tasks.Add(Task.Run(() =>
                             {
                                 //todo:usercode
-                                var user = _userService.GetUsers(userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                                var user = _userService.GetUsers(userId:@event.Id).Result?.Data?.Data.FirstOrDefault();
 
                                 //var localDevice = tempDevice;
                                 //var device = deviceFactory.Factory(tempDevice.Value, ConnectionType);

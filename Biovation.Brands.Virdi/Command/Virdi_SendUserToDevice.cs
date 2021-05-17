@@ -127,7 +127,7 @@ namespace Biovation.Brands.Virdi.Command
                 // Set Access Flag
                 _virdiServer.ServerUserData.IsFace1toN = 0;
 
-                var userCards = _userCardService.GetCardsByFilter(UserId);
+                var userCards = _userCardService.GetCardsByFilter(UserId).Result;
                 var activeCard = userCards?.Find(card => card.IsActive);
 
                 if (activeCard != null)

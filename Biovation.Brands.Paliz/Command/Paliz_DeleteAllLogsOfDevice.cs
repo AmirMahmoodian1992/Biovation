@@ -36,10 +36,10 @@ namespace Biovation.Brands.Paliz.Command
             TaskItemId = Convert.ToInt32(items[1]);
             //_palizCodeMappings = palizCodeMappings;
             //_logEvents = logEvents;
-            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
+            var taskItem = taskService.GetTaskItem(TaskItemId)?.GetAwaiter().GetResult().Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             _palizServer = palizServer;
-            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             Code = devices?.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
             OnlineDevices = palizServer.GetOnlineDevices();
         }

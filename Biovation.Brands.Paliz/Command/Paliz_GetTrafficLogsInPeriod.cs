@@ -48,12 +48,12 @@ namespace Biovation.Brands.Paliz.Command
             _palizCodeMappings = palizCodeMappings;
             _logEvents = logEvents;
             _palizServer = palizServer;
-            var taskItem = taskService.GetTaskItem(taskItemId)?.Data ?? new TaskItem();
+            var taskItem = taskService.GetTaskItem(taskItemId)?.GetAwaiter().GetResult().Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             fromDate = (DateTime)data["fromDate"];
             toDate = (DateTime)data["toDate"];
 
-            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             if (devices is null)
             {
                 onlineDevices = new Dictionary<uint, DeviceBasicInfo>();

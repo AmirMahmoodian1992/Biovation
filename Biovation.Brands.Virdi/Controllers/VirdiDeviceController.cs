@@ -8,6 +8,7 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +35,11 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
 
-        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager)
+        private readonly Dictionary<uint, DeviceBasicInfo> _onlineDevices;
+
+        private readonly ILogger _logger;
+
+        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             _virdiServer = virdiServer;
             _taskService = taskService;
@@ -47,6 +52,9 @@ namespace Biovation.Brands.Virdi.Controllers
             _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
             _configurationManager = configurationManager;
+            _onlineDevices = onlineDevices;
+
+            _logger = logger.ForContext<VirdiDeviceController>();
         }
 
         [HttpGet]
@@ -57,20 +65,35 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 var onlineDevices = new List<DeviceBasicInfo>();
 
-                foreach (var onlineDevice in _virdiServer.GetOnlineDevices())
+                foreach (var onlineDevice in _onlineDevices)
                 {
-                    if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
+                    try
                     {
-                        var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.VirdiCode)
-                            .FirstOrDefault();
-                        if (device is null)
-                            continue;
+                        if (string.IsNullOrEmpty(onlineDevice.Value.Name) || onlineDevice.Value.DeviceId == 0)
+                        {
+                            var device = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.VirdiCode)
+                                .FirstOrDefault();
+                            if (device is null)
+                                continue;
 
-                        onlineDevice.Value.Name = device.Name;
-                        onlineDevice.Value.DeviceId = device.DeviceId;
+                            onlineDevice.Value.Name = device.Name;
+                            onlineDevice.Value.DeviceId = device.DeviceId;
+                        }
+
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
                     }
 
-                    onlineDevices.Add(onlineDevice.Value);
+                    try
+                    {
+                        onlineDevices.Add(onlineDevice.Value);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                    }
                 }
 
                 return onlineDevices;
@@ -974,6 +997,67 @@ namespace Biovation.Brands.Virdi.Controllers
             {
                 return new ResultViewModel { Validate = 1, Message = $"Error ,Removing User not queued!{exception}" };
             }
+        }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        {
+            return await Task.Run(() =>
+            {
+
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+
+
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.GetAdditionalData,
+                    Priority = _taskPriorities.Immediate,
+                    DeviceBrand = _deviceBrands.Virdi,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.GetAdditionalData,
+                    Priority = _taskPriorities.Immediate,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(device.DeviceId),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1
+                });
+
+                var resultTask = _taskService.InsertTask(task);
+                //_taskManager.ProcessQueue();
+                var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                    new List<object> { device.DeviceId, resultTask.Id });
+
+                var result = getAdditionalData.Execute();
+
+                task.TaskItems.FirstOrDefault().ExecutionAt = DateTimeOffset.Now;
+                task.TaskItems.FirstOrDefault().Result = JsonConvert.SerializeObject(result);
+                if (result != null)
+                {
+                    task.TaskItems.FirstOrDefault().Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.DoneCode);
+                    _taskService.UpdateTaskStatus(task.TaskItems.FirstOrDefault());
+                }
+                else
+                {
+                    task.TaskItems.FirstOrDefault().Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.FailedCode);
+                    _taskService.UpdateTaskStatus(task.TaskItems.FirstOrDefault());
+                }
+
+
+                return (Dictionary<string, string>)result;
+            });
         }
     }
 }

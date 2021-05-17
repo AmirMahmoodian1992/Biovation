@@ -97,6 +97,7 @@ namespace Biovation.Data.Commands
 
             //integration
             services.AddScoped<LogApiSink, LogApiSink>();
+            services.AddScoped<TaskApiSink, TaskApiSink>();
             services.AddScoped<LogMessageBusRepository, LogMessageBusRepository>();
             services.AddScoped<TaskMessageBusRepository, TaskMessageBusRepository>();
         }

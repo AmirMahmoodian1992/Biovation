@@ -504,14 +504,14 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUserGroups")]
-        public List<ResultViewModel> DeleteUserGroups([FromBody] List<int> groupIds)
+        public async Task<List<ResultViewModel>> DeleteUserGroups([FromBody] List<int> groupIds)
         {
             try
             {
                 var resultList = new List<ResultViewModel>();
                 foreach (var group in groupIds)
                 {
-                    var result = _userGroupService.DeleteUserGroup(group, token: _kasraAdminToken);
+                    var result = await _userGroupService.DeleteUserGroup(group, token: _kasraAdminToken);
                     resultList.Add(new ResultViewModel { Validate = result.Validate, Message = result.Message, Id = group });
                 }
 

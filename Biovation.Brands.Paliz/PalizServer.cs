@@ -123,7 +123,8 @@ namespace Biovation.Brands.Paliz
 
             var terminalName = tiaraSettings.ServerSetting.TerminalName;
             var terminalId = Convert.ToUInt32(tiaraSettings.ServerSetting.TerminalId);
-            var existedDevice = _commonDeviceService.GetDevices(code: (uint)terminalId, brandId: DeviceBrands.PalizCode).Data?.Data?.FirstOrDefault() ?? new DeviceBasicInfo();
+            var existedDevice = _commonDeviceService.GetDevices(code: terminalId, brandId: DeviceBrands.PalizCode)
+                .GetAwaiter().GetResult().Data?.Data?.FirstOrDefault() ?? new DeviceBasicInfo();
 
             Task.Run(async () =>
             {
@@ -185,7 +186,7 @@ namespace Biovation.Brands.Paliz
                 };
 
                 if (existedDevice.Code != terminalId || !string.Equals(existedDevice.IpAddress, tiaraSettings.ServerSetting.ServerIP, StringComparison.InvariantCultureIgnoreCase) || tiaraSettings.ServerSetting.ServerPortNumber != biovationConfiguration.PalizDevicesConnectionPort)
-                    _commonDeviceService.ModifyDevice(device);
+                    _commonDeviceService.ModifyDevice(device).GetAwaiter().GetResult();
             }
             else
             {
@@ -204,7 +205,7 @@ namespace Biovation.Brands.Paliz
 
                 //device.Name = terminalId + "[" + device.IpAddress + "]";
                 device.Name = terminalName;
-                var result = _commonDeviceService.ModifyDevice(device);
+                var result = _commonDeviceService.ModifyDevice(device).GetAwaiter().GetResult();
                 if (result.Validate == 1)
                     device.DeviceId = (int)result.Id;
             }
@@ -221,7 +222,7 @@ namespace Biovation.Brands.Paliz
             Logger.Log($"Retrieving new log: {{ ID: {terminalId} , IP: {device.IpAddress} }}", logType: LogType.Information);
 
             //User createrUser;
-            var creatorUser = _commonUserService.GetUsers(code: 987654321).Data?.Data?.FirstOrDefault();
+            var creatorUser = _commonUserService.GetUsers(code: 987654321).GetAwaiter().GetResult().Data?.Data?.FirstOrDefault();
             //if (creatorUserData != null)
             //{
             //    createrUser = creatorUserData.FirstOrDefault();
@@ -300,7 +301,8 @@ namespace Biovation.Brands.Paliz
             var device = _palizDeviceMappings.GetDeviceBasicInfo(deviceSender.TerminalName);
             if (device == null || device.DeviceId == 0)
             {
-                device = _commonDeviceService.GetDevices(deviceName: args.LiveTraffic.Device)?.Data?.Data.FirstOrDefault();
+                device = _commonDeviceService.GetDevices(deviceName: args.LiveTraffic.Device)?
+                    .GetAwaiter().GetResult().Data?.Data.FirstOrDefault();
                 if (device == null)
                 {
                     return;

@@ -23,6 +23,7 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Biovation.Domain;
 using Log = Serilog.Log;
@@ -71,6 +72,8 @@ namespace Biovation.Brands.ZK
 
             //services.AddMvcCore().AddMetricsCore();
             services.AddHealthChecks();
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);

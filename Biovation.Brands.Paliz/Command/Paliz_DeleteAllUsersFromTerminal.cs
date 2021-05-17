@@ -36,7 +36,7 @@ namespace Biovation.Brands.Paliz.Command
         {
             TerminalId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            var taskItem = taskService.GetTaskItem(TaskItemId)?.Data ?? new TaskItem();
+            var taskItem = taskService.GetTaskItem(TaskItemId)?.GetAwaiter().GetResult()?.Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null) UserId = (int)data["userCode"];
             _palizServer = palizServer;
@@ -45,7 +45,7 @@ namespace Biovation.Brands.Paliz.Command
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
 
-            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             if (devices is null)
             {
                 OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();

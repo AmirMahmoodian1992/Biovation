@@ -64,7 +64,7 @@ namespace Biovation.Brands.Eos.Commands
             if (!parseResult || userCode == 0)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
 
-            var device = _deviceService.GetDevice(deviceId)?.Data;
+            var device = _deviceService.GetDevice(deviceId).Result?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
@@ -109,7 +109,7 @@ namespace Biovation.Brands.Eos.Commands
                     IsActive = true
                 };
 
-                var existUser = _userService.GetUsers(code: userOfDevice.Code)?.Data?.Data?.FirstOrDefault();
+                var existUser = _userService.GetUsers(code: userOfDevice.Code).Result?.Data?.Data?.FirstOrDefault();
 
                 if (existUser != null)
                 {
@@ -133,8 +133,8 @@ namespace Biovation.Brands.Eos.Commands
                     };
                 }
 
-                _userService.ModifyUser(user);
-                user.Id = _userService.GetUsers(code: user.Code)?.Data?.Data.FirstOrDefault()?.Id ?? -1;
+                _userService.ModifyUser(user).Wait();
+                user.Id = _userService.GetUsers(code: user.Code).Result?.Data?.Data.FirstOrDefault()?.Id ?? -1;
                 if (user.Id == -1)
                     return new ResultViewModel { Id = deviceId, Message = "Error on adding user to database", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
 
@@ -155,7 +155,7 @@ namespace Biovation.Brands.Eos.Commands
                                     //UserId = userOfDevice.Id
                                     UserId = user.Id
                                 };
-                                _userCardService.ModifyUserCard(card);
+                                _userCardService.ModifyUserCard(card).Wait();
                             }
                     }
                 }

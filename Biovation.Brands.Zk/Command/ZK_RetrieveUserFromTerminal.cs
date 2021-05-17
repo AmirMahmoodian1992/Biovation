@@ -28,8 +28,9 @@ namespace Biovation.Brands.ZK.Command
         {
             var taskItem = (TaskItem)items[0];
             DeviceId = taskItem.DeviceId;
-            Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            
+            var storedDevice = deviceService.GetDevice(DeviceId);
+            Code = storedDevice?.Code ?? 0;
+
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null)
             {
@@ -39,9 +40,9 @@ namespace Biovation.Brands.ZK.Command
                 else
                     Saving = true;
             }
-            
+
             OnlineDevices = devices;
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
+            //DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value?.GetDeviceInfo().DeviceId ?? 0;
         }
         public object Execute()
         {

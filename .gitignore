@@ -261,3 +261,4 @@ Atency/logs/*
 >>>>>>> feature-add-gateway-api_138_107712
 /Biovation.Data.Queries/Startup.cs.rej
 /Biovation.Data.Commands/LogPic/
+/Biovation.Dashboard/libman.json

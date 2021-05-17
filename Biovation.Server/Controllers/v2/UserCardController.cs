@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -26,19 +26,17 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyUserCard([FromBody]UserCard card = default)
+        public async Task<ResultViewModel> ModifyUserCard([FromBody] UserCard card = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(()=> _userCardService.ModifyUserCard(card,token));
+            return await _userCardService.ModifyUserCard(card, HttpContext.Items["Token"] as string);
         }
 
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteUserCard([FromRoute] int id = default)
+        public async Task<ResultViewModel> DeleteUserCard([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _userCardService.DeleteUserCard(id, token));
+            return await _userCardService.DeleteUserCard(id, HttpContext.Items["Token"] as string);
         }
     }
 }

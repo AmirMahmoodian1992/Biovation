@@ -134,5 +134,10 @@ namespace Biovation.Brands.EOS.Devices
         {
             throw new NotImplementedException();
         }
+
+        public virtual Dictionary<string, string> GetAdditionalData(int code)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

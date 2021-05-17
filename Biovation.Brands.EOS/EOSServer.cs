@@ -32,7 +32,7 @@ namespace Biovation.Brands.EOS
             _restClient = restClient;
             _logEvents = logEvents;
             _deviceFactory = deviceFactory;
-            _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode)?.Data?.Data?.Where(x => x.Active).ToList() ?? new List<DeviceBasicInfo>();
+            _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode).Result?.Data?.Data?.Where(x => x.Active).ToList() ?? new List<DeviceBasicInfo>();
         }
 
         public async void ConnectToDevice(DeviceBasicInfo deviceInfo)
@@ -98,10 +98,13 @@ namespace Biovation.Brands.EOS
 
                 try
                 {
+                    //var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
+                    //restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
+
+                    //var res = _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result;
                     var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
                     restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    var res = _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result;
 
                     _logService.AddLog(new Log
                     {

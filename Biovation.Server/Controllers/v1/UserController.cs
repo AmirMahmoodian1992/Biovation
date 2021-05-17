@@ -695,7 +695,7 @@ namespace Biovation.Server.Controllers.v1
                         {
                             UserId = userId,
                             GroupId = userGroupId,
-                            UserType = 1.ToString(),
+                            UserType = 1,
                             UserTypeTitle = string.Empty
                         }, _kasraAdminToken);
                     }
@@ -833,7 +833,7 @@ namespace Biovation.Server.Controllers.v1
                     {
                         UserId = userId,
                         GroupId = userGroupId,
-                        UserType = 1.ToString(),
+                        UserType = 1,
                         UserTypeTitle = string.Empty
                     }, _kasraAdminToken);
                 }
