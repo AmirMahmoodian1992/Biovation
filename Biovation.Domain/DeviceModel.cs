@@ -33,6 +33,7 @@ namespace Biovation.Domain
         public const int UFace402 = 4003;
         public const int UFace602 = 4004;
         public const int IFace202 = 4005;
+        public const int BlackWhite = 4006;
         public const int PW1100 = 5001;
         public const int PW1200 = 5002;
         public const int PW1400 = 5003;

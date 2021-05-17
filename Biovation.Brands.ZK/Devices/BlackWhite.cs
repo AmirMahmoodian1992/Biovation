@@ -16,7 +16,7 @@ using Log = Biovation.Domain.Log;
 namespace Biovation.Brands.ZK.Devices
 {
     // ReSharper disable once InconsistentNaming
-    public class BW : Device
+    public class BlackWhite : Device
     {
         private readonly ILogger _logger;
         private readonly AccessGroupService _accessGroupService;
@@ -30,7 +30,7 @@ namespace Biovation.Brands.ZK.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
-        internal BW(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
+        internal BlackWhite(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
             : base(info, taskService, userService, deviceService, logService, accessGroupService, fingerTemplateService, userCardService, faceTemplateService, restClient, onlineDevices, biovationConfigurationManager, logEvents, zkCodeMappings, taskTypes, taskPriorities, taskStatuses, taskItemTypes, deviceBrands, matchingTypes, biometricTemplateManager, fingerTemplateTypes, faceTemplateTypes, logger)
         {
             _accessGroupService = accessGroupService;
@@ -41,7 +41,7 @@ namespace Biovation.Brands.ZK.Devices
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
-            _logger = logger.ForContext<BW>();
+            _logger = logger.ForContext<BlackWhite>();
         }
 
 
