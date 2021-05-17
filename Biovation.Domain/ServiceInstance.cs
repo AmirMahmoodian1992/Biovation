@@ -6,28 +6,37 @@ namespace Biovation.Domain
 {
     public class ServiceInstance
     {
-        private Timer _timer;
         public ServiceInstance()
         {
-            _timer = new Timer(HealthCheck,null, TimeSpan.Zero,
+            new Timer(HealthCheck,null, TimeSpan.Zero,
                 TimeSpan.FromMinutes(1));
         }
 
         [Id]
-        public string Id { get; } = Guid.NewGuid().ToString(); //UUID
+        public string Id
+        {
+            get
+            {
+                LastUpTime = DateTime.Now;
+                return _id;
+            }
+        }
         public string Name { get; set; }
         public string Version { get; set; }
-        public DateTime LastUpTime { get; set; } = DateTime.Now;
+        public string Ip { get; set; }
+        public int Port { get; set; }
+        public DateTime LastUpTime { get; private set; } = DateTime.Now;
         public string Description { get; set; }
-        public bool Health => hHealth;
+        public bool Health => health;
 
-        private bool hHealth { get; set; } = true;
+        private bool health { get; set; } = true;
+        private readonly string _id = Guid.NewGuid().ToString(); //UUID
 
         private void HealthCheck(object? state)
         {
             if (DateTime.Now.Subtract(LastUpTime) > new TimeSpan(0,2,0))
             {
-                hHealth = false;
+                health = false;
             }
         }
     }
