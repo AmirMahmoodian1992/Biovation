@@ -27,16 +27,19 @@ namespace Biovation.Domain
         public int Port { get; set; }
         public DateTime LastUpTime { get; private set; } = DateTime.Now;
         public string Description { get; set; }
-        public bool Health => health;
+        public bool Health { get; private set; } = true;
 
-        private bool health { get; set; } = true;
         private readonly string _id = Guid.NewGuid().ToString(); //UUID
 
         private void HealthCheck(object? state)
         {
             if (DateTime.Now.Subtract(LastUpTime) > new TimeSpan(0,2,0))
             {
-                health = false;
+                Health = false;
+            }
+            else
+            {
+                Health = true;
             }
         }
     }

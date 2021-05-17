@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Server.Attribute;
-using Biovation.Service.Api.v1;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -22,11 +21,18 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPost]
+        [Route("WithoutId")]
         public Task<ResultViewModel> AddServiceInstance(string name = default, string version = default, string ip = default, int port = default, string description = default)
         {
-            return Task.Run(() => _serviceInstanceService.AddServiceInstance(name,version,ip,port,description));
+            return Task.Run(() => _serviceInstanceService.AddServiceInstanceWithoutId(name, version, ip, port, description));
         }
-        
+
+        [HttpPost]
+        public Task<ResultViewModel> AddServiceInstance([FromBody] ServiceInstance serviceInstance)
+        {
+            return Task.Run(() => _serviceInstanceService.AddServiceInstance(serviceInstance));
+        }
+
         [HttpPut]
         public Task<ResultViewModel> ModifyServiceInstance([FromBody] ServiceInstance serviceInstance)
         {

@@ -13,9 +13,21 @@ namespace Biovation.Service.Api.v2
             _serviceInstanceRepository = serviceInstanceRepository;
         }
 
-        public Task<ResultViewModel> AddServiceInstance(string name, string version, string ip, int port, string description)
+        public Task<ResultViewModel> AddServiceInstanceWithoutId(string name, string version, string ip, int port, string description)
         {
-            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(name, version, ip, port, description));
+            var serviceInstance = new ServiceInstance()
+            {
+                Name = name,
+                Version = version,
+                Ip = ip,
+                Port = port,
+                Description = description
+            };
+            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance));
+        }
+        public Task<ResultViewModel> AddServiceInstance(ServiceInstance serviceInstance)
+        {
+            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance));
         }
 
         public Task<ResultViewModel> ModifyServiceInstance(ServiceInstance serviceInstance)

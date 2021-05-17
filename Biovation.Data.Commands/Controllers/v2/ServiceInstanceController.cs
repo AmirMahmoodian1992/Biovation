@@ -20,9 +20,9 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPost]
         [Authorize]
 
-        public Task<ResultViewModel> AddServiceInstance(string name, string version, string ip, int port, string description)
+        public Task<ResultViewModel> AddServiceInstance([FromBody] ServiceInstance serviceInstance)
         {
-            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(name,version,ip,port,description));
+            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance));
         }
 
         [HttpPut]
