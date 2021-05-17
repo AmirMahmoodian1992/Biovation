@@ -4,12 +4,14 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using RestSharp;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Serilog;
+using Log = Biovation.Domain.Log;
 
 namespace Biovation.Brands.ZK.Devices
 {
@@ -20,6 +22,10 @@ namespace Biovation.Brands.ZK.Devices
         private readonly AccessGroupService _accessGroupService;
         private readonly UserService _userService;
         private readonly UserCardService _userCardService;
+
+        private readonly LogEvents _logEvents;
+        private readonly ZkCodeMappings _zkCodeMappings;
+
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
@@ -30,6 +36,8 @@ namespace Biovation.Brands.ZK.Devices
             _accessGroupService = accessGroupService;
             _userService = userService;
             _userCardService = userCardService;
+            _logEvents = logEvents;
+            _zkCodeMappings = zkCodeMappings;
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateTypes = fingerTemplateTypes;
             _faceTemplateTypes = faceTemplateTypes;
@@ -37,6 +45,135 @@ namespace Biovation.Brands.ZK.Devices
         }
 
 
+        public override ResultViewModel ReadOfflineLog(object cancelationToken, bool saveFile = false)
+        {
+            lock (ZkTecoSdk)
+            {
+                try
+                {
+                    var iLogCount = 0;
+                    _logger.Debug($"Retrieving offline logs of DeviceId: {DeviceInfo.Code}.");
+
+                    //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);//disable the device
+                    var idwErrorCode = 0;
+
+                    if (!ZkTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
+                    {
+                        ZkTecoSdk.GetLastError(ref idwErrorCode);
+                        //Thread.Sleep(2000);
+                        //Connect();
+                        _logger.Warning(
+                            $"Could not retrieve offline logs from DeviceId:{DeviceInfo.Code} General Log Data Count:0 ErrorCode={idwErrorCode}");
+                        return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                    }
+
+                    var thousandIndex = 0;
+                    var logInsertionTasks = new List<Task>();
+                    var retrievedLogs = new List<Log>();
+                    var recordCnt = 0;
+
+                    var iUserId = 0;
+                    var tDeviceCode= 0;
+                    var eDeviceCode= 0;
+                    var iVerifyMethod = 0;
+                    var iInOutMode = 0;
+                    var iYear = 0;
+                    var iMonth = 0;
+                    var iDay = 0;
+                    var iHour = 0;
+                    var iMinute = 0;
+
+                    while (ZkTecoSdk.GetGeneralLogData((int)DeviceInfo.Code, ref tDeviceCode,ref iUserId,
+                        ref eDeviceCode, ref iVerifyMethod, ref iInOutMode, ref iYear, ref iMonth, ref iDay,ref iHour, ref iMinute))
+                    {
+                        //if (iLogCount > 100000)
+                        //    break;
+
+                        iLogCount++; //increase the number of attendance records
+
+                        lock (LockObject) //make the object exclusive 
+                        {
+                            try
+                            {
+                                var userId = Convert.ToInt64(iUserId);
+
+                                var log = new Log
+                                {
+                                    DeviceId = DeviceInfo.DeviceId,
+                                    DeviceCode = DeviceInfo.Code,
+                                    LogDateTime = new DateTime(iYear, iMonth, iDay, iHour, iMinute, 0),
+                                    EventLog = _logEvents.Authorized,
+                                    UserId = userId,
+                                    MatchingType = _zkCodeMappings.GetMatchingTypeGenericLookup(iVerifyMethod),
+                                    SubEvent = _zkCodeMappings.GetLogSubEventGenericLookup(iInOutMode),
+                                    InOutMode = DeviceInfo.DeviceTypeId,
+                                    TnaEvent = (ushort)iInOutMode
+                                };
+
+                                //_zkLogService.AddLog(log);
+                                retrievedLogs.Add(log);
+                                _logger.Debug($@"<--
+       +TerminalID: {DeviceInfo.Code}
+       +UserID: {userId}
+       +DateTime: {log.LogDateTime}
+       +AuthType: {iVerifyMethod}
+       +TnaEvent: {(ushort)iInOutMode}
+       +Progress: {iLogCount}/{recordCnt}");
+
+                                if (retrievedLogs.Count % 1000 == 0)
+                                {
+                                    var partedLogs = retrievedLogs.Skip(thousandIndex * 1000).Take(1000).ToList();
+
+                                    try
+                                    {
+                                        logInsertionTasks.Add(LogService.AddLog(partedLogs));
+                                        if (saveFile) LogService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        _logger.Warning(exception, exception.Message);
+                                        return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                                    }
+
+                                    thousandIndex++;
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                _logger.Warning($"User id of log is not in a correct format. UserId : {iUserId}");
+                            }
+                        }
+                    }
+
+                    try
+                    {
+                        var partedLogs = retrievedLogs.Skip(thousandIndex * 1000).Take(1000).ToList();
+                        logInsertionTasks.Add(LogService.AddLog(partedLogs));
+                        if (saveFile) LogService.SaveLogsInFile(partedLogs, "ZK", DeviceInfo.Code);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.Warning(exception, exception.Message);
+                        return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                    }
+
+                    Task.WaitAll(logInsertionTasks.ToArray());
+                    _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
+
+
+                    //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);//enable the device
+                    return new ResultViewModel
+                    { Id = DeviceInfo.DeviceId, Validate = 1, Message = iLogCount.ToString(), Code = Convert.ToInt32(TaskStatuses.DoneCode) };
+                }
+                catch (Exception exception)
+                {
+                    //Thread.Sleep(2000);
+                    //Connect();
+                    _logger.Warning(exception, exception.Message);
+                    return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+                }
+            }
+        }
 
 
         public override bool GetAndSaveUser(long userId)
