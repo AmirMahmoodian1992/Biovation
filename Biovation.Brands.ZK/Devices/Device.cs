@@ -299,6 +299,7 @@ namespace Biovation.Brands.ZK.Devices
                                 TaskType = _taskTypes.GetLogsInPeriod,
                                 Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
+                                Status = _taskStatuses.Queued,
                                 DeviceBrand = _deviceBrands.ZkTeco,
                                 DueDate = DateTimeOffset.Now
                             };
