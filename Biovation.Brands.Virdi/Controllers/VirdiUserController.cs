@@ -22,19 +22,16 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
-        private readonly AccessGroupService _accessGroupService;
-
         private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiUserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiUserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;
             _virdiServer = virdiServer;
-            _accessGroupService = accessGroupService;
             _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
             _taskTypes = taskTypes;
@@ -112,34 +109,36 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId, bool updateServerSideIdentification = false)
+        public Task<List<ResultViewModel>> SendUserToDevice(uint code, string userId, bool updateServerSideIdentification = false)
         {
-            var resultList = new List<ResultViewModel>();
-            try
-            {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-                if (device is null)
-                    return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists" } };
-
-                var userIds = JsonConvert.DeserializeObject<long[]>(userId);
-
-
-                foreach (var id in userIds)
+            return Task.Run(() => { 
+                var resultList = new List<ResultViewModel>();
+                try
                 {
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
+                    if (device is null)
+                        return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists" } };
 
-                    if (!updateServerSideIdentification) continue;
-                    // ReSharper disable once AssignmentIsFullyDiscarded
-                    _ =_virdiServer.AddUserToDeviceFastSearch(code, (int)id).ConfigureAwait(false);
+                    var userIds = JsonConvert.DeserializeObject<long[]>(userId);
+
+
+                    foreach (var id in userIds)
+                    {
+
+                        if (!updateServerSideIdentification) continue;
+                        // ReSharper disable once AssignmentIsFullyDiscarded
+                        _ =_virdiServer.AddUserToDeviceFastSearch(code, (int)id).ConfigureAwait(false);
+                    }
+
+                    resultList.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
+                    return resultList;
                 }
-
-                resultList.Add(new ResultViewModel { Message = "Sending user queued", Validate = 1 });
-                return resultList;
-            }
-            catch (Exception exception)
-            {
-                resultList.Add(new ResultViewModel { Message = exception.ToString(), Validate = 0 });
-                return resultList;
-            }
+                catch (Exception exception)
+                {
+                    resultList.Add(new ResultViewModel { Message = exception.ToString(), Validate = 0 });
+                    return resultList;
+                }
+            });
         }
 
         [HttpPost]
@@ -189,19 +188,30 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
+        public Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
         {
-            try
+            return Task.Run(() =>
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                try
+                {
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 
-                return new ResultViewModel { Id = userId, Validate = 1, Message = $"Enrolling face from device {deviceId} started successfully." };
-            }
-            catch (Exception exception)
-            {
-                Logger.Log(exception);
-                return new ResultViewModel { Id = userId, Validate = 0, Message = $"Enrolling face from device {deviceId} encountered an error: {exception}." };
-            }
+                    return new ResultViewModel
+                    {
+                        Id = userId, Validate = 1,
+                        Message = $"Enrolling face from device {deviceId} started successfully."
+                    };
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new ResultViewModel
+                    {
+                        Id = userId, Validate = 0,
+                        Message = $"Enrolling face from device {deviceId} encountered an error: {exception}."
+                    };
+                }
+            });
         }
     }
 }

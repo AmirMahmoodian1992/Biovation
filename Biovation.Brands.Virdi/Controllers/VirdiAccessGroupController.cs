@@ -1,15 +1,9 @@
-﻿using Biovation.Brands.Virdi.Command;
-using Biovation.CommonClasses;
-using Biovation.CommonClasses.Extension;
-using Biovation.Constants;
+﻿using Biovation.CommonClasses;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using DeviceBrands = Biovation.Constants.DeviceBrands;
+//using DeviceBrands = Biovation.Constants.DeviceBrands;
 
 namespace Biovation.Brands.Virdi.Controllers
 {
@@ -18,41 +12,27 @@ namespace Biovation.Brands.Virdi.Controllers
     public class VirdiAccessGroupController : ControllerBase
     {
         private readonly VirdiServer _virdiServer;
-        private readonly TaskService _taskService;
-        private readonly DeviceBrands _deviceBrands;
-        private readonly DeviceService _deviceService;
-        private readonly CommandFactory _commandFactory;
 
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskPriorities _taskPriorities;
-
-        public VirdiAccessGroupController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiAccessGroupController(VirdiServer virdiServer)
         {
-            _taskService = taskService;
-            _deviceService = deviceService;
             _virdiServer = virdiServer;
-            _commandFactory = commandFactory;
-            _deviceBrands = deviceBrands;
-            _taskTypes = taskTypes;
-            _taskStatuses = taskStatuses;
-            _taskItemTypes = taskItemTypes;
-            _taskPriorities = taskPriorities;
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody] int accessGroupId)
+        public Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody] int accessGroupId)
         {
-            try
+            return Task.Run(() =>
             {
-                return new ResultViewModel { Validate = 1, Message = "Sending users queued" };
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-            }
+                try
+                {
+                    return new ResultViewModel {Validate = 1, Message = "Sending users queued"};
+                }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                }
+            });
         }
 
         /*   public ResultViewModel SendAccessGroupToAllDevices([FromBody]int accessGroupId)

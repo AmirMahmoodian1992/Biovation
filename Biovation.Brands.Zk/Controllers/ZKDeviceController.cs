@@ -1,6 +1,5 @@
 ﻿using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
-using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
@@ -22,30 +21,24 @@ namespace Biovation.Brands.ZK.Controllers
     public class ZkDeviceController : ControllerBase
     {
         private readonly DeviceService _deviceService;
-        private readonly AccessGroupService _accessGroupService;
-        private readonly TaskService _taskService;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly CommandFactory _commandFactory;
         private readonly ZkTecoServer _zkTecoServer;
         private readonly ILogger _logger;
 
-        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
+        public ZkDeviceController(DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices , TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
         {
             _deviceService = deviceService;
-            _accessGroupService = accessGroupService;
-            _taskService = taskService;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
             _onlineDevices = onlineDevices;
-            _taskManager = taskManager;
             _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
             _zkTecoServer = zkTecoServer;
@@ -105,7 +98,6 @@ namespace Biovation.Brands.ZK.Controllers
             device.TimeSync = storedDevice.TimeSync;
             device.DeviceLockPassword = storedDevice.DeviceLockPassword;
             //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-            var creatorUser = HttpContext.GetUser();
 
             if (device.Active)
             {

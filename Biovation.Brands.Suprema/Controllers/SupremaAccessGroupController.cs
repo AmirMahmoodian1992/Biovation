@@ -13,14 +13,12 @@ namespace Biovation.Brands.Suprema.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class SupremaAccessGroupController : ControllerBase
     {
-        private readonly CommandFactory _commandFactory;
         private readonly FastSearchService _fastSearchService;
         private readonly AccessGroupService _accessGroupServices;
 
-        public SupremaAccessGroupController(AccessGroupService accessGroupServices, CommandFactory commandFactory, FastSearchService fastSearchService)
+        public SupremaAccessGroupController(AccessGroupService accessGroupServices, FastSearchService fastSearchService)
         {
             _accessGroupServices = accessGroupServices;
-            _commandFactory = commandFactory;
             _fastSearchService = fastSearchService;
         }
 

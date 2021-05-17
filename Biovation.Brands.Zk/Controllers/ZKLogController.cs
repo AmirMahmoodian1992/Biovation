@@ -1,12 +1,8 @@
-﻿using Biovation.Brands.ZK.Manager;
-using Biovation.CommonClasses.Extension;
-using Biovation.Constants;
+﻿using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,25 +12,11 @@ namespace Biovation.Brands.ZK.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class ZkLogController : ControllerBase
     {
-        private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskPriorities _taskPriorities;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
-        private readonly DeviceBrands _deviceBrands;
 
-        public ZkLogController(TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public ZkLogController( DeviceService deviceService)
         {
-            _taskService = taskService;
             _deviceService = deviceService;
-            _taskTypes = taskTypes;
-            _taskPriorities = taskPriorities;
-            _taskStatuses = taskStatuses;
-            _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
-            _deviceBrands = deviceBrands;
         }
 
         [HttpPost]

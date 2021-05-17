@@ -57,9 +57,9 @@ namespace Biovation.Brands.Eos.Commands
 
             User user;
             var taskData = JsonConvert.DeserializeObject<JObject>(TaskItem.Data);
-            if (taskData.ContainsKey("userId"))
+            if (taskData.ContainsKey("UserId"))
             {
-                var parseResult = uint.TryParse(taskData["userId"].ToString() ?? "0", out var userId);
+                var parseResult = uint.TryParse(taskData["UserId"].ToString() ?? "0", out var userId);
 
                 if (!parseResult || userId == 0)
                     return new ResultViewModel

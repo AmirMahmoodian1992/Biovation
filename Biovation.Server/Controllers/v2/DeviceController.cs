@@ -730,7 +730,7 @@ namespace Biovation.Server.Controllers.v2
                         TaskItemType = _taskItemTypes.SendUser,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userId }),
+                        Data = JsonConvert.SerializeObject(new { UserId = userId }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,

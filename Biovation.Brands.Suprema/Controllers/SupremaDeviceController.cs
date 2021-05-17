@@ -1,7 +1,7 @@
 ﻿using Biovation.Brands.Suprema.Commands;
 using Biovation.Brands.Suprema.Devices;
 using Biovation.Brands.Suprema.Model;
-using Biovation.CommonClasses;
+
 using Biovation.CommonClasses.Extension;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
@@ -27,7 +27,6 @@ namespace Biovation.Brands.Suprema.Controllers
         private readonly AccessGroupService _accessGroupServices;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         private readonly DeviceService _deviceService;
-        private readonly TaskService _taskService;
         private readonly TaskTypes _taskTypes;
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
@@ -36,14 +35,13 @@ namespace Biovation.Brands.Suprema.Controllers
         // private readonly DeviceService _deviceService;
         //private readonly UserService _userService;
 
-        public SupremaDeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService, TaskService taskService, TaskPriorities taskPriorities, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
+        public SupremaDeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService, TaskPriorities taskPriorities, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _accessGroupServices = accessGroupServices;
             _onlineDevices = onlineDevices;
             _commandFactory = commandFactory;
             _biovationConfigurationManager = biovationConfigurationManager;
             _deviceService = deviceService;
-            _taskService = taskService;
             _taskPriorities = taskPriorities;
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
@@ -85,68 +83,73 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
-            try
+            return Task.Run(() =>
             {
-                //var creatorUser = HttpContext.GetUser();
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
-                if (device is null)
-                    return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
+                try
+                {
+                    //var creatorUser = HttpContext.GetUser();
+                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode)
+                        .FirstOrDefault();
+                    if (device is null)
+                        return new ResultViewModel {Success = false, Message = $"Device {code} does not exists."};
 
-                //var task = new TaskInfo
-                //{
-                //    CreatedAt = DateTimeOffset.Now,
-                //    CreatedBy = creatorUser,
-                //    TaskType = _taskTypes.DeleteUsers,
-                //    Priority = _taskPriorities.Medium,
-                //    DeviceBrand = _deviceBrands.Suprema,
-                //    TaskItems = new List<TaskItem>()
-                //};
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.DeleteUsers,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceBrand = _deviceBrands.Suprema,
+                    //    TaskItems = new List<TaskItem>()
+                    //};
 
-                //foreach (var userCode in userCodes)
-                //{
-                //    task.TaskItems.Add(new TaskItem
-                //    {
-                //        Status = _taskStatuses.Queued,
-                //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
-                //        Priority = _taskPriorities.Medium,
-                //        DeviceId = device.DeviceId,
-                //        Data = JsonConvert.SerializeObject(new { userCode }),
-                //        IsParallelRestricted = true,
-                //        IsScheduled = false,
-                //        OrderIndex = 1
-                //    });
-                //}
+                    //foreach (var userCode in userCodes)
+                    //{
+                    //    task.TaskItems.Add(new TaskItem
+                    //    {
+                    //        Status = _taskStatuses.Queued,
+                    //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                    //        Priority = _taskPriorities.Medium,
+                    //        DeviceId = device.DeviceId,
+                    //        Data = JsonConvert.SerializeObject(new { userCode }),
+                    //        IsParallelRestricted = true,
+                    //        IsScheduled = false,
+                    //        OrderIndex = 1
+                    //    });
+                    //}
 
-                //_taskService.InsertTask(task);
-                //await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
 
-                var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
-                return result;
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 1, Message = $"Error ,Removing User not queued!{exception}" };
-            }
-
+                    var result = new ResultViewModel {Validate = 1, Message = "Removing User queued"};
+                    return result;
+                }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel {Validate = 1, Message = $"Error ,Removing User not queued!{exception}"};
+                }
+            });
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, List<int> userIds)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, List<int> userIds)
         {
-            try
-            {
-                return new List<ResultViewModel>
-                        {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
-            }
+            return Task.Run(() => { 
+                try
+                {
+                    return new List<ResultViewModel>
+                            {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
+                }
 
-            catch (Exception exception)
-            {
-                return new List<ResultViewModel>
-                            {new ResultViewModel { Validate = 0, Message = exception.ToString() }};
-            }
+                catch (Exception exception)
+                {
+                    return new List<ResultViewModel>
+                                {new ResultViewModel { Validate = 0, Message = exception.ToString() }};
+                }
+            });
         }
 
         [HttpGet]
@@ -234,9 +237,12 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
+            return Task.Run(() =>
+            {
+                return new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"};
+            });
         }
 
         [HttpGet]

@@ -1,15 +1,13 @@
 ﻿using Biovation.Brands.PW.Devices;
-using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using System;
+using System.Linq;
 using Serilog;
 
 namespace Biovation.Brands.PW.Controllers
@@ -20,29 +18,14 @@ namespace Biovation.Brands.PW.Controllers
     {
         private readonly ILogger _logger;
         private readonly PwServer _pwServer;
-        private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-
-        private readonly TaskTypes _taskTypes;
-        private readonly DeviceBrands _deviceBrands;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskPriorities _taskPriorities;
-
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, ILogger logger)
+        public PwDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, ILogger logger)
         {
-            _taskService = taskService;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _pwServer = pwServer;
-            _taskTypes = taskTypes;
-            _deviceBrands = deviceBrands;
-            _taskStatuses = taskStatuses;
-            _taskItemTypes = taskItemTypes;
-            _taskPriorities = taskPriorities;
-
             _logger = logger.ForContext<PwDeviceController>();
         }
 
@@ -99,12 +82,13 @@ namespace Biovation.Brands.PW.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-
-            var result = new ResultViewModel { Validate = 1, Message = $"Reading logs of device {code} queued" };
-            return result;
-
+            return Task.Run(() =>
+            {
+                var result = new ResultViewModel {Validate = 1, Message = $"Reading logs of device {code} queued"};
+                return result;
+            });
         }
 
         [HttpPost]
