@@ -80,7 +80,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton(BiovationConfiguration.Configuration);
 
             ConfigureRepositoriesServices(services);
-            ConfigureConstantValues(services).Wait();
+            ConfigureConstantValues(services).GetAwaiter().GetResult();
             ConfigureEosServices(services);
 
             services.AddHostedService<PingCollectorHostedService>();
