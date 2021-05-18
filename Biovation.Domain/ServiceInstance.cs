@@ -1,16 +1,22 @@
-﻿using System;
+﻿using DataAccessLayerCore.Attributes;
+using System;
 using System.Threading;
-using DataAccessLayerCore.Attributes;
 
 namespace Biovation.Domain
 {
     public class ServiceInstance
     {
         private readonly string _id;
-        public ServiceInstance()
+        public bool changeId;
+        public ServiceInstance(string id)
         {
-            _id = Guid.NewGuid().ToString(); //UUID
-            new Timer(HealthCheck,null, TimeSpan.Zero,
+            changeId = false;
+            _id = id ?? Guid.NewGuid().ToString();
+            if (!string.Equals(id,_id))
+            {
+                changeId = true;
+            }
+            new Timer(HealthCheck, null, TimeSpan.Zero,
                 TimeSpan.FromMinutes(1));
         }
 
@@ -31,11 +37,11 @@ namespace Biovation.Domain
         public string Description { get; set; }
         public bool Health { get; private set; } = true;
 
-        
+
 
         private void HealthCheck(object? state)
         {
-            if (DateTime.Now.Subtract(LastUpTime) > new TimeSpan(0,2,0))
+            if (DateTime.Now.Subtract(LastUpTime) > new TimeSpan(0, 2, 0))
             {
                 Health = false;
             }
