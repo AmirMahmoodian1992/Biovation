@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance([FromRoute] string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance([FromRoute] string id)
         {
             return Task.Run(() => _serviceInstanceService.GetServiceInstance(id));
         }

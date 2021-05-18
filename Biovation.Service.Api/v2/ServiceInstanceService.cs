@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
@@ -19,7 +20,7 @@ namespace Biovation.Service.Api.v2
             {
                 Name = name,
                 Version = version,
-                Ip = ip,
+                IpAddress = ip,
                 Port = port,
                 Description = description
             };
@@ -35,7 +36,7 @@ namespace Biovation.Service.Api.v2
             return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance));
         }
 
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance(string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id)
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
         }

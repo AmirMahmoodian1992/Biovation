@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +21,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance([FromRoute] string id = default)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance([FromRoute] string id = default)
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
         }

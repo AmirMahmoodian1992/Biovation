@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using RestSharp;
 
 namespace Biovation.Repository.Api.v2
@@ -30,12 +31,12 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel<ServiceInstance> GetServiceInstance(string id)
+        public ResultViewModel<List<ServiceInstance>> GetServiceInstance(string id)
         {
             var restRequest = new RestRequest("Queries/v2/ServiceInstance", Method.GET);
 
             restRequest.AddQueryParameter("id", id);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<ServiceInstance>>(restRequest);
+            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<ServiceInstance>>>(restRequest);
             return requestResult.Result.Data;
         }
 

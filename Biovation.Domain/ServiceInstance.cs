@@ -25,7 +25,7 @@ namespace Biovation.Domain
         }
         public string Name { get; set; }
         public string Version { get; set; }
-        public string Ip { get; set; }
+        public string IpAddress { get; set; }
         public int Port { get; set; }
         public DateTime LastUpTime { get; private set; } = DateTime.Now;
         public string Description { get; set; }

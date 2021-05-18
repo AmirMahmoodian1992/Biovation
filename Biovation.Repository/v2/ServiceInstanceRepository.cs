@@ -25,7 +25,7 @@ namespace Biovation.Repository.Sql.v2
                 {
                     new SqlParameter("@Name", SqlDbType.NVarChar) {Value = serviceInstance.Name},
                     new SqlParameter("@Version", SqlDbType.NVarChar) {Value = serviceInstance.Version},
-                    new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.Ip},
+                    new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.IpAddress},
                     new SqlParameter("@Port", SqlDbType.Int) {Value = serviceInstance.Port},
                     new SqlParameter("@Description", SqlDbType.NVarChar) {Value = serviceInstance.Description},
                 };
@@ -43,7 +43,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@Id", SqlDbType.NVarChar) {Value = serviceInstance.Id},
                     new SqlParameter("@Name", SqlDbType.NVarChar) {Value = serviceInstance.Name},
                     new SqlParameter("@Version", SqlDbType.NVarChar) {Value = serviceInstance.Version},
-                    new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.Ip},
+                    new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.IpAddress},
                     new SqlParameter("@Port", SqlDbType.Int) {Value = serviceInstance.Port},
                     new SqlParameter("@Description", SqlDbType.NVarChar) {Value = serviceInstance.Description},
                 };
@@ -52,7 +52,7 @@ namespace Biovation.Repository.Sql.v2
             });
         }
 
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance(string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id)
         {
             return Task.Run(() =>
             {
@@ -61,7 +61,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@Id", SqlDbType.NVarChar) {Value = id},
                 };
 
-                return _repository.ToResultList<ResultViewModel<ServiceInstance>>("SelectServiceInstance", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<ResultViewModel<List<ServiceInstance>>>("SelectServiceInstance", parameters).Data.FirstOrDefault();
             });
         }
 
