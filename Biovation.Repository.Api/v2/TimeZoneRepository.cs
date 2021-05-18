@@ -34,9 +34,20 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel> ModifyTimeZone(TimeZone timeZone, string token = default)
+        public async Task<ResultViewModel> AddTimeZone(TimeZone timeZone, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/TimeZone", Method.PUT);
+            var restRequest = new RestRequest("Commands/v2/TimeZone", Method.POST);
+            restRequest.AddJsonBody(timeZone);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
+        }
+
+        public async Task<ResultViewModel> ModifyTimeZone(int id, TimeZone timeZone, string token = default)
+        {
+            var restRequest = new RestRequest("Commands/v2/TimeZone/{id}", Method.PUT);
+            restRequest.AddUrlSegment("id", id);
             restRequest.AddJsonBody(timeZone);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);

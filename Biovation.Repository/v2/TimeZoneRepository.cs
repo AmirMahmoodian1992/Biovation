@@ -19,8 +19,6 @@ namespace Biovation.Repository.Sql.v2
 
         public ResultViewModel AddTimeZone(TimeZone timeZone)
         {
-
-
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", timeZone.Id),

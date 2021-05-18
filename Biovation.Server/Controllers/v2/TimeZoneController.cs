@@ -38,13 +38,11 @@ namespace Biovation.Server.Controllers.v2
             return await _timeZoneService.GetTimeZones(HttpContext.Items["Token"] as string);
         }
 
-        //TODO
-        //[HttpPost]
-        //public Task<IActionResult> AddTimeZone([FromBody]TimeZone timeZone = default)
-        //{
-        //    throw null;
-        //}
-
+        [HttpPost]
+        public async Task<ResultViewModel> AddTimeZone([FromBody] TimeZone timeZone)
+        {
+            return await _timeZoneService.AddTimeZone(timeZone, HttpContext.Items["Token"] as string);
+        }
 
         [HttpDelete]
         [Route("{id}")]
@@ -54,11 +52,11 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpPut]
-        public async Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone = default)
+        [Route("{id}")]
+        public async Task<ResultViewModel> ModifyTimeZone([FromRoute] int id, [FromBody] TimeZone timeZone = default)
         {
-            return await _timeZoneService.ModifyTimeZone(timeZone, HttpContext.Items["Token"] as string);
+            return await _timeZoneService.ModifyTimeZone(id, timeZone, HttpContext.Items["Token"] as string);
         }
-
 
         //send to all device when deviceId is null
         [HttpPost]
