@@ -6,8 +6,10 @@ namespace Biovation.Domain
 {
     public class ServiceInstance
     {
+        private readonly string _id;
         public ServiceInstance()
         {
+            _id = Guid.NewGuid().ToString(); //UUID
             new Timer(HealthCheck,null, TimeSpan.Zero,
                 TimeSpan.FromMinutes(1));
         }
@@ -29,7 +31,7 @@ namespace Biovation.Domain
         public string Description { get; set; }
         public bool Health { get; private set; } = true;
 
-        private readonly string _id = Guid.NewGuid().ToString(); //UUID
+        
 
         private void HealthCheck(object? state)
         {
