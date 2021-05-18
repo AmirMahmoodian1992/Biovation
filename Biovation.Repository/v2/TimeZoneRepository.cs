@@ -2,6 +2,7 @@
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
@@ -103,24 +104,34 @@ namespace Biovation.Repository.Sql.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public ResultViewModel<PagingResult<TimeZone>> GetTimeZones()
+        public ResultViewModel<PagingResult<TimeZone>> GetTimeZones(int id = default, int accessGroupId = default, string name = default, int pageNumber = default, int pageSize = default)
         {
-            var result = _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
-            return new ResultViewModel<PagingResult<TimeZone>>
+            var sqlParameters = new List<SqlParameter>
             {
-                Code = result.Code,
-                Message = result.Message,
-                Success = result.Success,
-                Id = result.Id,
-                Data = new PagingResult<TimeZone>
-                {
-                    From = 0,
-                    PageNumber = 1,
-                    PageSize = result.Data.Count,
-                    Count = result.Data.Count,
-                    Data = result.Data
-                }
+                new SqlParameter("@id", SqlDbType.Int) {Value = id },
+                new SqlParameter("@accessGroupId", SqlDbType.Int) {Value = accessGroupId },
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
+
+            return _repository.ToResultList<PagingResult<TimeZone>>("SelectTimeZones", sqlParameters, fetchCompositions: true).FetchFromResultList();
+            //var result = _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
+            //return new ResultViewModel<PagingResult<TimeZone>>
+            //{
+            //    Code = result.Code,
+            //    Message = result.Message,
+            //    Success = result.Success,
+            //    Id = result.Id,
+            //    Data = new PagingResult<TimeZone>
+            //    {
+            //        From = 0,
+            //        PageNumber = 1,
+            //        PageSize = result.Data.Count,
+            //        Count = result.Data.Count,
+            //        Data = result.Data
+            //    }
+            //};
         }
 
         /// <summary>
