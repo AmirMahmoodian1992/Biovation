@@ -333,6 +333,8 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _userCardService.ReadCardNumber(id, token));
         }
 
+
+        // TODO - Verify the method.
         [HttpGet]
         [Route("OnlineDevices")]
         public Task<List<DeviceBasicInfo>> OnlineDevices()
@@ -342,22 +344,30 @@ namespace Biovation.Server.Controllers.v2
             {
                 var resultList = new List<DeviceBasicInfo>();
                 //var deviceBrands = _deviceService.GetDeviceBrands(token: token);
-                var deviceBrands = _systemInformation.Services;
+                var deviceBrands = _deviceService.GetDeviceBrands()?.Data.Data;
+                var serviceInstances = _systemInformation.Services;
 
                 Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
-                    var restRequest =
-                        new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
-                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    foreach (var deviceBasicInfoResult in serviceInstances
+                        .Select(serviceInstance =>
+                            _deviceService.GetOnlineDevices(_restClient, deviceBrand, serviceInstance))
+                        .Where(deviceBasicInfoResult => deviceBasicInfoResult.Data != null))
                     {
-                        restRequest.AddHeader("Authorization",
-                            HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        resultList.AddRange(deviceBasicInfoResult?.Data);
                     }
+                    //var restRequest =
+                    //    new RestRequest($"{deviceBrand.Name}/{si.FirstOrDefault().Id}/{deviceBrand.Name}Device/GetOnlineDevices");
+                    //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    //{
+                    //    restRequest.AddHeader("Authorization",
+                    //        HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    //}
 
-                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+                    //var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
-                    if (result.StatusCode == HttpStatusCode.OK)
-                        resultList.AddRange(result.Data);
+                    //if (result.StatusCode == HttpStatusCode.OK)
+                    //    resultList.AddRange(deviceBasicInfoResult.Data);
                 });
 
                 return resultList;
@@ -398,6 +408,7 @@ namespace Biovation.Server.Controllers.v2
            });
         }
 
+        //TODO - Verify the method.
         [HttpPost]
         [Route("{id}/FetchUsersList")]
         [Attribute.Authorize]
@@ -409,18 +420,21 @@ namespace Biovation.Server.Controllers.v2
                 var device = _deviceService.GetDevice(id, token: token).Data;
                 var userAwaiter = Task.Run(() => _userService.GetUsers(token: token)?.Data?.Data);
 
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
-                restRequest.AddQueryParameter("code", device.Code.ToString());
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
-                var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
+                //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+                //restRequest.AddQueryParameter("code", device.Code.ToString());
+                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                //{
+                //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                //}
+                //var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
 
-                var result = await restAwaiter;
+                //var result = await restAwaiter;
+
+                var usersResult = _deviceService.RetrieveUsersOfDevice(_restClient, device);
+
                 var users = await userAwaiter;
 
-                var lstResult = (from r in result.Data?.Data
+                var lstResult = (from r in usersResult?.Data
                                  join u in users on r.Code equals u.Code
                                      into ps
                                  from u in ps.DefaultIfEmpty()
