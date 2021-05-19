@@ -3,6 +3,8 @@ using Biovation.Repository.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using Biovation.Constants;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
@@ -11,10 +13,18 @@ namespace Biovation.Service.Api.v2
     public class DeviceService : ControllerBase
     {
         private readonly DeviceRepository _deviceRepository;
+        private readonly RestClient _restClient;
+        private readonly Lookups _lookups;
+        private readonly ServiceInstance _serviceInstance;
+        private readonly SystemInfo _systemInformation;
 
-        public DeviceService(DeviceRepository deviceRepository)
+        public DeviceService(DeviceRepository deviceRepository, RestClient restClient, Lookups lookups, ServiceInstance serviceInstance, SystemInfo systemInformation)
         {
             _deviceRepository = deviceRepository;
+            _restClient = restClient;
+            _lookups = lookups;
+            _serviceInstance = serviceInstance;
+            _systemInformation = systemInformation;
         }
 
         /// <summary>
@@ -63,7 +73,7 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify the method
-        public ResultViewModel<List<User>> RetrieveUsersOfDevice(RestClient restClient, DeviceBasicInfo device)
+        public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device)
         {
             var restRequest =
                 new RestRequest(
@@ -74,12 +84,12 @@ namespace Biovation.Service.Api.v2
                 restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
             }
 
-            var restAwaiter = restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).GetAwaiter();
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).GetAwaiter();
             return restAwaiter.GetResult().Data;
         }
 
         // TODO - Verify method.
-        public IRestResponse<ResultViewModel> ReadOfflineLog(RestClient restClient, DeviceBasicInfo device, string fromDate, string toDate)
+        public IRestResponse<ResultViewModel> ReadOfflineLog(DeviceBasicInfo device, string fromDate, string toDate)
         {
             var restRequest =
                 new RestRequest(
@@ -92,23 +102,53 @@ namespace Biovation.Service.Api.v2
                 restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
             }
 
-            var restAwaiter = restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
             return restAwaiter.GetResult();
         }
 
         // TODO - Verify the method.
-        public ResultViewModel<List<DeviceBasicInfo>> GetOnlineDevices(RestClient restClient, Lookup deviceBrand, ServiceInstance serviceInstance)
+        public List<DeviceBasicInfo> GetOnlineDevices()
         {
-            var restRequest =
-                new RestRequest($"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices");
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            var resultList = new List<DeviceBasicInfo>();
+            var deviceBrands = GetDeviceBrands()?.Data.Data;
+            var serviceInstances = _systemInformation.Services;
+            foreach (var deviceBrand in deviceBrands)
             {
-                restRequest.AddHeader("Authorization",
-                    HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                foreach (var serviceInstance in serviceInstances)
+                {
+                    var restRequest =
+                        new RestRequest($"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices");
+                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    {
+                        restRequest.AddHeader("Authorization",
+                            HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    }
+                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+
+                    if (result.StatusCode == HttpStatusCode.OK)
+                        resultList.AddRange(result.Data);
+                }
             }
 
-            var restAwaiter = restClient.ExecuteAsync<ResultViewModel<List<DeviceBasicInfo>>>(restRequest).GetAwaiter();
-            return restAwaiter.GetResult().Data;
+            return resultList;
+        }
+
+        // TODO - Verify the method.
+        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Log/ClearLog");
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddQueryParameter("fromDate", fromDate);
+            restRequest.AddQueryParameter("toDate", toDate);
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+            return restAwaiter.GetResult();
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)

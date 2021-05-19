@@ -150,7 +150,7 @@ namespace Biovation.Server.Controllers.v2
                         return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
                     }
 
-                    var readOfflineLogResult = _deviceService.ReadOfflineLog(_restClient, device, fromDate, toDate);
+                    var readOfflineLogResult = _deviceService.ReadOfflineLog(device, fromDate, toDate);
 
                     //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                     //restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -209,7 +209,7 @@ namespace Biovation.Server.Controllers.v2
                             continue;
                         }
 
-                        var readOfflineLogResult = _deviceService.ReadOfflineLog(_restClient, device, fromDate, toDate);
+                        var readOfflineLogResult = _deviceService.ReadOfflineLog(device, fromDate, toDate);
 
                         //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                         //restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -241,6 +241,8 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
+
+        // TODO - Verify Method.
         [HttpPost]
         [Route("{id}/ClearLogs")]
         [Attribute.Authorize]
@@ -259,15 +261,16 @@ namespace Biovation.Server.Controllers.v2
                         { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
                     }
 
-                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                    restRequest.AddQueryParameter("code", device.Code.ToString());
-                    restRequest.AddQueryParameter("fromDate", fromDate);
-                    restRequest.AddQueryParameter("toDate", toDate);
+                    //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                    //restRequest.AddQueryParameter("code", device.Code.ToString());
+                    //restRequest.AddQueryParameter("fromDate", fromDate);
+                    //restRequest.AddQueryParameter("toDate", toDate);
+                    //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    var clearLogOfDeviceResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate);
 
-                    var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK)
+                    if (!clearLogOfDeviceResult.IsSuccessful || clearLogOfDeviceResult.StatusCode != HttpStatusCode.OK)
                         return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                    return restResult.Data;
+                    return clearLogOfDeviceResult.Data;
                 }
                 catch (Exception)
                 {
@@ -353,19 +356,11 @@ namespace Biovation.Server.Controllers.v2
             {
                 var resultList = new List<DeviceBasicInfo>();
                 //var deviceBrands = _deviceService.GetDeviceBrands(token: token);
-                var deviceBrands = _deviceService.GetDeviceBrands()?.Data.Data;
-                var serviceInstances = _systemInformation.Services;
+                resultList = _deviceService.GetOnlineDevices();
 
-                Parallel.ForEach(deviceBrands, deviceBrand =>
-                {
-                    foreach (var deviceBasicInfoResult in serviceInstances
-                        .Select(serviceInstance =>
-                            _deviceService.GetOnlineDevices(_restClient, deviceBrand, serviceInstance))
-                        .Where(deviceBasicInfoResult => deviceBasicInfoResult.Data != null))
-                    {
-                        resultList.AddRange(deviceBasicInfoResult?.Data);
-                    }
-                    //var restRequest =
+               //Parallel.ForEach(deviceBrands, deviceBrand =>
+                //{
+                //var restRequest =
                     //    new RestRequest($"{deviceBrand.Name}/{si.FirstOrDefault().Id}/{deviceBrand.Name}Device/GetOnlineDevices");
                     //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                     //{
@@ -377,7 +372,7 @@ namespace Biovation.Server.Controllers.v2
 
                     //if (result.StatusCode == HttpStatusCode.OK)
                     //    resultList.AddRange(deviceBasicInfoResult.Data);
-                });
+                //});
 
                 return resultList;
             });
@@ -439,7 +434,7 @@ namespace Biovation.Server.Controllers.v2
 
                 //var result = await restAwaiter;
 
-                var usersResult = _deviceService.RetrieveUsersOfDevice(_restClient, device);
+                var usersResult = _deviceService.RetrieveUsersOfDevice(device);
 
                 var users = await userAwaiter;
 
