@@ -11,14 +11,21 @@ namespace Biovation.Brands.ZK.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class ZkSystemInfoController : ControllerBase
     {
+        private readonly ServiceInstance _serviceInstance;
+
+        public ZkSystemInfoController(ServiceInstance serviceInstance)
+        {
+            _serviceInstance = serviceInstance;
+        }
+
         [HttpGet]
         public ResultViewModel<ServiceInstance> GetInfo()
         {
-            var brandInfo = new ServiceInstance();
-            var result = new ResultViewModel<ServiceInstance>();
-            brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name?.Split('.').LastOrDefault();
-            brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
-            result.Data = brandInfo;
+            var result = new ResultViewModel<ServiceInstance>()
+            {
+                Success = true,
+                Data = _serviceInstance
+            };
             return result;
         }
 

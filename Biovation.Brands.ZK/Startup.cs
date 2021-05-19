@@ -10,7 +10,6 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
-using Biovation.Service.Api.v1;
 using DataAccessLayerCore.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,10 +21,28 @@ using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceGroupService = Biovation.Service.Api.v1.DeviceGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using GenericCodeMappingService = Biovation.Service.Api.v1.GenericCodeMappingService;
 using Log = Serilog.Log;
+using LogService = Biovation.Service.Api.v1.LogService;
+using LookupService = Biovation.Service.Api.v1.LookupService;
+using SettingService = Biovation.Service.Api.v1.SettingService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserGroupService = Biovation.Service.Api.v1.UserGroupService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Brands.ZK
 {
@@ -139,6 +156,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<UserService, UserService>();
             services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
             services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+            services.AddSingleton<ServiceInstanceService, ServiceInstanceService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -156,6 +174,7 @@ namespace Biovation.Brands.ZK
             services.AddSingleton<UserCardRepository, UserCardRepository>();
             services.AddSingleton<UserGroupRepository, UserGroupRepository>();
             services.AddSingleton<UserRepository, UserRepository>();
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
@@ -165,6 +184,22 @@ namespace Biovation.Brands.ZK
         {
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
+            var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
+            var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
+            if (serviceInstance.changeId)
+            {
+                var setServiceInstanceId =
+                    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "ServiceInstanceId", serviceInstance.Id);
+                if (!setServiceInstanceId.Success)
+                {
+                    Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
+                }
+                string hostName = Dns.GetHostName();
+                serviceInstance.IpAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
+            }
+            serviceCollection.AddSingleton(serviceInstance);
+
 
             serviceCollection.AddSingleton(restClient);
 
