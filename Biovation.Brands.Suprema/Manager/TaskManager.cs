@@ -3,13 +3,13 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using MoreLinq.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MoreLinq.Extensions;
 
 namespace Biovation.Brands.Suprema.Manager
 {
@@ -17,15 +17,18 @@ namespace Biovation.Brands.Suprema.Manager
     {
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
+        private readonly ServiceInstance _instanceData;
         private readonly CommandFactory _commandFactory;
         private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
-        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
+        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, ServiceInstance instanceData)
         {
             _taskService = taskService;
-            _commandFactory = commandFactory;
+            _instanceData = instanceData;
+            _instanceData = instanceData;
             _taskStatuses = taskStatuses;
+            _commandFactory = commandFactory;
         }
 
         public async Task ExecuteTask(TaskInfo taskInfo)
@@ -291,58 +294,58 @@ namespace Biovation.Brands.Suprema.Manager
                             break;
                         }
                     case TaskItemTypes.GetLogsCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)_commandFactory.Factory(CommandType.GetAllLogsOfDevice,
-                            new List<object> { taskItem }).Execute();
-                            });
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.GetAllLogsOfDevice,
+                                new List<object> { taskItem }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
 
+                            }
+                            break;
                         }
-                        break;
-                    }
                     case TaskItemTypes.GetLogsInPeriodCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)_commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod,
-                                    new List<object> { taskItem }).Execute();
-                            });
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.GetLogsOfDeviceInPeriod,
+                                        new List<object> { taskItem }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
 
-                        }
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case TaskItemTypes.SendTimeZoneToTerminalCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)_commandFactory.Factory(CommandType.SendTimeZoneToDevice,
-                                    new List<object> { taskItem }).Execute();
-                            });
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.SendTimeZoneToDevice,
+                                        new List<object> { taskItem }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
 
-                        }
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
 
                 }
 
@@ -368,8 +371,13 @@ namespace Biovation.Brands.Suprema.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.SupremaCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+            var allTasks = await _taskService.GetTasks(instanceId: _instanceData?.Id,
+                brandCode: _instanceData is null ? DeviceBrands.SupremaCode : default, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string>
+                {
+                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                });
 
             lock (_tasks)
             {
@@ -385,7 +393,7 @@ namespace Biovation.Brands.Suprema.Manager
             }
 
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
