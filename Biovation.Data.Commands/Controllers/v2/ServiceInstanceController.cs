@@ -18,7 +18,6 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPost]
-        [Authorize]
 
         public Task<ResultViewModel> AddServiceInstance([FromBody] ServiceInstance serviceInstance)
         {

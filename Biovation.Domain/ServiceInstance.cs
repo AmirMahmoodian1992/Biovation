@@ -6,8 +6,11 @@ namespace Biovation.Domain
 {
     public class ServiceInstance
     {
-        private readonly string _id;
+        private string _id;
         public bool changeId;
+
+        public ServiceInstance() {
+        }
         public ServiceInstance(string id)
         {
             changeId = false;
@@ -28,6 +31,10 @@ namespace Biovation.Domain
             {
                 LastUpTime = DateTime.Now;
                 return _id;
+            }
+            set
+            {
+                _id = value;
             }
         }
         public string Name { get; set; }

@@ -23,6 +23,7 @@ namespace Biovation.Repository.Sql.v2
             {
                 var parameters = new List<SqlParameter>
                 {
+                    new SqlParameter("@Id", SqlDbType.NVarChar) {Value = serviceInstance.Id},
                     new SqlParameter("@Name", SqlDbType.NVarChar) {Value = serviceInstance.Name},
                     new SqlParameter("@Version", SqlDbType.NVarChar) {Value = serviceInstance.Version},
                     new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.IpAddress},
@@ -52,7 +53,7 @@ namespace Biovation.Repository.Sql.v2
             });
         }
 
-        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = null)
         {
             return Task.Run(() =>
             {

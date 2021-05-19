@@ -195,8 +195,27 @@ namespace Biovation.Brands.ZK
                 {
                     Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
                 }
-                string hostName = Dns.GetHostName();
+                var hostName = Dns.GetHostName();
                 serviceInstance.IpAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
+                FileActions.JsonWriter("appsettings.json", "ServiceInstance", "IpAddress", serviceInstance.IpAddress);
+                serviceInstance.Port = 9024;
+                FileActions.JsonWriter("appsettings.json", "ServiceInstance", "Port", serviceInstance.Port.ToString());
+            }
+            else
+            {
+                var serviceInstanceIp = FileActions.JsonReader("appsettings.json", "ServiceInstance", "IpAddress")?.Data;
+                var serviceInstancePort = int.Parse(FileActions.JsonReader("appsettings.json", "ServiceInstance", "Port")?.Data ?? string.Empty);
+                serviceInstance.IpAddress = serviceInstanceIp;
+                serviceInstance.Port = serviceInstancePort;
+            }
+
+            var restRequest = new RestRequest($"Commands/v2/serviceInstance", Method.POST);
+            restRequest.AddJsonBody(serviceInstance);
+            //restRequest.AddHeader("Authorization");
+            var requestResult = restClient.Execute<ResultViewModel>(restRequest);
+            if (!requestResult.Data.Success)
+            {
+                Logger.Log(LogType.Warning, "Failed to insert Instance");
             }
             serviceCollection.AddSingleton(serviceInstance);
 

@@ -192,7 +192,7 @@ namespace Biovation.Server
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
-            services.AddScoped<ServiceInstanceRepository, ServiceInstanceRepository>();
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
 
@@ -220,7 +220,7 @@ namespace Biovation.Server
             services.AddScoped<SettingService, SettingService>();
             services.AddScoped<LogService, LogService>();
             services.AddScoped<DeviceService, DeviceService>();
-            services.AddScoped<ServiceInstanceService, ServiceInstanceService>();
+            services.AddSingleton<ServiceInstanceService, ServiceInstanceService>();
 
             services.AddScoped<FaceTemplateService, FaceTemplateService>();
             services.AddScoped<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
