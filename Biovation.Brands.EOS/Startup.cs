@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -173,16 +174,18 @@ namespace Biovation.Brands.EOS
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
-            var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstanceId");
+            var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
             var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
             if (serviceInstance.changeId)
             {
                 var setServiceInstanceId =
-                    FileActions.JsonWriter("appsettings.json", "ServiceInstanceId", serviceInstance.Id);
+                    FileActions.JsonWriter("appsettings.json", "ServiceInstance","ServiceInstanceId", serviceInstance.Id);
                 if (!setServiceInstanceId.Success)
                 {
                     Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
                 }
+                string hostName = Dns.GetHostName();
+                serviceInstance.IpAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
             }
             serviceCollection.AddSingleton(serviceInstance);
 

@@ -16,7 +16,7 @@ namespace Biovation.Service.Api.v2
 
         public Task<ResultViewModel> AddServiceInstanceWithoutId(string name, string version, string ip, int port, string description)
         {
-            var serviceInstance = new ServiceInstance()
+            var serviceInstance = new ServiceInstance(null)
             {
                 Name = name,
                 Version = version,

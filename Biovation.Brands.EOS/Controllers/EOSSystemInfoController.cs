@@ -13,7 +13,7 @@ namespace Biovation.Brands.EOS.Controllers
         [HttpGet]
         public ResultViewModel<ServiceInstance> GetInfo()
         {
-            var brandInfo = new ServiceInstance();
+            var brandInfo = new ServiceInstance(null);
             var result = new ResultViewModel<ServiceInstance>();
             brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name?.Split('.').LastOrDefault();
             brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();

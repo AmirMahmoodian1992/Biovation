@@ -14,6 +14,7 @@ namespace Biovation.Domain
             _id = id ?? Guid.NewGuid().ToString();
             if (!string.Equals(id,_id))
             {
+                Port = 56699;
                 changeId = true;
             }
             new Timer(HealthCheck, null, TimeSpan.Zero,

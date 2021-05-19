@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v2;
 
 namespace Biovation.Server.HostedServices
 {
@@ -25,14 +26,16 @@ namespace Biovation.Server.HostedServices
         private readonly SystemInfo _systemInformation;
         private readonly ILogger<ServicesHealthCheckHostedService> _logger;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly ServiceInstanceService _serviceInstanceService;
 
-        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager)
+        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager, ServiceInstanceService serviceInstanceService)
         {
             _logger = logger;
             _lookups = lookups;
             _restClient = restClient;
             _systemInformation = systemInformation;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _serviceInstanceService = serviceInstanceService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -55,23 +58,28 @@ namespace Biovation.Server.HostedServices
                 return;
 
             var deviceBrands = _lookups.DeviceBrands;
-            Parallel.ForEach(deviceBrands, deviceBrand =>
+            var Instances =  _serviceInstanceService.GetServiceInstance(null)?.Result?.Data;
+            Parallel.ForEach(Instances, Instance =>
             {
-                var restRequest = new RestRequest(
-                    $"{deviceBrand.Name}/health");
-                var result = _restClient.Execute(restRequest);
+                Parallel.ForEach(deviceBrands, deviceBrand =>
+                {
+                    var restRequest = new RestRequest(
+                        $"{deviceBrand.Name}/{Instance.Id}/health");
+                    var result = _restClient.Execute(restRequest);
 
-                if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    if (!_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                        _systemInformation.Services.Add(new ServiceInstance { Name = deviceBrand.Name });
-                }
-                else
-                {
-                    if (_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                        _systemInformation.Services.Remove(
-                            _systemInformation.Services.Find(service => service.Name.Contains(deviceBrand.Name)));
-                }
+                    if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy",
+                        StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (!_systemInformation.Services.Any(service => service.Id.Contains(service.Id)))
+                            _systemInformation.Services.Add(Instance);
+                    }
+                    else
+                    {
+                        if (_systemInformation.Services.Any(service => service.Id.Contains(service.Id)))
+                            _systemInformation.Services.Remove(
+                                _systemInformation.Services.Find(service => service.Id.Contains(service.Id)));
+                    }
+                });
             });
 
             //_logger.LogInformation(
