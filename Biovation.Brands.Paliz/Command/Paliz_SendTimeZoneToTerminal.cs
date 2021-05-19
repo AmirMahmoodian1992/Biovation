@@ -2,11 +2,14 @@
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using PalizTiara.Api.CallBacks;
+using PalizTiara.Api.Models;
 using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Brands.Paliz.Command
@@ -23,18 +26,36 @@ namespace Biovation.Brands.Paliz.Command
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
+        private readonly TaskService _taskService;
         private int TimeZoneId { get; }
         private TimeZone TimeZoneObj { get; }
         private SetActionEventArgs _setTimeZoneResult;
 
-        public PalizSendTimeZoneToTerminal(uint code, int timeZoneId, PalizServer palizServer, TimeZoneService timeZoneService)
+        public PalizSendTimeZoneToTerminal(IReadOnlyList<object> items, TaskService taskService, PalizServer palizServer, TimeZoneService timeZoneService
+            , DeviceService deviceService)
         {
-            Code = code;
-            TimeZoneId = timeZoneId;
-            TimeZoneObj = timeZoneService.TimeZones(timeZoneId);
+            TerminalId = Convert.ToInt32(items[0]);
+            TaskItemId = Convert.ToInt32(items[1]);
+            _taskService = taskService;
+
             _palizServer = palizServer;
+            var taskItem = taskService.GetTaskItem(TaskItemId)?.GetAwaiter().GetResult().Data ?? new TaskItem();
+            var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
+            if (devices is null)
+            {
+                OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
+                return;
+            }
+            if (data != null)
+            {
+                TimeZoneId = (int)data["timeZoneId"];
+            }
+            Code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == TerminalId)?.Code ?? 7;
+            TimeZoneObj = timeZoneService.TimeZones(TimeZoneId).GetAwaiter().GetResult().Data;
 
             OnlineDevices = palizServer.GetOnlineDevices();
+
         }
         public object Execute()
         {
@@ -47,6 +68,17 @@ namespace Biovation.Brands.Paliz.Command
                     Id = Code,
                     Message = $"The device: {Code} is not connected.",
                     Validate = 1
+                };
+            }
+
+            if (TimeZoneObj == null)
+            {
+                return new ResultViewModel
+                {
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                    Id = TerminalId,
+                    Message = $"  +Cannot send time zone {TimeZoneId} to device: {Code}.\n",
+                    Validate = 0
                 };
             }
 
@@ -97,7 +129,7 @@ namespace Biovation.Brands.Paliz.Command
                 {
                     Code = Convert.ToInt64(TaskStatuses.FailedCode),
                     Id = TerminalId,
-                    Message = $"  +Cannot sent time zone {TimeZoneId} to device: {Code}.\n",
+                    Message = $"  +Cannot send time zone {TimeZoneId} to device: {Code}.\n",
                     Validate = 0
                 };
             }

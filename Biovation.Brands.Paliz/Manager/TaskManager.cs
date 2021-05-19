@@ -114,23 +114,40 @@ namespace Biovation.Brands.Paliz.Manager
                             break;
                         }
                     case TaskItemTypes.DeleteUserFromTerminalCode:
-                    {
-                        try
                         {
-                            executeTask = Task.Run(() =>
+                            try
                             {
-                                result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
-                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
-                            });
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.DeleteUserFromTerminal,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+
+                            }
+
+                            break;
                         }
-                        catch (Exception exception)
+                    case TaskItemTypes.SendTimeZoneToTerminalCode:
                         {
-                            Logger.Log(exception);
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.SendTimeZoneToDevice,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id, taskItem.Data }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
 
+                            break;
                         }
-
-                        break;
-                    }
                     case TaskItemTypes.SendBlackListCode:
                         {
                             try
@@ -316,7 +333,7 @@ namespace Biovation.Brands.Paliz.Manager
                                 {
                                     //result = (ResultViewModel)_commandFactory.Factory(CommandType.UserAdaptation,
                                     //    new List<object> { taskItem }).Execute();
-                                    result = new ResultViewModel{ Validate = 1 };
+                                    result = new ResultViewModel { Validate = 1 };
                                 });
 
                             }

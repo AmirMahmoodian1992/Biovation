@@ -25,13 +25,15 @@ namespace Biovation.Brands.Paliz.Command
         private readonly LogService _logService;
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
+        private readonly TimeZoneService _timeZoneService;
 
         public CommandFactory(PalizServer palizServer, LogEvents logEvents
             , TaskService taskService, PalizCodeMappings palizCodeMappings
             , DeviceService deviceService, FingerTemplateService fingerTemplateService
             , BiometricTemplateManager biometricTemplateManager, FaceTemplateService faceTemplateService
             , FaceTemplateTypes faceTemplateTypes, UserService userService, FingerTemplateTypes fingerTemplateTypes
-            , UserCardService userCardService, LogService logService, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+            , UserCardService userCardService, LogService logService, LogSubEvents logSubEvents, MatchingTypes matchingTypes
+            , TimeZoneService timeZoneService)
         {
             _palizCodeMappings = palizCodeMappings;
             _palizServer = palizServer;
@@ -48,6 +50,7 @@ namespace Biovation.Brands.Paliz.Command
             _logService = logService;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
+            _timeZoneService = timeZoneService;
         }
 
         public ICommand Factory(int eventId, List<object> items)
@@ -94,9 +97,8 @@ namespace Biovation.Brands.Paliz.Command
                             _matchingTypes);
                     }
                 case CommandType.SendTimeZoneToDevice:
-                // Sends the time zone to the device
-                //return new PalizSendTimeZoneToTerminal(transferModelData.Items, _palizServer, _taskService, _deviceService, _logService, _logEvents, _logSubEvents,
-                //    _matchingTypes);
+                    // Sends the time zone to the device
+                    return new PalizSendTimeZoneToTerminal(transferModelData.Items, _taskService, _palizServer, _timeZoneService, _deviceService);
 
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
