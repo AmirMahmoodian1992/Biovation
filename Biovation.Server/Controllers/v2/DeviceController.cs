@@ -150,7 +150,7 @@ namespace Biovation.Server.Controllers.v2
                         return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
                     }
 
-                    var readOfflineLogResult = _deviceService.ReadOfflineLog(device, fromDate, toDate);
+                    var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate);
 
                     //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                     //restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -209,7 +209,7 @@ namespace Biovation.Server.Controllers.v2
                             continue;
                         }
 
-                        var readOfflineLogResult = _deviceService.ReadOfflineLog(device, fromDate, toDate);
+                        var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate);
 
                         //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                         //restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -279,6 +279,8 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
+
+        // TODO - Verify Method.
         [HttpPost]
         [Route("ClearLogsOfDevices")]
         [Attribute.Authorize]
@@ -302,20 +304,21 @@ namespace Biovation.Server.Controllers.v2
                             continue;
                         }
 
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
+                        var clearLogResult= _deviceService.ClearLogOfDevice(device, fromDate, toDate);
+                        //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                        //restRequest.AddQueryParameter("code", device.Code.ToString());
+                        //restRequest.AddQueryParameter("fromDate", fromDate);
+                        //restRequest.AddQueryParameter("toDate", toDate);
 
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         //var address = _localBioAddress +
                         //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
                         //var data = _restCall.CallRestAsync(address, null, null, "POST");
                         //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
-                        if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;
-                        restResult.Data.Id = deviceId[i];
-                        result.Add(restResult.Data);
+                        if (!clearLogResult.IsSuccessful || clearLogResult.StatusCode != HttpStatusCode.OK) continue;
+                        clearLogResult.Data.Id = deviceId[i];
+                        result.Add(clearLogResult.Data);
                     }
 
                     return result;

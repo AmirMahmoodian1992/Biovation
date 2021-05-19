@@ -89,7 +89,7 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify method.
-        public IRestResponse<ResultViewModel> ReadOfflineLog(DeviceBasicInfo device, string fromDate, string toDate)
+        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
         {
             var restRequest =
                 new RestRequest(
@@ -136,9 +136,7 @@ namespace Biovation.Service.Api.v2
         // TODO - Verify the method.
         public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
         {
-            var restRequest =
-                new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Log/ClearLog");
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Log/ClearLog", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddQueryParameter("fromDate", fromDate);
             restRequest.AddQueryParameter("toDate", toDate);
