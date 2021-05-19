@@ -181,6 +181,8 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
+
+        // TODO - Verify method.
         [HttpPost]
         [Attribute.Authorize]
         [Route("RetrieveLogs")]
@@ -207,24 +209,26 @@ namespace Biovation.Server.Controllers.v2
                             continue;
                         }
 
-                        var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
-                        restRequest.AddQueryParameter("code", device.Code.ToString());
-                        restRequest.AddQueryParameter("fromDate", fromDate);
-                        restRequest.AddQueryParameter("toDate", toDate);
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        var readOfflineLogResult = _deviceService.ReadOfflineLog(_restClient, device, fromDate, toDate);
+
+                        //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
+                        //restRequest.AddQueryParameter("code", device.Code.ToString());
+                        //restRequest.AddQueryParameter("fromDate", fromDate);
+                        //restRequest.AddQueryParameter("toDate", toDate);
+                        //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                        //{
+                        //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                        //}
+                        //var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        if (readOfflineLogResult.StatusCode == HttpStatusCode.OK)
                         {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
-                        var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        if (requestResult.StatusCode == HttpStatusCode.OK)
-                        {
-                            var resultData = requestResult.Data;
+                            var resultData = readOfflineLogResult.Data;
                             resultData.Id = device.DeviceId;
                             resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
                             result.Add(resultData);
                         }
                         else
-                            result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = requestResult.ErrorMessage });
+                            result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = readOfflineLogResult.ErrorMessage });
                     }
 
                     return result;
