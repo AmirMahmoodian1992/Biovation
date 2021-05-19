@@ -48,6 +48,7 @@ namespace Biovation.Brands.Paliz
         public int NextLogPageNumber { get; set; }
         private BiovationConfigurationManager biovationConfiguration { get; }
         //private const string BiovationTopicName = "BiovationTaskStatusUpdateEvent";
+        public static bool SendUserFinished = true;
         public static bool GetLogTaskFinished = true;
         public static bool GetLogInPeriodTaskFinished = true;
         private PalizCodeMappings _palizCodeMappings;
@@ -176,8 +177,8 @@ namespace Biovation.Brands.Paliz
                     Name = terminalName,
                     Brand = existedDevice.Brand,
                     Model = existedDevice.Model,
-                    IpAddress = tiaraSettings.ServerSetting.ServerIP,
-                    Port = tiaraSettings.ServerSetting.ServerPortNumber,
+                    IpAddress = tiaraSettings.LanSetting.LanStaticIP,
+                    //Port = tiaraSettings.ServerSetting.ServerPortNumber,
                     MacAddress = existedDevice.MacAddress,
                     RegisterDate = existedDevice.RegisterDate,
                     TimeSync = existedDevice.TimeSync,

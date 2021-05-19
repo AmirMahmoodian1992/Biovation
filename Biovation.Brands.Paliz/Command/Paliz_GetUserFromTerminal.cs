@@ -230,11 +230,12 @@ namespace Biovation.Brands.Paliz.Command
 
         private void GetUserInfoEventCallBack(object sender, UserInfoEventArgs args)
         {
-            var t = sender.ToString();
+            //var t = sender.ToString();
             //if (TerminalId != TaskItemId)
             //{
             //    return;
             //}
+
             _getUserResult = args;
             if (_getUserResult.Result == false)
             {
@@ -258,6 +259,8 @@ namespace Biovation.Brands.Paliz.Command
                 SurName = userInfoModel.Name.Split(' ').LastOrDefault(),
                 FirstName = userInfoModel.Name.Split(' ').FirstOrDefault()
             };
+
+            //PalizTiara.Api.Definition.VerificationDevices.
 
             var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.GetAwaiter().GetResult().Data?.Data?.FirstOrDefault();
             if (existingUser != null)
