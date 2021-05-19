@@ -78,7 +78,7 @@ namespace Biovation.Brands.Paliz.Command
                     EndDate = 0
                 };
 
-                Logger.Log($" +Retrieving logs from device: {code} started successfully.\n");
+                Logger.Log($"Retrieving logs from device: {code} started successfully.\n");
 
                 _palizServer._serverManager.TrafficLogEvent += TrafficLogEventCallBack;
                 _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request);
@@ -118,6 +118,7 @@ namespace Biovation.Brands.Paliz.Command
 
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
+                failedLogsRetrieved = true;
                 return;
             }
 
@@ -165,6 +166,7 @@ namespace Biovation.Brands.Paliz.Command
         {
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
+                succeedLogsRetrieved = true;
                 return;
             }
 

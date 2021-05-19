@@ -125,6 +125,7 @@ namespace Biovation.Brands.Paliz.Command
 
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
+                failedLogsRetrieved = true;
                 return;
             }
 
@@ -172,6 +173,7 @@ namespace Biovation.Brands.Paliz.Command
         {
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
+                succeedLogsRetrieved = true;
                 return;
             }
 
