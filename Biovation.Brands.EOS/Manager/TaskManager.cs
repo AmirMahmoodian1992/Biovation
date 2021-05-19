@@ -337,7 +337,11 @@ namespace Biovation.Brands.EOS.Manager
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
             var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.EosCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+                excludedTaskStatusCodes: new List<string>
+                {
+                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                });
 
             lock (_tasks)
             {
@@ -353,7 +357,7 @@ namespace Biovation.Brands.EOS.Manager
             }
 
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
