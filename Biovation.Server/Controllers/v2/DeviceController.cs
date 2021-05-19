@@ -361,7 +361,6 @@ namespace Biovation.Server.Controllers.v2
                //});
                 Parallel.ForEach(deviceBrands, async deviceBrand =>
                 {
-                    // TODO - An example of correct request with paying attention to instances : {deviceBrand.Name}/InstanceId/{deviceBrand.Name}Device/GetOnlineDevices
                     var restRequest =
                         new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
 
