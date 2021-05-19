@@ -78,6 +78,23 @@ namespace Biovation.Service.Api.v2
             return restAwaiter.GetResult().Data;
         }
 
+        // TODO - Verify method.
+        public IRestResponse<ResultViewModel> ReadOfflineLog(RestClient restClient, DeviceBasicInfo device, string fromDate, string toDate)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/ReadOfflineOfDevice");
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddQueryParameter("fromDate", fromDate);
+            restRequest.AddQueryParameter("toDate", toDate);
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+            return restAwaiter.GetResult();
+        }
 
         // TODO - Verify the method.
         public ResultViewModel<List<DeviceBasicInfo>> GetOnlineDevices(RestClient restClient, Lookup deviceBrand, ServiceInstance serviceInstance)
