@@ -106,6 +106,21 @@ namespace Biovation.Service.Api.v2
             return restAwaiter.GetResult();
         }
 
+        public IRestResponse<ResultViewModel> RemoveUserFromDevice(DeviceBasicInfo device)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/DeleteUserFromDevice", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+            return restAwaiter.GetResult();
+        }
+
         // TODO - Verify the method.
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
