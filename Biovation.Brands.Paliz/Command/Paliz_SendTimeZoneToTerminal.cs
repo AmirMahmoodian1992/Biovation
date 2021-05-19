@@ -30,6 +30,7 @@ namespace Biovation.Brands.Paliz.Command
         private int TimeZoneId { get; }
         private TimeZone TimeZoneObj { get; }
         private SetActionEventArgs _setTimeZoneResult;
+        private bool _waitForResult;
 
         public PalizSendTimeZoneToTerminal(IReadOnlyList<object> items, TaskService taskService, PalizServer palizServer, TimeZoneService timeZoneService
             , DeviceService deviceService)
@@ -103,7 +104,19 @@ namespace Biovation.Brands.Paliz.Command
                     var timeZoneInfo = TimeZoneInfo.CreateCustomTimeZone(timeZoneDetail.Id.ToString(), interval,
                         TimeZoneObj.Name, null);
 
+                    _waitForResult = true;
                     _palizServer._serverManager.SetTimeZoneAsyncTask(timeZoneInfo, TerminalName);
+                }
+
+                if (!_waitForResult)
+                {
+                    return new ResultViewModel
+                    {
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                        Id = TerminalId,
+                        Message = $"  +Time zone {TimeZoneId} successfully set to device: {Code}.\n",
+                        Validate = 1
+                    };
                 }
 
                 System.Threading.Thread.Sleep(500);

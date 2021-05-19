@@ -133,7 +133,7 @@ namespace Biovation.Brands.Paliz.Command
                     FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
                     EnrollQuality = fingerprint.Quality,
                     FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = _fingerTemplateService.FingerTemplates(userId: (int)user.Id)?.GetAwaiter().GetResult().Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+                    Index = _fingerTemplateService.FingerTemplates(userId: (int)user.Id).GetAwaiter().GetResult()?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
                 }));
             }
 
