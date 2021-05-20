@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using Biovation.Brands.Virdi.Model.Unis;
 using UNIONCOMM.SDK.UCBioBSP;
 using Encoding = System.Text.Encoding;
 
@@ -172,6 +173,13 @@ namespace Biovation.Brands.Virdi.Command
                     _virdiServer.ServerUserData.FaceNumber = virdiFace.Index;
                     _virdiServer.ServerUserData.FaceData = virdiFace.Template;
                     _virdiServer.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
+                    var walkThrough = new UnisFaceWalkThroughTemplate()
+                    {
+                        Data = virdiFace.Template,
+                        Length = virdiFace.Size,
+                        Type = 0 ////////////////TODO: Find it and FIx it
+                    };
+                    _virdiServer.ServerUserData.SetWalkThroughData(walkThrough.Type, walkThrough.Length, walkThrough.Data);
                     isFace = true;
                 }
 

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Biovation.Brands.Virdi.Model.Unis;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
 
@@ -407,6 +408,18 @@ namespace Biovation.Brands.Virdi.Command
                                     CheckSum = faceData.Sum(x => x),
                                     Size = faceData.Length
                                 };
+                                if (_terminalUserData.WalkThroughLength > 0)
+                                {
+                                    var walkThroughFace = new UnisFaceWalkThroughTemplate()
+                                    {
+                                        Data = (byte[])_terminalUserData.WalkThroughData,
+                                        Type = _terminalUserData.WalkThroughType,
+                                        Length = _terminalUserData.WalkThroughLength
+                                    };
+                                        
+
+                                }
+                                
                                 if (existUser != null)
                                 {
                                     if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
