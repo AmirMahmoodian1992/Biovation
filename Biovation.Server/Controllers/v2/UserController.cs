@@ -288,7 +288,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-
+        //  TODO - Verify method.
         private Task<ResultViewModel> Sync(long[] usersToSync = default, string updateUsers = default)
         {
             var token = (string)HttpContext.Items["Token"];
@@ -300,18 +300,21 @@ namespace Biovation.Server.Controllers.v2
 
                 try
                 {
-                    foreach (var deviceBrand in deviceBrands)
-                    {
-                        //_communicationManager.CallRest($"/biovation/api/{brand.Name}/{brand.Name}User/DeleteUserFromAllTerminal", "Post", null, $"{JsonConvert.SerializeObject(lstchangeUsers)}");
-                        var restRequest =
-                            new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
-                        restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
-                        if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        {
-                            restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        }
-                        _restClient.ExecuteAsync(restRequest);
-                    }
+                    _userService.DeleteUserFromAllTerminal(deviceBrands, usersToSync ?? Array.Empty<long>());
+                    //foreach (var deviceBrand in deviceBrands)
+                    //{
+                        
+
+                    //    //_communicationManager.CallRest($"/biovation/api/{brand.Name}/{brand.Name}User/DeleteUserFromAllTerminal", "Post", null, $"{JsonConvert.SerializeObject(lstchangeUsers)}");
+                    //    var restRequest =
+                    //        new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
+                    //    restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
+                    //    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    //    {
+                    //        restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    //    }
+                    //    _restClient.ExecuteAsync(restRequest);
+                    //}
                 }
                 catch (Exception exception)
                 {
@@ -353,7 +356,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         //updateUsers = updateUsers.Trim(',');
                         //var lstupdateUsers = updateUsers.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
-                        var count = lstUserGroupMember.Count();
+                        var count = lstUserGroupMember.Count;
                         for (var i = 0; i < count; i++)
                         {
                             var accessGroups = _accessGroupService.GetAccessGroups(lstUserGroupMember[i].UserId, token: token).Data.Data;

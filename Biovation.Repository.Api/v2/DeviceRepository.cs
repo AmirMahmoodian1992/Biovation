@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
@@ -184,6 +185,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
+        // TODO - Ask if the foreach is correct.
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var resultList = new List<DeviceBasicInfo>();
@@ -194,20 +196,25 @@ namespace Biovation.Repository.Api.v2
 
             if (deviceBrands == null) return resultList;
 
-            foreach (var restRequest in from deviceBrand in deviceBrands from serviceInstance in serviceInstances select new RestRequest(
-                $"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices"))
+            Parallel.ForEach(deviceBrands, deviceBrand =>
             {
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                foreach (var restRequest in serviceInstances.Select(serviceInstance => 
+                    new RestRequest($"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices")))
                 {
-                    restRequest.AddHeader("Authorization",
-                        HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    {
+                        restRequest.AddHeader("Authorization",
+                            HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    }
+
+                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+
+                    if (result.StatusCode == HttpStatusCode.OK)
+                    {
+                        resultList.AddRange(result.Data);
+                    }
                 }
-
-                var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
-
-                if (result.StatusCode == HttpStatusCode.OK)
-                    resultList.AddRange(result.Data);
-            }
+            });
 
             return resultList;
         }

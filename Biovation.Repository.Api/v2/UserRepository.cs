@@ -1,18 +1,25 @@
-﻿using Biovation.Domain;
+﻿using System;
+using Biovation.Domain;
 using RestSharp;
 using System.Collections.Generic;
+using System.Linq;
 using Biovation.CommonClasses.Manager;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace Biovation.Repository.Api.v2
 {
-    public class UserRepository
+    public class UserRepository : ControllerBase
     {
         private readonly RestClient _restClient;
+        private readonly SystemInfo _systemInformation;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        public UserRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        public UserRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, SystemInfo systemInformation)
         {
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _systemInformation = systemInformation;
         }
 
         public ResultViewModel<PagingResult<User>> GetUsers(int from = default,
@@ -131,6 +138,21 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("password", password ?? string.Empty);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
+        }
+
+        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default)
+        {
+            var serviceInstances = _systemInformation.Services;
+            foreach (var restRequest in from deviceBrand in deviceBrands from serviceInstance in serviceInstances select 
+                new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST))
+            {
+                restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
+                _restClient.ExecuteAsync(restRequest);
+            }
         }
     }
 }
