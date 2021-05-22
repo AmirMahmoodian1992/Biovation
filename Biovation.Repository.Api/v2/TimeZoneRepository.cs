@@ -25,9 +25,14 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(string token = default)
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(int id = default, int accessGroupId = default, string name = default, int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/TimeZone", Method.GET);
+            restRequest.AddQueryParameter(nameof(id), id.ToString());
+            restRequest.AddQueryParameter(nameof(accessGroupId), accessGroupId.ToString());
+            restRequest.AddQueryParameter(nameof(name), name ?? string.Empty);
+            restRequest.AddQueryParameter(nameof(pageNumber), pageNumber.ToString());
+            restRequest.AddQueryParameter(nameof(pageSize), pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<TimeZone>>>(restRequest);

@@ -33,9 +33,9 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public async Task<ResultViewModel<PagingResult<TimeZone>>> TimeZones()
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> TimeZones(int id = default, int accessGroupId = default, string name = default, int pageNumber = default, int pageSize = default)
         {
-            return await _timeZoneService.GetTimeZones(HttpContext.Items["Token"] as string);
+            return await _timeZoneService.GetTimeZones(id, accessGroupId, name, pageNumber, pageSize, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
