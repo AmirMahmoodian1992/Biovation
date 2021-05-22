@@ -261,7 +261,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-
+        // TODO - Verify method.
         [HttpPost]
         [Route("SendAccessGroupToDevices/{id}")]
         public ResultViewModel SendAccessGroupToDevices([FromRoute] int id)
@@ -272,21 +272,24 @@ namespace Biovation.Server.Controllers.v2
 
             foreach (var device in devices)
             {
-                var restRequest =
-                    new RestRequest(
-                        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-                        Method.GET);
-                restRequest.AddParameter("code", device.Code);
-                restRequest.AddParameter("accessGroupId", id);
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                _accessGroupService.SendAccessGroupToDevice(device, id);
+                //var restRequest =
+                //    new RestRequest(
+                //        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+                //        Method.GET);
+                //restRequest.AddParameter("code", device.Code);
+                //restRequest.AddParameter("accessGroupId", id);
+                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                //{
+                //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                //}
+                //_restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
             return new ResultViewModel { Validate = 1 };
         }
 
+
+        // TODO - Verify method.
         [HttpPost]
         [Route("SendAccessGroupToDevice/{id}")]
         public ResultViewModel SendAccessGroupToDevice([FromRoute] int id, int deviceId)
@@ -306,17 +309,18 @@ namespace Biovation.Server.Controllers.v2
                 };
             }
 
-            var restRequest =
-                new RestRequest(
-                    $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-                    Method.GET);
-            restRequest.AddParameter("code", device.Code);
-            restRequest.AddParameter("accessGroupId", id);
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
-            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            _accessGroupService.SendAccessGroupToDevice(device, id);
+            //var restRequest =
+            //    new RestRequest(
+            //        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+            //        Method.GET);
+            //restRequest.AddParameter("code", device.Code);
+            //restRequest.AddParameter("accessGroupId", id);
+            //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            //{
+            //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            //}
+            //_restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
     }
