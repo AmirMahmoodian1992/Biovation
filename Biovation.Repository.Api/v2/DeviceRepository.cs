@@ -3,17 +3,23 @@ using Biovation.Domain;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 
 namespace Biovation.Repository.Api.v2
 {
-    public class DeviceRepository
+    public class DeviceRepository : ControllerBase
     {
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        public DeviceRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        private readonly SystemInfo _systemInfo;
+        public DeviceRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, SystemInfo systemInfo)
         {
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _systemInfo = systemInfo;
         }
 
         /// <summary>
@@ -176,6 +182,130 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
             return requestResult.Result.Data;
+        }
+
+        public List<DeviceBasicInfo> GetOnlineDevices()
+        {
+            var resultList = new List<DeviceBasicInfo>();
+
+            var deviceBrands = GetDeviceBrands()?.Data.Data;
+
+            var serviceInstances = _systemInfo.Services;
+
+            if (deviceBrands == null) return resultList;
+
+            foreach (var restRequest in from deviceBrand in deviceBrands from serviceInstance in serviceInstances select new RestRequest(
+                $"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices"))
+            {
+                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                {
+                    restRequest.AddHeader("Authorization",
+                        HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                }
+
+                var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+
+                if (result.StatusCode == HttpStatusCode.OK)
+                    resultList.AddRange(result.Data);
+            }
+
+            return resultList;
+        }
+
+        public IRestResponse<ResultViewModel> ClearLogsOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
+        {
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Log/ClearLog", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddQueryParameter("fromDate", fromDate);
+            restRequest.AddQueryParameter("toDate", toDate);
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+
+            return restAwaiter.GetResult();
+        }
+
+        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, JArray userId = default)
+        {
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+
+            restRequest.AddJsonBody(userId);
+            var restResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).GetAwaiter();
+            return restResult.GetResult();
+        }
+
+        public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).GetAwaiter();
+            return restAwaiter.GetResult().Data;
+        }
+
+        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/ReadOfflineOfDevice");
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddQueryParameter("fromDate", fromDate);
+            restRequest.AddQueryParameter("toDate", toDate);
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+            return restAwaiter.GetResult();
+        }
+
+        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, int userId)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/DeleteUserFromDevice",
+                    Method.POST);
+
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+
+            restRequest.AddJsonBody(userId);
+
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+
+        public ResultViewModel RemoveUserFromDevice(DeviceBasicInfo device)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/DeleteUserFromDevice", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
+            return restAwaiter.GetResult().Data;
         }
     }
 }

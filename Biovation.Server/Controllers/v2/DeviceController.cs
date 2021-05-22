@@ -481,7 +481,7 @@ namespace Biovation.Server.Controllers.v2
 
                var restResult = _deviceService.RemoveUserFromDeviceById(device, userId);
 
-               return restResult.Data;
+               return restResult;
 
                //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
                //restRequest.AddQueryParameter("code", device.Code.ToString());
