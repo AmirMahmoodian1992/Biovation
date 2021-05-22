@@ -282,7 +282,7 @@ namespace Biovation.Brands.ZK.Devices
                     var creatorUser = _userService.GetUsers(code: 123456789).FirstOrDefault();
                     var lastLogsOfDevice = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
 
-                    if (lastLogsOfDevice != null)
+                    if (lastLogsOfDevice != null && lastLogsOfDevice.Any())
                     {
                         foreach (var log in lastLogsOfDevice)
                             _logger.Information(
@@ -311,7 +311,35 @@ namespace Biovation.Brands.ZK.Devices
                                 Priority = _taskPriorities.Medium,
                                 DeviceId = DeviceInfo.DeviceId,
                                 Data = JsonConvert.SerializeObject(new
-                                { fromDate = lastLogOfDevice.LogDateTime, toDate = DateTime.Now.AddHours(1) }),
+                                { fromDate = lastLogOfDevice.LogDateTime.AddDays(-5), toDate = DateTime.Now.AddHours(1) }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1
+                            });
+
+                            _taskService.InsertTask(task);
+                        }
+                        else
+                        {
+                            var task = new TaskInfo
+                            {
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.GetLogs,
+                                Priority = _taskPriorities.Medium,
+                                TaskItems = new List<TaskItem>(),
+                                DeviceBrand = _deviceBrands.ZkTeco,
+                                DueDate = DateTimeOffset.Now,
+                                Status = _taskStatuses.Queued
+                            };
+
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.GetLogs,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = DeviceInfo.DeviceId,
+                                Data = JsonConvert.SerializeObject(DeviceInfo.DeviceId),
                                 IsParallelRestricted = true,
                                 IsScheduled = false,
                                 OrderIndex = 1
@@ -347,7 +375,6 @@ namespace Biovation.Brands.ZK.Devices
 
                         _taskService.InsertTask(task);
                     }
-
                 }
 
                 await _taskService.ProcessQueue(_deviceBrands.ZkTeco, DeviceInfo.DeviceId).ConfigureAwait(false);

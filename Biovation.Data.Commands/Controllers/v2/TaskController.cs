@@ -31,6 +31,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         public async Task<ResultViewModel> InsertTask([FromBody] TaskInfo task)
         {
             task.CreatedBy ??= HttpContext.GetUser();
+            task.Status ??= task.TaskItems.FirstOrDefault(taskItem => taskItem.Status != null)?.Status;
             var taskInsertionResult = await _taskRepository.InsertTask(task);
             if (!taskInsertionResult.Success) return taskInsertionResult;
             task.Id = (int)taskInsertionResult.Id;
