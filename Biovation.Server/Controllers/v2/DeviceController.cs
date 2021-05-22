@@ -381,6 +381,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
+        // TODO - Verify method.
         ///// <summary>
         ///// 
         ///// </summary>
@@ -397,16 +398,19 @@ namespace Biovation.Server.Controllers.v2
            {
                var device = _deviceService.GetDevice(id, token: token).Data;
 
-               var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
-               if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-               {
-                   restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-               }
-               restRequest.AddQueryParameter("code", device.Code.ToString());
-               //restRequest.AddQueryParameter("userId", userId.ToString());
-               restRequest.AddJsonBody(userId);
-               var restResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-               var result = restResult.Result.Data.Any(e => e.Validate == 0)
+               var restResult = _deviceService.RetrieveUsers(device, userId);
+
+               //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+               //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+               //{
+               //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+               //}
+               //restRequest.AddQueryParameter("code", device.Code.ToString());
+               ////restRequest.AddQueryParameter("userId", userId.ToString());
+               //restRequest.AddJsonBody(userId);
+               //var restResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+               var result = restResult.Data.Any(e => e.Validate == 0)
                    ? new ResultViewModel { Validate = 0, Id = id }
                    : new ResultViewModel { Validate = 1, Id = id };
                return result;
@@ -460,6 +464,8 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
+
+        // TODO - Verify Method
         [HttpDelete]
         [Attribute.Authorize]
         [Route("{id}/RemoveUser/{userId}")]
@@ -473,14 +479,18 @@ namespace Biovation.Server.Controllers.v2
 
                var device = _deviceService.GetDevice(id, token: token).Data;
 
-               var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
-               restRequest.AddQueryParameter("code", device.Code.ToString());
-               restRequest.AddJsonBody(userId);
-               if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-               {
-                   restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-               }
-               return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+               var restResult = _deviceService.RemoveUserFromDeviceById(device, userId);
+
+               return restResult.Data;
+
+               //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+               //restRequest.AddQueryParameter("code", device.Code.ToString());
+               //restRequest.AddJsonBody(userId);
+               //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+               //{
+               //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+               //}
+               //return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
            });
         }
 

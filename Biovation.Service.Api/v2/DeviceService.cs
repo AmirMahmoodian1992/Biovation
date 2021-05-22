@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using Biovation.Constants;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 
 namespace Biovation.Service.Api.v2
@@ -121,6 +122,27 @@ namespace Biovation.Service.Api.v2
             return restAwaiter.GetResult();
         }
 
+
+        // TODO - Verify method.
+        public IRestResponse<ResultViewModel> RemoveUserFromDeviceById(DeviceBasicInfo device, int userId)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/DeleteUserFromDevice",
+                    Method.POST);
+
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+
+            restRequest.AddJsonBody(userId);
+
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result;
+        }
+
         // TODO - Verify the method.
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
@@ -162,6 +184,21 @@ namespace Biovation.Service.Api.v2
 
             var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
             return restAwaiter.GetResult();
+        }
+
+        // TODO - Verify the method.
+        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, JArray userId = default)
+        {
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            {
+                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            }
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+
+            restRequest.AddJsonBody(userId);
+            var restResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).GetAwaiter();
+            return restResult.GetResult();
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)
