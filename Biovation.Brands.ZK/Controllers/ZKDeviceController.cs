@@ -1,6 +1,5 @@
 ﻿using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
-using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
@@ -28,14 +27,13 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly CommandFactory _commandFactory;
         private readonly ZkTecoServer _zkTecoServer;
         private readonly ILogger _logger;
 
-        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
+        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
         {
             _deviceService = deviceService;
             _accessGroupService = accessGroupService;
@@ -45,7 +43,6 @@ namespace Biovation.Brands.ZK.Controllers
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
             _onlineDevices = onlineDevices;
-            _taskManager = taskManager;
             _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
             _zkTecoServer = zkTecoServer;
