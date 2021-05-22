@@ -29,6 +29,9 @@ namespace Biovation.Brands.Paliz.Command
         private string TerminalName { get; }
         private int TerminalId { get; }
         private uint Code { get; }
+
+        private bool _retreived = false;
+
         private readonly PalizServer _palizServer;
         private MassUserInfoEventArgs _getAllUsersResult;
         private List<User> _users;
@@ -68,7 +71,7 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.GetMassUserInfoTask(TerminalName, massUserIdModel);
                 Logger.Log(GetDescription());
                 System.Threading.Thread.Sleep(500);
-                while (_getAllUsersResult == null)
+                while (!_retreived)
                 {
                     System.Threading.Thread.Sleep(500);
                 }
@@ -124,8 +127,8 @@ namespace Biovation.Brands.Paliz.Command
                     FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
                     EnrollQuality = fingerprint.Quality,
                     FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = _fingerTemplateService.FingerTemplates(userId: (int)user.Id)?.GetAwaiter().GetResult()
-                                .Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+                    Index = _fingerTemplateService.FingerTemplates(userId: (int)user.Id).GetAwaiter().GetResult()?
+                                .Data?.Data?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
                 }));
             }
 
@@ -247,7 +250,8 @@ namespace Biovation.Brands.Paliz.Command
                         Password = userInfoModel.Password,
                         FullName = userInfoModel.Name,
                         IsActive = userInfoModel.Locked,
-                        ImageBytes = userInfoModel.Image
+                        ImageBytes = userInfoModel.Image,
+                        UserName = userInfoModel.Name
                     });
                 }
             }
@@ -258,39 +262,44 @@ namespace Biovation.Brands.Paliz.Command
             if (_getAllUsersResult.Result == false)
             {
                 Logger.Log($"  +Cannot retrieve users from device: {Code}.\n");
-                return;
             }
-            Logger.Log($"  +Successfully retrieved users from device: {Code}.\n");
-
-            for (var i = 0; userInfoModels.Length > 0; ++i)
+            else
             {
-                var existingUser = _userService.GetUsers(code: _users[i].Code)?.GetAwaiter().GetResult().Data?.Data?.FirstOrDefault();
-                if (existingUser != null)
-                {
-                    _users[i].Id = existingUser.Id;
-                }
-
-                var userInsertionResult = _userService.ModifyUser(_users[i]);
-                Logger.Log("<--User is Modified");
-
-                _users[i].Id = userInsertionResult.Id;
-                try
-                {
-                    Logger.Log($"   +TotalCardCount:{userInfoModels[i].Cards?.Length ?? 0}");
-                    ModifyUserCards(userInfoModels[i], _users[i].Id);
-
-
-                    Logger.Log($"   +TotalFingerCount:{userInfoModels[i].Fingerprints?.Length ?? 0}");
-                    ModifyFingerTemplates(userInfoModels[i], _users[i]);
-
-                    Logger.Log($"   +TotalFaceCount:{userInfoModels[i].Faces?.Length ?? 0}");
-                    ModifyFaceTemplates(userInfoModels[i], _users[i]);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Log(ex);
-                }
+                Logger.Log($"  +Successfully retrieved users from device: {Code}.\n");
             }
+
+            _retreived = true;
+
+            //for (var i = 0; userInfoModels.Length > i; i++)
+            //{
+            //    var existingUser = _userService.GetUsers(code: _users[i].Code).GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
+            //    if (existingUser != null)
+            //    {
+            //        _users[i].Id = existingUser.Id;
+            //    }
+
+            //    var userInsertionResult = _userService.ModifyUser(_users[i]);
+            //    Logger.Log("<--User is Modified");
+
+            //    _users[i].Id = userInsertionResult.Id;
+
+            //    try
+            //    {
+            //        //Logger.Log($"   +TotalCardCount:{userInfoModels[i].Cards?.Length ?? 0}");
+            //        //ModifyUserCards(userInfoModels[i], _users[i].Id);
+
+
+            //        //Logger.Log($"   +TotalFingerCount:{userInfoModels[i].Fingerprints?.Length ?? 0}");
+            //        //ModifyFingerTemplates(userInfoModels[i], _users[i]);
+
+            //        //Logger.Log($"   +TotalFaceCount:{userInfoModels[i].Faces?.Length ?? 0}");
+            //        //ModifyFaceTemplates(userInfoModels[i], _users[i]);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Logger.Log(ex);
+            //    }
+            //}
         }
         public void Rollback()
         {

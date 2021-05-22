@@ -262,13 +262,13 @@ namespace Biovation.Brands.Paliz.Command
 
             //PalizTiara.Api.Definition.VerificationDevices.
 
-            var existingUser = _userService.GetUsers(code: userInfoModel.Id)?.GetAwaiter().GetResult().Data?.Data?.FirstOrDefault();
+            var existingUser = _userService.GetUsers(code: userInfoModel.Id).GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
             if (existingUser != null)
             {
                 user.Id = existingUser.Id;
             }
 
-            var userInsertionResult = _userService.ModifyUser(user);
+            var userInsertionResult = _userService.ModifyUser(user).GetAwaiter().GetResult();
 
             Logger.Log("<--User is Modified");
             user.Id = userInsertionResult.Id;

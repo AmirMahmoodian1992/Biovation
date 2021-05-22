@@ -712,7 +712,7 @@ namespace Biovation.Brands.Paliz.Controllers
                                 {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
                         .Execute();
 
-                    return new ResultViewModel<List<User>> { Validate = 1 }; 
+                    return result; 
                 }
                 catch (Exception exception)
                 {

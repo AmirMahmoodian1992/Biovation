@@ -99,7 +99,12 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.SendTimeZoneToDevice:
                     // Sends the time zone to the device
                     return new PalizSendTimeZoneToTerminal(transferModelData.Items, _taskService, _palizServer, _timeZoneService, _deviceService);
-
+                case CommandType.SendUserToDevice:
+                    // Gets a specific user info from device.
+                    {
+                        return new PalizSendUserToDevice(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
+                            _fingerTemplateTypes, _fingerTemplateService, _logService, _faceTemplateService, _faceTemplateTypes, _userCardService);
+                    }
                 case CommandType.PersonnelEvent:
                     //Change in Personnel
                     throw new NotImplementedException();

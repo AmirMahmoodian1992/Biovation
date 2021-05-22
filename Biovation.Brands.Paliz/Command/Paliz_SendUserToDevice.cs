@@ -16,7 +16,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Encoding = System.Text.Encoding;
 
-namespace Biovation.Brands.Virdi.Command
+namespace Biovation.Brands.Paliz.Command
 {
     public class PalizSendUserToDevice : ICommand
     {
@@ -33,13 +33,12 @@ namespace Biovation.Brands.Virdi.Command
         private readonly LogService _logService;
 
         //private UserActionEventHandler _getUserResult;
-        private int TaskItemId { get; }
-        private string terminalName { get; }
-        private int terminalId { get; }
-        private uint code { get; }
+        private readonly string _terminalName;
+        private readonly int _terminalId;
+        private readonly uint _code;
         private User _userObj { get; set; }
         private uint _userId;
-        private int taskItemId { get; }
+        private readonly int _taskItemId;
         private readonly PalizServer _palizServer;
 
         private DeviceBasicInfo onlineDevice { get; set; }
@@ -82,8 +81,8 @@ namespace Biovation.Brands.Virdi.Command
                 , FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, LogService logService
                 , FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
         {
-            terminalId = Convert.ToInt32(items[0]);
-            taskItemId = Convert.ToInt32(items[1]);
+            _terminalId = Convert.ToInt32(items[0]);
+            _taskItemId = Convert.ToInt32(items[1]);
             //var taskItem = taskService.GetTaskItem(TaskItemId)?.GetAwaiter().GetResult().Data ?? new TaskItem();
             //var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             //if (data != null)
@@ -93,7 +92,8 @@ namespace Biovation.Brands.Virdi.Command
 
             _palizServer = palizServer;
             _userService = userService;
-            _logService = _logService;
+            _taskService = taskService;
+            _logService = logService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
             _fingerTemplateService = fingerTemplateService;
@@ -108,8 +108,8 @@ namespace Biovation.Brands.Virdi.Command
                 return;
             }
 
-            code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == terminalId)?.Code ?? 7;
-            terminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == terminalId)?.Name ?? string.Empty;
+            _code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Code ?? 7;
+            _terminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Name ?? string.Empty;
             _onlineDevices = palizServer.GetOnlineDevices();
         }
 
@@ -141,17 +141,18 @@ namespace Biovation.Brands.Virdi.Command
 
         public object Execute()
         {
-            if (_onlineDevices.All(device => device.Key != code))
+            if (_onlineDevices.All(device => device.Key != _code))
             {
-                Logger.Log($"SendUserToDevice,The device: {code} is not connected.");
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = terminalId, Message = $"The device: {code} is not connected.", Validate = 1 };
+                Logger.Log($"SendUserToDevice,The device: {_code} is not connected.");
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode)
+                    , Id = _terminalId, Message = $"The device: {_code} is not connected.", Validate = 1 };
             }
 
-            onlineDevice = _onlineDevices.FirstOrDefault(device => device.Key == code).Value;
+            onlineDevice = _onlineDevices.FirstOrDefault(device => device.Key == _code).Value;
 
             try
             {
-                var taskItem = _taskService.GetTaskItem(TaskItemId).GetAwaiter().GetResult().Data;
+                var taskItem = _taskService.GetTaskItem(_taskItemId).GetAwaiter().GetResult().Data;
                 var taskData = JsonConvert.DeserializeObject<JObject>(taskItem.Data);
                 if (taskData != null && taskData.ContainsKey("UserId"))
                 {
@@ -168,7 +169,7 @@ namespace Biovation.Brands.Virdi.Command
                         };
 
                     _userId = userId;
-                    _userObj = _userService.GetUsers(userId: _userId, getTemplatesData: true)?.GetAwaiter().GetResult()?.Data.Data.FirstOrDefault();
+                    _userObj = _userService.GetUsers(userId: _userId, getTemplatesData: true)?.GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
 
                     if (_userObj == null)
                     {
@@ -192,13 +193,9 @@ namespace Biovation.Brands.Virdi.Command
                 if (_userObj == null)
                 {
                     Logger.Log($"User {_userId} does not exist.");
-                    return new ResultViewModel { Validate = 0, Id = terminalId, Message = $"User {_userId} does not exist.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
+                    return new ResultViewModel { Validate = 0, Id = _terminalId, Message = $"User {_userId} does not exist.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
                 }
 
-                //var isFingerPrint = false;
-                //var isCard = false;
-                //var isPassword = false;
-                //var isFace = false;
 
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
@@ -207,7 +204,7 @@ namespace Biovation.Brands.Virdi.Command
 
                 var request = new UserInfoModel
                 {
-                    Id = _userObj.Id,
+                    Id = _userObj.Code,
                     Image = _userObj.ImageBytes,
                     Level = _userObj.AdminLevel,
                     Name = userName,
@@ -215,15 +212,129 @@ namespace Biovation.Brands.Virdi.Command
                     Locked = false
                 };
 
+
+                var isFingerPrint = false;
+                var isCard = false;
+                var isPassword = false;
+                var isFace = false;
+
+                var userCards = _userCardService.GetCardsByFilter(_userId).GetAwaiter().GetResult()?.Data?.Data;
+                var activeCard = userCards?.Find(card => card.IsActive);
+
                 if (_userObj.IdentityCard != null && _userObj.IdentityCard.IsActive)
                 {
                     request.Cards = new long[] { Convert.ToInt64(_userObj.IdentityCard.Number) };
+                    isCard = true;
                 }
 
-                Logger.Log($"Sending user to device: {code} started successfully.");
+                //if (activeCard != null)
+                //{
+                //    request.Cards = new long[] { Convert.ToInt64(activeCard.CardNum) };
+                //}
+
+                if (!string.IsNullOrEmpty(_userObj.Password))
+                {
+                    try
+                    {
+                        //var decryptedPassword = Encoding.ASCII.GetBytes(UserObj.Password);
+                        //_virdiServer.ServerUserData.Password = decryptedPassword;
+                        request.Password = _userObj.Password;
+                        isPassword = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Log(e);
+                    }
+                }
+
+                var fingerTemplates = _userObj.FingerTemplates.Where(x => x.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
+
+                if (fingerTemplates.Count != 0)
+                {
+                    //for (var i = 0; i < virdiFinger.Count; i += 2)
+                    //{
+                    //    _virdiServer.ServerUserData.AddFingerData(virdiFinger[i].FingerIndex.OrderIndex, (int)UCBioAPI.Type.TEMPLATE_TYPE.SIZE400, virdiFinger[i].Template, virdiFinger[i + 1].Template);
+                    //}
+
+                    request.Fingerprints = new FingerprintModel[] { };
+
+                    foreach (var fingerTemplate in fingerTemplates)
+                    {
+                        request.Fingerprints.Append(new FingerprintModel
+                        {
+                            Id = fingerTemplate.Id,
+                            Index = fingerTemplate.Index,
+                            Quality = fingerTemplate.EnrollQuality,
+                            Template = fingerTemplate.Template,
+                            UserId = _userObj.Code
+                        });
+                    }
+
+                    isFingerPrint = true;
+                }
+
+                // Face data
+
+                //var virdiFace = _faceTemplateService.FaceTemplates(userId: UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VFACECode);
+                //if (virdiFace != null)
+                //{
+                //    _virdiServer.ServerUserData.FaceNumber = virdiFace.Index;
+                //    _virdiServer.ServerUserData.FaceData = virdiFace.Template;
+                //    _virdiServer.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
+                //    isFace = true;
+                //}
+
+                if (isCard && isFingerPrint && isFace)
+                {
+                    //
+                }
+                else if (isCard && isPassword)
+                {
+                    //
+                }
+                else if (isFace && isPassword)
+                {
+                    //
+                }
+                else if (isFingerPrint && isPassword)
+                {
+                    request.VerificationType = 31;
+                    //request.VerificationType = 4;
+                }
+                else if (isFace && isFingerPrint)
+                {
+                    //
+                }
+                else if (isCard && isFingerPrint)
+                {
+                    //
+                }
+                else if (isCard && isFace)
+                {
+                    //
+                }
+                else if (isFace)
+                {
+                    //
+                }
+                else if (isFingerPrint)
+                {
+                    request.VerificationType = 4;
+                }
+                else if (isCard)
+                {
+                    //
+                }
+                else if (isPassword)
+                {
+                    request.VerificationType = 28;
+                }
+
+
+                Logger.Log($"Sending user to device: {_code} started successfully.");
 
                 _palizServer._serverManager.AddUserEvent += AddUserEventCallBack;
-                _palizServer._serverManager.AddUserAsyncTask(terminalName, request);
+                _palizServer._serverManager.AddUserAsyncTask(_terminalName, request);
 
                 System.Threading.Thread.Sleep(500);
                 while (!userSendingFinished)
@@ -234,23 +345,22 @@ namespace Biovation.Brands.Virdi.Command
                 _palizServer._serverManager.AddUserEvent -= AddUserEventCallBack;
 
                 //Logger.Log(GetDescription());
-                Logger.Log($"UserId {_userId} successfully added to DeviceId {code}");
+                Logger.Log($"UserId {_userId} successfully added to DeviceId {_code}");
 
                 PalizServer.SendUserFinished = true;
                 return PalizServer.SendUserFinished
-                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = terminalId, Message = 0.ToString(), Validate = 1 }
-                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = terminalId, Message = 0.ToString(), Validate = 1 };
+                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = _terminalId, Message = 0.ToString(), Validate = 1 }
+                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = _terminalId, Message = 0.ToString(), Validate = 1 };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = terminalId, Message = "Error in command execute", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = _terminalId, Message = "Error in command execute", Validate = 0 };
             }
         }
 
         private void AddUserEventCallBack(object sender, UserActionEventArgs args)
         {
-
             userSendingFinished = true;
         }
 
@@ -266,7 +376,7 @@ namespace Biovation.Brands.Virdi.Command
 
         public string GetDescription()
         {
-            return $"Adding user: {_userId} to device: {terminalId}.";
+            return $"Adding user: {_userId} to device: {_terminalId}.";
         }
 
         public static string Decrypt(string cipherText)
