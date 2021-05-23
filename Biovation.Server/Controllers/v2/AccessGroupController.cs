@@ -47,6 +47,8 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _accessGroupService.AddAccessGroup(accessGroup, token));
         }
 
+
+        // TODO - Should I change this method ?
         [HttpPatch]
         public Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
@@ -168,6 +170,7 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _accessGroupService.DeleteAccessGroup(id, token));
         }
 
+        // TODO - Should I alter this method ?
         [HttpPost]
         [Route("{id}/SendAllUsersToAllDevicesInAccessGroup")]
         public Task<ResultViewModel> SendAllUsersToAllDevicesInAccessGroup([FromRoute] int id = default)

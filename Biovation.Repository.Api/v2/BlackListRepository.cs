@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 
 namespace Biovation.Repository.Api.v2
 {
-    public class BlackListRepository
+    public class BlackListRepository : ControllerBase
     {
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
