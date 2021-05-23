@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
 namespace Biovation.Service.Api.v2
@@ -44,6 +45,14 @@ namespace Biovation.Service.Api.v2
             return _deviceGroupRepository.DeleteDeviceGroupMember(id,token);
         }
 
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDelete)
+        {
+            return _deviceGroupRepository.DeleteUserFromDevice(device, usersToDelete);
+        }
 
+        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToAdd)
+        {
+            return _deviceGroupRepository.SendUserToDevice(device, usersToAdd);
+        }
     }
 }
