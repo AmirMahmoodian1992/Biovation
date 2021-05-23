@@ -1,10 +1,10 @@
-﻿using Biovation.Domain;
-using DataAccessLayerCore.Repositories;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Domain;
+using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.Sql.v1
 {
@@ -23,6 +23,7 @@ namespace Biovation.Repository.Sql.v1
             {
                 var parameters = new List<SqlParameter>
                 {
+                    new SqlParameter("@Id", SqlDbType.NVarChar) {Value = serviceInstance.Id},
                     new SqlParameter("@Name", SqlDbType.NVarChar) {Value = serviceInstance.Name},
                     new SqlParameter("@Version", SqlDbType.NVarChar) {Value = serviceInstance.Version},
                     new SqlParameter("@Ip", SqlDbType.NVarChar) {Value = serviceInstance.IpAddress},
@@ -52,7 +53,7 @@ namespace Biovation.Repository.Sql.v1
             });
         }
 
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance(string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = null)
         {
             return Task.Run(() =>
             {
@@ -61,7 +62,7 @@ namespace Biovation.Repository.Sql.v1
                     new SqlParameter("@Id", SqlDbType.NVarChar) {Value = id},
                 };
 
-                return _repository.ToResultList<ResultViewModel<ServiceInstance>>("SelectServiceInstance", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<ResultViewModel<List<ServiceInstance>>>("SelectServiceInstance", parameters).Data.FirstOrDefault();
             });
         }
 

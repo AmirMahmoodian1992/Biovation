@@ -36,7 +36,7 @@ namespace Biovation.Service.Api.v2
             return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance));
         }
 
-        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
         }
