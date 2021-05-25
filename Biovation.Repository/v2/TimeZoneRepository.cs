@@ -115,23 +115,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
 
-            return _repository.ToResultList<PagingResult<TimeZone>>("SelectTimeZones", sqlParameters, fetchCompositions: true).FetchFromResultList();
-            //var result = _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
-            //return new ResultViewModel<PagingResult<TimeZone>>
-            //{
-            //    Code = result.Code,
-            //    Message = result.Message,
-            //    Success = result.Success,
-            //    Id = result.Id,
-            //    Data = new PagingResult<TimeZone>
-            //    {
-            //        From = 0,
-            //        PageNumber = 1,
-            //        PageSize = result.Data.Count,
-            //        Count = result.Data.Count,
-            //        Data = result.Data
-            //    }
-            //};
+            return _repository.ToResultList<PagingResult<TimeZone>>("SelectTimeZones", sqlParameters, fetchCompositions: true, compositionDepthLevel: 4).FetchFromResultList();
         }
 
         /// <summary>
