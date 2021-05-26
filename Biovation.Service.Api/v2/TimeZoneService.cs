@@ -54,9 +54,9 @@ namespace Biovation.Service.Api.v2
             return new ResultViewModel { Validate = 1 };
         }
 
-        public ResultViewModel SendTimeZoneToAllDevices(int id, DeviceBasicInfo device)
+        public ResultViewModel SendTimeZoneToAllDevices(int id, DeviceBasicInfo device, string token)
         {
-            _timeZoneRepository.SendTimeZoneDevice(id, device);
+            _timeZoneRepository.SendTimeZoneDevice(id, device, token);
 
             return new ResultViewModel { Validate = 1 };
         }

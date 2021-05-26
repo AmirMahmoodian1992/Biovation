@@ -54,6 +54,7 @@ namespace Biovation.Service.Api.v2
             return Task.Run(() => _logRepository.CheckLogInsertion(logs, token));
         }
 
+        //TODO: Token
         public Task<byte[]> GetImage(long id)
         {
             return Task.Run(() =>

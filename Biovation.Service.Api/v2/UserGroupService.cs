@@ -86,14 +86,14 @@ namespace Biovation.Service.Api.v2
             return new ResultViewModel { Validate = 1, Id = userGroupId };
         }
 
-        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice)
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
-            return _userGroupRepository.DeleteUserFromDevice(device, usersToDeleteFromDevice);
+            return _userGroupRepository.DeleteUserFromDevice(device, usersToDeleteFromDevice,token);
         }
 
-        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice)
+        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
-            return _userGroupRepository.SendUserToDevice(device, usersToDeleteFromDevice);
+            return _userGroupRepository.SendUserToDevice(device, usersToDeleteFromDevice,token);
         }
 
         public List<ResultViewModel> ModifyUserGroupMember(string token)
