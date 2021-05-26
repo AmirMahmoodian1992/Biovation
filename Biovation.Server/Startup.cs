@@ -9,7 +9,6 @@ using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
 using Biovation.Server.Middleware;
-using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -22,10 +21,28 @@ using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceGroupService = Biovation.Service.Api.v1.DeviceGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using GenericCodeMappingService = Biovation.Service.Api.v1.GenericCodeMappingService;
 using Log = Serilog.Log;
+using LogService = Biovation.Service.Api.v1.LogService;
+using LookupService = Biovation.Service.Api.v1.LookupService;
+using PlateDetectionService = Biovation.Service.Api.v1.PlateDetectionService;
+using SettingService = Biovation.Service.Api.v1.SettingService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserGroupService = Biovation.Service.Api.v1.UserGroupService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Server
 {
@@ -175,6 +192,7 @@ namespace Biovation.Server
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
 
@@ -202,6 +220,7 @@ namespace Biovation.Server
             services.AddScoped<SettingService, SettingService>();
             services.AddScoped<LogService, LogService>();
             services.AddScoped<DeviceService, DeviceService>();
+            services.AddSingleton<ServiceInstanceService, ServiceInstanceService>();
 
             services.AddScoped<FaceTemplateService, FaceTemplateService>();
             services.AddScoped<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
@@ -220,6 +239,7 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
             services.AddScoped<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
             services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
+            
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddSingleton<TokenGenerator, TokenGenerator>();
         }

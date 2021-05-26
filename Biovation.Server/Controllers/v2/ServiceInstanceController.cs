@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -22,27 +23,36 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Route("WithoutId")]
+        [Authorize]
         public Task<ResultViewModel> AddServiceInstance(string name = default, string version = default, string ip = default, int port = default, string description = default)
         {
             return Task.Run(() => _serviceInstanceService.AddServiceInstanceWithoutId(name, version, ip, port, description));
         }
 
         [HttpPost]
+        [Authorize]
         public Task<ResultViewModel> AddServiceInstance([FromBody] ServiceInstance serviceInstance)
         {
             return Task.Run(() => _serviceInstanceService.AddServiceInstance(serviceInstance));
         }
 
         [HttpPut]
+        [Authorize]
         public Task<ResultViewModel> ModifyServiceInstance([FromBody] ServiceInstance serviceInstance)
         {
             return Task.Run(() => _serviceInstanceService.ModifyServiceInstance(serviceInstance));
         }
 
         [HttpGet]
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance([FromRoute] string id)
+        [Route("{id}")]
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance([FromRoute] string id = default)
         {
             return Task.Run(() => _serviceInstanceService.GetServiceInstance(id));
+        }
+        [HttpGet]
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance()
+        {
+            return Task.Run(() => _serviceInstanceService.GetServiceInstance());
         }
 
         [HttpDelete]

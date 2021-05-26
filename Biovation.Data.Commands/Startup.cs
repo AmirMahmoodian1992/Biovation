@@ -93,7 +93,7 @@ namespace Biovation.Data.Commands
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
 
             //integration
             services.AddScoped<LogApiSink, LogApiSink>();

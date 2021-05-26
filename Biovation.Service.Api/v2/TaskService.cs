@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -15,8 +15,8 @@ namespace Biovation.Service.Api.v2
         }
 
         public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
-            int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = default,
-            List<string> excludedTaskStatusCodes = default, int pageNumber = default,
+            string instanceId = default, int deviceId = default, string taskTypeCode = default,
+            List<string> taskStatusCodes = default, List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default, string token = default)
         {
             var taskStatusCodesString = string.Empty;
@@ -45,7 +45,7 @@ namespace Biovation.Service.Api.v2
                 excludedTaskStatusCodesString += ')';
             }
 
-            return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodesString,
+            return _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodesString,
                 excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token);
         }
 
@@ -84,7 +84,7 @@ namespace Biovation.Service.Api.v2
 
         public ResultViewModel InsertTask(TaskInfo task, string token = default)
         {
-            return _taskRepository.InsertTask(task,token);
+            return _taskRepository.InsertTask(task, token);
         }
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem)
         {

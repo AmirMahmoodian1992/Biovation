@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 
@@ -15,11 +16,11 @@ namespace Biovation.Service.Api.v2
 
         public Task<ResultViewModel> AddServiceInstanceWithoutId(string name, string version, string ip, int port, string description, string token = default)
         {
-            var serviceInstance = new ServiceInstance()
+            var serviceInstance = new ServiceInstance(null)
             {
                 Name = name,
                 Version = version,
-                Ip = ip,
+                IpAddress = ip,
                 Port = port,
                 Description = description
             };
@@ -35,12 +36,12 @@ namespace Biovation.Service.Api.v2
             return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance, token));
         }
 
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance(string id, string token = default)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id, token));
         }
 
-        public Task<ResultViewModel> DeleteServiceInstance(string id, string token = default)
+        public Task<ResultViewModel> DeleteServiceInstance(string id = default)
         {
             return Task.Run(() => _serviceInstanceRepository.DeleteServiceInstance(id, token));
         }

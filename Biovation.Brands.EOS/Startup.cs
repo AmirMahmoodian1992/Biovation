@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
 using System.Collections.Generic;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -77,7 +78,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
-
+            
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
             ConfigureEosServices(services);
@@ -125,6 +126,7 @@ namespace Biovation.Brands.EOS
 
             #endregion
 
+
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
             services.AddSingleton<BlackListService, BlackListService>();
@@ -141,6 +143,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
+            services.AddSingleton<ServiceInstanceService,ServiceInstanceService>();
 
             services.AddSingleton<Service.Api.v1.TaskService, Service.Api.v1.TaskService>();
 
@@ -160,6 +163,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardRepository, UserCardRepository>();
             services.AddSingleton<UserGroupRepository, UserGroupRepository>();
             services.AddSingleton<UserRepository, UserRepository>();
+            services.AddSingleton<ServiceInstanceRepository,ServiceInstanceRepository>();
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
@@ -169,6 +173,21 @@ namespace Biovation.Brands.EOS
         {
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
+            var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
+            var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
+            if (serviceInstance.changeId)
+            {
+                var setServiceInstanceId =
+                    FileActions.JsonWriter("appsettings.json", "ServiceInstance","ServiceInstanceId", serviceInstance.Id);
+                if (!setServiceInstanceId.Success)
+                {
+                    Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
+                }
+                string hostName = Dns.GetHostName();
+                serviceInstance.IpAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
+            }
+            serviceCollection.AddSingleton(serviceInstance);
 
             serviceCollection.AddSingleton(restClient);
 

@@ -102,6 +102,7 @@ namespace Biovation.Data.Queries
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
