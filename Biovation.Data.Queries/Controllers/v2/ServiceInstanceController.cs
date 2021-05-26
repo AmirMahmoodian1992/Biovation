@@ -25,5 +25,12 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
         }
+
+        [HttpGet]
+        [Authorize]
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance()
+        {
+            return Task.Run(() => _serviceInstanceRepository.GetServiceInstance());
+        }
     }
 }
