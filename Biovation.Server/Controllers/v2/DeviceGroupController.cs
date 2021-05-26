@@ -1,14 +1,13 @@
 ﻿using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
-using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -137,7 +136,7 @@ namespace Biovation.Server.Controllers.v2
                                         user => user.Code)
                                     : existingAuthorizedUsersOfDeletedDevice[deviceId];
 
-                                _deviceGroupService.DeleteUserFromDevice(device, usersToDelete);
+                                _deviceGroupService.DeleteUserFromDevice(device, usersToDelete, token);
 
                                 //var deleteUserRestRequest =
                                 //    new RestRequest(
@@ -176,7 +175,7 @@ namespace Biovation.Server.Controllers.v2
                                     return;
                                 }
 
-                                _deviceGroupService.SendUserToDevice(device, usersToAdd);
+                                _deviceGroupService.SendUserToDevice(device, usersToAdd, token);
 
                                 //var sendUserRestRequest =
                                 //        new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",

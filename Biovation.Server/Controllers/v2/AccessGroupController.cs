@@ -275,7 +275,7 @@ namespace Biovation.Server.Controllers.v2
 
             foreach (var device in devices)
             {
-                _accessGroupService.SendAccessGroupToDevice(device, id);
+                _accessGroupService.SendAccessGroupToDevice(device, id, token);
                 //var restRequest =
                 //    new RestRequest(
                 //        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
@@ -312,7 +312,7 @@ namespace Biovation.Server.Controllers.v2
                 };
             }
 
-            _accessGroupService.SendAccessGroupToDevice(device, id);
+            _accessGroupService.SendAccessGroupToDevice(device, id, token);
             //var restRequest =
             //    new RestRequest(
             //        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",

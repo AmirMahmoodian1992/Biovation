@@ -63,9 +63,9 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify the method
-        public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device, List<User> users)
+        public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device, List<User> users, string token = default)
         {
-            var usersResult =  _deviceRepository.RetrieveUsersOfDevice(device);
+            var usersResult =  _deviceRepository.RetrieveUsersOfDevice(device, token);
 
             var joinResult = (from r in usersResult?.Data
                 join u in users on r.Code equals u.Code
@@ -90,39 +90,39 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify method.
-        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
+        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, string fromDate, string toDate, string token = default)
         {
-            return _deviceRepository.ReadOfflineOfDevice(device, fromDate, toDate);
+            return _deviceRepository.ReadOfflineOfDevice(device, fromDate, toDate, token);
         }
 
-        public ResultViewModel RemoveUserFromDevice(DeviceBasicInfo device)
+        public ResultViewModel RemoveUserFromDevice(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.RemoveUserFromDevice(device);
+            return _deviceRepository.RemoveUserFromDevice(device, token);
         }
 
 
         // TODO - Verify method.
-        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, int userId)
+        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, int userId, string token = default)
         {
-            return _deviceRepository.RemoveUserFromDeviceById(device, userId);
+            return _deviceRepository.RemoveUserFromDeviceById(device, userId, token);
         }
 
         // TODO - Verify the method.
-        public List<DeviceBasicInfo> GetOnlineDevices()
+        public List<DeviceBasicInfo> GetOnlineDevices(string token = default)
         {
-            return _deviceRepository.GetOnlineDevices();
+            return _deviceRepository.GetOnlineDevices(token);
         }
 
         // TODO - Verify the method.
-        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, string fromDate, string toDate)
+        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, string fromDate, string toDate, string token)
         {
-            return _deviceRepository.ClearLogsOfDevice(device, fromDate, toDate);
+            return _deviceRepository.ClearLogsOfDevice(device, fromDate, toDate, token);
         }
 
         // TODO - Verify the method.
-        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, JArray userId = default)
+        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, JArray userId = default, string token = default)
         {
-            return _deviceRepository.RetrieveUsers(device, userId);
+            return _deviceRepository.RetrieveUsers(device, userId, token);
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)

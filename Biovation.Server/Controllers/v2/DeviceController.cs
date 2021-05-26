@@ -2,6 +2,7 @@
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Logger = Biovation.CommonClasses.Logger;
 
@@ -150,7 +150,7 @@ namespace Biovation.Server.Controllers.v2
                         return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
                     }
 
-                    var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate);
+                    var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate, token);
 
                     //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                     //restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -166,7 +166,7 @@ namespace Biovation.Server.Controllers.v2
                     {
                         return new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = readOfflineLogResult.ErrorMessage };
                     }
-                       
+
                     var resultData = readOfflineLogResult.Data;
                     resultData.Id = device.DeviceId;
                     resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
@@ -209,7 +209,7 @@ namespace Biovation.Server.Controllers.v2
                             continue;
                         }
 
-                        var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate);
+                        var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate, token);
 
                         //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
                         //restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -266,7 +266,7 @@ namespace Biovation.Server.Controllers.v2
                     //restRequest.AddQueryParameter("fromDate", fromDate);
                     //restRequest.AddQueryParameter("toDate", toDate);
                     //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    var clearLogOfDeviceResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate);
+                    var clearLogOfDeviceResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate, token);
 
                     if (!clearLogOfDeviceResult.IsSuccessful || clearLogOfDeviceResult.StatusCode != HttpStatusCode.OK)
                         return new ResultViewModel { Validate = 0, Message = "error", Id = id };
@@ -304,7 +304,7 @@ namespace Biovation.Server.Controllers.v2
                             continue;
                         }
 
-                        var clearLogResult= _deviceService.ClearLogOfDevice(device, fromDate, toDate);
+                        var clearLogResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate, token);
                         //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
                         //restRequest.AddQueryParameter("code", device.Code.ToString());
                         //restRequest.AddQueryParameter("fromDate", fromDate);
@@ -354,31 +354,8 @@ namespace Biovation.Server.Controllers.v2
         [Route("OnlineDevices")]
         public Task<List<DeviceBasicInfo>> OnlineDevices()
         {
-            //var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
-            {
-                var resultList = new List<DeviceBasicInfo>();
-                //var deviceBrands = _deviceService.GetDeviceBrands(token: token);
-                resultList = _deviceService.GetOnlineDevices();
-
-               //Parallel.ForEach(deviceBrands, deviceBrand =>
-                //{
-                //var restRequest =
-                    //    new RestRequest($"{deviceBrand.Name}/{si.FirstOrDefault().Id}/{deviceBrand.Name}Device/GetOnlineDevices");
-                    //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                    //{
-                    //    restRequest.AddHeader("Authorization",
-                    //        HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                    //}
-
-                    //var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
-
-                    //if (result.StatusCode == HttpStatusCode.OK)
-                    //    resultList.AddRange(deviceBasicInfoResult.Data);
-                //});
-
-                return resultList;
-            });
+            var token = (string)HttpContext.Items["Token"];
+            return Task.Run(() => _deviceService.GetOnlineDevices(token));
         }
 
         // TODO - Verify method.
@@ -398,7 +375,7 @@ namespace Biovation.Server.Controllers.v2
            {
                var device = _deviceService.GetDevice(id, token: token).Data;
 
-               var restResult = _deviceService.RetrieveUsers(device, userId);
+               var restResult = _deviceService.RetrieveUsers(device, userId, token);
 
                //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
@@ -443,7 +420,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var users = await userAwaiter;
 
-                var lastResult = _deviceService.RetrieveUsersOfDevice(device, users);
+                var lastResult = _deviceService.RetrieveUsersOfDevice(device, users, token);
 
                 //var lstResult = (from r in usersResult?.Data
                 //                 join u in users on r.Code equals u.Code
@@ -478,8 +455,7 @@ namespace Biovation.Server.Controllers.v2
                    return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
                var device = _deviceService.GetDevice(id, token: token).Data;
-
-               var restResult = _deviceService.RemoveUserFromDeviceById(device, userId);
+               var restResult = _deviceService.RemoveUserFromDeviceById(device, userId, token);
 
                return restResult;
 

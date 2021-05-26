@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Microsoft.AspNetCore.Mvc;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
-    public class AccessGroupRepository : ControllerBase
+    public class AccessGroupRepository
     {
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
@@ -146,7 +144,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel SendAccessGroupToDevice(DeviceBasicInfo device, int id)
+        public ResultViewModel SendAccessGroupToDevice(DeviceBasicInfo device, int id, string token = default)
         {
             var restRequest =
                 new RestRequest(
@@ -154,10 +152,8 @@ namespace Biovation.Repository.Api.v2
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("accessGroupId", id);
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter().GetResult().Data;
         }
     }
