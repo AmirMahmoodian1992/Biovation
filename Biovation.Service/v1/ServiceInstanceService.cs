@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Repository.Sql.v1;
 using System.Threading.Tasks;
 
@@ -23,7 +24,7 @@ namespace Biovation.Service.Sql.v1
             return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance));
         }
 
-        public Task<ResultViewModel<ServiceInstance>> GetServiceInstance(string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
         }

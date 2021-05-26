@@ -1,10 +1,12 @@
-﻿using Biovation.Domain;
+﻿using System;
+using Biovation.Domain;
 using DataAccessLayerCore.Repositories;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using DataAccessLayerCore.Extentions;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -53,16 +55,16 @@ namespace Biovation.Repository.Sql.v2
             });
         }
 
-        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = null)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
         {
             return Task.Run(() =>
             {
                 var parameters = new List<SqlParameter>
                 {
-                    new SqlParameter("@Id", SqlDbType.NVarChar) {Value = id},
+                    new SqlParameter("@Id", SqlDbType.NVarChar) {Value = id ?? string.Empty},
                 };
 
-                return _repository.ToResultList<ResultViewModel<List<ServiceInstance>>>("SelectServiceInstance", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<ServiceInstance>("SelectServiceInstanceById", parameters).FetchResultList();
             });
         }
 

@@ -41,7 +41,7 @@ namespace Biovation.Service.Api.v2
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
         }
 
-        public Task<ResultViewModel> DeleteServiceInstance(string id)
+        public Task<ResultViewModel> DeleteServiceInstance(string id = default)
         {
             return Task.Run(() => _serviceInstanceRepository.DeleteServiceInstance(id));
         }

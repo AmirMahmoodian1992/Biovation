@@ -53,7 +53,7 @@ namespace Biovation.Repository.Sql.v1
             });
         }
 
-        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = null)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
         {
             return Task.Run(() =>
             {
