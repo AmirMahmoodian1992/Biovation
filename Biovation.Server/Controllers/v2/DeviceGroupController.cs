@@ -1,14 +1,13 @@
 ﻿using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
-using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Server.Attribute;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -43,7 +42,7 @@ namespace Biovation.Server.Controllers.v2
         //    ///TODO: change the modify sp
         //}
 
-
+        // TODO - Verify Method.
         [HttpPut]
         public Task<ResultViewModel> ModifyDeviceGroup([FromBody] DeviceGroup deviceGroup)
         {
@@ -137,18 +136,21 @@ namespace Biovation.Server.Controllers.v2
                                         user => user.Code)
                                     : existingAuthorizedUsersOfDeletedDevice[deviceId];
 
-                                var deleteUserRestRequest =
-                                    new RestRequest(
-                                        $"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
-                                        Method.POST);
-                                deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                                deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Code));
-                                /*var deletionResult =*/
-                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                                {
-                                    deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                                }
-                                await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
+                                _deviceGroupService.DeleteUserFromDevice(device, usersToDelete, token);
+
+                                //var deleteUserRestRequest =
+                                //    new RestRequest(
+                                //        $"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
+                                //        Method.POST);
+                                //deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
+                                //deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Code));
+                                ///*var deletionResult =*/
+                                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                //{
+                                //    deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                //}
+                                //await _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest);
+
                             });
                         }
 
@@ -169,20 +171,24 @@ namespace Biovation.Server.Controllers.v2
                                         : newAuthorizedUsersOfDevice;
 
                                 if (usersToAdd is null)
-                                    return;
-                                
-                                var sendUserRestRequest =
-                                        new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
-                                            Method.GET);
-                                sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                                sendUserRestRequest.AddQueryParameter("userId",
-                                    JsonConvert.SerializeObject(usersToAdd.Select(user => user.Code)));
-                                /*var additionResult =*/
-                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
                                 {
-                                    sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                    return;
                                 }
-                                await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
+
+                                _deviceGroupService.SendUserToDevice(device, usersToAdd, token);
+
+                                //var sendUserRestRequest =
+                                //        new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
+                                //            Method.GET);
+                                //sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
+                                //sendUserRestRequest.AddQueryParameter("userId",
+                                //    JsonConvert.SerializeObject(usersToAdd.Select(user => user.Code)));
+                                ///*var additionResult =*/
+                                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                //{
+                                //    sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                                //}
+                                //await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);
                             });
                         }
                     }

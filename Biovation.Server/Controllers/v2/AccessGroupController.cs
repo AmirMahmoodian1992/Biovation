@@ -47,6 +47,8 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _accessGroupService.AddAccessGroup(accessGroup, token));
         }
 
+
+        // TODO - Should I change this method ?
         [HttpPatch]
         public Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
@@ -168,6 +170,7 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _accessGroupService.DeleteAccessGroup(id, token));
         }
 
+        // TODO - Should I alter this method ?
         [HttpPost]
         [Route("{id}/SendAllUsersToAllDevicesInAccessGroup")]
         public Task<ResultViewModel> SendAllUsersToAllDevicesInAccessGroup([FromRoute] int id = default)
@@ -261,7 +264,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-
+        // TODO - Verify method.
         [HttpPost]
         [Route("SendAccessGroupToDevices/{id}")]
         public ResultViewModel SendAccessGroupToDevices([FromRoute] int id)
@@ -272,21 +275,24 @@ namespace Biovation.Server.Controllers.v2
 
             foreach (var device in devices)
             {
-                var restRequest =
-                    new RestRequest(
-                        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-                        Method.GET);
-                restRequest.AddParameter("code", device.Code);
-                restRequest.AddParameter("accessGroupId", id);
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                _accessGroupService.SendAccessGroupToDevice(device, id, token);
+                //var restRequest =
+                //    new RestRequest(
+                //        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+                //        Method.GET);
+                //restRequest.AddParameter("code", device.Code);
+                //restRequest.AddParameter("accessGroupId", id);
+                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                //{
+                //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                //}
+                //_restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
             return new ResultViewModel { Validate = 1 };
         }
 
+
+        // TODO - Verify method.
         [HttpPost]
         [Route("SendAccessGroupToDevice/{id}")]
         public ResultViewModel SendAccessGroupToDevice([FromRoute] int id, int deviceId)
@@ -306,17 +312,18 @@ namespace Biovation.Server.Controllers.v2
                 };
             }
 
-            var restRequest =
-                new RestRequest(
-                    $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-                    Method.GET);
-            restRequest.AddParameter("code", device.Code);
-            restRequest.AddParameter("accessGroupId", id);
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
-            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            _accessGroupService.SendAccessGroupToDevice(device, id, token);
+            //var restRequest =
+            //    new RestRequest(
+            //        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+            //        Method.GET);
+            //restRequest.AddParameter("code", device.Code);
+            //restRequest.AddParameter("accessGroupId", id);
+            //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            //{
+            //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            //}
+            //_restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return new ResultViewModel { Validate = 1 };
         }
     }

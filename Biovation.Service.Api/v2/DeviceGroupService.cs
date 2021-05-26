@@ -1,5 +1,6 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v2
 {
@@ -18,32 +19,40 @@ namespace Biovation.Service.Api.v2
             return _deviceGroupRepository.GetDeviceGroups(deviceGroupId, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id =default,
+        public ResultViewModel<PagingResult<DeviceGroup>> GetAccessControlDeviceGroup(int id = default,
             int pageNumber = default, int pageSize = default, string token = default)
         {
             return _deviceGroupRepository.GetAccessControlDeviceGroup(id, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup =default, string token = default)
+        public ResultViewModel ModifyDeviceGroup(DeviceGroup deviceGroup = default, string token = default)
         {
             return _deviceGroupRepository.ModifyDeviceGroup(deviceGroup, token);
         }
 
-        public ResultViewModel ModifyDeviceGroupMember(string node = default, int groupId =default, string token = default)
+        public ResultViewModel ModifyDeviceGroupMember(string node = default, int groupId = default, string token = default)
         {
             return _deviceGroupRepository.ModifyDeviceGroupMember(node, groupId, token);
         }
 
-        public ResultViewModel DeleteDeviceGroup(int id =default, string token = default)
+        public ResultViewModel DeleteDeviceGroup(int id = default, string token = default)
         {
-            return _deviceGroupRepository.DeleteDeviceGroup(id,token);
+            return _deviceGroupRepository.DeleteDeviceGroup(id, token);
         }
 
         public ResultViewModel DeleteDeviceGroupMember(uint id = default, string token = default)
         {
-            return _deviceGroupRepository.DeleteDeviceGroupMember(id,token);
+            return _deviceGroupRepository.DeleteDeviceGroupMember(id, token);
         }
 
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDelete, string token = default)
+        {
+            return _deviceGroupRepository.DeleteUserFromDevice(device, usersToDelete, token);
+        }
 
+        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToAdd, string token = default)
+        {
+            return _deviceGroupRepository.SendUserToDevice(device, usersToAdd, token);
+        }
     }
 }

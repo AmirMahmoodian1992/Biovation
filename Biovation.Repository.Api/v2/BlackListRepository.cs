@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -18,7 +18,7 @@ namespace Biovation.Repository.Api.v2
 
         public ResultViewModel<PagingResult<BlackList>> GetBlacklist(int id = default, int userId = default,
             int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default,
-            int pageNumber = default, int pageSize = default, string token =default)
+            int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/BlackList/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
@@ -35,7 +35,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel CreateBlackList( BlackList blackList, string token = default)
+        public ResultViewModel CreateBlackList(BlackList blackList, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/BlackList", Method.POST);
             restRequest.AddJsonBody(blackList);

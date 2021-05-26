@@ -61,5 +61,12 @@ namespace Biovation.Service.Api.v2
         {
             return _userRepository.ModifyPassword(id, password, token);
         }
+
+        // TODO - Verify method.
+        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default, string token = default)
+        {
+            _userRepository.DeleteUserFromAllTerminal(deviceBrands, usersToSync, token);
+        }
+
     }
 }

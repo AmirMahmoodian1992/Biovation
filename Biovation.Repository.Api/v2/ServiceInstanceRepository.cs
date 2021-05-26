@@ -21,7 +21,8 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel AddServiceInstance(ServiceInstance serviceInstance, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/ServiceInstance", Method.POST);
-
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             restRequest.AddJsonBody(serviceInstance);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);

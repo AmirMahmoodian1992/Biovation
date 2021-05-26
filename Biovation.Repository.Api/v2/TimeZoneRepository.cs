@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -46,11 +46,26 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel DeleteTimeZone(int id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/TimeZone/{id}", Method.DELETE);
-            restRequest.AddUrlSegment("id", id.ToString()); 
+            restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
+        }
+
+        public List<ResultViewModel> SendTimeZoneDevice(int id, DeviceBasicInfo device, string token = default)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                    Method.GET);
+            restRequest.AddParameter("code", device.Code);
+            restRequest.AddParameter("timeZoneId", id);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+            return new List<ResultViewModel>(requestResult.Result.Data);
         }
     }
 }

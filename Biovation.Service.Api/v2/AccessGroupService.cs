@@ -73,7 +73,9 @@ namespace Biovation.Service.Api.v2
             return _accessGroupRepository.DeleteAccessGroup(id, token);
         }
 
-
-
+        public void SendAccessGroupToDevice(DeviceBasicInfo device, int id, string token = default)
+        {
+            _accessGroupRepository.SendAccessGroupToDevice(device, id, token);
+        }
     }
 }

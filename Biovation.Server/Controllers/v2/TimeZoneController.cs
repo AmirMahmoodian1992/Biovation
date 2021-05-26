@@ -58,7 +58,7 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _timeZoneService.ModifyTimeZone(timeZone, token));
         }
 
-
+        // TODO - Verify Method.
         //send to all device when deviceId is null
         [HttpPost]
         [Route("{id}/SendDevice/{deviceId}")]
@@ -68,33 +68,37 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() =>
             {
 
-                var device = _deviceService.GetDevice(deviceId, token: token)?.Data;
-                if (device is null)
-                    return new ResultViewModel
-                    {
-                        Id = id,
-                        Code = 404,
-                        Message = "The provided device id is wrong",
-                        Success = false,
-                        Validate = 0
-                    };
+                //var device = _deviceService.GetDevice(deviceId, token: token)?.Data;
+                //if (device is null)
+                //    return new ResultViewModel
+                //    {
+                //        Id = id,
+                //        Code = 404,
+                //        Message = "The provided device id is wrong",
+                //        Success = false,
+                //        Validate = 0
+                //    };
 
-                var restRequest =
-                    new RestRequest(
-                        $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
-                        Method.GET);
-                restRequest.AddParameter("code", device.Code);
-                restRequest.AddParameter("timeZoneId", id);
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
-                _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                //var restRequest =
+                //    new RestRequest(
+                //        $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                //        Method.GET);
+                //restRequest.AddParameter("code", device.Code);
+                //restRequest.AddParameter("timeZoneId", id);
+                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                //{
+                //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                //}
+                //_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                _timeZoneService.SendTimeZoneDevice(id, deviceId, token);
+
                 return new ResultViewModel { Validate = 1 };
             });
 
         }
 
+        // TODO - Verify Method.
         [HttpPost]
         [Route("{id}/SendTimeZoneToAllDevices")]
         public Task<List<ResultViewModel>> SendTimeZoneToAllDevices([FromRoute]int id = default)
@@ -108,20 +112,24 @@ namespace Biovation.Server.Controllers.v2
                 var result = new List<ResultViewModel>();
                 foreach (var device in devices)
                 {
-                    var restRequest =
-                        new RestRequest(
-                            $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
-                            Method.GET);
-                    restRequest.AddParameter("code", device.Code);
-                    restRequest.AddParameter("timeZoneId", id);
-                    if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                    {
-                        restRequest.AddHeader("Authorization",
-                            HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                    }
+                    //var restRequest =
+                    //    new RestRequest(
+                    //        $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                    //        Method.GET);
+                    //restRequest.AddParameter("code", device.Code);
+                    //restRequest.AddParameter("timeZoneId", id);
+                    //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                    //{
+                    //    restRequest.AddHeader("Authorization",
+                    //        HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+                    //}
 
-                    _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-                    result.Add(new ResultViewModel { Validate = 1 });
+                    var sendTimeZoneResult = _timeZoneService.SendTimeZoneToAllDevices(id, device);
+
+                    //_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                    //result.Add(new ResultViewModel { Validate = 1 });
+
+                    result.Add(sendTimeZoneResult);
                 }
 
                 return result;

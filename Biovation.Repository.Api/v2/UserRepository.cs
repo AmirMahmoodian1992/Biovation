@@ -1,18 +1,22 @@
-﻿using Biovation.Domain;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
 using RestSharp;
+using System;
 using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
+using System.Linq;
 
 namespace Biovation.Repository.Api.v2
 {
     public class UserRepository
     {
         private readonly RestClient _restClient;
+        private readonly SystemInfo _systemInformation;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        public UserRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        public UserRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, SystemInfo systemInformation)
         {
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _systemInformation = systemInformation;
         }
 
         public ResultViewModel<PagingResult<User>> GetUsers(int from = default,
@@ -57,7 +61,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<int> GetUsersCount(string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/User/UsersCount", Method.GET);
-          
+
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<int>>(restRequest);
@@ -131,6 +135,21 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("password", password ?? string.Empty);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Result.Data;
+        }
+
+        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default, string token = default)
+        {
+            var serviceInstances = _systemInformation.Services;
+            foreach (var restRequest in from deviceBrand in deviceBrands
+                                        from serviceInstance in serviceInstances
+                                        select
+new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST))
+            {
+                restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
+                token ??= _biovationConfigurationManager.DefaultToken;
+                restRequest.AddHeader("Authorization", token);
+                _restClient.ExecuteAsync(restRequest);
+            }
         }
     }
 }

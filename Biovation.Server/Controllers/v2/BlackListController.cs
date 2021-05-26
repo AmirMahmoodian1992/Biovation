@@ -26,6 +26,7 @@ namespace Biovation.Server.Controllers.v2
             _restClient = restClient;
         }
 
+        // TODO - Need more  consideration.
         [HttpPost]
         public Task<List<ResultViewModel>> CreateBlackList([FromBody] List<BlackList> blackLists)
         {
@@ -43,7 +44,9 @@ namespace Biovation.Server.Controllers.v2
                         {
                             if (blackList.Validate == 1)
                             {
-                                successResult.Add((_blackListService.GetBlacklist(id: (int)blackList.Id, token: token)).Data.Data.Find(l => l.Id == blackList.Id));
+                                successResult.Add(
+                                    (_blackListService.GetBlacklist(id: (int) blackList.Id, token: token)).Data.Data
+                                    .Find(l => l.Id == blackList.Id));
 
                             }
                         }
@@ -99,6 +102,7 @@ namespace Biovation.Server.Controllers.v2
             return Task.Run(() => _blackListService.GetBlacklist(id, userid, deviceId, startDate, endDate, isDeleted, token: token));
         }
 
+        // TODO - Need more consideration.
         [HttpPut]
         public Task<ResultViewModel> ChangeBlackList([FromBody] BlackList blackList)
         {

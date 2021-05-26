@@ -14,7 +14,7 @@ namespace Biovation.Service.Api.v2
             _serviceInstanceRepository = serviceInstanceRepository;
         }
 
-        public Task<ResultViewModel> AddServiceInstanceWithoutId(string name, string version, string ip, int port, string description)
+        public Task<ResultViewModel> AddServiceInstanceWithoutId(string name, string version, string ip, int port, string description, string token = default)
         {
             var serviceInstance = new ServiceInstance(null)
             {
@@ -24,26 +24,26 @@ namespace Biovation.Service.Api.v2
                 Port = port,
                 Description = description
             };
-            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance));
+            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance, token));
         }
-        public Task<ResultViewModel> AddServiceInstance(ServiceInstance serviceInstance)
+        public Task<ResultViewModel> AddServiceInstance(ServiceInstance serviceInstance, string token = default)
         {
-            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance));
+            return Task.Run(() => _serviceInstanceRepository.AddServiceInstance(serviceInstance, token));
         }
 
-        public Task<ResultViewModel> ModifyServiceInstance(ServiceInstance serviceInstance)
+        public Task<ResultViewModel> ModifyServiceInstance(ServiceInstance serviceInstance, string token = default)
         {
-            return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance));
+            return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance, token));
         }
 
         public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
         {
-            return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id));
+            return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id, token));
         }
 
         public Task<ResultViewModel> DeleteServiceInstance(string id = default)
         {
-            return Task.Run(() => _serviceInstanceRepository.DeleteServiceInstance(id));
+            return Task.Run(() => _serviceInstanceRepository.DeleteServiceInstance(id, token));
         }
     }
 }

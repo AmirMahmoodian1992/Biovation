@@ -3,12 +3,12 @@ using Biovation.Repository.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 
 namespace Biovation.Service.Api.v2
 {
-    public class DeviceService : ControllerBase
+    public class DeviceService
     {
         private readonly DeviceRepository _deviceRepository;
 
@@ -63,52 +63,66 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify the method
-        public ResultViewModel<List<User>> RetrieveUsersOfDevice(RestClient restClient, DeviceBasicInfo device)
+        public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device, List<User> users, string token = default)
         {
-            var restRequest =
-                new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
-            restRequest.AddQueryParameter("code", device.Code.ToString());
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            var usersResult =  _deviceRepository.RetrieveUsersOfDevice(device, token);
 
-            var restAwaiter = restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest).GetAwaiter();
-            return restAwaiter.GetResult().Data;
+            var joinResult = (from r in usersResult?.Data
+                join u in users on r.Code equals u.Code
+                    into ps
+                from u in ps.DefaultIfEmpty()
+                select new User
+                {
+                    Type = u == null ? 0 : 1,
+                    IsActive = r.IsActive,
+                    Id = r.Id,
+                    Code = r.Code,
+                    FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
+                    StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
+                    EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                }).ToList();
+
+            var lastResult = new ResultViewModel<List<User>>
+            {
+                Data = joinResult
+            };
+            return lastResult;
         }
 
         // TODO - Verify method.
-        public IRestResponse<ResultViewModel> ReadOfflineLog(RestClient restClient, DeviceBasicInfo device, string fromDate, string toDate)
+        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, string fromDate, string toDate, string token = default)
         {
-            var restRequest =
-                new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/ReadOfflineOfDevice");
-            restRequest.AddQueryParameter("code", device.Code.ToString());
-            restRequest.AddQueryParameter("fromDate", fromDate);
-            restRequest.AddQueryParameter("toDate", toDate);
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            return _deviceRepository.ReadOfflineOfDevice(device, fromDate, toDate, token);
+        }
 
-            var restAwaiter = restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
-            return restAwaiter.GetResult();
+        public ResultViewModel RemoveUserFromDevice(DeviceBasicInfo device, string token = default)
+        {
+            return _deviceRepository.RemoveUserFromDevice(device, token);
+        }
+
+
+        // TODO - Verify method.
+        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, int userId, string token = default)
+        {
+            return _deviceRepository.RemoveUserFromDeviceById(device, userId, token);
         }
 
         // TODO - Verify the method.
-        public ResultViewModel<List<DeviceBasicInfo>> GetOnlineDevices(RestClient restClient, Lookup deviceBrand, ServiceInstance serviceInstance)
+        public List<DeviceBasicInfo> GetOnlineDevices(string token = default)
         {
-            var restRequest =
-                new RestRequest($"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices");
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization",
-                    HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            return _deviceRepository.GetOnlineDevices(token);
+        }
 
-            var restAwaiter = restClient.ExecuteAsync<ResultViewModel<List<DeviceBasicInfo>>>(restRequest).GetAwaiter();
-            return restAwaiter.GetResult().Data;
+        // TODO - Verify the method.
+        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, string fromDate, string toDate, string token)
+        {
+            return _deviceRepository.ClearLogsOfDevice(device, fromDate, toDate, token);
+        }
+
+        // TODO - Verify the method.
+        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, JArray userId = default, string token = default)
+        {
+            return _deviceRepository.RetrieveUsers(device, userId, token);
         }
 
         public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)
