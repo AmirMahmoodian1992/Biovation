@@ -18,17 +18,19 @@ namespace Biovation.Brands.ZK.Manager
     {
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
+        private readonly ServiceInstance _instanceData;
         private readonly CommandFactory _commandFactory;
 
         private readonly ILogger<TaskManager> _logger;
         private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
-        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory, ILogger<TaskManager> logger)
+        public TaskManager(TaskService taskService, TaskStatuses taskStatuses, CommandFactory commandFactory, ILogger<TaskManager> logger, ServiceInstance instanceData)
         {
             _logger = logger;
             _taskService = taskService;
-            _commandFactory = commandFactory;
             _taskStatuses = taskStatuses;
+            _instanceData = instanceData;
+            _commandFactory = commandFactory;
         }
 
         public async Task ExecuteTask(TaskInfo taskInfo)
@@ -378,8 +380,13 @@ namespace Biovation.Brands.ZK.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+            var allTasks = await _taskService.GetTasks(instanceId: _instanceData?.Id,
+                brandCode: _instanceData is null ? DeviceBrands.ZkTecoCode : default, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string>
+                {
+                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                });
 
             lock (_tasks)
             {
@@ -395,7 +402,7 @@ namespace Biovation.Brands.ZK.Manager
             }
 
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
