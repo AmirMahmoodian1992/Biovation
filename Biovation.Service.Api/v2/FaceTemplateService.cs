@@ -17,7 +17,7 @@ namespace Biovation.Service.Api.v2
             long userId = 0, int index = 0, int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _faceTemplateRepository.FaceTemplates(fingerTemplateTypeCode, userId, index, pageNumber, pageSize)?.Data?.Data ?? new List<FaceTemplate>();
+            return _faceTemplateRepository.FaceTemplates(fingerTemplateTypeCode, userId, index, pageNumber, pageSize, token)?.Data?.Data ?? new List<FaceTemplate>();
         }
 
         public ResultViewModel ModifyFaceTemplate(FaceTemplate faceTemplate, string token = default)

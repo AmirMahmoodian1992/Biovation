@@ -1,16 +1,13 @@
-﻿using System;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses.Manager;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.SqlServer.TransactSql.ScriptDom;
 
 namespace Biovation.Repository.Api.v2
 {
-    public class UserRepository : ControllerBase
+    public class UserRepository
     {
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
@@ -64,7 +61,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel<int> GetUsersCount(string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/User/UsersCount", Method.GET);
-          
+
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<int>>(restRequest);
@@ -140,17 +137,17 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default)
+        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default, string token = default)
         {
             var serviceInstances = _systemInformation.Services;
-            foreach (var restRequest in from deviceBrand in deviceBrands from serviceInstance in serviceInstances select 
-                new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST))
+            foreach (var restRequest in from deviceBrand in deviceBrands
+                                        from serviceInstance in serviceInstances
+                                        select
+new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST))
             {
                 restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
+                token ??= _biovationConfigurationManager.DefaultToken;
+                restRequest.AddHeader("Authorization", token);
                 _restClient.ExecuteAsync(restRequest);
             }
         }

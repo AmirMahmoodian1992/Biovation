@@ -1,14 +1,13 @@
 ﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Newtonsoft.Json;
 using RestSharp;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Biovation.Repository.Api.v2
 {
-    public class UserGroupRepository : ControllerBase
+    public class UserGroupRepository
     {
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
@@ -87,7 +86,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public List<List<ResultViewModel>> SendUsersOfGroup(List<ServiceInstance> serviceInstances, Lookup deviceBrand, User user)
+        public List<List<ResultViewModel>> SendUsersOfGroup(List<ServiceInstance> serviceInstances, Lookup deviceBrand, User user, string token = default)
         {
             var resultViewModels = new List<List<ResultViewModel>>();
             foreach (var serviceInstance in serviceInstances)
@@ -96,10 +95,8 @@ namespace Biovation.Repository.Api.v2
                     new RestRequest(
                         $"/biovation/api/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/SendUserToAllDevices",
                         Method.POST);
-                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                {
-                    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                }
+                token ??= _biovationConfigurationManager.DefaultToken;
+                restRequest.AddHeader("Authorization", token);
 
                 restRequest.AddJsonBody(user);
 
@@ -109,7 +106,7 @@ namespace Biovation.Repository.Api.v2
             return resultViewModels;
         }
 
-        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice)
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
             var deleteUserRestRequest =
                 new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/DeleteUserFromDevice",
@@ -119,15 +116,13 @@ namespace Biovation.Repository.Api.v2
 
             deleteUserRestRequest.AddJsonBody(usersToDeleteFromDevice.Select(user => user.Code));
 
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                deleteUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            token ??= _biovationConfigurationManager.DefaultToken;
+            deleteUserRestRequest.AddHeader("Authorization", token);
 
             return _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest).GetAwaiter().GetResult().Data;
         }
 
-        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice)
+        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
             var sendUserRestRequest =
                 new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
@@ -136,26 +131,21 @@ namespace Biovation.Repository.Api.v2
 
             sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
 
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                sendUserRestRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            token ??= _biovationConfigurationManager.DefaultToken;
+            sendUserRestRequest.AddHeader("Authorization", token);
 
             return _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest).GetAwaiter().GetResult().Data;
         }
 
-        public List<ResultViewModel> ModifyUserGroupMember(Lookup deviceBrand)
+        public List<ResultViewModel> ModifyUserGroupMember(Lookup deviceBrand, string token = default)
         {
             var restRequest =
                 new RestRequest(
                     $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
                     Method.POST);
 
-            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            {
-                restRequest.AddHeader("Authorization",
-                    HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            }
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
 
             return _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).GetAwaiter().GetResult().Data;
         }

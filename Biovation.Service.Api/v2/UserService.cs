@@ -63,9 +63,9 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify method.
-        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default)
+        public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default, string token = default)
         {
-            _userRepository.DeleteUserFromAllTerminal(deviceBrands, usersToSync);
+            _userRepository.DeleteUserFromAllTerminal(deviceBrands, usersToSync, token);
         }
 
     }

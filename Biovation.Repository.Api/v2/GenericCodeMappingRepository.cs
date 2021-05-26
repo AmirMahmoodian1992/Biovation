@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
+﻿using Biovation.Domain;
 using RestSharp;
 
 namespace Biovation.Repository.Api.v2
@@ -23,7 +18,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest = new RestRequest("Queries/v2/GenericCodeMapping/GenericCodeMappings", Method.GET);
             restRequest.AddQueryParameter("categoryId", categoryId.ToString());
-            restRequest.AddQueryParameter("brandCode", brandCode);
+            restRequest.AddQueryParameter("brandCode", brandCode ?? string.Empty);
             restRequest.AddQueryParameter("manufactureCode", manufactureCode.ToString());
             restRequest.AddQueryParameter("genericCode", genericCode.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
