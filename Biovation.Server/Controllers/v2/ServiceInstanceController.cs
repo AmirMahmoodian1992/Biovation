@@ -41,7 +41,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance([FromRoute] string id)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance([FromRoute] string id = default)
         {
             return Task.Run(() => _serviceInstanceService.GetServiceInstance(id));
         }

@@ -58,7 +58,7 @@ namespace Biovation.Server.HostedServices
                 return;
 
             var deviceBrands = _lookups.DeviceBrands;
-            var Instances =  _serviceInstanceService.GetServiceInstance(null)?.Result?.Data;
+            var Instances =  _serviceInstanceService.GetServiceInstance()?.Result?.Data;
             Parallel.ForEach(Instances, Instance =>
             {
                 Parallel.ForEach(deviceBrands, deviceBrand =>
