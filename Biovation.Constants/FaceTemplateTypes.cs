@@ -9,6 +9,7 @@ namespace Biovation.Constants
         public const string ZKVX7Code = "18102";
         public const string SFACECode = "18103";
         public const string EOSHanvonCode = "18104";
+        public const string VWTFACECode = "12";
 
         public FaceTemplateTypes(Lookups lookups)
         {
@@ -16,11 +17,14 @@ namespace Biovation.Constants
             ZKVX7 = lookups.FaceTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, ZKVX7Code));
             SFACE = lookups.FaceTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, SFACECode));
             EOSHanvon = lookups.FaceTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, EOSHanvonCode));
+            VWTFACE = lookups.FaceTemplateType.FirstOrDefault(lookup => string.Equals(lookup.Code, VWTFACECode));
         }
 
         public Lookup VFACE { get; set; }
+        public Lookup VWTFACE { get; set; }
         public Lookup ZKVX7 { get; set; }
         public Lookup SFACE { get; set; }
         public Lookup EOSHanvon { get; set; }
+        
     }
 }
