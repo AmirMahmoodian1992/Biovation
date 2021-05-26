@@ -46,9 +46,9 @@ namespace Biovation.Brands.Virdi.Manager
         {
             return _virdiMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
-        public Lookup GetFaceTemplateTypeLookup(int virdiCode)
+        public Lookup GetFaceTemplateTypeLookup(string faceCode)
         {
-            return _virdiFaceTemplateTypeMappings.FirstOrDefault(faceTemplateType => string.Equals(faceTemplateType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+            return _virdiFaceTemplateTypeMappings.FirstOrDefault(faceTemplateType => string.Equals(faceTemplateType.ManufactureCode, faceCode, StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
         }
     }
 }
