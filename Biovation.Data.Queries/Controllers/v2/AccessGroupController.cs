@@ -22,10 +22,12 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
+        public Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(int userId = 0, int userGroupId = 0,
+            int id = 0, int deviceId = 0, int deviceGroupId = default, int timeZoneId = 0, int pageNumber = default,
+            int pageSize = default, int nestingDepthLevel = 5)
         {
             return Task.Run(() => _accessGroupRepository.AccessGroups(userId, (int)HttpContext.GetUser().Id, userGroupId, id, deviceId, deviceGroupId,
-                 pageNumber, pageSize, nestingDepthLevel));
+                 timeZoneId, pageNumber, pageSize, nestingDepthLevel));
         }
 
         [HttpGet]

@@ -41,10 +41,10 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public async Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default)
+        public async Task<ResultViewModel<PagingResult<AccessGroup>>> AccessGroups(long userId = default, int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int timeZoneId = default, int pageNumber = default, int pageSize = default)
         {
             return await _accessGroupService.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize, token: HttpContext.Items["Token"] as string);
+                timeZoneId, pageNumber, pageSize, token: HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
