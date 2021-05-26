@@ -216,6 +216,7 @@ namespace Biovation.Brands.Virdi
             var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
             var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var faceTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(14);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
             var lookups = new Lookups
@@ -238,6 +239,7 @@ namespace Biovation.Brands.Virdi
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
+                FaceTemplateTypeMappings = faceTemplateTypeMappingsQuery.Result?.Data?.Data,
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using Biovation.Brands.Virdi.Manager;
 using Biovation.Brands.Virdi.Model.Unis;
 using UNIONCOMM.SDK.UCBioBSP;
 using Encoding = System.Text.Encoding;
@@ -42,6 +43,7 @@ namespace Biovation.Brands.Virdi.Command
 
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
+        private readonly VirdiCodeMappings _virdiCodeMappings;
 
         private readonly List<char> _persianLetters = new List<char>
         {
@@ -49,7 +51,7 @@ namespace Biovation.Brands.Virdi.Command
             'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی', 'ي', 'ء', 'إ', 'أ', 'ؤ', 'ئ', 'ة', 'ك'
         };
 
-        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, VirdiCodeMappings virdiCodeMappings)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -60,6 +62,7 @@ namespace Biovation.Brands.Virdi.Command
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
+            _virdiCodeMappings = virdiCodeMappings;
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -173,14 +176,13 @@ namespace Biovation.Brands.Virdi.Command
                     _virdiServer.ServerUserData.FaceNumber = virdiFace.Index;
                     _virdiServer.ServerUserData.FaceData = virdiFace.Template;
                     _virdiServer.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
-                    var walkThrough = new UnisFaceWalkThroughTemplate()
-                    {
-                        Data = virdiFace.Template,
-                        Length = virdiFace.Size,
-                        Type = 0 ////////////////TODO: Find it and FIx it
-                    };
-                    _virdiServer.ServerUserData.SetWalkThroughData(walkThrough.Type, walkThrough.Length, walkThrough.Data);
                     isFace = true;
+                }
+                
+                var vWTHFace = _faceTemplateService.FaceTemplates(userId: UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VWTFACECode);
+                if (vWTHFace != null && vWTHFace.Size > 0)
+                {
+                    _virdiServer.ServerUserData.SetWalkThroughData(int.Parse(_virdiCodeMappings.GetFaceTemplateTypeLookup(int.Parse(FaceTemplateTypes.VWTFACECode)).Code), vWTHFace.Size,vWTHFace.Template);
                 }
 
 

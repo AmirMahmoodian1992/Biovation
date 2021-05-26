@@ -443,13 +443,13 @@ namespace Biovation.Brands.Virdi.Command
                             if (walkthroughLenght > 0)
                             {
                                 var faceWalkData = _terminalUserData.WalkThroughData;
-                                var faceWalkType = _terminalUserData.WalkThroughType;
-                                var walkThroughFace = new UnisFaceWalkThroughTemplate()
-                                {
-                                    Data = (byte[])faceWalkData,
-                                    Type = faceWalkType,
-                                    Length = walkthroughLenght
-                                };
+                                //var faceWalkType = _terminalUserData.WalkThroughType;
+                                //var walkThroughFace = new UnisFaceWalkThroughTemplate()
+                                //{
+                                //    Data = (byte[])faceWalkData,
+                                //    Type = faceWalkType,
+                                //    Length = walkthroughLenght
+                                //};
 
                                 if (user.FaceTemplates is null)
                                     user.FaceTemplates = new List<FaceTemplate>();
@@ -460,7 +460,8 @@ namespace Biovation.Brands.Virdi.Command
                                 if (existUser != null)
                                     existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
 
-                                var faceData = Serialize(walkThroughFace);
+                                //var faceData = Serialize(walkThroughFace);
+                                var faceData = (byte[]) faceWalkData;
                                 var faceTemplate = new FaceTemplate
                                 {
                                     Index = 1,
@@ -473,7 +474,7 @@ namespace Biovation.Brands.Virdi.Command
 
                                 if (existUser != null)
                                 {
-                                    if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
+                                    if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VWTFACECode))
                                         user.FaceTemplates.Add(faceTemplate);
                                 }
                                 else
