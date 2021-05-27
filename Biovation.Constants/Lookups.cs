@@ -45,6 +45,7 @@ namespace Biovation.Constants
         public List<Lookup> LogSubEvents { get; set; }
         public List<Lookup> FingerTemplateType { get; set; } 
         public List<Lookup> FaceTemplateType { get; set; }
+        public List<Lookup> IrisTemplateType { get; set; }
         public List<Lookup> LogEvents { get; set; }
         public List<Lookup> MatchingTypes { get; set; }
     }

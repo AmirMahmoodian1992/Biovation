@@ -209,6 +209,7 @@ namespace Biovation.Brands.Virdi
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 12);
 
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
@@ -230,6 +231,7 @@ namespace Biovation.Brands.Virdi
                 LogSubEvents = logSubEventsQuery.Result,
                 FingerTemplateType = fingerTemplateTypeQuery.Result,
                 FaceTemplateType = faceTemplateTypeQuery.Result,
+                IrisTemplateType = irisTemplateTypeQuery.Result,
                 LogEvents = logEventsQuery.Result,
                 MatchingTypes = matchingTypeQuery.Result
             };
@@ -257,6 +259,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<TaskPriorities, TaskPriorities>();
             services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
+            services.AddSingleton<IrisTemplateTypes, IrisTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
         private void ConfigureVirdiServices(IServiceCollection services)

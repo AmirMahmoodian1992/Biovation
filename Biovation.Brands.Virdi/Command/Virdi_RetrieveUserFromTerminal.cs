@@ -3,7 +3,6 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,8 +10,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v2;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 
 namespace Biovation.Brands.Virdi.Command
@@ -39,13 +46,15 @@ namespace Biovation.Brands.Virdi.Command
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly IrisTemplateTypes _irisTemplateTypes;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly IrisTemplateService _irisTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
 
-        public VirdiRetrieveUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager)
+        public VirdiRetrieveUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager, IrisTemplateService irisTemplateService, IrisTemplateTypes irisTemplateTypes)
         {
             _virdiServer = virdiServer;
             _ucsApi = ucsApi;
@@ -58,6 +67,8 @@ namespace Biovation.Brands.Virdi.Command
             _fingerTemplateTypes = fingerTemplateTypes;
             _fingerTemplateService = fingerTemplateService;
             _biometricTemplateManager = biometricTemplateManager;
+            _irisTemplateService = irisTemplateService;
+            _irisTemplateTypes = irisTemplateTypes;
 
             var ucBioBsp = new UCBioBSPClass();
             _fpData = ucBioBsp.FPData as IFPData;
@@ -436,8 +447,8 @@ namespace Biovation.Brands.Virdi.Command
                         //WalkThroughFace
                         try
                         {
-                            var walkthroughLenght = _terminalUserData.WalkThroughLength;
-                            if (walkthroughLenght > 0)
+                            var walkThroughLenght = _terminalUserData.WalkThroughLength;
+                            if (walkThroughLenght > 0)
                             {
                                 var faceWalkData = _terminalUserData.WalkThroughData;
 
@@ -459,7 +470,7 @@ namespace Biovation.Brands.Virdi.Command
                                     UserId = user.Id,
                                     Template = faceData,
                                     CheckSum = faceData.Sum(x => x),
-                                    Size = faceData.Length
+                                    Size = walkThroughLenght
                                 };
 
                                 if (existUser != null)
@@ -480,9 +491,53 @@ namespace Biovation.Brands.Virdi.Command
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e);
-                            throw;
+                            Logger.Log(e);
                         }
+
+
+                        //Iris
+                        try
+                        {
+                            var irisDataLength = _terminalUserData.IrisDataLength;
+                            if (irisDataLength > 0)
+                            {
+                                var irisData = _terminalUserData.IrisData;
+                                if (user.IrisTemplates is null)
+                                    user.IrisTemplates = new List<IrisTemplate>();
+                                var userIrises = _irisTemplateService.IrisTemplates(userId: _terminalUserData.UserID);
+                                if (existUser != null)
+                                    existUser.IrisTemplates = (userIrises.Any() ? userIrises : new List<IrisTemplate>());
+                                var irisTemplateData = (byte[]) irisData;
+                                var irisTemplate = new IrisTemplate
+                                {
+                                    Index = 1,
+                                    IrisTemplateType = _irisTemplateTypes.VIris,
+                                    UserId = user.Id,
+                                    Template = irisTemplateData,
+                                    CheckSum = irisTemplateData.Sum(x => x),
+                                    Size = irisDataLength
+                                };
+
+                                if (existUser != null)
+                                {
+                                    if (!existUser.IrisTemplates.Exists(fp => fp.IrisTemplateType.Code == IrisTemplateTypes.VIrisCode))
+                                        user.IrisTemplates.Add(irisTemplate);
+                                }
+                                else
+                                    user.IrisTemplates.Add(irisTemplate);
+
+                                if (user.IrisTemplates.Any())
+                                    foreach (var irisTemplates in user.IrisTemplates)
+                                    {
+                                        _irisTemplateService.ModifyIrisTemplate(irisTemplates);
+                                    }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
+
 
                         if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
                         {

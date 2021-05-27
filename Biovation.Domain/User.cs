@@ -130,6 +130,9 @@ namespace Biovation.Domain
         public List<FingerTemplate> FingerTemplates { get; set; }
         [OneToMany]
         public List<FaceTemplate> FaceTemplates { get; set; }
+
+        [OneToMany]
+        public List<IrisTemplate> IrisTemplates { get; set; }
         [OneToOne]
         public IdentityCard IdentityCard { get; set; }
 
