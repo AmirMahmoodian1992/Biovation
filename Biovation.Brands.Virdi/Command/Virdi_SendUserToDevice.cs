@@ -182,7 +182,8 @@ namespace Biovation.Brands.Virdi.Command
                 var vWTHFace = _faceTemplateService.FaceTemplates(userId: UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VWTFACECode);
                 if (vWTHFace != null && vWTHFace.Size > 0)
                 {
-                    _virdiServer.ServerUserData.SetWalkThroughData(int.Parse(_virdiCodeMappings.GetFaceTemplateTypeLookup(FaceTemplateTypes.VWTFACECode).Code), vWTHFace.Size,vWTHFace.Template);
+                    var dataType = _virdiCodeMappings.GetFaceTemplateManufactureCode(FaceTemplateTypes.VWTFACECode);
+                    _virdiServer.ServerUserData.SetWalkThroughData(int.Parse(dataType), vWTHFace.Size,vWTHFace.Template);
                 }
 
 

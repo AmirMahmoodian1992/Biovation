@@ -19,7 +19,7 @@ namespace Biovation.Brands.Virdi.Manager
             _virdiFingerTemplateTypeMappings = genericCodeMappings.FingerTemplateTypeMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
 
-            _virdiFaceTemplateTypeMappings = genericCodeMappings.MatchingTypeMappings.Where(
+            _virdiFaceTemplateTypeMappings = genericCodeMappings.FaceTemplateTypeMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
 
             _virdiMatchingTypeMappings = genericCodeMappings.MatchingTypeMappings.Where(
@@ -49,6 +49,11 @@ namespace Biovation.Brands.Virdi.Manager
         public Lookup GetFaceTemplateTypeLookup(string faceCode)
         {
             return _virdiFaceTemplateTypeMappings.FirstOrDefault(faceTemplateType => string.Equals(faceTemplateType.ManufactureCode, faceCode, StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+        }
+
+        public string GetFaceTemplateManufactureCode(string faceCode)
+        {
+            return _virdiFaceTemplateTypeMappings.FirstOrDefault(faceTemplateType => string.Equals(faceTemplateType.GenericValue.Code, faceCode, StringComparison.InvariantCultureIgnoreCase))?.ManufactureCode;
         }
     }
 }

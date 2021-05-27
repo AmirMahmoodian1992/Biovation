@@ -11,11 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Biovation.Brands.Virdi.Model.Unis;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
 
 
 namespace Biovation.Brands.Virdi.Command
@@ -70,7 +67,7 @@ namespace Biovation.Brands.Virdi.Command
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
-            
+
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["userId"];
@@ -384,7 +381,7 @@ namespace Biovation.Brands.Virdi.Command
                             Logger.Log(e);
                         }
 
-                       
+
 
                         //Face
                         try
@@ -413,8 +410,8 @@ namespace Biovation.Brands.Virdi.Command
                                     CheckSum = faceData.Sum(x => x),
                                     Size = faceData.Length
                                 };
-                                
-                                
+
+
                                 if (existUser != null)
                                 {
                                     if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
@@ -443,13 +440,6 @@ namespace Biovation.Brands.Virdi.Command
                             if (walkthroughLenght > 0)
                             {
                                 var faceWalkData = _terminalUserData.WalkThroughData;
-                                //var faceWalkType = _terminalUserData.WalkThroughType;
-                                //var walkThroughFace = new UnisFaceWalkThroughTemplate()
-                                //{
-                                //    Data = (byte[])faceWalkData,
-                                //    Type = faceWalkType,
-                                //    Length = walkthroughLenght
-                                //};
 
                                 if (user.FaceTemplates is null)
                                     user.FaceTemplates = new List<FaceTemplate>();
@@ -460,12 +450,12 @@ namespace Biovation.Brands.Virdi.Command
                                 if (existUser != null)
                                     existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
 
-                                //var faceData = Serialize(walkThroughFace);
-                                var faceData = (byte[]) faceWalkData;
+                                
+                                var faceData = (byte[])faceWalkData;
                                 var faceTemplate = new FaceTemplate
                                 {
                                     Index = 1,
-                                    FaceTemplateType = _faceTemplateTypes.VFACE,
+                                    FaceTemplateType = _faceTemplateTypes.VWTFACE,
                                     UserId = user.Id,
                                     Template = faceData,
                                     CheckSum = faceData.Sum(x => x),
@@ -573,13 +563,6 @@ namespace Biovation.Brands.Virdi.Command
         public string GetDescription()
         {
             return $"Retrieving user: {UserId} from device: {Code}.";
-        }
-
-        private static byte[] Serialize<T>(T m)
-        {
-            using var ms = new MemoryStream();
-            new BinaryFormatter().Serialize(ms, m);
-            return ms.ToArray();
         }
     }
 }

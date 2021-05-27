@@ -41,12 +41,13 @@ namespace Biovation.Brands.Virdi.Command
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
+        private readonly VirdiCodeMappings _virdiCodeMappings;
 
 
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi, FingerTemplateService fingerTemplateService, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi, FingerTemplateService fingerTemplateService, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient, VirdiCodeMappings virdiCodeMappings)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -72,6 +73,7 @@ namespace Biovation.Brands.Virdi.Command
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _restClient = restClient;
+            _virdiCodeMappings = virdiCodeMappings;
         }
         //private EventDispatcher _eventDispatcherObj;
 
@@ -139,7 +141,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes);
+                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes,_virdiCodeMappings);
                     }
 
                 case CommandType.SendBlackList:
