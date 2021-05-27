@@ -86,8 +86,7 @@ namespace Biovation.Brands.Virdi.Command
         }
 
         public object Execute()
-        {
-            if (OnlineDevices.All(device => device.Key != Code))
+        { if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetriveUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };

@@ -2,11 +2,22 @@
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using Biovation.Service.Api.v2;
 using UCSAPICOMLib;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using LogService = Biovation.Service.Api.v1.LogService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -42,12 +53,14 @@ namespace Biovation.Brands.Virdi.Command
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly VirdiCodeMappings _virdiCodeMappings;
+        private readonly IrisTemplateTypes _irisTemplateTypes;
+        private readonly IrisTemplateService _rIrisTemplateService;
 
 
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi, FingerTemplateService fingerTemplateService, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient, VirdiCodeMappings virdiCodeMappings)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi, FingerTemplateService fingerTemplateService, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient, VirdiCodeMappings virdiCodeMappings, IrisTemplateTypes irisTemplateTypes, IrisTemplateService rIrisTemplateService)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -74,6 +87,8 @@ namespace Biovation.Brands.Virdi.Command
             _taskPriorities = taskPriorities;
             _restClient = restClient;
             _virdiCodeMappings = virdiCodeMappings;
+            _irisTemplateTypes = irisTemplateTypes;
+            _rIrisTemplateService = rIrisTemplateService;
         }
         //private EventDispatcher _eventDispatcherObj;
 
@@ -228,7 +243,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiRetrieveUserFromTerminal(transferModelData.Items, _virdiServer, _ucsApi, _taskService, _userService, _deviceService, _userCardService, _faceTemplateTypes, _accessGroupService, _faceTemplateService, _fingerTemplateTypes, _fingerTemplateService, _biometricTemplateManager);
+                        return new VirdiRetrieveUserFromTerminal(transferModelData.Items, _virdiServer, _ucsApi, _taskService, _userService, _deviceService, _userCardService, _faceTemplateTypes, _accessGroupService, _faceTemplateService, _fingerTemplateTypes, _fingerTemplateService, _biometricTemplateManager, _rIrisTemplateService, _irisTemplateTypes);
                     }
 
                 case CommandType.RetrieveUsersListFromDevice:
