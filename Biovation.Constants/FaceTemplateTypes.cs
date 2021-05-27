@@ -9,7 +9,7 @@ namespace Biovation.Constants
         public const string ZKVX7Code = "18102";
         public const string SFACECode = "18103";
         public const string EOSHanvonCode = "18104";
-        public const string VWTFACECode = "12";
+        public const string VWTFACECode = "18105";
 
         public FaceTemplateTypes(Lookups lookups)
         {
