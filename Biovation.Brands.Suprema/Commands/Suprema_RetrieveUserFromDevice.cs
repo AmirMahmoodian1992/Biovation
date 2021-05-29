@@ -71,7 +71,7 @@ namespace Biovation.Brands.Suprema.Commands
             if (!parseResult || UserCode == 0)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
 
-            var device = _deviceService.GetDevice(DeviceId)?.Data;
+            var device = _deviceService.GetDevice(DeviceId).Result?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
@@ -119,7 +119,7 @@ namespace Biovation.Brands.Suprema.Commands
 
 
 
-                    var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Id))?.Data?.Data.FirstOrDefault();
+                    var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Id)).Result?.Data?.Data.FirstOrDefault();
 
                     if (existUser != null)
                     {
@@ -144,7 +144,7 @@ namespace Biovation.Brands.Suprema.Commands
                     }
 
                     _userService.ModifyUser(user);
-                    user.Id = _userService.GetUsers(userId:userOfDevice.Id).Data.Data.FirstOrDefault().Id;
+                    user.Id = _userService.GetUsers(userId:userOfDevice.Id).Result.Data.Data.FirstOrDefault().Id;
 
                     //Card
                     try
@@ -226,7 +226,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Data.Data.Count(ft =>
+                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id).Result?.Data.Data.Count(ft =>
                                         ft.FingerIndex.Code ==
                                         userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
                                     TemplateIndex = 0,
@@ -241,7 +241,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Data.Data.Count(ft =>
+                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id).Result?.Data.Data.Count(ft =>
                                         ft.FingerIndex.Code ==
                                         userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
                                     TemplateIndex = 1,
@@ -368,12 +368,12 @@ namespace Biovation.Brands.Suprema.Commands
                             {
                                 //todo
                                 //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4)?.Data.Data;
+                                var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4).Result?.Data.Data;
 
                                 if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
                                 {
                                     var onlineDevices =
-                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.SupremaCode).ToString())?.Data.Data;
+                                        _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.SupremaCode).ToString()).Result?.Data.Data;
 
                                     if (onlineDevices == null) return;
                                     foreach (var deviceBasicInfo in onlineDevices)

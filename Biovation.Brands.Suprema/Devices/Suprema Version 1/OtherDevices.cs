@@ -161,7 +161,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             {
 
 
-                var userCards = _userCardService.GetCardsByFilter(userData.Id, true);
+                var userCards = _userCardService.GetCardsByFilter(userData.Id, true).Result;
                 //var rowc = dtCard.Count;
                 if (userCards != null)
                 {

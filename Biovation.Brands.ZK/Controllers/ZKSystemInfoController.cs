@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net.Mime;
 using System.Reflection;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;

@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
+using System.Collections.Generic;
+using System.Data.SqlClient;
+using System.Linq;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -105,9 +105,24 @@ namespace Biovation.Repository.Sql.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public ResultViewModel<List<TimeZone>> GetTimeZones()
+        public ResultViewModel<PagingResult<TimeZone>> GetTimeZones()
         {
-            return _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
+            var result = _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
+            return new ResultViewModel<PagingResult<TimeZone>>
+            {
+                Code = result.Code,
+                Message = result.Message,
+                Success = result.Success,
+                Id = result.Id,
+                Data = new PagingResult<TimeZone>
+                {
+                    From = 0,
+                    PageNumber = 1,
+                    PageSize = result.Data.Count,
+                    Count = result.Data.Count,
+                    Data = result.Data
+                }
+            };
         }
 
         /// <summary>

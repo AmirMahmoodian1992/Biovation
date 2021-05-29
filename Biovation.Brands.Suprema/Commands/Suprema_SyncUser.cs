@@ -27,7 +27,7 @@ namespace Biovation.Brands.Suprema.Commands
         public SupremaSyncUser(int userId, Dictionary<uint, Device> onlineDevices, UserService userService, AccessGroupService accessGroupService)
         {
             //todo:usercode
-            User = _userService.GetUsers(userId)?.Data?.Data.FirstOrDefault();
+            User = _userService.GetUsers(userId).Result?.Data?.Data.FirstOrDefault();
             OnlineDevices = onlineDevices;
             _userService = userService;
             _accessGroupService = accessGroupService;
@@ -41,7 +41,7 @@ namespace Biovation.Brands.Suprema.Commands
         public object Execute()
         {
 
-            var userAccess = _accessGroupService.GetAccessGroups(User.Id);
+            var userAccess = _accessGroupService.GetAccessGroups(User.Id).Result;
 
             var fullAccess = userAccess?.Data?.Data.FirstOrDefault(ua => ua.Id == 254);
             var noAccess = userAccess?.Data?.Data.FirstOrDefault(ua => ua.Id == 253);
@@ -51,7 +51,7 @@ namespace Biovation.Brands.Suprema.Commands
             //var validDevice = deviceService.GetUserValidDevices(User.Id, ConnectionType);
 
             var validDevice = new List<DeviceBasicInfo>();
-            var accessGroups = _accessGroupService.GetAccessGroups(User.Id)?.Data?.Data;
+            var accessGroups = _accessGroupService.GetAccessGroups(User.Id).Result?.Data?.Data;
             if (!accessGroups.Any())
             {
                 return true;

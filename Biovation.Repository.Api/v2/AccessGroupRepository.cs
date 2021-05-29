@@ -1,7 +1,8 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
-using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -15,7 +16,7 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<AccessGroup>> GetAccessGroups(long userId = default,
+        public async Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroups(long userId = default,
             int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default,
             int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
@@ -30,22 +31,22 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AccessGroup>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<AccessGroup>>>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel<AccessGroup> GetAccessGroup(int id = default, int nestingDepthLevel = 4, string token = default)
+        public async Task<ResultViewModel<AccessGroup>> GetAccessGroup(int id = default, int nestingDepthLevel = 4, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/AccessGroup/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<AccessGroup>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<AccessGroup>>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDeviceOfAccessGroup(int accessGroupId,
+        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDeviceOfAccessGroup(int accessGroupId,
             int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/AccessGroup/DeviceOfAccessGroup", Method.GET);
@@ -54,19 +55,19 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<DeviceBasicInfo>>>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel<List<User>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default, string token = default)
+        public async Task<ResultViewModel<List<User>>> GetAdminUserOfAccessGroup(long id = default, int accessGroupId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/User/Users", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel<PagingResult<ServerSideIdentificationCacheModel>>
@@ -85,63 +86,63 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel AddAccessGroup(AccessGroup accessGroup = default, string token = default)
+        public async Task<ResultViewModel> AddAccessGroup(AccessGroup accessGroup = default, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/AccessGroup/", Method.POST);
+            var restRequest = new RestRequest("Commands/v2/AccessGroup", Method.POST);
             restRequest.AddJsonBody(accessGroup ?? new AccessGroup());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel ModifyAccessGroup(AccessGroup accessGroup, string token = default)
+        public async Task<ResultViewModel> ModifyAccessGroup(AccessGroup accessGroup, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/AccessGroup/AccessGroup", Method.PUT);
             restRequest.AddJsonBody(accessGroup);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel ModifyAccessGroupAdminUsers(string xmlAdminUsers = default, int accessGroupId = default, string token = default)
+        public async Task<ResultViewModel> ModifyAccessGroupAdminUsers(string xmlAdminUsers = default, int accessGroupId = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/AccessGroup/AccessGroupAdminUsers", Method.PUT);
             restRequest.AddQueryParameter("xmlAdminUsers", xmlAdminUsers ?? string.Empty);
             restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel ModifyAccessGroupDeviceGroup(string xmlDeviceGroup = default, int accessGroupId = default, string token = default)
+        public async Task<ResultViewModel> ModifyAccessGroupDeviceGroup(string xmlDeviceGroup = default, int accessGroupId = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/AccessGroup/AccessGroupDeviceGroup", Method.PUT);
             restRequest.AddQueryParameter("xmlDeviceGroup", xmlDeviceGroup ?? string.Empty);
             restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel ModifyAccessGroupUserGroup(string xmlUserGroup = default, int accessGroupId = default, string token = default)
+        public async Task<ResultViewModel> ModifyAccessGroupUserGroup(string xmlUserGroup = default, int accessGroupId = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/AccessGroup/AccessGroupUserGroup", Method.PUT);
             restRequest.AddQueryParameter("xmlUserGroup", xmlUserGroup ?? string.Empty);
             restRequest.AddQueryParameter("accessGroupId", accessGroupId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel DeleteAccessGroup(int id, string token = default)
+        public async Task<ResultViewModel> DeleteAccessGroup(int id, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/AccessGroup/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public ResultViewModel SendAccessGroupToDevice(DeviceBasicInfo device, int id, string token = default)

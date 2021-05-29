@@ -10,7 +10,7 @@ namespace Biovation.Domain
         public long UserId { get; set; }
         public long UserCode { get; set; }
         public int GroupId { get; set; }
-        public string UserType { get; set; }
+        public int UserType { get; set; }
         public string UserTypeTitle { get; set; }
         public string UserName { get; set; }
     }

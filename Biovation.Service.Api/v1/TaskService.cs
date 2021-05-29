@@ -20,7 +20,7 @@ namespace Biovation.Service.Api.v1
             int pageSize = default, int taskItemId = default, string token = default)
         {
             return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodes,
-                                      excludedTaskStatusCodes, pageNumber, pageSize, taskItemId, token)?.Data?.Data ?? new List<TaskInfo>());
+                                      excludedTaskStatusCodes, pageNumber, pageSize, taskItemId, token).Result?.Data?.Data ?? new List<TaskInfo>());
         }
 
         public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, string instanceId = default,
@@ -44,13 +44,13 @@ namespace Biovation.Service.Api.v1
                 }
 
                 return _taskRepository.GetTasks(taskId, instanceId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
-                           excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token)?.Data?.Data ?? new List<TaskInfo>();
+                           excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token).Result?.Data?.Data ?? new List<TaskInfo>();
             });
         }
 
         public TaskItem GetTaskItem(int taskItemId = default, string token = default)
         {
-            return _taskRepository.GetTaskItem(taskItemId, token)?.Data ?? new TaskItem();
+            return _taskRepository.GetTaskItem(taskItemId, token).Result?.Data ?? new TaskItem();
         }
 
         /*public ResultViewModel InsertTask(TaskInfo task)
@@ -82,12 +82,12 @@ namespace Biovation.Service.Api.v1
         }*/
         public ResultViewModel InsertTask(TaskInfo task, string token = default)
         {
-            return _taskRepository.InsertTask(task, token);
+            return _taskRepository.InsertTask(task, token).Result;
         }
 
         public ResultViewModel UpdateTaskStatus(TaskItem taskItem, string token = default)
         {
-            return _taskRepository.UpdateTaskStatus(taskItem);
+            return _taskRepository.UpdateTaskStatus(taskItem).Result;
         }
 
         public async Task<ResultViewModel> ProcessQueue(Lookup brand, int deviceId = default, string token = default)

@@ -21,18 +21,16 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         [Route("TemplateCount")]
-        public Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
+        public async Task<ResultViewModel<PagingResult<UserTemplateCount>>> GetTemplateCount()
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _fingerTemplateService.GetTemplateCount(token));
+            return await _fingerTemplateService.GetTemplateCount(HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]
         [Route("FingerTemplateTypes")]
         public Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _fingerTemplateService.GetFingerTemplateTypes(brandId, token));
+            return _fingerTemplateService.GetFingerTemplateTypes(brandId, HttpContext.Items["Token"] as string);
         }
     }
 }

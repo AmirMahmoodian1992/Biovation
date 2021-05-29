@@ -36,12 +36,12 @@ namespace Biovation.Service.Api.v2
             return Task.Run(() => _serviceInstanceRepository.ModifyServiceInstance(serviceInstance, token));
         }
 
-        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default)
+        public Task<ResultViewModel<List<ServiceInstance>>> GetServiceInstance(string id = default, string token = default)
         {
             return Task.Run(() => _serviceInstanceRepository.GetServiceInstance(id, token));
         }
 
-        public Task<ResultViewModel> DeleteServiceInstance(string id = default)
+        public Task<ResultViewModel> DeleteServiceInstance(string id = default, string token = default)
         {
             return Task.Run(() => _serviceInstanceRepository.DeleteServiceInstance(id, token));
         }

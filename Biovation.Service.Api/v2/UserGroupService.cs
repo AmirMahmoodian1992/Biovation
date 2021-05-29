@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using RestSharp;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -25,46 +26,46 @@ namespace Biovation.Service.Api.v2
             _systemInfo = systemInfo;
         }
 
-        public ResultViewModel<PagingResult<UserGroup>> UserGroups(int userGroupId = default, string token = default)
+        public async Task<ResultViewModel<PagingResult<UserGroup>>> UserGroups(int userGroupId = default, string token = default)
         {
-            return _userGroupRepository.UserGroups(userGroupId, token);
+            return await _userGroupRepository.UserGroups(userGroupId, token);
         }
 
 
-        public ResultViewModel<List<UserGroup>> GetAccessControlUserGroup(int id = default, string token = default)
+        public async Task<ResultViewModel<List<UserGroup>>> GetAccessControlUserGroup(int id = default, string token = default)
         {
-            return _userGroupRepository.GetAccessControlUserGroup(id, token);
+            return await _userGroupRepository.GetAccessControlUserGroup(id, token);
         }
 
-        public ResultViewModel SyncUserGroupMember(string lstUser = default, string token = default)
+        public async Task<ResultViewModel> SyncUserGroupMember(string lstUser = default, string token = default)
         {
-            return _userGroupRepository.SyncUserGroupMember(lstUser, token);
+            return await _userGroupRepository.SyncUserGroupMember(lstUser, token);
         }
 
-        public ResultViewModel AddUserGroup(UserGroupMember userGroupMember = default, string token = default)
+        public async Task<ResultViewModel> AddUserGroup(UserGroupMember userGroupMember = default, string token = default)
         {
-            return _userGroupRepository.AddUserGroup(userGroupMember, token);
+            return await _userGroupRepository.AddUserGroup(userGroupMember, token);
         }
 
-        public ResultViewModel ModifyUserGroup(UserGroup userGroup = default, string token = default)
+        public async Task<ResultViewModel> ModifyUserGroup(UserGroup userGroup = default, string token = default)
         {
-            return _userGroupRepository.ModifyUserGroup(userGroup, token);
+            return await _userGroupRepository.ModifyUserGroup(userGroup, token);
         }
 
-        public ResultViewModel DeleteUserGroup(int groupId = default, string token = default)
+        public async Task<ResultViewModel> DeleteUserGroup(int groupId = default, string token = default)
         {
-            return _userGroupRepository.DeleteUserGroup(groupId, token);
+            return await _userGroupRepository.DeleteUserGroup(groupId, token);
         }
         public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
         {
             return _userGroupRepository.ModifyUserGroupMember(member, userGroupId, token);
         }
 
-        public ResultViewModel SendUsersOfGroup(int userGroupId, string token = default)
+        public async Task<ResultViewModel> SendUsersOfGroup(int userGroupId, string token = default)
         {
-            var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
+            var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
 
-            var userGroup = _userGroupService.UserGroups(userGroupId: userGroupId, token: token)?.Data?.Data.FirstOrDefault();
+            var userGroup = (await _userGroupService.UserGroups(userGroupId: userGroupId, token))?.Data?.Data.FirstOrDefault();
 
             var serviceInstances = _systemInfo.Services;
 
@@ -76,7 +77,7 @@ namespace Biovation.Service.Api.v2
             
             foreach (var userGroupMember in userGroup.Users)
             {
-                var user = _userService.GetUsers(code: userGroupMember.UserId, token: token)?.Data?.Data.FirstOrDefault();
+                var user = (await _userService.GetUsers(code: userGroupMember.UserId, token: token))?.Data?.Data.FirstOrDefault();
 
                 foreach (var deviceBrand in deviceBrands)
                 {
@@ -96,9 +97,9 @@ namespace Biovation.Service.Api.v2
             return _userGroupRepository.SendUserToDevice(device, usersToDeleteFromDevice,token);
         }
 
-        public List<ResultViewModel> ModifyUserGroupMember(string token)
+        public async Task<List<ResultViewModel>> ModifyUserGroupMember(string token)
         {
-            var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
+            var deviceBrands = (await  _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
 
             if (deviceBrands == null)
             {

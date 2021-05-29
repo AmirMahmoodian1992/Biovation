@@ -1,14 +1,14 @@
 ﻿using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -22,6 +22,7 @@ namespace Biovation.Server.Controllers.v2
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class DeviceController : ControllerBase
     {
+        private readonly AccessGroupService _accessGroupService;
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
         private readonly UserService _userService;
@@ -35,14 +36,16 @@ namespace Biovation.Server.Controllers.v2
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public DeviceController(DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public DeviceController(AccessGroupService accessGroupService, DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
+            _accessGroupService = accessGroupService;
             _deviceService = deviceService;
             _userService = userService;
             _systemInformation = systemInformation;
             _lookups = lookups;
             _restClient = restClient;
             _userCardService = userCardService;
+
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
@@ -51,103 +54,287 @@ namespace Biovation.Server.Controllers.v2
         }
 
 
-
         [HttpGet]
         [Route("{id:int}")]
-        [Attribute.Authorize]
-        public Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = default, long adminUserId = default)
+        [Authorize]
+        public async Task<ResultViewModel<DeviceBasicInfo>> Device([FromRoute] long id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.GetDevice(id, adminUserId, token));
+            return await _deviceService.GetDevice(id, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]
-        [Attribute.Authorize]
-        public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(long adminUserId = default, int groupId = default, uint code = default,
-            int brandId = default, string name = null, int modelId = default, int typeId = default, int pageNumber = default, int pageSize = default)
+        [Authorize]
+        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices(int groupId = default, uint code = default,
+            int brandId = default, string name = null, int modelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default)
         {
-            var result = Task.Run(() => _deviceService.GetDevices(adminUserId, groupId, code, brandId.ToString(), name,
-                modelId, typeId, pageNumber, pageSize, HttpContext.Items["Token"].ToString()));
+            return await _deviceService.GetDevices(groupId, code, brandId.ToString(), name,
+                modelId, deviceIoTypeId, pageNumber, pageSize, HttpContext.Items["Token"] as string);
+        }
+
+        [HttpPut]
+        [Authorize]
+        public async Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
+        {
+            var creatorUser = HttpContext.GetUser();
+            var token = HttpContext.Items["Token"] as string;
+            var result = await _deviceService.ModifyDevice(device, token);
+            if (result.Validate != 1) return result;
+
+            _ = Task.Run(async () =>
+            {
+                device = (await _deviceService.GetDevice(device.DeviceId, token)).Data;
+                if (device.Active)
+                {
+                    var task = new TaskInfo
+                    {
+                        Status = _taskStatuses.Queued,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.UnlockDevice,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.UnlockDevice,
+                        Priority = _taskPriorities.Medium,
+
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(device.DeviceId),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+                    await _taskService.InsertTask(task);
+                    _ = _taskService.ProcessQueue(device.Brand, device.DeviceId).ConfigureAwait(false);
+                }
+                else
+                {
+                    var task = new TaskInfo
+                    {
+                        Status = _taskStatuses.Queued,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = device.Brand
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.LockDevice,
+                        Priority = _taskPriorities.Medium,
+
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(device.DeviceId),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+
+                    });
+                    await _taskService.InsertTask(task);
+                    _ = _taskService.ProcessQueue(device.Brand, device.DeviceId).ConfigureAwait(false);
+                }
+
+                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
+                    Method.POST);
+                restRequest.AddJsonBody(device);
+                restRequest.AddHeader("Authorization", token!);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            }).ConfigureAwait(false);
+
             return result;
         }
 
-        ///////////////////////////////////
-        //[HttpGet]
-        //[Route("GetDeviceModels/{id}")]
-        //public Task<PagingResult<DeviceModel>> DeviceModels(int id = default, int brandId = default, string name = default, int pageNumber = default, int PageSize = default)
-        //{
-        //    var result = Task.Run(() => _deviceService.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
-        //    return result;
-        //}
-
-
-        //[HttpGet]
-        //[Route("BioAuthMode/{id}")]
-        //public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id = default, int authMode = default)
-        //{
-        //    var result = Task.Run(() => _deviceService.GetBioAuthModeWithDeviceId(id, authMode));
-        //    return result;
-        //}
-        //////////////////////////////////////////
-
-
-
-        [HttpPut]
-        [Attribute.Authorize]
-        //[Route("ModifyDeviceInfo")]
-        public Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
-            {
-                var result = _deviceService.ModifyDevice(device);
-                if (result.Validate != 1) return result;
-
-                device = _deviceService.GetDevice(id: device.DeviceId, token: token).Data;
-
-                var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice", Method.POST);
-                restRequest.AddJsonBody(device);
-                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                return result;
-            });
-        }
-
         [HttpPost]
-        [Attribute.Authorize]
-        public Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
+        [Authorize]
+        public async Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.AddDevice(device, token: token));
+            return await _deviceService.AddDevice(device, HttpContext.Items["Token"] as string);
         }
 
         [HttpDelete]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteDevice([FromRoute] uint id = default)
+        public async Task<ResultViewModel> DeleteDevice([FromRoute] uint id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.DeleteDevice(id, token));
+            return await _deviceService.DeleteDevice(id, HttpContext.Items["Token"] as string);
         }
 
         // TODO - Verify Method.
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RetrieveLogs")]
-        public Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, string fromDate, string toDate)
+        public async Task<ResultViewModel> ReadOfflineLog([FromRoute] int id, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            try
             {
-                try
+                var creatorUser = HttpContext.GetUser();
+                var token = HttpContext.Items["Token"] as string;
+                var device = (await _deviceService.GetDevice(id, token)).Data;
+                if (device == null)
                 {
-                    //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
-                    //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
-                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    Logger.Log($"DeviceId {id} does not exist.");
+                    return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                }
+
+                if (fromDate.HasValue && toDate.HasValue)
+                {
+                    var task = new TaskInfo
+                    {
+                        Status = _taskStatuses.Queued,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.GetLogsInPeriod,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = device.Brand
+                    };
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                    });
+                    await _taskService.InsertTask(task);
+                    _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+                }
+                else
+                {
+                    var task = new TaskInfo
+                    {
+                        Status = _taskStatuses.Queued,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.GetLogs,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = device.Brand,
+                    };
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.GetLogs,
+                        Priority = _taskPriorities.Medium,
+
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(device.DeviceId),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+                    await _taskService.InsertTask(task);
+                    _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+                }
+
+                var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate, token);
+
+                if (readOfflineLogResult.StatusCode != HttpStatusCode.OK)
+                    return new ResultViewModel
+                    { Id = device.DeviceId, Validate = 0, Message = readOfflineLogResult.ErrorMessage };
+
+                var resultData = readOfflineLogResult.Data;
+                resultData.Id = device.DeviceId;
+                resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
+                return resultData;
+
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = exception.Message };
+            }
+        }
+
+
+        // TODO - Verify method.
+        [HttpPost]
+        [Authorize]
+        [Route("RetrieveLogs")]
+        public async Task<List<ResultViewModel>> ReadOfflineLog(string ids, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            try
+            {
+                var creatorUser = HttpContext.GetUser();
+                var token = HttpContext.Items["Token"] as string;
+                var deviceIds = JsonConvert.DeserializeObject<int[]>(ids);
+
+                var result = new List<ResultViewModel>();
+                for (var i = 0; i < deviceIds.Length; i++)
+                {
+                    var device = (await _deviceService.GetDevice(deviceIds[i], token)).Data;
                     if (device == null)
                     {
-                        Logger.Log($"DeviceId {id} does not exist.");
-                        return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                        Logger.Log($"DeviceId {deviceIds[i]} does not exist.");
+                        result.Add(new ResultViewModel
+                        { Validate = 0, Message = $"DeviceId {deviceIds[i]} does not exist.", Id = ids[i] });
+                        continue;
+                    }
+
+                    if (fromDate.HasValue && toDate.HasValue)
+                    {
+                        var task = new TaskInfo
+                        {
+                            Status = _taskStatuses.Queued,
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.GetLogsInPeriod,
+                            Priority = _taskPriorities.Medium,
+                            TaskItems = new List<TaskItem>(),
+                            DeviceBrand = device.Brand,
+                        };
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                            Priority = _taskPriorities.Medium,
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1,
+                        });
+                        await _taskService.InsertTask(task);
+                        _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        var task = new TaskInfo
+                        {
+                            Status = _taskStatuses.Queued,
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.GetLogs,
+                            Priority = _taskPriorities.Medium,
+                            TaskItems = new List<TaskItem>(),
+                            DeviceBrand = device.Brand,
+                        };
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.GetLogs,
+                            Priority = _taskPriorities.Medium,
+
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(device.DeviceId),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+                            OrderIndex = 1
+                        });
+                        await _taskService.InsertTask(task);
+                        _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
                     }
 
                     var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate, token);
@@ -160,202 +347,186 @@ namespace Biovation.Server.Controllers.v2
                     //{
                     //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
                     //}
-                    //var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result;
-
-                    if (readOfflineLogResult.StatusCode != HttpStatusCode.OK)
+                    //var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    if (readOfflineLogResult.StatusCode == HttpStatusCode.OK)
                     {
-                        return new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = readOfflineLogResult.ErrorMessage };
+                        var resultData = readOfflineLogResult.Data;
+                        resultData.Id = device.DeviceId;
+                        resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
+                        result.Add(resultData);
                     }
-
-                    var resultData = readOfflineLogResult.Data;
-                    resultData.Id = device.DeviceId;
-                    resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
-                    return resultData;
-
+                    else
+                        result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = readOfflineLogResult.ErrorMessage });
                 }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = exception.Message };
-                }
-            });
-        }
 
-
-        // TODO - Verify method.
-        [HttpPost]
-        [Attribute.Authorize]
-        [Route("RetrieveLogs")]
-        public Task<List<ResultViewModel>> ReadOfflineLog(string deviceIds, string fromDate, string toDate)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
+                return result;
+            }
+            catch (Exception exception)
             {
-                try
-                {
-                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
-
-                    var result = new List<ResultViewModel>();
-                    for (var i = 0; i < deviceId.Length; i++)
-                    {
-                        //var restRequest = new RestRequest($"Queries/v2/Device/{deviceId[i]}", Method.GET);
-                        //var device = (_restClient.ExecuteAsync<ResultViewModel<DeviceBasicInfo>>(restRequest)).Result.Data.Data;
-                        var device = _deviceService.GetDevice(id: deviceId[i], token: token).Data;
-                        if (device == null)
-                        {
-                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
-                            result.Add(new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
-                            continue;
-                        }
-
-                        var readOfflineLogResult = _deviceService.ReadOfflineOfDevice(device, fromDate, toDate, token);
-
-                        //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ReadOfflineOfDevice");
-                        //restRequest.AddQueryParameter("code", device.Code.ToString());
-                        //restRequest.AddQueryParameter("fromDate", fromDate);
-                        //restRequest.AddQueryParameter("toDate", toDate);
-                        //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                        //{
-                        //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                        //}
-                        //var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        if (readOfflineLogResult.StatusCode == HttpStatusCode.OK)
-                        {
-                            var resultData = readOfflineLogResult.Data;
-                            resultData.Id = device.DeviceId;
-                            resultData.Validate = string.IsNullOrEmpty(resultData.Message) ? 1 : resultData.Validate;
-                            result.Add(resultData);
-                        }
-                        else
-                            result.Add(new ResultViewModel { Id = device.DeviceId, Validate = 0, Message = readOfflineLogResult.ErrorMessage });
-                    }
-
-                    return result;
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception);
-                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
-                }
-            });
+                Logger.Log(exception);
+                return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
+            }
         }
 
 
         // TODO - Verify Method.
         [HttpPost]
+        [Authorize]
         [Route("{id}/ClearLogs")]
-        [Attribute.Authorize]
-        public Task<ResultViewModel> ClearLogOfDevice([FromRoute] int id, string fromDate, string toDate)
+        public async Task<ResultViewModel> ClearLogOfDevice([FromRoute] int id, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
+            try
             {
-                try
+                var creatorUser = HttpContext.GetUser();
+                var token = HttpContext.Items["Token"] as string;
+                var device = (await _deviceService.GetDevice(id, token)).Data;
+                if (device == null)
                 {
-                    var device = _deviceService.GetDevice(id, token: token)?.Data;
+                    Logger.Log($"DeviceId {id} does not exist.");
+                    return new ResultViewModel
+                    { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                }
+
+                var task = new TaskInfo
+                {
+                    Status = _taskStatuses.Queued,
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.ClearLog,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>()
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.ClearLog,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new
+                    {
+                        fromDate,
+                        toDate
+                    }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1
+                });
+
+                await _taskService.InsertTask(task);
+                _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+                var clearLogOfDeviceResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate, token);
+
+                if (!clearLogOfDeviceResult.IsSuccessful || clearLogOfDeviceResult.StatusCode != HttpStatusCode.OK)
+                    return new ResultViewModel { Validate = 0, Message = "error", Id = id };
+                return clearLogOfDeviceResult.Data;
+            }
+            catch (Exception)
+            {
+                return new ResultViewModel { Validate = 0, Message = "error", Id = id };
+            }
+        }
+
+
+        // TODO - Verify Method.
+        [HttpPost]
+        [Authorize]
+        [Route("ClearLogsOfDevices")]
+        public async Task<List<ResultViewModel>> ClearLogOfDevice(string ids, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            try
+            {
+                var creatorUser = HttpContext.GetUser();
+                var token = HttpContext.Items["Token"] as string;
+                var deviceIds = JsonConvert.DeserializeObject<int[]>(ids);
+                var result = new List<ResultViewModel>();
+                for (var i = 0; i < deviceIds.Length; i++)
+                {
+                    var device = (await _deviceService.GetDevice(deviceIds[i], token)).Data;
                     if (device == null)
                     {
-                        Logger.Log($"DeviceId {id} does not exist.");
-                        return new ResultViewModel
-                        { Validate = 0, Message = $"DeviceId {id} does not exist.", Id = id };
+                        Logger.Log($"DeviceId {deviceIds[i]} does not exist.");
+                        result.Add(new ResultViewModel
+                        { Validate = 0, Message = $"DeviceId {deviceIds[i]} does not exist.", Id = ids[i] });
+                        continue;
                     }
 
-                    //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                    //restRequest.AddQueryParameter("code", device.Code.ToString());
-                    //restRequest.AddQueryParameter("fromDate", fromDate);
-                    //restRequest.AddQueryParameter("toDate", toDate);
-                    //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    var clearLogOfDeviceResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate, token);
-
-                    if (!clearLogOfDeviceResult.IsSuccessful || clearLogOfDeviceResult.StatusCode != HttpStatusCode.OK)
-                        return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                    return clearLogOfDeviceResult.Data;
-                }
-                catch (Exception)
-                {
-                    return new ResultViewModel { Validate = 0, Message = "error", Id = id };
-                }
-            });
-        }
-
-
-        // TODO - Verify Method.
-        [HttpPost]
-        [Route("ClearLogsOfDevices")]
-        [Attribute.Authorize]
-        public Task<List<ResultViewModel>> ClearLogOfDevice(string deviceIds, string fromDate, string toDate)
-        {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
-            {
-                try
-                {
-                    var deviceId = JsonConvert.DeserializeObject<int[]>(deviceIds);
-                    var result = new List<ResultViewModel>();
-                    for (var i = 0; i < deviceId.Length; i++)
+                    var task = new TaskInfo
                     {
-                        var device = _deviceService.GetDevice(deviceId[i], token: token).Data;
-                        if (device == null)
+                        Status = _taskStatuses.Queued,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.ClearLog,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = device.Brand,
+                        TaskItems = new List<TaskItem>()
+                    };
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.ClearLog,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new
                         {
-                            Logger.Log($"DeviceId {deviceId[i]} does not exist.");
-                            result.Add(new ResultViewModel
-                            { Validate = 0, Message = $"DeviceId {deviceId[i]} does not exist.", Id = deviceIds[i] });
-                            continue;
-                        }
+                            fromDate,
+                            toDate
+                        }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
 
-                        var clearLogResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate, token);
-                        //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
-                        //restRequest.AddQueryParameter("code", device.Code.ToString());
-                        //restRequest.AddQueryParameter("fromDate", fromDate);
-                        //restRequest.AddQueryParameter("toDate", toDate);
+                    await _taskService.InsertTask(task);
+                    _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
-                        //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    var clearLogResult = _deviceService.ClearLogOfDevice(device, fromDate, toDate, token);
 
-                        //var address = _localBioAddress +
-                        //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
-                        //var data = _restCall.CallRestAsync(address, null, null, "POST");
-                        //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
-                        if (!clearLogResult.IsSuccessful || clearLogResult.StatusCode != HttpStatusCode.OK) continue;
-                        clearLogResult.Data.Id = deviceId[i];
-                        result.Add(clearLogResult.Data);
-                    }
+                    //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-                    return result;
+                    //var address = _localBioAddress +
+                    //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
+                    //var data = _restCall.CallRestAsync(address, null, null, "POST");
+                    //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
+                    if (!clearLogResult.IsSuccessful || clearLogResult.StatusCode != HttpStatusCode.OK) continue;
+                    clearLogResult.Data.Id = ids[i];
+                    result.Add(clearLogResult.Data);
                 }
-                catch (Exception)
-                {
-                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
-                }
-            });
+
+                return result;
+            }
+            catch (Exception)
+            {
+                return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "error" } };
+            }
         }
 
-        [HttpPost]
+        [HttpDelete]
+        [Authorize]
         [Route("DeleteDevices")]
-        [Attribute.Authorize]
-        public Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
+        public async Task<ResultViewModel> DeleteDevices([FromBody] List<uint> ids = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.DeleteDevices(ids, token));
+            return await _deviceService.DeleteDevices(ids, HttpContext.Items["Token"] as string);
         }
 
         [HttpPost]
-        [Route("{Id}/cardNumber")]
-        [Attribute.Authorize]
-        public Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
+        [Authorize]
+        [Route("{Id}/ReadCardNumber")]
+        public async Task<ResultViewModel<int>> ReadCardNumber([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _userCardService.ReadCardNumber(id, token));
+            return await _userCardService.ReadCardNumber(id, HttpContext.Items["Token"] as string);
         }
 
 
         // TODO - Verify the method.
         [HttpGet]
+        [Authorize]
         [Route("OnlineDevices")]
-        public Task<List<DeviceBasicInfo>> OnlineDevices()
+        public async Task<List<DeviceBasicInfo>> OnlineDevices()
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _deviceService.GetOnlineDevices(token));
+            return await Task.Run(() => _deviceService.GetOnlineDevices(token));
         }
 
         // TODO - Verify method.
@@ -366,178 +537,374 @@ namespace Biovation.Server.Controllers.v2
         ///// <param name="userId">Json list of userIds</param>
         ///// <returns></returns>
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RetrieveUsers")]
-        public Task<ResultViewModel> RetrieveUserDevice([FromRoute] int id = default, [FromBody] JArray userId = default)
+        public async Task<List<ResultViewModel>> RetrieveUserDevice([FromRoute] int id = default, [FromBody] List<uint> userIds = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
-           {
-               var device = _deviceService.GetDevice(id, token: token).Data;
+            var creatorUser = HttpContext.GetUser();
+            if (userIds is null)
+                return new List<ResultViewModel>
+                    {new ResultViewModel {Success = false, Code = 404, Message = "Empty user list provided"}};
 
-               var restResult = _deviceService.RetrieveUsers(device, userId, token);
+            var token = HttpContext.Items["Token"] as string;
+            var device = (await _deviceService.GetDevice(id, token)).Data;
 
-               //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
-               //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-               //{
-               //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-               //}
-               //restRequest.AddQueryParameter("code", device.Code.ToString());
-               ////restRequest.AddQueryParameter("userId", userId.ToString());
-               //restRequest.AddJsonBody(userId);
-               //var restResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            var task = new TaskInfo
+            {
+                Status = _taskStatuses.Queued,
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                DeviceBrand = device.Brand,
+                TaskType = _taskTypes.RetrieveUserFromTerminal,
+                Priority = _taskPriorities.Medium,
+                TaskItems = new List<TaskItem>()
+            };
+            foreach (var numericUserId in userIds)
+            {
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { userId = numericUserId }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1
+                });
+            }
+            await _taskService.InsertTask(task);
+            _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
-               var result = restResult.Data.Any(e => e.Validate == 0)
-                   ? new ResultViewModel { Validate = 0, Id = id }
-                   : new ResultViewModel { Validate = 1, Id = id };
-               return result;
+            var restResult = _deviceService.RetrieveUsers(device, userIds, token);
 
-               //return result.StatusCode == HttpStatusCode.OK ? result.Data : new List<ResultViewModel> { new ResultViewModel { Id = id, Validate = 0, Message = result.ErrorMessage } };
-           });
+            //var result = restResult.Data.Any(e => e.Validate == 0)
+            //    ? new ResultViewModel { Validate = 0, Id = id }
+            //    : new ResultViewModel { Validate = 1, Id = id };
+            //return result;
+
+            return restResult.StatusCode == HttpStatusCode.OK ? restResult.Data : new List<ResultViewModel> { new ResultViewModel { Id = id, Validate = 0, Message = restResult.ErrorMessage } };
         }
 
         //TODO - Verify the method.
         [HttpPost]
+        [Authorize]
         [Route("{id}/FetchUsersList")]
-        [Attribute.Authorize]
-        public Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
+        public async Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () =>
+            var token = HttpContext.Items["Token"] as string;
+            var device = (await _deviceService.GetDevice(id, token)).Data;
+            var userAwaiter = _userService.GetUsers(token: token);
+
+            //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+            //restRequest.AddQueryParameter("code", device.Code.ToString());
+            //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+            //{
+            //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+            //}
+            //var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
+
+            //var result = await restAwaiter;
+
+            var users = await userAwaiter;
+
+            var lastResult = _deviceService.RetrieveUsersOfDevice(device, users?.Data?.Data, token);
+
+            //var lstResult = (from r in usersResult?.Data
+            //                 join u in users on r.Code equals u.Code
+            //                     into ps
+            //                 from u in ps.DefaultIfEmpty()
+            //                 select new User
+            //                 {
+            //                     Type = u == null ? 0 : 1,
+            //                     IsActive = r.IsActive,
+            //                     Id = r.Id,
+            //                     Code = r.Code,
+            //                     FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
+            //                     StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
+            //                     EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+            //                 }).ToList();
+
+            return lastResult?.Data;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{id}/SendUsers")]
+        public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int id, [FromBody] List<long> userIds)
+        {
+            try
             {
-                var device = _deviceService.GetDevice(id, token: token).Data;
-                var userAwaiter = Task.Run(() => _userService.GetUsers(token: token)?.Data?.Data);
+                var creatorUser = HttpContext.GetUser();
+                var token = HttpContext.Items["Token"] as string;
+                if (userIds == null || !userIds.Any())
+                {
+                    return new ResultViewModel { Validate = 0, Message = "User list is empty" };
+                }
 
-                //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
-                //restRequest.AddQueryParameter("code", device.Code.ToString());
-                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                //{
-                //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                //}
-                //var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
+                var result = new List<ResultViewModel>();
+                if (id == 0)
+                    return
+                        result.Any(e => e.Success == false)
+                            ? new ResultViewModel { Validate = 0, Message = "" }
+                            : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" };
 
-                //var result = await restAwaiter;
+                var device = (await _deviceService.GetDevice(id, token))?.Data;
+                if (device == null)
+                {
+                    var msg = "DeviceId " + id + " does not exist.";
+                    Logger.Log(msg);
+                    return new ResultViewModel { Validate = 0, Message = msg };
+                }
 
-                var users = await userAwaiter;
+                var task = new TaskInfo
+                {
+                    Status = _taskStatuses.Queued,
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendUsers,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
 
-                var lastResult = _deviceService.RetrieveUsersOfDevice(device, users, token);
+                foreach (var userId in userIds)
+                {
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendUser,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { UserId = userId }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
+                }
 
-                //var lstResult = (from r in usersResult?.Data
-                //                 join u in users on r.Code equals u.Code
-                //                     into ps
-                //                 from u in ps.DefaultIfEmpty()
-                //                 select new User
-                //                 {
-                //                     Type = u == null ? 0 : 1,
-                //                     IsActive = r.IsActive,
-                //                     Id = r.Id,
-                //                     Code = r.Code,
-                //                     FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
-                //                     StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
-                //                     EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
-                //                 }).ToList();
+                await _taskService.InsertTask(task);
+                _ = _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
-                return lastResult.Data;
-            });
+                var restRequest =
+                    new RestRequest(
+                        $"/{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
+                        Method.GET);
+                restRequest.AddQueryParameter("code", device.Code.ToString());
+                restRequest.AddQueryParameter("userId", JsonSerializer.Serialize(userIds));
+                restRequest.AddHeader("Authorization", token!);
+                var requestResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
+                    result.AddRange(requestResult.Data);
+
+                return result.Any(e => e.Success == false) ? new ResultViewModel { Validate = 0, Message = "" } : new ResultViewModel { Validate = 1, Message = "Failed to send all of them" };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = "SendUserToDevice Failed." };
+            }
         }
 
 
         // TODO - Verify Method
         [HttpDelete]
-        [Attribute.Authorize]
+        [Authorize]
         [Route("{id}/RemoveUser/{userId}")]
-        public Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int userId = default)
+        public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] long userId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
-           {
-               if (userId == default)
-                   return new ResultViewModel { Validate = 0, Message = "No users selected." };
+            var creatorUser = HttpContext.GetUser();
+            var token = HttpContext.Items["Token"] as string;
+            if (userId == default)
+                return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
-               var device = _deviceService.GetDevice(id, token: token).Data;
-               var restResult = _deviceService.RemoveUserFromDeviceById(device, userId, token);
+            var device = (await _deviceService.GetDevice(id, token)).Data;
 
-               return restResult;
+            var task = new TaskInfo
+            {
+                Status = _taskStatuses.Queued,
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.DeleteUsers,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
 
-               //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
-               //restRequest.AddQueryParameter("code", device.Code.ToString());
-               //restRequest.AddJsonBody(userId);
-               //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-               //{
-               //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-               //}
-               //return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
-           });
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { userId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                CurrentIndex = 0,
+                TotalCount = 1
+            });
+
+            await _taskService.InsertTask(task);
+            _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+            var restResult = _deviceService.RemoveUserFromDeviceById(device, userId, token);
+            return restResult;
         }
 
         [HttpPost]
-        [Attribute.Authorize]
-        [Route("{id}/SendUsers")]
-        public Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
+        [Authorize]
+        [Route("{id}/RemoveUsers")]
+        public async Task<ResultViewModel> RemoveUsersFromDevice([FromBody] List<long> userIds, [FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
-           {
-               try
-               {
-                   var device = _deviceService.GetDevice(id, token: token).Data;
-                   if (device == null)
-                   {
-                       Logger.Log($"DeviceId {id} does not exist.");
-                       return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist." };
-                   }
+            var creatorUser = HttpContext.GetUser();
+            var token = HttpContext.Items["Token"] as string;
+            if (userIds is null || !userIds.Any())
+                return new ResultViewModel { Validate = 0, Message = "No users selected." };
 
-                   var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
-                   restRequest.AddJsonBody(device);
-                   if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                   {
-                       restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                   }
-                   var result = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var device = (await _deviceService.GetDevice(id, token)).Data;
 
-                   return new ResultViewModel { Validate = result.Result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = id };
-               }
-               catch (Exception exception)
-               {
-                   Logger.Log(exception);
-                   return new ResultViewModel { Validate = 0, Message = $"SendUserToDevice Failed. DeviceId: {id}" };
-               }
-           });
+            var task = new TaskInfo
+            {
+                Status = _taskStatuses.Queued,
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.DeleteUsers,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+
+            foreach (var userCode in userIds)
+            {
+
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { userCode }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+                    CurrentIndex = 0,
+                    TotalCount = 1
+                });
+            }
+            await _taskService.InsertTask(task);
+            _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddJsonBody(userIds);
+            restRequest.AddHeader("Authorization", token!);
+            return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("{id}/SyncUsers")]
+        public async Task<ResultViewModel> SendUsersToDevice([FromRoute] int id = default)
+        {
+            try
+            {
+                var creatorUser = HttpContext.GetUser();
+                var token = HttpContext.Items["Token"] as string;
+                var device = (await _deviceService.GetDevice(id, token)).Data;
+                if (device == null)
+                {
+                    Logger.Log($"DeviceId {id} does not exist.");
+                    return new ResultViewModel { Validate = 0, Message = $"DeviceId {id} does not exist." };
+                }
+
+                var task = new TaskInfo
+                {
+                    Status = _taskStatuses.Queued,
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    DeviceBrand = device.Brand,
+                    TaskType = _taskTypes.SendUsers,
+                    Priority = _taskPriorities.Medium,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+                var accessGroups = (await _accessGroupService.GetAccessGroups(deviceId: device.DeviceId))?.Data?.Data ?? new List<AccessGroup>();
+
+                foreach (var accessGroup in accessGroups)
+                {
+                    foreach (var userGroup in accessGroup.UserGroup)
+                    {
+                        foreach (var userGroupMember in userGroup.Users)
+                        {
+                            task.TaskItems.Add(new TaskItem
+                            {
+                                Status = _taskStatuses.Queued,
+                                TaskItemType = _taskItemTypes.SendUser,
+                                Priority = _taskPriorities.Medium,
+                                DeviceId = device.DeviceId,
+                                Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserCode }),
+                                IsParallelRestricted = true,
+                                IsScheduled = false,
+                                OrderIndex = 1,
+                                TotalCount = 1,
+                                CurrentIndex = 0
+                            });
+                        }
+                    }
+                }
+
+                await _taskService.InsertTask(task);
+                _ = _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
+                restRequest.AddJsonBody(device);
+                restRequest.AddHeader("Authorization", token!);
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                return new ResultViewModel { Validate = result.StatusCode == HttpStatusCode.OK ? 1 : 0, Id = id };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = $"SendUserToDevice Failed. DeviceId: {id}" };
+            }
         }
 
 
         [HttpGet]
         [AllowAnonymous]
         [Route("{id}/DeviceInfo")]
-        public Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo([FromRoute] int id = default)
+        public async Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
-           {
-               var device = _deviceService.GetDevice(id, token: token).Data;
+            var token = HttpContext.Items["Token"] as string;
+            var device = (await _deviceService.GetDevice(id, token)).Data;
 
-               var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
-               restRequest.AddQueryParameter("code", device.Code.ToString());
-               if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-               {
-                   restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-               }
-               var result = _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddHeader("Authorization", token!);
+            var result = await _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
 
-               return new ResultViewModel<Dictionary<string, string>>
-               {
-                   Success = result.Result.StatusCode == HttpStatusCode.OK,
-                   Data = result.Result.Data,
-                   Id = id
-               };
-           });
+            return new ResultViewModel<Dictionary<string, string>>
+            {
+                Success = result.StatusCode == HttpStatusCode.OK,
+                Data = result.Data,
+                Id = id
+            };
         }
 
         [HttpGet]
+        [Authorize]
         [Route("DeviceBrands")]
         public async Task<ResultViewModel<PagingResult<Lookup>>> DeviceBrands(bool loadedOnly = true)
         {
-            if (!loadedOnly) return await Task.Run(() => _deviceService.GetDeviceBrands());
+            if (!loadedOnly) return await _deviceService.GetDeviceBrands();
             var loadedServices = _systemInformation.Services.Select(brand => _lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
             return new ResultViewModel<PagingResult<Lookup>>
             {
@@ -556,32 +923,30 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [Authorize]
         [Route("DeviceModels")]
-        public Task<ResultViewModel<PagingResult<DeviceModel>>> DeviceModels(int brandCode = default, string name = default, bool loadedBrandsOnly = true)
+        public async Task<ResultViewModel<PagingResult<DeviceModel>>> DeviceModels(int brandCode = default, string name = default, bool loadedBrandsOnly = true)
         {
-            return Task.Run(() =>
+            var deviceModels = await _deviceService.GetDeviceModels(brandId: brandCode, name: name);
+            if (!loadedBrandsOnly) return deviceModels;
+
+            var loadedDeviceModels = deviceModels.Data.Data?.Where(dm => _systemInformation.Services.Any(db =>
+                string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
+
+            return new ResultViewModel<PagingResult<DeviceModel>>
             {
-                var deviceModels = _deviceService.GetDeviceModels(brandId: brandCode, name: name);
-                if (!loadedBrandsOnly) return deviceModels;
-
-                var loadedDeviceModels = deviceModels.Data.Data?.Where(dm => _systemInformation.Services.Any(db =>
-                    string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
-
-                return new ResultViewModel<PagingResult<DeviceModel>>
+                Success = true,
+                Validate = 1,
+                Code = 200,
+                Data = new PagingResult<DeviceModel>
                 {
-                    Success = true,
-                    Validate = 1,
-                    Code = 200,
-                    Data = new PagingResult<DeviceModel>
-                    {
-                        Count = loadedDeviceModels?.Count ?? 0,
-                        From = 0,
-                        PageNumber = 0,
-                        PageSize = loadedDeviceModels?.Count ?? 0,
-                        Data = loadedDeviceModels
-                    }
-                };
-            });
+                    Count = loadedDeviceModels?.Count ?? 0,
+                    From = 0,
+                    PageNumber = 0,
+                    PageSize = loadedDeviceModels?.Count ?? 0,
+                    Data = loadedDeviceModels
+                }
+            };
         }
 
         //TODO make compatible with.net core
@@ -636,22 +1001,23 @@ namespace Biovation.Server.Controllers.v2
         //}
 
         [HttpPost]
-        [Attribute.Authorize]
+        [Authorize]
         //[AllowAnonymous]
         [Route("{id}/UserAdaptation")]
         public Task<ResultViewModel> UserAdaptation([FromRoute] int id, [FromBody] object equivalentCodesObject)
         {
-            var token = (string)HttpContext.Items["Token"];
+            var token = HttpContext.Items["Token"] as string;
             var creatorUser = HttpContext.GetUser();
 
             return Task.Run(async () =>
             {
                 var serializedEquivalentCodes = JsonSerializer.Serialize(equivalentCodesObject);
-                var device = _deviceService.GetDevice(id).Data;
+                var device = (await _deviceService.GetDevice(id)).Data;
 
 
                 var task = new TaskInfo
                 {
+                    Status = _taskStatuses.Queued,
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
                     TaskType = _taskTypes.UserAdaptation,
@@ -674,7 +1040,7 @@ namespace Biovation.Server.Controllers.v2
                     TotalCount = 1
                 });
 
-                _taskService.InsertTask(task);
+                await _taskService.InsertTask(task);
 
                 var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
                 await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -682,5 +1048,25 @@ namespace Biovation.Server.Controllers.v2
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
             });
         }
+
+
+        ///////////////////////////////////
+        //[HttpGet]
+        //[Route("GetDeviceModels/{id}")]
+        //public Task<PagingResult<DeviceModel>> DeviceModels(int id = default, int brandId = default, string name = default, int pageNumber = default, int PageSize = default)
+        //{
+        //    var result = Task.Run(() => _deviceService.GetDeviceModels(id, brandId, name, pageNumber, PageSize));
+        //    return result;
+        //}
+
+
+        //[HttpGet]
+        //[Route("BioAuthMode/{id}")]
+        //public Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id = default, int authMode = default)
+        //{
+        //    var result = Task.Run(() => _deviceService.GetBioAuthModeWithDeviceId(id, authMode));
+        //    return result;
+        //}
+        //////////////////////////////////////////
     }
 }

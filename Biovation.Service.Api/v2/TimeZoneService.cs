@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -15,29 +15,29 @@ namespace Biovation.Service.Api.v2
             _deviceService = deviceService;
         }
 
-        public ResultViewModel<TimeZone> TimeZones(int id = default, string token = default)
+        public async Task<ResultViewModel<TimeZone>> TimeZones(int id = default, string token = default)
         {
-            return _timeZoneRepository.TimeZones(id, token);
+            return await _timeZoneRepository.TimeZones(id, token);
         }
 
-        public ResultViewModel<List<TimeZone>> GetTimeZones(string token = default)
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(string token = default)
         {
-            return _timeZoneRepository.GetTimeZones(token);
+            return await _timeZoneRepository.GetTimeZones(token);
         }
 
-        public ResultViewModel ModifyTimeZone(TimeZone timeZone, string token = default)
+        public async Task<ResultViewModel> ModifyTimeZone(TimeZone timeZone, string token = default)
         {
-            return _timeZoneRepository.ModifyTimeZone(timeZone, token);
+            return await _timeZoneRepository.ModifyTimeZone(timeZone, token);
         }
 
-        public ResultViewModel DeleteTimeZone(int id, string token = default)
+        public async Task<ResultViewModel> DeleteTimeZone(int id, string token = default)
         {
-            return _timeZoneRepository.DeleteTimeZone(id, token);
+            return await _timeZoneRepository.DeleteTimeZone(id, token);
         }
 
         public ResultViewModel SendTimeZoneDevice(int id, int deviceId, string token)
         {
-            var device = _deviceService.GetDevice(deviceId, token: token)?.Data;
+            var device = _deviceService.GetDevice(deviceId, token: token).Result.Data;
 
             if (device is null)
                 return new ResultViewModel
@@ -54,7 +54,7 @@ namespace Biovation.Service.Api.v2
             return new ResultViewModel { Validate = 1 };
         }
 
-        public ResultViewModel SendTimeZoneToAllDevices(int id, DeviceBasicInfo device, string token)
+        public ResultViewModel SendTimeZoneToAllDevices(int id, DeviceBasicInfo device, string token = default)
         {
             _timeZoneRepository.SendTimeZoneDevice(id, device, token);
 

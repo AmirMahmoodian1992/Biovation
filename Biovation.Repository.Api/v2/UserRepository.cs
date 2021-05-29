@@ -1,8 +1,9 @@
-﻿using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using System.Linq;
 
 namespace Biovation.Repository.Api.v2
@@ -19,7 +20,7 @@ namespace Biovation.Repository.Api.v2
             _systemInformation = systemInformation;
         }
 
-        public ResultViewModel<PagingResult<User>> GetUsers(int from = default,
+        public async Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default,
             int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
@@ -39,8 +40,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<User>>>(restRequest);
+            return requestResult.Data;
         }
 
         /// <summary>
@@ -76,32 +77,32 @@ namespace Biovation.Repository.Api.v2
             var requestResult = _restClient.ExecuteAsync<ResultViewModel<List<DeviceBasicInfo>>>(restRequest);
             return requestResult.Result.Data;
         }
-        public ResultViewModel ModifyUser(User user, string token = default)
+        public async Task<ResultViewModel> ModifyUser(User user, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User", Method.PUT);
             restRequest.AddJsonBody(user);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel DeleteUser(long id = default, string token = default)
+        public async Task<ResultViewModel> DeleteUser(long id = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel DeleteUsers(List<int> ids, string token = default)
+        public async Task<ResultViewModel> DeleteUsers(List<int> ids, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/DeleteUsers", Method.POST);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddJsonBody(ids);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
         public ResultViewModel DeleteUserGroupsOfUser(int userId, int userTypeId = 1, string token = default)
         {
@@ -114,7 +115,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1, string token = default)
+        public async Task<ResultViewModel> DeleteUserGroupOfUser(int userId, int userGroupId, int userTypeId = 1, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/UserGroupOfUser", Method.DELETE);
             token ??= _biovationConfigurationManager.DefaultToken;
@@ -122,19 +123,19 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             restRequest.AddQueryParameter("userTypeId", userTypeId.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel ModifyPassword(int id = default, string password = default, string token = default)
+        public async Task<ResultViewModel> ModifyPassword(int id = default, string password = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/User/Password/{id}", Method.PATCH);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddUrlSegment("id", id.ToString());
             restRequest.AddQueryParameter("password", password ?? string.Empty);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default, string token = default)

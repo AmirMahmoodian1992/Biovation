@@ -15,9 +15,9 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
-            string instanceId = default, int deviceId = default, string taskTypeCode = default,
-            string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default,
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default,
+            string instanceId = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
+            string excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default, string token =default)
         {
             var restRequest = new RestRequest("Queries/v2/task", Method.GET);
@@ -33,37 +33,38 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("taskItemId", taskItemId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<TaskInfo>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<TaskInfo>>>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel<TaskItem> GetTaskItem(int taskItemId = default, string token = default)
+        public async Task<ResultViewModel<TaskItem>> GetTaskItem(int taskItemId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/task/{taskItemId}", Method.GET);
             restRequest.AddUrlSegment("taskItemId", taskItemId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<TaskItem>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<TaskItem>>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel InsertTask( TaskInfo task, string token = default)
+        public async Task<ResultViewModel> InsertTask( TaskInfo task, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/task", Method.POST);
             restRequest.AddJsonBody(task);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel UpdateTaskStatus(TaskItem taskItem, string token = default)
+        public async Task<ResultViewModel> UpdateTaskStatus(TaskItem taskItem, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/task", Method.PUT);
             restRequest.AddJsonBody(taskItem);
             token ??= _biovationConfigurationManager.DefaultToken;
-            restRequest.AddHeader("Authorization", token); var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            restRequest.AddHeader("Authorization", token); 
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
 
         public async Task<ResultViewModel> ProcessQueue(Lookup brand, int deviceId = default, string token = default)

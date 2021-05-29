@@ -48,43 +48,11 @@ namespace Biovation.Brands.EOS.Controllers
         {
             try
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode)?.Data?.Data?.FirstOrDefault();
+                var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data?.FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel { Validate = 0, Message = $"Wrong device code is provided : {code}." };
 
-                var userIds = JsonConvert.DeserializeObject<uint[]>(userId);
-                var creatorUser = HttpContext.GetUser();
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.SendUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Eos,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                foreach (var id in userIds)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.SendUser,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userId = id }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
-                }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Eos, device.DeviceId);
 
                 //foreach (var receivedUserId in userIds)
                 //{
@@ -106,25 +74,6 @@ namespace Biovation.Brands.EOS.Controllers
         [Authorize]
         public ResultViewModel SendUserToAllDevices([FromBody] User user)
         {
-            var accessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
-            if (accessGroups == null || !accessGroups.Any())
-            {
-                return new ResultViewModel { Id = user.Id, Validate = 0 };
-            }
-            foreach (var accessGroup in accessGroups)
-            {
-                foreach (var deviceGroup in accessGroup.DeviceGroup)
-                {
-                    foreach (var deviceGroupMember in deviceGroup.Devices)
-                    {
-                        var addUserToTerminalCommand = _commandFactory.Factory(CommandType.SendUserToDevice,
-                            new List<object> { deviceGroupMember.Code, user.Code });
-
-                        addUserToTerminalCommand.Execute();
-                    }
-                }
-            }
-
             return new ResultViewModel { Id = user.Id, Validate = 1 };
         }
     }

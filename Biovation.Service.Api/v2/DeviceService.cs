@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -26,40 +27,39 @@ namespace Biovation.Service.Api.v2
         //{
         //    return _deviceRepository.GetDevice(adminUserId);
         //}
-        public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = default,
-            int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
+        public async Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> GetDevices(int deviceGroupId = default, uint code = default, string brandId = default, string deviceName = null,
             int deviceModelId = default, int deviceIoTypeId = default, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDevices(adminUserId, deviceGroupId, code, brandId, deviceName, deviceModelId,
-                deviceIoTypeId, pageNumber, pageSize);
+            return await _deviceRepository.GetDevices(deviceGroupId, code, brandId, deviceName, deviceModelId,
+                deviceIoTypeId, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<DeviceBasicInfo> GetDevice(long id = default, long adminUserId = default, string token = default)
+        public async Task<ResultViewModel<DeviceBasicInfo>> GetDevice(long id = default, string token = default)
         {
-            return _deviceRepository.GetDevice(id, (int)adminUserId, token);
+            return await _deviceRepository.GetDevice(id, token);
         }
 
-        public ResultViewModel<PagingResult<DeviceModel>> GetDeviceModels(long id = default, int brandId = default,
+        public async Task<ResultViewModel<PagingResult<DeviceModel>>> GetDeviceModels(long id = default, int brandId = default,
             string name = null, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _deviceRepository.GetDeviceModels(id, brandId.ToString(), name, pageNumber, pageSize, token);
+            return await _deviceRepository.GetDeviceModels(id, brandId.ToString(), name, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel<AuthModeMap> GetBioAuthModeWithDeviceId(int id, int authMode, string token)
+        public async Task<ResultViewModel<AuthModeMap>> GetBioAuthModeWithDeviceId(int id, int authMode, string token)
         {
-            return _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode, token);
+            return await _deviceRepository.GetBioAuthModeWithDeviceId(id, authMode, token);
         }
 
-        public ResultViewModel<DateTime> GetLastConnectedTime(int id, string token)
+        public async Task<ResultViewModel<DateTime>> GetLastConnectedTime(int id, string token)
         {
-            return _deviceRepository.GetLastConnectedTime((uint)id, token);
+            return await _deviceRepository.GetLastConnectedTime((uint)id, token);
         }
 
-        public ResultViewModel<PagingResult<Lookup>> GetDeviceBrands(int code = default, string name = default,
+        public async Task<ResultViewModel<PagingResult<Lookup>>> GetDeviceBrands(int code = default, string name = default,
             int pageNumber = default, int pageSize = default, string token = default)
 
         {
-            return _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token);
+            return await _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token);
         }
 
         // TODO - Verify the method
@@ -90,7 +90,7 @@ namespace Biovation.Service.Api.v2
         }
 
         // TODO - Verify method.
-        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, string fromDate, string toDate, string token = default)
+        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, DateTime? fromDate, DateTime? toDate, string token = default)
         {
             return _deviceRepository.ReadOfflineOfDevice(device, fromDate, toDate, token);
         }
@@ -102,62 +102,62 @@ namespace Biovation.Service.Api.v2
 
 
         // TODO - Verify method.
-        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, int userId, string token = default)
+        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, long userId, string token = default)
         {
             return _deviceRepository.RemoveUserFromDeviceById(device, userId, token);
         }
 
         // TODO - Verify the method.
-        public List<DeviceBasicInfo> GetOnlineDevices(string token = default)
+        public async Task<List<DeviceBasicInfo>> GetOnlineDevices(string token = default)
         {
-            return _deviceRepository.GetOnlineDevices(token);
+            return await _deviceRepository.GetOnlineDevices(token);
         }
 
         // TODO - Verify the method.
-        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, string fromDate, string toDate, string token)
+        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, DateTime? fromDate, DateTime? toDate, string token)
         {
             return _deviceRepository.ClearLogsOfDevice(device, fromDate, toDate, token);
         }
 
         // TODO - Verify the method.
-        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, JArray userId = default, string token = default)
+        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, List<uint> userId = default, string token = default)
         {
             return _deviceRepository.RetrieveUsers(device, userId, token);
         }
 
-        public ResultViewModel AddDevice(DeviceBasicInfo device = default, string token = default)
+        public async Task<ResultViewModel> AddDevice(DeviceBasicInfo device = default, string token = default)
         {
-            return _deviceRepository.AddDevice(device, token);
+            return await _deviceRepository.AddDevice(device, token);
         }
 
-        public ResultViewModel AddDeviceModel(DeviceModel deviceModel = default, string token = default)
+        public async Task<ResultViewModel> AddDeviceModel(DeviceModel deviceModel = default, string token = default)
         {
-            return _deviceRepository.AddDeviceModel(deviceModel, token);
+            return await _deviceRepository.AddDeviceModel(deviceModel, token);
         }
 
-        public ResultViewModel DeleteDevice(uint id, string token = default)
+        public async Task<ResultViewModel> DeleteDevice(uint id, string token = default)
         {
-            return _deviceRepository.DeleteDevice(id, token);
+            return await _deviceRepository.DeleteDevice(id, token);
         }
 
-        public ResultViewModel DeleteDevices(List<uint> ids, string token = default)
+        public async Task<ResultViewModel> DeleteDevices(List<uint> ids, string token = default)
         {
-            return _deviceRepository.DeleteDevices(ids, token);
+            return await _deviceRepository.DeleteDevices(ids, token);
         }
 
-        public ResultViewModel ModifyDevice(DeviceBasicInfo device, string token = default)
+        public async Task<ResultViewModel> ModifyDevice(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.ModifyDevice(device, token);
+            return await _deviceRepository.ModifyDevice(device, token);
         }
 
-        public ResultViewModel AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
+        public async Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
-            return _deviceRepository.AddNetworkConnectionLog(device, token);
+            return await _deviceRepository.AddNetworkConnectionLog(device, token);
         }
 
-        public ResultViewModel<PagingResult<User>> GetAuthorizedUsersOfDevice(int id, string token = default)
+        public async Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int id, string token = default)
         {
-            return _deviceRepository.GetAuthorizedUsersOfDevice(id, token);
+            return await _deviceRepository.GetAuthorizedUsersOfDevice(id, token);
         }
     }
 }

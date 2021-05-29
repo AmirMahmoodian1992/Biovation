@@ -1,11 +1,15 @@
-﻿using Biovation.Domain;
+﻿using System;
+using Biovation.Domain;
+using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Server.Attribute;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
+using Newtonsoft.Json;
+using TimeZone = Biovation.Domain.TimeZone;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -15,24 +19,40 @@ namespace Biovation.Server.Controllers.v2
     [Route("biovation/api/v{version:apiVersion}/[controller]")]
     public class TimeZoneController : ControllerBase
     {
-        //private readonly CommunicationManager<List<ResultViewModel>> _communicationManager = new CommunicationManager<List<ResultViewModel>>();
         private readonly TimeZoneService _timeZoneService;
         private readonly DeviceService _deviceService;
         private readonly RestClient _restClient;
 
-        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskService _taskService;
+
+        public TimeZoneController(TimeZoneService timeZoneService, DeviceService deviceService, RestClient restClient, TaskStatuses taskStatuses, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _timeZoneService = timeZoneService;
             _restClient = restClient;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
         [Route("{id}")]
-        public Task<ResultViewModel<TimeZone>> TimeZones([FromRoute] int id = default)
+        public async Task<ResultViewModel<TimeZone>> TimeZone([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _timeZoneService.TimeZones(id, token));
+            return await _timeZoneService.TimeZones(id, HttpContext.Items["Token"] as string);
+        }
+
+        [HttpGet]
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> TimeZones()
+        {
+            return await _timeZoneService.GetTimeZones(HttpContext.Items["Token"] as string);
         }
 
         //TODO
@@ -45,96 +65,118 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpDelete]
         [Route("{id}")]
-        public Task<ResultViewModel> DeleteTimeZone([FromRoute] int id = default)
+        public async Task<ResultViewModel> DeleteTimeZone([FromRoute] int id = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _timeZoneService.DeleteTimeZone(id, token));
+            return await _timeZoneService.DeleteTimeZone(id, HttpContext.Items["Token"] as string);
         }
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone = default)
+        public async Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() => _timeZoneService.ModifyTimeZone(timeZone, token));
+            return await _timeZoneService.ModifyTimeZone(timeZone, HttpContext.Items["Token"] as string);
         }
 
         // TODO - Verify Method.
         //send to all device when deviceId is null
         [HttpPost]
         [Route("{id}/SendDevice/{deviceId}")]
-        public Task<ResultViewModel> SendTimeZoneDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
+        public async Task<ResultViewModel> SendTimeZoneDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
-            var token = (string)HttpContext.Items["Token"];
-            return Task.Run(() =>
+            var creatorUser = HttpContext.GetUser();
+            var token = HttpContext.Items["Token"] as string;
+            var device = (await _deviceService.GetDevice(deviceId, token))?.Data;
+            if (device is null)
+                return new ResultViewModel
+                {
+                    Id = id,
+                    Code = 404,
+                    Message = "The provided device id is wrong",
+                    Success = false,
+                    Validate = 0
+                };
+
+            var task = new TaskInfo
             {
+                Status = _taskStatuses.Queued,
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.SendTimeZoneToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>()
+            };
 
-                //var device = _deviceService.GetDevice(deviceId, token: token)?.Data;
-                //if (device is null)
-                //    return new ResultViewModel
-                //    {
-                //        Id = id,
-                //        Code = 404,
-                //        Message = "The provided device id is wrong",
-                //        Success = false,
-                //        Validate = 0
-                //    };
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new {id}),
+                IsParallelRestricted = true,
+                IsScheduled = false,
 
-                //var restRequest =
-                //    new RestRequest(
-                //        $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
-                //        Method.GET);
-                //restRequest.AddParameter("code", device.Code);
-                //restRequest.AddParameter("timeZoneId", id);
-                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                //{
-                //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                //}
-                //_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-
-                _timeZoneService.SendTimeZoneDevice(id, deviceId, token);
-
-                return new ResultViewModel { Validate = 1 };
+                OrderIndex = 1
             });
 
+            await _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+            _timeZoneService.SendTimeZoneDevice(id, deviceId, token);
+
+            return new ResultViewModel { Validate = 1 };
         }
 
         // TODO - Verify Method.
         [HttpPost]
         [Route("{id}/SendTimeZoneToAllDevices")]
-        public Task<List<ResultViewModel>> SendTimeZoneToAllDevices([FromRoute]int id = default)
+        public async Task<List<ResultViewModel>> SendTimeZoneToAllDevices([FromRoute] int id = default)
         {
-            return Task.Run(() =>
+            var creatorUser = HttpContext.GetUser();
+            var devices = (await _deviceService.GetDevices())?.Data?.Data;
+            if (devices is null)
+                return new List<ResultViewModel> { new ResultViewModel { Id = id, Success = false, Validate = 0, Message = "No device is found", Code = 404 } };
+
+            var result = new List<ResultViewModel>();
+            foreach (var device in devices)
             {
-                var devices = _deviceService.GetDevices()?.Data?.Data;
-                if (devices is null)
-                    return new List<ResultViewModel> { new ResultViewModel { Id = id, Success = false, Validate = 0, Message = "No device is found", Code = 404 } };
 
-                var result = new List<ResultViewModel>();
-                foreach (var device in devices)
+                var task = new TaskInfo
                 {
-                    //var restRequest =
-                    //    new RestRequest(
-                    //        $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
-                    //        Method.GET);
-                    //restRequest.AddParameter("code", device.Code);
-                    //restRequest.AddParameter("timeZoneId", id);
-                    //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                    //{
-                    //    restRequest.AddHeader("Authorization",
-                    //        HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-                    //}
+                    Status = _taskStatuses.Queued,
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendTimeZoneToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>()
+                };
 
-                    var sendTimeZoneResult = _timeZoneService.SendTimeZoneToAllDevices(id, device);
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.SendTimeZoneToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { id }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
 
-                    //_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
-                    //result.Add(new ResultViewModel { Validate = 1 });
+                    OrderIndex = 1
+                });
 
-                    result.Add(sendTimeZoneResult);
-                }
+                await _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
-                return result;
-            });
+                var sendTimeZoneResult = _timeZoneService.SendTimeZoneToAllDevices(id, device);
 
+                //_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                //result.Add(new ResultViewModel { Validate = 1 });
+
+                result.Add(sendTimeZoneResult);
+            }
+
+            return result;
         }
     }
 }

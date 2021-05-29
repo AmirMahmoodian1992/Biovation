@@ -13,14 +13,12 @@ namespace Biovation.Brands.Suprema.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class SupremaAccessGroupController : ControllerBase
     {
-        private readonly CommandFactory _commandFactory;
         private readonly FastSearchService _fastSearchService;
         private readonly AccessGroupService _accessGroupServices;
 
-        public SupremaAccessGroupController(AccessGroupService accessGroupServices, CommandFactory commandFactory, FastSearchService fastSearchService)
+        public SupremaAccessGroupController(AccessGroupService accessGroupServices, FastSearchService fastSearchService)
         {
             _accessGroupServices = accessGroupServices;
-            _commandFactory = commandFactory;
             _fastSearchService = fastSearchService;
         }
 
@@ -36,12 +34,7 @@ namespace Biovation.Brands.Suprema.Controllers
         [Authorize]
         public ResultViewModel SendAccessGroupToDevice(int accessGroupId, uint code)
         {
-            var sendAccessGroupCommand = _commandFactory.Factory(CommandType.SendAccessGroupToDevice,
-                new List<object> { code, accessGroupId });
-
-            var result = (bool)sendAccessGroupCommand.Execute();
-
-            return new ResultViewModel { Validate = result ? 1 : 0, Message = code.ToString() };
+            return new ResultViewModel { Validate = 1, Message = code.ToString() };
         }
 
         [HttpPost]

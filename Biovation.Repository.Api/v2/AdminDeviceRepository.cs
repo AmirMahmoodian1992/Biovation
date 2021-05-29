@@ -1,4 +1,5 @@
-﻿using Biovation.CommonClasses.Manager;
+﻿using System.Threading.Tasks;
+using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -15,7 +16,7 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<AdminDeviceGroup>> GetAdminDeviceGroupsByUserId(int personId,
+        public async Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId(int personId,
             int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/AdminDevice/AdminDeviceGroupsByUserId/{personId}", Method.GET);
@@ -25,10 +26,11 @@ namespace Biovation.Repository.Api.v2
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
 
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDeviceGroup>>>(restRequest);
+            return requestResult.Data;
         }
-        public ResultViewModel<PagingResult<AdminDevice>> GetAdminDevicesByUserId(int personId,
+
+        public async Task<ResultViewModel<PagingResult<AdminDevice>>> GetAdminDevicesByUserId(int personId,
             int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/AdminDevice/AdminDevicesByUserId/{personId}", Method.GET);
@@ -37,17 +39,17 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDevice>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<AdminDevice>>>(restRequest);
+            return requestResult.Data;
         }
 
-        public ResultViewModel ModifyAdminDevice(JObject adminDevice, string token = default)
+        public async Task<ResultViewModel> ModifyAdminDevice(JObject adminDevice, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/AdminDevice", Method.PUT);
             restRequest.AddJsonBody(adminDevice);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+            return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
     }
 }
