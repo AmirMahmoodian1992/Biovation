@@ -44,7 +44,7 @@ namespace Biovation.Brands.Paliz.Command
             TaskItemId = Convert.ToInt32(items[1]);
             var taskItem = taskService.GetTaskItem(TaskItemId)?.GetAwaiter().GetResult().Data ?? new TaskItem();
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            if (data != null) UserId = (int) data["userId"];
+            if (data != null) UserId = (int)data["userId"];
             _palizServer = palizServer;
             _userService = userService;
             _fingerTemplateTypes = fingerTemplateTypes;
@@ -115,14 +115,17 @@ namespace Biovation.Brands.Paliz.Command
             }
         }
 
-        private void ModifyFingerTemplates(UserInfoModel userInfoModel, User user)
+        private async void ModifyFingerTemplates(UserInfoModel userInfoModel, User user)
         {
             if (userInfoModel?.Fingerprints == null)
             {
                 return;
             }
+
             var fingerprints = userInfoModel.Fingerprints;
             var fingerTemplateList = new List<FingerTemplate>();
+            var userTemplates = _fingerTemplateService.FingerTemplates(userId: (int)user.Id).GetAwaiter().GetResult().Data?.Data;
+
             if (user != null)
             {
                 fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
@@ -133,25 +136,27 @@ namespace Biovation.Brands.Paliz.Command
                     FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
                     EnrollQuality = fingerprint.Quality,
                     FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = _fingerTemplateService.FingerTemplates(userId: (int)user.Id).GetAwaiter().GetResult()?.Data?.Data.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+                    Index = userTemplates?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
                 }));
             }
-
-            fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
+            else
             {
-                UserId = fingerprint.UserId,
-                Template = fingerprint.Template,
-                FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
-                EnrollQuality = fingerprint.Quality,
-                FingerTemplateType = _fingerTemplateTypes.V400,
-                Index = fingerprint.Index
-            }));
+                fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
+                {
+                    UserId = fingerprint.UserId,
+                    Template = fingerprint.Template,
+                    FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
+                    EnrollQuality = fingerprint.Quality,
+                    FingerTemplateType = _fingerTemplateTypes.V400,
+                    Index = fingerprint.Index
+                }));
+            }
 
             if (!fingerTemplateList.Any()) return;
 
             foreach (var fingerTemplate in fingerTemplateList)
             {
-                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
+                await _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
             }
         }
 
@@ -202,14 +207,15 @@ namespace Biovation.Brands.Paliz.Command
             }
         }
 
-        private void ModifyUserCards(UserInfoModel userInfoModel, long userId)
+        private async void ModifyUserCards(UserInfoModel userInfoModel, long userId)
         {
             try
             {
-                if(userInfoModel?.Cards == null)
+                if (userInfoModel?.Cards == null)
                 {
                     return;
                 }
+
                 foreach (var card in userInfoModel.Cards)
                 {
                     var userCard = new UserCard
@@ -219,7 +225,7 @@ namespace Biovation.Brands.Paliz.Command
                         UserId = userId
                     };
 
-                    _userCardService.ModifyUserCard(userCard);
+                    await _userCardService.ModifyUserCard(userCard);
                 }
             }
             catch (Exception e)
@@ -277,11 +283,10 @@ namespace Biovation.Brands.Paliz.Command
             {
                 Logger.Log($"   +TotalCardCount:{userInfoModel.Cards?.Length ?? 0}");
                 ModifyUserCards(userInfoModel, user.Id);
-               
-               
+
                 Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints?.Length ?? 0}");
                 ModifyFingerTemplates(userInfoModel, user);
-                
+
                 Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces?.Length ?? 0}");
                 ModifyFaceTemplates(userInfoModel, user);
             }
