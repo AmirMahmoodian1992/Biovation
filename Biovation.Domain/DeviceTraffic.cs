@@ -14,6 +14,7 @@ namespace Biovation.Domain
         /// </summary>
         public string SurName { get; set; }
         public int UserId { get; set; }
+        public int deviceGroupId { get; set; }
         public uint DeviceId { get; set; }
         public string Date { get; set; }
         public string Time { get; set; }

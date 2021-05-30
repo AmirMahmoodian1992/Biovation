@@ -82,7 +82,7 @@ namespace Biovation.Repository.Sql.v2
         /// </summary>
         /// <returns></returns>
 
-        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, long userCode = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, long userGroupId = default, long userCode = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false, int pageNumber = default, int pageSize = default)
         {
             return Task.Run(() =>
             {
@@ -93,6 +93,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@size", size),
                     new SqlParameter("@getTemplatesData", getTemplatesData),
                     new SqlParameter("@userId", userId),
+                    new SqlParameter("@userGroupId", userGroupId),
                     new SqlParameter("@UserCode", userCode),
                     new SqlParameter("@WithPicture", withPicture),
                     new SqlParameter("@FilterText", filterText),
