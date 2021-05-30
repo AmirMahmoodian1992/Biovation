@@ -100,6 +100,11 @@ namespace Biovation.Service.Api.v2
             return _deviceRepository.RemoveUserFromDevice(device, token);
         }
 
+        // TODO - Verify the method.
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
+        {
+            return _deviceRepository.DeleteUserFromDevice(device, userIds, token);
+        }
 
         // TODO - Verify method.
         public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, long userId, string token = default)
@@ -150,6 +155,12 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.ModifyDevice(device, token);
         }
 
+        // TODO - Verify method.
+        public void ModifyDeviceInfo(DeviceBasicInfo device, string token = default)
+        { 
+            _deviceRepository.ModifyDeviceInfo(device, token);
+        }
+
         public async Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
             return await _deviceRepository.AddNetworkConnectionLog(device, token);
@@ -158,6 +169,24 @@ namespace Biovation.Service.Api.v2
         public async Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int id, string token = default)
         {
             return await _deviceRepository.GetAuthorizedUsersOfDevice(id, token);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<List<ResultViewModel>>> SendUserToDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
+        {
+            return _deviceRepository.SendUserToDevice(device, userIds, token);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<ResultViewModel>> SendUsersOfDevice(DeviceBasicInfo device, string token = default)
+        {
+            return _deviceRepository.SendUsersOfDevice(device, token);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<Dictionary<string, string>>> GetAdditionalData(DeviceBasicInfo device, string token = default)
+        {
+            return _deviceRepository.GetAdditionalData(device, token);
         }
     }
 }

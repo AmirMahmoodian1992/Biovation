@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
@@ -162,6 +163,16 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
+        // TODO - Verify method.
+        public async void ModifyDeviceInfo(DeviceBasicInfo device, string token = default)
+        {
+            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/ModifyDevice",
+                Method.POST);
+            restRequest.AddJsonBody(device);
+            restRequest.AddHeader("Authorization", token!);
+            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+        }
+
         public async Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/Device/NetworkConnectionLog", Method.POST);
@@ -287,6 +298,47 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             var restAwaiter = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter();
             return restAwaiter.GetResult().Data;
+        }
+
+        // TODO - Verify the method.
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
+        {
+            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddJsonBody(userIds);
+            restRequest.AddHeader("Authorization", token!);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter().GetResult()?.Data;
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<List<ResultViewModel>>> SendUserToDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"/{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}User/SendUserToDevice",
+                    Method.GET);
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddQueryParameter("userId", JsonSerializer.Serialize(userIds));
+            restRequest.AddHeader("Authorization", token!);
+            return _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<ResultViewModel>> SendUsersOfDevice(DeviceBasicInfo device, string token = default)
+        {
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
+            restRequest.AddJsonBody(device);
+            restRequest.AddHeader("Authorization", token!);
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<Dictionary<string, string>>> GetAdditionalData(DeviceBasicInfo device, string token = default)
+        {
+            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
+            restRequest.AddQueryParameter("code", device.Code.ToString());
+            restRequest.AddHeader("Authorization", token!);
+            return _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
         }
     }
 }

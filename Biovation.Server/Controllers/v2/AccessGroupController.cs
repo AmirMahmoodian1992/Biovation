@@ -68,7 +68,7 @@ namespace Biovation.Server.Controllers.v2
         }
 
 
-        // TODO - Should I change this method ?
+        // TODO - Verify the method.
         [HttpPatch]
         public async Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
@@ -123,16 +123,22 @@ namespace Biovation.Server.Controllers.v2
                 //restRequest.AddHeader("Authorization", token!);
 
                 //var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
-                var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
 
-                if (deviceBrands != null)
-                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
-                        $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                        Method.POST)))
-                    {
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
+                _accessGroupService.ModifyAccessGroup(token);
+
+                //var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
+
+                //if (deviceBrands != null)
+                //{
+                //    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
+                //        $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                //        Method.POST)))
+                //    {
+                //        restRequest.AddHeader("Authorization", token!);
+                //        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                //    }
+                //}
+
             }).ConfigureAwait(false);
 
             return result;
@@ -166,7 +172,7 @@ namespace Biovation.Server.Controllers.v2
             return await _accessGroupService.DeleteAccessGroup(id, HttpContext.Items["Token"] as string);
         }
 
-        // TODO - Should I alter this method ?
+        // TODO - Verify the method.
         [HttpPost]
         [Route("{id}/SendAllUsersToAllDevicesInAccessGroup")]
         public async Task<ResultViewModel> SendAllUsersToAllDevicesInAccessGroup([FromRoute] int id = default)
@@ -231,14 +237,18 @@ namespace Biovation.Server.Controllers.v2
                         await _taskService.InsertTask(task);
                         await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
-                        var restRequest =
-                            new RestRequest(
-                                $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
-                                Method.GET);
-                        restRequest.AddParameter("code", device.Code);
-                        restRequest.AddParameter("accessGroupId", id);
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
+
+                        _accessGroupService.SendAccessGroupToDevice(device, id, token);
+
+                        //var restRequest =
+                        //    new RestRequest(
+                        //        $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
+                        //        Method.GET);
+
+                        //restRequest.AddParameter("code", device.Code);
+                        //restRequest.AddParameter("accessGroupId", id);
+                        //restRequest.AddHeader("Authorization", token!);
+                        //await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
 
                         foreach (var userGroup in accessGroup.UserGroup)
                         {
@@ -289,14 +299,16 @@ namespace Biovation.Server.Controllers.v2
                             await _taskService.InsertTask(task);
                             await _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
-                            restRequest =
-                                new RestRequest(
-                                    $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",
-                                    Method.GET);
-                            restRequest.AddParameter("code", device.Code);
-                            restRequest.AddParameter("userId", userids);
-                            restRequest.AddHeader("Authorization", token!);
-                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
+                            _accessGroupService.SendUserToDevice(deviceBrand, device, userids, token);
+
+                            //restRequest =
+                            //    new RestRequest(
+                            //        $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",
+                            //        Method.GET);
+                            //restRequest.AddParameter("code", device.Code);
+                            //restRequest.AddParameter("userId", userids);
+                            //restRequest.AddHeader("Authorization", token!);
+                            //await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
                             //}
                         }
                     }

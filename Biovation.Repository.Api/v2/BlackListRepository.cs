@@ -10,10 +10,12 @@ namespace Biovation.Repository.Api.v2
     {
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        public BlackListRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        private readonly SystemInfo _systemInfo;
+        public BlackListRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, ServiceInstance serviceInstance, SystemInfo systemInfo)
         {
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _systemInfo = systemInfo;
         }
 
         public ResultViewModel<PagingResult<BlackList>> GetBlacklist(int id = default, int userId = default,
@@ -66,6 +68,40 @@ namespace Biovation.Repository.Api.v2
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+
+        // TODO - Verify the method.
+        public async void SendBlackListDevice(string brandName, object list, string token = default)
+        {
+            var serviceInstances = _systemInfo.Services;
+
+            foreach (var serviceInstance in serviceInstances)
+            {
+                var restRequest =
+                    new RestRequest($"/{brandName}/{serviceInstance.Id}/{brandName}BlackList/SendBlackLisDevice",
+                        Method.POST);
+
+                restRequest.AddJsonBody(list);
+                restRequest.AddHeader("Authorization", token);
+                await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            }
+        }
+
+        // TODO - Verify the method.
+        public async void SendBlackListDevice(string brandName, List<BlackList> successBlackList, string token = default)
+        {
+            var serviceInstances = _systemInfo.Services;
+
+            foreach (var serviceInstance in serviceInstances)
+            {
+                var restRequest =
+                    new RestRequest($"/{brandName}/{serviceInstance.Id}/{brandName}BlackList/SendBlackLisDevice",
+                        Method.POST);
+
+                restRequest.AddJsonBody(successBlackList);
+                restRequest.AddHeader("Authorization", token);
+                await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            }
         }
     }
 }

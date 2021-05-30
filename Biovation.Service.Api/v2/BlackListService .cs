@@ -39,9 +39,17 @@ namespace Biovation.Service.Api.v2
         {
             return _blackListRepository.ChangeBlackList(blackList, token);
         }
+        
+        // TODO - Verify the method.
+        public void SendBlackListDevice(string brandName, object list, string token = default)
+        { 
+            _blackListRepository.SendBlackListDevice(brandName, list, token);
+        }
 
-
-
-
+        // TODO - Verify the method.
+        public void SendBlackListDevice(string brandName, List<BlackList> successBlackList, string token = default)
+        {
+            _blackListRepository.SendBlackListDevice(brandName, successBlackList, token);
+        }
     }
 }

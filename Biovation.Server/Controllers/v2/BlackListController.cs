@@ -43,7 +43,7 @@ namespace Biovation.Server.Controllers.v2
             _taskService = taskService;
         }
 
-        // TODO - Need more  consideration.
+        // TODO - Verify the method.
         [HttpPost]
         public Task<List<ResultViewModel>> CreateBlackList([FromBody] List<BlackList> blackLists)
         {
@@ -115,15 +115,19 @@ namespace Biovation.Server.Controllers.v2
                                     await _taskService.ProcessQueue(blackListItem.Device?.Brand).ConfigureAwait(false);
 
                                 }
-                                var restRequest =
-                                    new RestRequest($"/{brandName}/{brandName}BlackList/SendBlackLisDevice",
-                                        Method.POST);
-                                restRequest.AddJsonBody(list);
-                                if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                                {
-                                    restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
-                                }
-                                await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                                _blackListService.SendBlackListDevice(brandName, list, token);
+
+                                //var restRequest =
+                                //    new RestRequest($"/{brandName}/{brandName}BlackList/SendBlackLisDevice",
+                                //        Method.POST);
+
+                                //restRequest.AddJsonBody(list);
+                                //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                                //{
+                                //    restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? string.Empty);
+                                //}
+                                //await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                                 //result.Add(restResult.Data);
                             }
@@ -220,14 +224,17 @@ namespace Biovation.Server.Controllers.v2
                                 await _taskService.ProcessQueue(brand).ConfigureAwait(false);
 
                             }
-                            var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
-                                Method.POST);
-                            restRequest.AddJsonBody(successBlackList);
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? String.Empty);
-                            }
-                            await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                            _blackListService.SendBlackListDevice(brand.Name, successBlackList, token);
+
+                            //var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
+                            //    Method.POST);
+                            //restRequest.AddJsonBody(successBlackList);
+                            //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            //{
+                            //    restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? String.Empty);
+                            //}
+                            //await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }
                     }
@@ -242,6 +249,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
+        // TODO - Verify the method.
         [HttpDelete]
         [Route("{id}")]
         public Task<ResultViewModel> DeleteBlackList([FromRoute] int id)
@@ -308,14 +316,16 @@ namespace Biovation.Server.Controllers.v2
 
                             }
 
-                            var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
-                                Method.POST);
-                            restRequest.AddJsonBody(successBlackList);
-                            if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-                            {
-                                restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? String.Empty);
-                            }
-                            await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                            _blackListService.SendBlackListDevice(brand.Name, successBlackList, token);
+
+                            //var restRequest = new RestRequest($"/{brand.Name}/{brand.Name}BlackList/SendBlackLisDevice",
+                            //    Method.POST);
+                            //restRequest.AddJsonBody(successBlackList);
+                            //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+                            //{
+                            //    restRequest.AddHeader("Authorization", HttpContext?.Request?.Headers["Authorization"].FirstOrDefault() ?? String.Empty);
+                            //}
+                            //await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
 
                         }
                     }

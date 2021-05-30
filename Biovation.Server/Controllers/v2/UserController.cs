@@ -77,6 +77,7 @@ namespace Biovation.Server.Controllers.v2
             return await _userService.GetUsers(userId: id, token: HttpContext.Items["Token"] as string);
         }
 
+        // TODO - Verify method.
         [HttpPost]
         public async Task<ResultViewModel> AddUser([FromBody] User user)
         {
@@ -117,13 +118,13 @@ namespace Biovation.Server.Controllers.v2
                     var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                     if (deviceBrands is null)
                         return;
-
-                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
-                    {
-                        restRequest.AddJsonBody(user);
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
+                    _userService.AddUser(deviceBrands, user, token);
+                    //foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
+                    //{
+                    //    restRequest.AddJsonBody(user);
+                    //    restRequest.AddHeader("Authorization", token!);
+                    //    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //}
                 }).ConfigureAwait(false);
 
                 return result;
@@ -135,6 +136,7 @@ namespace Biovation.Server.Controllers.v2
             }
         }
 
+        // TODO - Verify method.
         [HttpPut]
         public async Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
@@ -176,12 +178,13 @@ namespace Biovation.Server.Controllers.v2
                     if (deviceBrands is null)
                         return;
 
-                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
-                    {
-                        restRequest.AddJsonBody(user);
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
+                    _userService.ModifyUser(deviceBrands, user, token);
+                    //foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
+                    //{
+                    //    restRequest.AddJsonBody(user);
+                    //    restRequest.AddHeader("Authorization", token!);
+                    //    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //}
                 }).ConfigureAwait(false);
 
                 return result;
@@ -286,7 +289,7 @@ namespace Biovation.Server.Controllers.v2
             });
         }
 
-
+        // TODO - Verify method.
         private async Task<ResultViewModel> Sync(long[] usersToSync = default, string updateUsers = default)
         {
             var creatorUser = HttpContext.GetUser();
@@ -431,11 +434,13 @@ namespace Biovation.Server.Controllers.v2
                                     await _taskService.InsertTask(task);
                                     _ = _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
-                                    var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
-                                    restRequest.AddQueryParameter("code", device.Code.ToString());
-                                    restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
-                                    restRequest.AddHeader("Authorization", token!);
-                                    await _restClient.ExecuteAsync(restRequest);
+                                    _userService.Sync(deviceBrand, device, lstUserGroupMember[i], token);
+
+                                    //var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                                    //restRequest.AddQueryParameter("code", device.Code.ToString());
+                                    //restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
+                                    //restRequest.AddHeader("Authorization", token!);
+                                    //await _restClient.ExecuteAsync(restRequest);
                                 }
                             }
                         }
@@ -541,6 +546,7 @@ namespace Biovation.Server.Controllers.v2
         //    }
         //}
 
+        // TODO - Verify method.
         [HttpPost]
         [Route("{id}/EnrollFaceTemplate")]
         public async Task<ResultViewModel> EnrollFaceTemplate([FromRoute] int id = default, int deviceId = default)
@@ -584,14 +590,17 @@ namespace Biovation.Server.Controllers.v2
             await _taskService.InsertTask(task);
             await _taskService.ProcessQueue(device.Brand, deviceId).ConfigureAwait(false);
 
-            var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
-            restRequest.AddQueryParameter("userId", id.ToString());
-            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-            restRequest.AddHeader("Authorization", token!);
-            var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var result = await _userService.EnrollFaceTemplate(device, id, deviceId, token);
+
+            //var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
+            //restRequest.AddQueryParameter("userId", id.ToString());
+            //restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+            //restRequest.AddHeader("Authorization", token!);
+            //var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
         }
 
+        // TODO - Verify method.
         [HttpPatch]
         [Route("UserGroupsOfUsers")]
         public async Task<List<ResultViewModel>> UpdateUserGroupsOfUser([FromBody] string usersGroupIds = default, bool sendUsersToDevice = default)
@@ -758,14 +767,17 @@ namespace Biovation.Server.Controllers.v2
                                     await _taskService.InsertTask(task);
                                     await _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
-                                    var restRequest = new RestRequest(
-                                        $"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
-                                    restRequest.AddQueryParameter("code", device.Code.ToString());
-                                    restRequest.AddQueryParameter("userId", $"[{userId}]");
-                                    restRequest.AddQueryParameter("updateServerSideIdentification",
-                                        bool.TrueString);
-                                    restRequest.AddHeader("Authorization", token!);
-                                    var restResult = await _restClient.ExecuteAsync(restRequest);
+                                    var restResult =
+                                        await _userService.UpdateUserGroupsOfUser(deviceBrand, device, userId, token);
+
+                                    //var restRequest = new RestRequest(
+                                    //    $"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                                    //restRequest.AddQueryParameter("code", device.Code.ToString());
+                                    //restRequest.AddQueryParameter("userId", $"[{userId}]");
+                                    //restRequest.AddQueryParameter("updateServerSideIdentification",
+                                    //    bool.TrueString);
+                                    //restRequest.AddHeader("Authorization", token!);
+                                    //var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -814,15 +826,17 @@ namespace Biovation.Server.Controllers.v2
                                     await _taskService.InsertTask(task);
                                     await _taskService.ProcessQueue(deviceToDelete.Brand).ConfigureAwait(false);
 
-                                    var restRequest = new RestRequest(
-                                        $"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice",
-                                        Method.POST);
-                                    restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
-                                    restRequest.AddQueryParameter("updateServerSideIdentification",
-                                        bool.TrueString);
-                                    restRequest.AddJsonBody(listOfUserId);
-                                    restRequest.AddHeader("Authorization", token!);
-                                    var restResult = await _restClient.ExecuteAsync(restRequest);
+                                    var restResult = await _userService.DeleteUserFromDevice(deviceBrand, deviceToDelete, listOfUserId, token);
+
+                                    //var restRequest = new RestRequest(
+                                    //    $"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice",
+                                    //    Method.POST);
+                                    //restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
+                                    //restRequest.AddQueryParameter("updateServerSideIdentification",
+                                    //    bool.TrueString);
+                                    //restRequest.AddJsonBody(listOfUserId);
+                                    //restRequest.AddHeader("Authorization", token!);
+                                    //var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -977,6 +991,7 @@ namespace Biovation.Server.Controllers.v2
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
 
+        // TODO - Verify method.
         [HttpPost]
         [Authorize]
         [Route("UserToAllDevice")]
@@ -1046,16 +1061,20 @@ namespace Biovation.Server.Controllers.v2
                         await _taskService.InsertTask(task);
                         await _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
 
-                        var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", Method.POST);
-                        restRequest.AddJsonBody(user);
+                        var resultList = _userService.SendUserToAllDevices(deviceBrand, userId, user);
 
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        result.Add(new ResultViewModel
-                        {
-                            Validate = restResult.Data?.Validate ?? 0,
-                            Id = userIds[i],
-                            Message = deviceBrand.Name
-                        });
+                        //var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", Method.POST);
+                        //restRequest.AddJsonBody(user);
+                        //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                        //result.Add(new ResultViewModel
+                        //{
+                        //    Validate = restResult.Data?.Validate ?? 0,
+                        //    Id = userIds[i],
+                        //    Message = deviceBrand.Name
+                        //});
+
+                        result.AddRange(resultList);
                     }
                 }
 

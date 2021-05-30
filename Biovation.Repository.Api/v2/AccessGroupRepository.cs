@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
@@ -9,6 +10,7 @@ namespace Biovation.Repository.Api.v2
     public class AccessGroupRepository
     {
         private readonly RestClient _restClient;
+        private readonly SystemInfo _systemInfo;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
         public AccessGroupRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
         {
@@ -145,6 +147,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
+        // TODO - Verify the method.
         public ResultViewModel SendAccessGroupToDevice(DeviceBasicInfo device, int id, string token = default)
         {
             var restRequest =
@@ -155,7 +158,36 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddParameter("accessGroupId", id);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter().GetResult().Data;
+            return _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false).GetAwaiter().GetResult().Data;
+        }
+
+        // TODO - Verify the method.
+        public ResultViewModel SendUserToDevice(Lookup deviceBrand, DeviceBasicInfo device, string userIds, string token = default)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",
+                    Method.GET);
+            restRequest.AddParameter("code", device.Code);
+            restRequest.AddParameter("userId", userIds);
+            restRequest.AddHeader("Authorization", token!);
+             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false).GetAwaiter().GetResult()?.Data;
+        }
+
+        // TODO - Verify the method.
+        public async void ModifyAccessGroup(List<Lookup> deviceBrands, string token = default)
+        {
+            var serviceInstances = _systemInfo.Services;
+            foreach (var serviceInstance in serviceInstances)
+            {
+                foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
+                    $"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                    Method.POST)))
+                {
+                    restRequest.AddHeader("Authorization", token!);
+                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                }
+            }
         }
     }
 }
