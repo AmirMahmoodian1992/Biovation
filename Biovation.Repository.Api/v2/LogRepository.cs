@@ -20,13 +20,14 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default, int userId = default,
+        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceGroupId = default, int deviceId = default, int userId = default,
             DateTime? fromDate = null,
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default,
             string order = default, bool? successTransfer = null, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Log", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
+            restRequest.AddQueryParameter("deviceGroupId", deviceGroupId.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
             restRequest.AddQueryParameter("successTransfer", successTransfer?.ToString());
