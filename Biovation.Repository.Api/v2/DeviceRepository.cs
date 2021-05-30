@@ -340,5 +340,16 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token!);
             return _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
         }
+
+        // TODO - Verify the method.
+        public async void RunProcessQueue(DeviceBasicInfo device)
+        {
+            var serviceInstances = _systemInfo.Services;
+            foreach (var serviceInstance in serviceInstances)
+            {
+                var restRequest = new RestRequest($"{device.Brand.Name}/{serviceInstance.Id}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            }
+        }
     }
 }

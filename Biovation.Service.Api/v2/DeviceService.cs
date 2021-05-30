@@ -188,5 +188,11 @@ namespace Biovation.Service.Api.v2
         {
             return _deviceRepository.GetAdditionalData(device, token);
         }
+
+        // TODO - Verify the method.
+        public void RunProcessQueue(DeviceBasicInfo device)
+        {
+            _deviceRepository.RunProcessQueue(device);
+        }
     }
 }

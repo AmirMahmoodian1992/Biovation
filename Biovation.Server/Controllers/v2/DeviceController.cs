@@ -1017,7 +1017,7 @@ namespace Biovation.Server.Controllers.v2
         //    });
         //}
 
-        // TODO - Runs the process queue directly.
+        // TODO - Verify the method.
         [HttpPost]
         [Authorize]
         //[AllowAnonymous]
@@ -1060,8 +1060,10 @@ namespace Biovation.Server.Controllers.v2
 
                 await _taskService.InsertTask(task);
 
-                var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
-                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                _deviceService.RunProcessQueue(device);
+
+                //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                //await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };
             });
