@@ -8,7 +8,7 @@ namespace Biovation.Brands.PW.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PwSystemInfoController : ControllerBase
+    public class SystemInfoController : ControllerBase
     {
 
         [HttpGet]

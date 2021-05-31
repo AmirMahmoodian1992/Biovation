@@ -14,19 +14,19 @@ namespace Biovation.Brands.PW.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PwDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly ILogger _logger;
         private readonly PwServer _pwServer;
         private readonly DeviceService _deviceService;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public PwDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, ILogger logger)
+        public DeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, ILogger logger)
         {
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _pwServer = pwServer;
-            _logger = logger.ForContext<PwDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
 
