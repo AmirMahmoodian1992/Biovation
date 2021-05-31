@@ -58,26 +58,47 @@ namespace Biovation.Server.HostedServices
                 return;
 
             var deviceBrands = _lookups.DeviceBrands;
-            var Instances =  _serviceInstanceService.GetServiceInstance()?.Result?.Data;
-            Parallel.ForEach(Instances, Instance =>
+            var instances =  _serviceInstanceService.GetServiceInstance()?.Result?.Data;
+            Parallel.ForEach(instances, instance =>
             {
                 Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
                     var restRequest = new RestRequest(
-                        $"{deviceBrand.Name}/{Instance.Id}/health");
+                        $"{deviceBrand.Name}/{instance.Id}/health");
                     var result = _restClient.Execute(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy",
                         StringComparison.InvariantCultureIgnoreCase))
                     {
                         if (!_systemInformation.Services.Any(service => service.Id.Contains(service.Id)))
-                            _systemInformation.Services.Add(Instance);
+                        {
+                            instance.Brand = new Lookup
+                            {
+                                Code = deviceBrand.Code,
+                                Name = deviceBrand.Name,
+                                Category = new LookupCategory()
+                                {
+                                    Id =  deviceBrand.Category.Id,
+                                    Name = deviceBrand.Category.Name,
+                                    Description = deviceBrand.Category.Description,
+                                    Prefix = deviceBrand.Category.Prefix
+                                },
+                                OrderIndex = deviceBrand.OrderIndex,
+                                Description = deviceBrand.Description
+                            };
+                            _systemInformation.Services.Add(instance);
+                        }
+
+                        
                     }
                     else
                     {
-                        if (_systemInformation.Services.Any(service => service.Id.Contains(service.Id)))
+                        //if (_systemInformation.Services.Any(service => (service.Id.Contains(service.Id))))
+                            if (_systemInformation.Services.Any(service => service.Id == instance.Id && service.Brand.Code == deviceBrand.Code))
+                        {
                             _systemInformation.Services.Remove(
                                 _systemInformation.Services.Find(service => service.Id.Contains(service.Id)));
+                        }
                     }
                 });
             });
