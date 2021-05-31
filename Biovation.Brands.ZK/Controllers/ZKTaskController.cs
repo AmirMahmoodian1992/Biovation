@@ -9,11 +9,11 @@ namespace Biovation.Brands.ZK.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[Controller]")]
-    public class ZkTaskController : ControllerBase
+    public class TaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public ZkTaskController(TaskManager taskManager)
+        public TaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

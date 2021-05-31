@@ -12,11 +12,11 @@ namespace Biovation.Brands.ZK.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkUserController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly DeviceService _deviceService;
 
-        public ZkUserController(DeviceService deviceService)
+        public UserController(DeviceService deviceService)
         {
             _deviceService = deviceService;
         }

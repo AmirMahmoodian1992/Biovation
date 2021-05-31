@@ -8,11 +8,11 @@ namespace Biovation.Brands.ZK.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkSystemInfoController : ControllerBase
+    public class SystemInfoController : ControllerBase
     {
         private readonly ServiceInstance _serviceInstance;
 
-        public ZkSystemInfoController(ServiceInstance serviceInstance)
+        public SystemInfoController(ServiceInstance serviceInstance)
         {
             _serviceInstance = serviceInstance;
         }
