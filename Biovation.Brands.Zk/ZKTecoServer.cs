@@ -30,12 +30,12 @@ namespace Biovation.Brands.ZK
         /// </summary>
         /// <returns></returns>
 
-        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory, RestClient restClient)
+        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory, RestClient restClient,SystemInfo systemInfo)
         {
             _onlineDevices = onlineDevices;
             _deviceFactory = deviceFactory;
             _restClient = restClient;
-            _zkDevices = deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).Where(x => x.Active).ToList();
+            _zkDevices = deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).Where(x => x.Active && x.ServiceInstance.Id == systemInfo.Services.FirstOrDefault()?.Id ).ToList();
         }
 
         /// <summary>
@@ -44,8 +44,7 @@ namespace Biovation.Brands.ZK
         /// </summary>
         /// <returns></returns>
         public Task StartServer(CancellationToken cancellationToken)
-        {
-            Logger.Log("Service started.");
+        { Logger.Log("Service started.");
             _cancellationToken = cancellationToken;
             var connectToDeviceTasks = new List<Task>();
             Parallel.ForEach(_zkDevices, device => connectToDeviceTasks.Add(ConnectToDevice(device, cancellationToken)));
