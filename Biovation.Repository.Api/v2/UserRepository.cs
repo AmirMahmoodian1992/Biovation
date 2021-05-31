@@ -13,11 +13,11 @@ namespace Biovation.Repository.Api.v2
         private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        public UserRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, SystemInfo systemInformation)
+        public UserRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, SystemInfo systemInfo)
         {
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
-            _systemInformation = systemInformation;
+            _systemInformation = systemInfo;
         }
 
         public async Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default,
