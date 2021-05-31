@@ -197,6 +197,7 @@ namespace Biovation.Brands.Paliz
             var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+            var fingerIndexMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(10);
 
             //Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
             //    fingerIndexNamesQuery, deviceBrandsQuery, logEventsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
@@ -223,7 +224,8 @@ namespace Biovation.Brands.Paliz
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
-                MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
+                MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data,
+                FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data
             };
 
 

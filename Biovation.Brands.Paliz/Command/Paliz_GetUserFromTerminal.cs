@@ -82,10 +82,10 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(GetDescription());
 
                 // Wait for the task to return its execution result in the callback method.
-                System.Threading.Thread.Sleep(500);
+                System.Threading.Thread.Sleep(50);
                 while (_getUserResult == null)
                 {
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(100);
                 }
 
                 _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
@@ -124,35 +124,40 @@ namespace Biovation.Brands.Paliz.Command
 
             var fingerprints = userInfoModel.Fingerprints;
             var fingerTemplateList = new List<FingerTemplate>();
-            var userTemplates = _fingerTemplateService.FingerTemplates(userId: (int)user.Id).GetAwaiter().GetResult().Data?.Data;
+            //var userTemplates = _fingerTemplateService.FingerTemplates(userId: (int)user.Id).GetAwaiter().GetResult().Data?.Data;
 
-            if (user != null)
+            fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
             {
-                fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
-                {
-                    // TODO - Ask this if casting is ok.
-                    UserId = user.Id,
-                    Template = fingerprint.Template,
-                    FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
-                    EnrollQuality = fingerprint.Quality,
-                    FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = userTemplates?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
-                }));
-            }
-            else
+                UserId = user?.Id ?? fingerprint.UserId,
+                Template = fingerprint.Template,
+                FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
+                EnrollQuality = fingerprint.Quality,
+                FingerTemplateType = _fingerTemplateTypes.V400,
+                Index = user?.FingerTemplates?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(fingerprint.Index).Code) ?? 0 + 1
+            }));
+
+            if (user?.FingerTemplates != null)
             {
-                fingerTemplateList.AddRange(fingerprints.Select(fingerprint => new FingerTemplate
+                if (user.FingerTemplates.Count() != 0)
                 {
-                    UserId = fingerprint.UserId,
-                    Template = fingerprint.Template,
-                    FingerIndex = _biometricTemplateManager.GetFingerIndex(fingerprint.Index),
-                    EnrollQuality = fingerprint.Quality,
-                    FingerTemplateType = _fingerTemplateTypes.V400,
-                    Index = fingerprint.Index
-                }));
+                    foreach (var fingerTemplate in fingerTemplateList)
+                    {
+                        var matchedTemplate = user.FingerTemplates.FirstOrDefault(x => x.FingerIndex.Code.Equals(fingerTemplate.FingerIndex.Code, StringComparison.OrdinalIgnoreCase)
+                                                                            && x.Template.SequenceEqual(fingerTemplate.Template));
+                        if (matchedTemplate is null)
+                        {
+                            continue;
+                        }
+
+                        fingerTemplate.Id = matchedTemplate.Id;
+                    }
+                }
             }
 
-            if (!fingerTemplateList.Any()) return;
+            if (!fingerTemplateList.Any())
+            {
+                return;
+            }
 
             foreach (var fingerTemplate in fingerTemplateList)
             {
@@ -268,10 +273,12 @@ namespace Biovation.Brands.Paliz.Command
 
             //PalizTiara.Api.Definition.VerificationDevices.
 
-            var existingUser = _userService.GetUsers(code: userInfoModel.Id).GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
+            var existingUser = _userService.GetUsers(code: userInfoModel.Id, getTemplatesData: true)
+                .GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
             if (existingUser != null)
             {
                 user.Id = existingUser.Id;
+                user.FingerTemplates = existingUser.FingerTemplates;
             }
 
             var userInsertionResult = _userService.ModifyUser(user).GetAwaiter().GetResult();

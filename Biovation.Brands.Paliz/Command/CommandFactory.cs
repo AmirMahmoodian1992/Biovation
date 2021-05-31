@@ -103,7 +103,7 @@ namespace Biovation.Brands.Paliz.Command
                     // Gets a specific user info from device.
                     {
                         return new PalizSendUserToDevice(transferModelData.Items, _palizServer, _taskService, _deviceService, _userService, _biometricTemplateManager,
-                            _fingerTemplateTypes, _fingerTemplateService, _logService, _faceTemplateService, _faceTemplateTypes, _userCardService);
+                            _fingerTemplateTypes, _fingerTemplateService, _logService, _faceTemplateService, _faceTemplateTypes, _userCardService, _palizCodeMappings);
                     }
                 case CommandType.PersonnelEvent:
                     //Change in Personnel

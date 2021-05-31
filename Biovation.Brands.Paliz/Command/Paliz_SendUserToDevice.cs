@@ -79,7 +79,8 @@ namespace Biovation.Brands.Paliz.Command
         public PalizSendUserToDevice(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
                 , DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager
                 , FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, LogService logService
-                , FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService)
+                , FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, UserCardService userCardService
+                , PalizCodeMappings palizCodeMappings)
         {
             _terminalId = Convert.ToInt32(items[0]);
             _taskItemId = Convert.ToInt32(items[1]);
@@ -100,6 +101,7 @@ namespace Biovation.Brands.Paliz.Command
             _faceTemplateService = faceTemplateService;
             _faceTemplateTypes = faceTemplateTypes;
             _userCardService = userCardService;
+            _palizCodeMappings = palizCodeMappings;
 
             var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             if (devices is null)
@@ -196,7 +198,6 @@ namespace Biovation.Brands.Paliz.Command
                     return new ResultViewModel { Validate = 0, Id = _terminalId, Message = $"User {_userId} does not exist.", Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
                 }
 
-
                 var isoEncoding = Encoding.GetEncoding(28591);
                 var windowsEncoding = Encoding.GetEncoding(1256);
                 var userName = _userObj.UserName ?? string.Empty;
@@ -211,7 +212,6 @@ namespace Biovation.Brands.Paliz.Command
                     VerificationType = _userObj.AuthMode,
                     Locked = false
                 };
-
 
                 var isFingerPrint = false;
                 var isCard = false;
@@ -256,19 +256,22 @@ namespace Biovation.Brands.Paliz.Command
                     //    _virdiServer.ServerUserData.AddFingerData(virdiFinger[i].FingerIndex.OrderIndex, (int)UCBioAPI.Type.TEMPLATE_TYPE.SIZE400, virdiFinger[i].Template, virdiFinger[i + 1].Template);
                     //}
 
-                    request.Fingerprints = new FingerprintModel[] { };
+
+                    var userFingerPrints = new List<FingerprintModel>();
 
                     foreach (var fingerTemplate in fingerTemplates)
                     {
-                        request.Fingerprints.Append(new FingerprintModel
+                        userFingerPrints.Add(new FingerprintModel
                         {
                             Id = fingerTemplate.Id,
-                            Index = fingerTemplate.Index,
+                            Index = Convert.ToInt32(_palizCodeMappings.GetFingerIndexLookup(Convert.ToInt64(fingerTemplate.FingerIndex.Code)).Code),
                             Quality = fingerTemplate.EnrollQuality,
                             Template = fingerTemplate.Template,
                             UserId = _userObj.Code
                         });
                     }
+
+                    request.Fingerprints = userFingerPrints.ToArray();
 
                     isFingerPrint = true;
                 }
@@ -299,7 +302,6 @@ namespace Biovation.Brands.Paliz.Command
                 else if (isFingerPrint && isPassword)
                 {
                     request.VerificationType = 31;
-                    //request.VerificationType = 4;
                 }
                 else if (isFace && isFingerPrint)
                 {
@@ -330,16 +332,14 @@ namespace Biovation.Brands.Paliz.Command
                     request.VerificationType = 28;
                 }
 
-
                 Logger.Log($"Sending user to device: {_code} started successfully.");
 
                 _palizServer._serverManager.AddUserEvent += AddUserEventCallBack;
                 _palizServer._serverManager.AddUserAsyncTask(_terminalName, request);
 
-                System.Threading.Thread.Sleep(500);
                 while (!userSendingFinished)
                 {
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(50);
                 }
 
                 _palizServer._serverManager.AddUserEvent -= AddUserEventCallBack;

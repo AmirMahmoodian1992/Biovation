@@ -21,6 +21,9 @@ namespace Biovation.Brands.Paliz.Manager
 
             _matchingTypeMappings = genericCodeMappings.MatchingTypeMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.PalizCode).ToList();
+
+            _fingerIndexMappings = genericCodeMappings.FingerIndexMappings.Where(
+               genericCode => genericCode.Brand.Code == DeviceBrands.PalizCode).ToList();
         }
 
         private readonly List<GenericCodeMapping> _logSubEventMappings;
@@ -28,6 +31,8 @@ namespace Biovation.Brands.Paliz.Manager
         private readonly List<GenericCodeMapping> _fingerTemplateTypeMappings;
 
         private readonly List<GenericCodeMapping> _matchingTypeMappings;
+
+        private readonly List<GenericCodeMapping> _fingerIndexMappings;
 
 
         public Lookup GetLogSubEventGenericLookup(long code)
@@ -43,6 +48,11 @@ namespace Biovation.Brands.Paliz.Manager
         public Lookup GetMatchingTypeGenericLookup(long code)
         {
             return _matchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
+        }
+
+        public Lookup GetFingerIndexLookup(long code)
+        {
+            return _fingerIndexMappings.FirstOrDefault(matchingType => string.Equals(matchingType.GenericValue.Code, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
     }
 }
