@@ -82,7 +82,6 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(GetDescription());
 
                 // Wait for the task to return its execution result in the callback method.
-                System.Threading.Thread.Sleep(50);
                 while (_getUserResult == null)
                 {
                     System.Threading.Thread.Sleep(100);
@@ -212,7 +211,7 @@ namespace Biovation.Brands.Paliz.Command
             }
         }
 
-        private async void ModifyUserCards(UserInfoModel userInfoModel, long userId)
+        private async void ModifyUserCards(UserInfoModel userInfoModel, User user)
         {
             try
             {
@@ -227,7 +226,7 @@ namespace Biovation.Brands.Paliz.Command
                     {
                         CardNum = card.ToString(),
                         IsActive = true,
-                        UserId = userId
+                        UserId = user.Id
                     };
 
                     await _userCardService.ModifyUserCard(userCard);
@@ -247,12 +246,12 @@ namespace Biovation.Brands.Paliz.Command
             //    return;
             //}
 
-            _getUserResult = args;
-            if (_getUserResult.Result == false)
+            if (args.Result == false)
             {
                 Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}.\n");
                 return;
             }
+
             Logger.Log($"  +User {UserId} successfully retrieved from device: {Code}.\n");
 
             var userInfoModel = args.UserInfoModel;
@@ -289,7 +288,7 @@ namespace Biovation.Brands.Paliz.Command
             try
             {
                 Logger.Log($"   +TotalCardCount:{userInfoModel.Cards?.Length ?? 0}");
-                ModifyUserCards(userInfoModel, user.Id);
+                ModifyUserCards(userInfoModel, user);
 
                 Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints?.Length ?? 0}");
                 ModifyFingerTemplates(userInfoModel, user);

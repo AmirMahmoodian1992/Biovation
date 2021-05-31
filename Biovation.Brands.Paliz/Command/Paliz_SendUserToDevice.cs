@@ -209,7 +209,6 @@ namespace Biovation.Brands.Paliz.Command
                     Image = _userObj.ImageBytes,
                     Level = _userObj.AdminLevel,
                     Name = userName,
-                    VerificationType = _userObj.AuthMode,
                     Locked = false
                 };
 
@@ -264,7 +263,7 @@ namespace Biovation.Brands.Paliz.Command
                         userFingerPrints.Add(new FingerprintModel
                         {
                             Id = fingerTemplate.Id,
-                            Index = Convert.ToInt32(_palizCodeMappings.GetFingerIndexLookup(Convert.ToInt64(fingerTemplate.FingerIndex.Code)).Code),
+                            Index = Convert.ToInt32(_palizCodeMappings.GetFingerIndexLookup(Convert.ToInt64(fingerTemplate.FingerIndex.Code))),
                             Quality = fingerTemplate.EnrollQuality,
                             Template = fingerTemplate.Template,
                             UserId = _userObj.Code
@@ -291,9 +290,13 @@ namespace Biovation.Brands.Paliz.Command
                 {
                     //
                 }
+                else if (isCard && isFingerPrint && isPassword)
+                {
+                    request.VerificationType = 40;
+                }
                 else if (isCard && isPassword)
                 {
-                    //
+                    request.VerificationType = 37;
                 }
                 else if (isFace && isPassword)
                 {
@@ -309,7 +312,7 @@ namespace Biovation.Brands.Paliz.Command
                 }
                 else if (isCard && isFingerPrint)
                 {
-                    //
+                    request.VerificationType = 13;
                 }
                 else if (isCard && isFace)
                 {
@@ -325,7 +328,7 @@ namespace Biovation.Brands.Paliz.Command
                 }
                 else if (isCard)
                 {
-                    //
+                    request.VerificationType = 10;
                 }
                 else if (isPassword)
                 {

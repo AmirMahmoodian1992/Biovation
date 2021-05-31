@@ -50,9 +50,9 @@ namespace Biovation.Brands.Paliz.Manager
             return _matchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
         }
 
-        public Lookup GetFingerIndexLookup(long code)
+        public string GetFingerIndexLookup(long code)
         {
-            return _fingerIndexMappings.FirstOrDefault(matchingType => string.Equals(matchingType.GenericValue.Code, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
+            return _fingerIndexMappings.FirstOrDefault(matchingType => string.Equals(matchingType.GenericValue.Code, code.ToString(), StringComparison.InvariantCultureIgnoreCase))?.ManufactureCode ?? _matchingTypes.Unknown.Code;
         }
     }
 }
