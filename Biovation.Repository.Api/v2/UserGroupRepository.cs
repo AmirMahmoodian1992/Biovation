@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
@@ -141,17 +142,26 @@ namespace Biovation.Repository.Api.v2
             return _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest).GetAwaiter().GetResult().Data;
         }
 
-        public List<ResultViewModel> ModifyUserGroupMember(Lookup deviceBrand, string token = default)
+        public async Task<List<ResultViewModel>> ModifyUserGroupMember(Lookup deviceBrand, List<ServiceInstance> serviceInstances, string token = default)
         {
-            var restRequest =
-                new RestRequest(
-                    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
-                    Method.POST);
+            var result = new List<ResultViewModel>();
 
-            token ??= _biovationConfigurationManager.DefaultToken;
-            restRequest.AddHeader("Authorization", token);
+            foreach (var serviceInstance in serviceInstances)
+            {
+                var restRequest =
+                    new RestRequest(
+                        $"/biovation/api/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
+                        Method.POST);
 
-            return _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).GetAwaiter().GetResult().Data;
+                token ??= _biovationConfigurationManager.DefaultToken;
+                restRequest.AddHeader("Authorization", token);
+
+                var restResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+                if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK && restResult.Data != null)
+                    result.AddRange(restResult.Data);
+            }
+
+            return result;
         }
     }
 }

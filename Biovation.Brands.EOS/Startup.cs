@@ -177,7 +177,7 @@ namespace Biovation.Brands.EOS
 
             var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
             var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
-            if (serviceInstance.changeId)
+            if (serviceInstance.ChangeId)
             {
                 var setServiceInstanceId =
                     FileActions.JsonWriter("appsettings.json", "ServiceInstance","ServiceInstanceId", serviceInstance.Id);

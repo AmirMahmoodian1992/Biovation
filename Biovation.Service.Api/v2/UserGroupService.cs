@@ -94,19 +94,21 @@ namespace Biovation.Service.Api.v2
 
         public async Task<List<ResultViewModel>> ModifyUserGroupMember(string token)
         {
+            var results = new List<ResultViewModel>();
             var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
+            var serviceInstances = _systemInfo.Services;
 
             if (deviceBrands == null)
-            {
-                return new List<ResultViewModel>();
-            }
+                return results;
 
             foreach (var deviceBrand in deviceBrands)
             {
-                return _userGroupRepository.ModifyUserGroupMember(deviceBrand);
+                var modifyResult = await _userGroupRepository.ModifyUserGroupMember(deviceBrand, serviceInstances, token);
+                if (modifyResult != null)
+                    results.AddRange(modifyResult);
             }
 
-            return new List<ResultViewModel>();
+            return results;
         }
     }
 }
