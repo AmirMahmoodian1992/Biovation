@@ -97,21 +97,20 @@ namespace Biovation.Service.Api.v2
             return _userGroupRepository.SendUserToDevice(device, usersToDeleteFromDevice,token);
         }
 
-        public async Task<List<ResultViewModel>> ModifyUserGroupMember(string token)
+        public async void ModifyUserGroupMember(string token)
         {
             var deviceBrands = (await  _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
+            var serviceInstances = _systemInfo.Services;
 
             if (deviceBrands == null)
             {
-                return new List<ResultViewModel>();
+                return;
             }
 
             foreach (var deviceBrand in deviceBrands)
             {
-                return _userGroupRepository.ModifyUserGroupMember(deviceBrand);
+                _userGroupRepository.ModifyUserGroupMember(deviceBrand, serviceInstances, token);
             }
-
-            return new List<ResultViewModel>();
         }
     }
 }

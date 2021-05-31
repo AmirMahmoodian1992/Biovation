@@ -166,7 +166,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",
+                    $"{deviceBrand?.Name}/{device.ServiceInstance.Id}/{deviceBrand?.Name}User/SendUserToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("userId", userIds);

@@ -419,7 +419,7 @@ namespace Biovation.Server.Controllers.v2
 
                 //_ = Task.Run(() =>
                 //{
-                    _ = _userGroupService.ModifyUserGroupMember(token).ConfigureAwait(false);
+                    _userGroupService.ModifyUserGroupMember(token);
 
                     //var deviceBrands = _deviceService.GetDeviceBrands(token: token)?.Data?.Data;
                     //if (deviceBrands == null) return;

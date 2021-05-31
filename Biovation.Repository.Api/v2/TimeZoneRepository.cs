@@ -59,7 +59,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                    $"/biovation/api/{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("timeZoneId", id);

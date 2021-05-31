@@ -141,17 +141,21 @@ namespace Biovation.Repository.Api.v2
             return _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest).GetAwaiter().GetResult().Data;
         }
 
-        public List<ResultViewModel> ModifyUserGroupMember(Lookup deviceBrand, string token = default)
+        public async void ModifyUserGroupMember(Lookup deviceBrand, List<ServiceInstance> serviceInstances, string token = default)
         {
-            var restRequest =
-                new RestRequest(
-                    $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
-                    Method.POST);
+            foreach (var serviceInstance in serviceInstances)
+            {
+                var restRequest =
+                    new RestRequest(
+                        $"/biovation/api/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
+                        Method.POST);
 
-            token ??= _biovationConfigurationManager.DefaultToken;
-            restRequest.AddHeader("Authorization", token);
+                token ??= _biovationConfigurationManager.DefaultToken;
+                restRequest.AddHeader("Authorization", token);
 
-            return _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).GetAwaiter().GetResult().Data;
+                await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            }
+            
         }
     }
 }
