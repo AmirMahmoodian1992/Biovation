@@ -20,7 +20,7 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly VirdiServer _virdiServer;
         private readonly DeviceBrands _deviceBrands;
@@ -37,7 +37,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
         private readonly ILogger _logger;
 
-        public VirdiDeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
+        public DeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             _virdiServer = virdiServer;
             _deviceService = deviceService;
@@ -50,7 +50,7 @@ namespace Biovation.Brands.Virdi.Controllers
             _configurationManager = configurationManager;
             _onlineDevices = onlineDevices;
 
-            _logger = logger.ForContext<VirdiDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
         [HttpGet]

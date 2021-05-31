@@ -8,7 +8,7 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiBlackListController : ControllerBase
+    public class BlackListController : ControllerBase
     {
 
         [HttpPost]

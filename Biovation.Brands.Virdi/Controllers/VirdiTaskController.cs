@@ -9,11 +9,11 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[Controller]")]
-    public class VirdiTaskController : ControllerBase
+    public class TaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public VirdiTaskController(TaskManager taskManager)
+        public TaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

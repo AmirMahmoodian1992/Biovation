@@ -8,7 +8,7 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiSystemInfoController : ControllerBase
+    public class SystemInfoController : ControllerBase
     {
         [HttpGet]
         public ResultViewModel<ServiceInstance> GetInfo()

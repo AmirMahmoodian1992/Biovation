@@ -15,7 +15,7 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiUserController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
@@ -27,7 +27,7 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiUserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public UserController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;

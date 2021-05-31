@@ -8,11 +8,11 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiUserGroupController : ControllerBase
+    public class UserGroupController : ControllerBase
     {
         private readonly VirdiServer _virdiServer;
 
-        public VirdiUserGroupController(VirdiServer virdiServer)
+        public UserGroupController(VirdiServer virdiServer)
         {
             _virdiServer = virdiServer;
         }
