@@ -2,9 +2,6 @@
 using Biovation.Repository.Api.v2;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
-using RestSharp;
 using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
@@ -13,15 +10,13 @@ namespace Biovation.Service.Api.v2
     {
         private readonly UserGroupRepository _userGroupRepository;
         private readonly DeviceService _deviceService;
-        private readonly UserGroupService _userGroupService;
         private readonly UserService _userService;
         private readonly SystemInfo _systemInfo;
 
-        public UserGroupService(UserGroupRepository userGroupRepository, DeviceService deviceService, UserGroupService userGroupService, UserService userService, SystemInfo systemInfo)
+        public UserGroupService(UserGroupRepository userGroupRepository, DeviceService deviceService, UserService userService, SystemInfo systemInfo)
         {
             _userGroupRepository = userGroupRepository;
             _deviceService = deviceService;
-            _userGroupService = userGroupService;
             _userService = userService;
             _systemInfo = systemInfo;
         }
@@ -65,16 +60,16 @@ namespace Biovation.Service.Api.v2
         {
             var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
 
-            var userGroup = (await _userGroupService.UserGroups(userGroupId: userGroupId, token))?.Data?.Data.FirstOrDefault();
+            var userGroup = (await UserGroups(userGroupId: userGroupId, token))?.Data?.Data.FirstOrDefault();
 
             var serviceInstances = _systemInfo.Services;
 
             if (userGroup is null || deviceBrands is null)
             {
                 return new ResultViewModel
-                    { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = userGroupId };
+                { Success = false, Validate = 0, Message = "Provided user group is wrong", Id = userGroupId };
             }
-            
+
             foreach (var userGroupMember in userGroup.Users)
             {
                 var user = (await _userService.GetUsers(code: userGroupMember.UserId, token: token))?.Data?.Data.FirstOrDefault();
@@ -89,17 +84,17 @@ namespace Biovation.Service.Api.v2
 
         public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
-            return _userGroupRepository.DeleteUserFromDevice(device, usersToDeleteFromDevice,token);
+            return _userGroupRepository.DeleteUserFromDevice(device, usersToDeleteFromDevice, token);
         }
 
         public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
-            return _userGroupRepository.SendUserToDevice(device, usersToDeleteFromDevice,token);
+            return _userGroupRepository.SendUserToDevice(device, usersToDeleteFromDevice, token);
         }
 
         public async Task<List<ResultViewModel>> ModifyUserGroupMember(string token)
         {
-            var deviceBrands = (await  _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
+            var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
 
             if (deviceBrands == null)
             {

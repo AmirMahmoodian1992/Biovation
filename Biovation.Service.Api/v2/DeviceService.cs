@@ -1,10 +1,9 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json.Linq;
-using RestSharp;
 using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
@@ -65,22 +64,22 @@ namespace Biovation.Service.Api.v2
         // TODO - Verify the method
         public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device, List<User> users, string token = default)
         {
-            var usersResult =  _deviceRepository.RetrieveUsersOfDevice(device, token);
+            var usersResult = _deviceRepository.RetrieveUsersOfDevice(device, token);
 
             var joinResult = (from r in usersResult?.Data
-                join u in users on r.Code equals u.Code
-                    into ps
-                from u in ps.DefaultIfEmpty()
-                select new User
-                {
-                    Type = u == null ? 0 : 1,
-                    IsActive = r.IsActive,
-                    Id = r.Id,
-                    Code = r.Code,
-                    FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
-                    StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
-                    EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
-                }).ToList();
+                              join u in users on r.Code equals u.Code
+                                  into ps
+                              from u in ps.DefaultIfEmpty()
+                              select new User
+                              {
+                                  Type = u == null ? 0 : 1,
+                                  IsActive = r.IsActive,
+                                  Id = r.Id,
+                                  Code = r.Code,
+                                  FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
+                                  StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
+                                  EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                              }).ToList();
 
             var lastResult = new ResultViewModel<List<User>>
             {

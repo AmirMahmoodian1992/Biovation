@@ -47,6 +47,15 @@ namespace Biovation.CommonClasses
                         };
 
                     }
+                    else if (inputs.Length == 2)
+                    {
+                        return new ResultViewModel<string>()
+                        {
+                            Success = true,
+                            Data = appSettingsJson[inputs[1]].ToString(),
+                        };
+                    }
+
                     return new ResultViewModel<string>()
                     {
                         Success = false
