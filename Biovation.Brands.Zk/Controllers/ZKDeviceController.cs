@@ -18,7 +18,7 @@ namespace Biovation.Brands.ZK.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly DeviceService _deviceService;
         private readonly TaskTypes _taskTypes;
@@ -31,7 +31,7 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly ZkTecoServer _zkTecoServer;
         private readonly ILogger _logger;
 
-        public ZkDeviceController(DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices , TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
+        public DeviceController(DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices , TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
         {
             _deviceService = deviceService;
             _taskTypes = taskTypes;
@@ -42,7 +42,7 @@ namespace Biovation.Brands.ZK.Controllers
             _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
             _zkTecoServer = zkTecoServer;
-            _logger = logger.ForContext<ZkDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
         [HttpGet]

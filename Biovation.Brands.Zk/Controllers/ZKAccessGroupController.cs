@@ -7,7 +7,7 @@ namespace Biovation.Brands.ZK.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkAccessGroupController : ControllerBase
+    public class AccessGroupController : ControllerBase
     {
         [HttpPost]
         [Authorize]

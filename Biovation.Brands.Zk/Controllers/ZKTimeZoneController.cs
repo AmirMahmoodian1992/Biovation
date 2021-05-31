@@ -7,7 +7,7 @@ namespace Biovation.Brands.ZK.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ZkTimeZoneController : ControllerBase
+    public class TimeZoneController : ControllerBase
     {
         [HttpPost]
         [Authorize]
