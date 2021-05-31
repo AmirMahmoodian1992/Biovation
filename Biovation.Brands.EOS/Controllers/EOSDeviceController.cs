@@ -17,7 +17,7 @@ namespace Biovation.Brands.EOS.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class EosDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly EosServer _eosServer;
         private readonly TaskService _taskService;
@@ -33,7 +33,7 @@ namespace Biovation.Brands.EOS.Controllers
 
         private readonly ILogger _logger;
 
-        public EosDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices,
+        public DeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices,
             EosServer eosServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes,
             TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, ILogger logger)
         {
@@ -49,7 +49,7 @@ namespace Biovation.Brands.EOS.Controllers
             _taskPriorities = taskPriorities;
             _deviceBrands = deviceBrands;
 
-            _logger = logger.ForContext<EosDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
         [HttpGet]

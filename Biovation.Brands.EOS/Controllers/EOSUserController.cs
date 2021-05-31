@@ -15,7 +15,7 @@ namespace Biovation.Brands.EOS.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class EosUserController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
@@ -28,7 +28,7 @@ namespace Biovation.Brands.EOS.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly CommandFactory _commandFactory;
 
-        public EosUserController(AccessGroupService accessGroupService, CommandFactory commandFactory, TaskService taskService, TaskTypes taskTypes,
+        public UserController(AccessGroupService accessGroupService, CommandFactory commandFactory, TaskService taskService, TaskTypes taskTypes,
             TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, DeviceBrands deviceBrands, DeviceService deviceService)
         {
             _taskTypes = taskTypes;

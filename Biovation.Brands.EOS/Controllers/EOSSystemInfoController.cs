@@ -8,7 +8,7 @@ namespace Biovation.Brands.EOS.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class EosSystemInfoController : ControllerBase
+    public class SystemInfoController : ControllerBase
     {
         [HttpGet]
         public ResultViewModel<ServiceInstance> GetInfo()
