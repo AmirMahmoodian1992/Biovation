@@ -8,7 +8,7 @@ namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaSystemInfoController : ControllerBase
+    public class SystemInfoController : ControllerBase
     {
         [HttpGet]
         public ResultViewModel<ServiceInstance> GetInfo()

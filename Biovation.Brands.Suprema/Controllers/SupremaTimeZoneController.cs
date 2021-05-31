@@ -7,7 +7,7 @@ namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaTimeZoneController : ControllerBase
+    public class TimeZoneController : ControllerBase
     {
 
         [HttpPost]

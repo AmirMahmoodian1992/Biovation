@@ -9,11 +9,11 @@ namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaUserGroupController : ControllerBase
+    public class UserGroupController : ControllerBase
     {
         private readonly FastSearchService _fastSearchService;
 
-        public SupremaUserGroupController(FastSearchService fastSearchService)
+        public UserGroupController(FastSearchService fastSearchService)
         {
             _fastSearchService = fastSearchService;
         }

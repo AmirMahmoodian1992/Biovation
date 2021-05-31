@@ -20,7 +20,7 @@ namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, Device> _onlineDevices;
@@ -35,7 +35,7 @@ namespace Biovation.Brands.Suprema.Controllers
         // private readonly DeviceService _deviceService;
         //private readonly UserService _userService;
 
-        public SupremaDeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService, TaskPriorities taskPriorities, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
+        public DeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService, TaskPriorities taskPriorities, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _accessGroupServices = accessGroupServices;
             _onlineDevices = onlineDevices;
