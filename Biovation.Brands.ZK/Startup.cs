@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Threading;
@@ -104,6 +105,7 @@ namespace Biovation.Brands.ZK
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
             #region checkLock
 
+            string lockEndTime = "";
             var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
             try
             {
@@ -125,6 +127,8 @@ namespace Biovation.Brands.ZK
                     Thread.Sleep(TimeSpan.FromSeconds(10));
                     Environment.Exit(0);
                 }
+
+                lockEndTime = requestResult.Result.Data.Data.LockEndTime;
             }
             catch (Exception)
             {
@@ -132,11 +136,58 @@ namespace Biovation.Brands.ZK
                 Thread.Sleep(TimeSpan.FromSeconds(5));
                 Environment.Exit(0);
             }
-
+            services.AddSingleton(restClient);
 
             #endregion
 
-            services.AddSingleton(restClient);
+
+
+            var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
+            var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
+            var url = (FileActions.JsonReader("appsettings.json", "Urls")).Data;
+            if (serviceInstance.ChangeId)
+            {
+                var setServiceInstanceId =
+                    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "ServiceInstanceId", serviceInstance.Id);
+                if (!setServiceInstanceId.Success)
+                {
+                    Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
+                }
+                serviceInstance.IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(x => x.ToString().Split('.').Length == 4)?.ToString();
+                 
+                var splitUrl = url.Split(':');
+                serviceInstance.Port = int.Parse(splitUrl.LastOrDefault() ?? string.Empty);
+            }
+            else
+            {
+                serviceInstance.IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(x => x.ToString().Split('.').Length == 4)?.ToString();
+                var splitUrl = url.Split(':');
+                serviceInstance.Port = int.Parse(splitUrl.LastOrDefault() ?? string.Empty);
+            }
+
+            var serviceInstanceRequest = new RestRequest($"Commands/v2/serviceInstance", Method.POST);
+            serviceInstanceRequest.AddJsonBody(serviceInstance);
+            //restRequest.AddHeader("Authorization");
+            var serviceInstanceResult = restClient.Execute<ResultViewModel>(serviceInstanceRequest);
+            if (!serviceInstanceResult.Data.Success)
+            {
+                Logger.Log(LogType.Warning, "Failed to insert Instance");
+            }
+            services.AddSingleton(serviceInstance);
+            var systemInfo = new SystemInfo
+            {
+                Services = new List<ServiceInstance>()
+             {
+                 serviceInstance
+             },
+                LockEndTime = lockEndTime
+                
+            };
+            services.AddSingleton(systemInfo);
+
+
+
+            
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
             services.AddSingleton<AdminDeviceService, AdminDeviceService>();
@@ -185,40 +236,47 @@ namespace Biovation.Brands.ZK
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
 
-            var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
-            var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
-            if (serviceInstance.changeId)
-            {
-                var setServiceInstanceId =
-                    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "ServiceInstanceId", serviceInstance.Id);
-                if (!setServiceInstanceId.Success)
-                {
-                    Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
-                }
-                var hostName = Dns.GetHostName();
-                serviceInstance.IpAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
-                FileActions.JsonWriter("appsettings.json", "ServiceInstance", "IpAddress", serviceInstance.IpAddress);
-                serviceInstance.Port = 9024;
-                FileActions.JsonWriter("appsettings.json", "ServiceInstance", "Port", serviceInstance.Port.ToString());
-            }
-            else
-            {
-                var serviceInstanceIp = FileActions.JsonReader("appsettings.json", "ServiceInstance", "IpAddress")?.Data;
-                var serviceInstancePort = int.Parse(FileActions.JsonReader("appsettings.json", "ServiceInstance", "Port")?.Data ?? string.Empty);
-                serviceInstance.IpAddress = serviceInstanceIp;
-                serviceInstance.Port = serviceInstancePort;
-            }
+            //var serviceInstanceId = FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
+            //var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
+            //if (serviceInstance.changeId)
+            //{
+            //    var setServiceInstanceId =
+            //        FileActions.JsonWriter("appsettings.json", "ServiceInstance", "ServiceInstanceId", serviceInstance.Id);
+            //    if (!setServiceInstanceId.Success)
+            //    {
+            //        Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
+            //    }
+            //    var hostName = Dns.GetHostName();
+            //    serviceInstance.IpAddress = Dns.GetHostByName(hostName).AddressList[0].ToString();
+            //    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "IpAddress", serviceInstance.IpAddress);
+            //    serviceInstance.Port = 9024;
+            //    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "Port", serviceInstance.Port.ToString());
+            //}
+            //else
+            //{
+            //    var serviceInstanceIp = FileActions.JsonReader("appsettings.json", "ServiceInstance", "IpAddress")?.Data;
+            //    var serviceInstancePort = int.Parse(FileActions.JsonReader("appsettings.json", "ServiceInstance", "Port")?.Data ?? string.Empty);
+            //    serviceInstance.IpAddress = serviceInstanceIp;
+            //    serviceInstance.Port = serviceInstancePort;
+            //}
 
-            var restRequest = new RestRequest($"Commands/v2/serviceInstance", Method.POST);
-            restRequest.AddJsonBody(serviceInstance);
-            //restRequest.AddHeader("Authorization");
-            var requestResult = restClient.Execute<ResultViewModel>(restRequest);
-            if (!requestResult.Data.Success)
-            {
-                Logger.Log(LogType.Warning, "Failed to insert Instance");
-            }
-            serviceCollection.AddSingleton(serviceInstance);
-
+            //var restRequest = new RestRequest($"Commands/v2/serviceInstance", Method.POST);
+            //restRequest.AddJsonBody(serviceInstance);
+            ////restRequest.AddHeader("Authorization");
+            //var requestResult = restClient.Execute<ResultViewModel>(restRequest);
+            //if (!requestResult.Data.Success)
+            //{
+            //    Logger.Log(LogType.Warning, "Failed to insert Instance");
+            //}
+            //serviceCollection.AddSingleton(serviceInstance);
+            //var systemInfo = new SystemInfo
+            //{
+            // Services   = new List<ServiceInstance>()
+            // {
+            //     serviceInstance
+            // }
+            //};
+            //serviceCollection.AddSingleton(systemInfo);
 
             serviceCollection.AddSingleton(restClient);
 
