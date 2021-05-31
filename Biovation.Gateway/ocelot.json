@@ -43,7 +43,7 @@
       "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
+          "Host": "192.168.3.110",
           "Port": 55699
         }
       ]
