@@ -43,7 +43,7 @@ namespace Biovation.Service.Api.v1
                     excludedTaskStatusCodesString += ')';
                 }
 
-                return _taskRepository.GetTasks(taskId, instanceId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                return _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodes,
                            excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token).Result?.Data?.Data ?? new List<TaskInfo>();
             });
         }

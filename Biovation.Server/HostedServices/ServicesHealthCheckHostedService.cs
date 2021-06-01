@@ -57,51 +57,41 @@ namespace Biovation.Server.HostedServices
             if (!_biovationConfigurationManager.UseHealthCheck)
                 return;
 
-            var deviceBrands = _lookups.DeviceBrands;
             var instances =  _serviceInstanceService.GetServiceInstance()?.Result?.Data;
-            Parallel.ForEach(instances, instance =>
+            if (instances != null)
             {
-                Parallel.ForEach(deviceBrands, deviceBrand =>
+                Parallel.ForEach(instances, instance =>
                 {
                     var restRequest = new RestRequest(
-                        $"{instance.Id}/health");
-                    var result = _restClient.Execute(restRequest);
+                            $"{instance.Id}/health");
+                        var result = _restClient.Execute(restRequest);
 
-                    if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy",
-                        StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        if (!_systemInformation.Services.Any(service => service.Id.Contains(service.Id)))
+                        if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy",
+                            StringComparison.InvariantCultureIgnoreCase))
                         {
-                            instance.Brand = new Lookup
+                            lock (_systemInformation)
                             {
-                                Code = deviceBrand.Code,
-                                Name = deviceBrand.Name,
-                                Category = new LookupCategory()
+                                if (!_systemInformation.Services.Any(service => service.Id.Contains(instance.Id)))
                                 {
-                                    Id =  deviceBrand.Category.Id,
-                                    Name = deviceBrand.Category.Name,
-                                    Description = deviceBrand.Category.Description,
-                                    Prefix = deviceBrand.Category.Prefix
-                                },
-                                OrderIndex = deviceBrand.OrderIndex,
-                                Description = deviceBrand.Description
-                            };
-                            _systemInformation.Services.Add(instance);
+                                    _systemInformation.Services.Add(instance);
+                                }
+                            }
                         }
-
-                        
-                    }
-                    else
-                    {
-                        //if (_systemInformation.Services.Any(service => (service.Id.Contains(service.Id))))
-                            if (_systemInformation.Services.Any(service => service.Id == instance.Id && service.Brand.Code == deviceBrand.Code))
+                        else
                         {
-                            _systemInformation.Services.Remove(
-                                _systemInformation.Services.Find(service => service.Id.Contains(service.Id)));
+                            lock (_systemInformation)
+                            {
+                                //if (_systemInformation.Services.Any(service => (service.Id.Contains(service.Id))))
+                                if (_systemInformation.Services.Any(service => service.Id == instance.Id))
+                                {
+                                    _systemInformation.Services.Remove(
+                                        _systemInformation.Services.Find(service => service.Id.Contains(service.Id)));
+                                }
+                            }
                         }
-                    }
+                   
                 });
-            });
+            }
 
             //_logger.LogInformation(
             //    "Timed Hosted Service is working. Count: {Count}", count);
