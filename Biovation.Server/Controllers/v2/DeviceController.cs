@@ -487,7 +487,7 @@ namespace Biovation.Server.Controllers.v2
                     //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     //var address = _localBioAddress +
-                    //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
+                    //              $"/biovation/api/{device.ServiceInstance.Id}/Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
                     //var data = _restCall.CallRestAsync(address, null, null, "POST");
                     //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
                     if (!clearLogResult.IsSuccessful || clearLogResult.StatusCode != HttpStatusCode.OK) continue;
@@ -597,7 +597,7 @@ namespace Biovation.Server.Controllers.v2
             var device = (await _deviceService.GetDevice(id, token)).Data;
             var userAwaiter = _userService.GetUsers(token: token);
 
-            //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+            //var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveUsersListFromDevice");
             //restRequest.AddQueryParameter("code", device.Code.ToString());
             //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
             //{
@@ -696,7 +696,7 @@ namespace Biovation.Server.Controllers.v2
 
                 //var restRequest =
                 //    new RestRequest(
-                //        $"/{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
+                //        $"/{device.ServiceInstance.Id}/User/SendUserToDevice",
                 //        Method.GET);
                 //restRequest.AddQueryParameter("code", device.Code.ToString());
                 //restRequest.AddQueryParameter("userId", JsonSerializer.Serialize(userIds));
@@ -877,7 +877,7 @@ namespace Biovation.Server.Controllers.v2
 
                 var result = await _deviceService.SendUsersOfDevice(device, token);
 
-                //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
+                //var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/SendUsersOfDevice", Method.POST);
                 //restRequest.AddJsonBody(device);
                 //restRequest.AddHeader("Authorization", token!);
                 //var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -903,7 +903,7 @@ namespace Biovation.Server.Controllers.v2
 
             var result = await _deviceService.GetAdditionalData(device, token);
 
-            //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
+            //var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/GetAdditionalData");
             //restRequest.AddQueryParameter("code", device.Code.ToString());
             //restRequest.AddHeader("Authorization", token!);
             //var result = await _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);
@@ -990,7 +990,7 @@ namespace Biovation.Server.Controllers.v2
         //            {
         //                try
         //                {
-        //                    var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/UpgradeFirmware", Method.POST, DataFormat.Json);
+        //                    var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/UpgradeFirmware", Method.POST, DataFormat.Json);
         //                    restRequest.AddHeader("Content-Type", "multipart/form-data");
         //                    restRequest.AddQueryParameter("deviceCode", device.Code.ToString());
         //                    restRequest.AddFile(multipartContent.Headers.ContentDisposition.Name.Trim('\"'),
@@ -1061,7 +1061,7 @@ namespace Biovation.Server.Controllers.v2
                 await _taskService.InsertTask(task);
                 _ = _taskService.ProcessQueue(device.Brand, device.DeviceId).ConfigureAwait(false);
 
-                //var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                //var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Task/RunProcessQueue", Method.POST);
                 //await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                 return new ResultViewModel { Success = true, Message = "The requested operation successfully started" };

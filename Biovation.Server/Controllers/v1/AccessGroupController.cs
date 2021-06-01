@@ -31,7 +31,8 @@ namespace Biovation.Server.Controllers.v1
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
-        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, BiovationConfigurationManager biovationConfigurationManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        private readonly SystemInfo _systemInfo;
+        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, BiovationConfigurationManager biovationConfigurationManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, SystemInfo systemInfo)
         {
             _restClient = restClient;
             _accessGroupService = accessGroupService;
@@ -44,6 +45,7 @@ namespace Biovation.Server.Controllers.v1
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _taskService = taskService;
+            _systemInfo = systemInfo;
         }
 
         [HttpGet, Route("AccessGroups")]
@@ -107,10 +109,10 @@ namespace Biovation.Server.Controllers.v1
 
             Task.Run(() =>
             {
-                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                var serviceInstances = _systemInfo.Services;
 
-                foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
-                    $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                foreach (var restRequest in serviceInstances.Select(serviceInstance => new RestRequest(
+                    $"{serviceInstance.Id}/AccessGroup/ModifyAccessGroup",
                     Method.POST)))
                 {
                     restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
@@ -182,7 +184,7 @@ namespace Biovation.Server.Controllers.v1
                 _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
                 var restRequest =
                     new RestRequest(
-                        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+                        $"{device.ServiceInstance.Id}/AccessGroup/SendAccessGroupToDevice",
                         Method.GET);
                 restRequest.AddParameter("code", device.Code);
                 restRequest.AddParameter("accessGroupId", accessGroupId);
@@ -227,7 +229,7 @@ namespace Biovation.Server.Controllers.v1
 
             var restRequest =
                 new RestRequest(
-                    $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+                    $"{device.ServiceInstance.Id}/AccessGroup/SendAccessGroupToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("accessGroupId", accessGroupId);

@@ -184,7 +184,7 @@ namespace Biovation.Server.Controllers.v2
 
                             //var deleteUserRestRequest =
                             //    new RestRequest(
-                            //        $"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
+                            //        $"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
                             //        Method.POST);
                             _deviceGroupService.DeleteUserFromDevice(device, usersToDelete, token);
 
@@ -246,7 +246,7 @@ namespace Biovation.Server.Controllers.v2
                             _deviceGroupService.SendUserToDevice(device, usersToAdd, token);
 
                             //var sendUserRestRequest =
-                            //        new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
+                            //        new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice",
                             //            Method.GET);
                             //sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                             //sendUserRestRequest.AddQueryParameter("userId",

@@ -98,7 +98,7 @@ namespace Biovation.Brands.Suprema.Commands
             var creatorUser = _userService.GetUsers(userId: CreatorUserId).Result?.Data?.Data?.FirstOrDefault();
             var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
 
-            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveUsersListFromDevice", Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.ReadWriteTimeout = 3600000;
             restRequest.Timeout = 3600000;
@@ -185,7 +185,7 @@ namespace Biovation.Brands.Suprema.Commands
                     });
                     _taskService.InsertTask(task);
 
-                    restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+                    restRequest = new RestRequest($"{device.ServiceInstance.Id}/Task/RunProcessQueue", Method.POST);
                     _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                     return new ResultViewModel
@@ -207,7 +207,7 @@ namespace Biovation.Brands.Suprema.Commands
 
             try
             {
-                restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
+                restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/" + "DownloadAllUserPhotos/{id}/DownloadAllUserPhotos", Method.POST);
                 restRequest.AddUrlSegment("id", device.DeviceId.ToString());
                 restRequest.AddHeader("Authorization", Token ?? string.Empty);
                 restRequest.ReadWriteTimeout = 3600000;

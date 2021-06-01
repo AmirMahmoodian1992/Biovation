@@ -81,7 +81,7 @@ namespace Biovation.Repository.Api.v2
             await Task.Run(() => {
                 Parallel.ForEach(instances, instance =>
                 {
-                    var restRequest = new RestRequest($"{brand.Name}/{instance.Id}/{brand.Name}Task/RunProcessQueue", Method.POST);
+                    var restRequest = new RestRequest($"{instance.Id}/Task/RunProcessQueue", Method.POST);
                     restRequest.AddQueryParameter("deviceId", deviceId.ToString());
                     token ??= _biovationConfigurationManager.DefaultToken;
                     restRequest.AddHeader("Authorization", token!);

@@ -96,14 +96,14 @@ namespace Biovation.Server.Controllers.v1
         //        };
 
         //        var device = _commonDeviceService.GetDevice(deviceId, token: _kasraAdminToken);
-        //        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", Method.POST);
+        //        var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveLogs", Method.POST);
         //        restRequest.AddJsonBody(device.Code);
         //        restRequest.AddQueryParameter("taskId", task.Id.ToString());
 
         //        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
         //        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
         //        //_communicationManager.CallRest(
-        //        //    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogs", "Post", null,
+        //        //    $"/biovation/api/{device.ServiceInstance.Id}/Device/RetrieveLogs", "Post", null,
         //        //    $"{device.Code}");
         //        return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Message = result.ErrorMessage };
         //    });
@@ -118,7 +118,7 @@ namespace Biovation.Server.Controllers.v1
                 var device = _commonDeviceService.GetDevice(deviceId, token: _kasraAdminToken);
 
                 var restRequest =
-                    new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod",
+                    new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveLogsOfPeriod",
                         Method.GET);
 
                 if (fromDate is null && toDate is null)
@@ -147,10 +147,10 @@ namespace Biovation.Server.Controllers.v1
                 restRequest.AddHeader("Authorization", _kasraAdminToken);
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 //var parameters = new List<object> { $"code={device.Code}", $"fromDate={fromDate}", $"toDate={toDate}" };
-                //        _communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Post", null,
+                //        _communicationManager.CallRest($"/biovation/api/{device.ServiceInstance.Id}/Device/RetrieveLogsOfPeriod", "Post", null,
                 //JsonConvert.SerializeObject(parameters));
 
-                //_communicationManager.CallRest($"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Device/RetrieveLogsOfPeriod", "Get", parameters);
+                //_communicationManager.CallRest($"/biovation/api/{device.ServiceInstance.Id}/Device/RetrieveLogsOfPeriod", "Get", parameters);
 
                 return result.IsSuccessful && result.StatusCode == HttpStatusCode.OK
                     ? result.Data
@@ -300,7 +300,7 @@ namespace Biovation.Server.Controllers.v1
                         _taskService.InsertTask(task);
                         await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
 
-                        var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Log/ClearLog", Method.POST);
+                        var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Log/ClearLog", Method.POST);
                         restRequest.AddQueryParameter("code", device.Code.ToString());
                         restRequest.AddQueryParameter("fromDate", fromDate);
                         restRequest.AddQueryParameter("toDate", toDate);
@@ -309,7 +309,7 @@ namespace Biovation.Server.Controllers.v1
                         var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
                         //var address = _localBioAddress +
-                        //              $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
+                        //              $"/biovation/api/{device.ServiceInstance.Id}/Log/ClearLog?code={device.Code}&fromDate={fromDate}&toDate={toDate}";
                         //var data = _restCall.CallRestAsync(address, null, null, "POST");
                         //var res = JsonConvert.DeserializeObject<ResultViewModel>(data);
                         if (!restResult.IsSuccessful || restResult.StatusCode != HttpStatusCode.OK) continue;

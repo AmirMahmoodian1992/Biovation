@@ -157,7 +157,7 @@ namespace Biovation.Server.Controllers.v1
 
             var restRequest =
                 new RestRequest(
-                    $"/biovation/api/{device.Brand.Name}/{device.Brand.Name}TimeZone/SendTimeZoneToDevice",
+                    $"/biovation/api/{device.ServiceInstance.Id}/TimeZone/SendTimeZoneToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("timeZoneId", timeZoneId);

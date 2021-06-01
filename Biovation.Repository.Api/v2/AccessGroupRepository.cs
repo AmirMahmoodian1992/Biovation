@@ -153,7 +153,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
+                    $"{device.ServiceInstance.Id}/AccessGroup/SendAccessGroupToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("accessGroupId", id);
@@ -167,7 +167,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{deviceBrand?.Name}/{device.ServiceInstance.Id}/{deviceBrand?.Name}User/SendUserToDevice",
+                    $"{device.ServiceInstance.Id}/User/SendUserToDevice",
                     Method.GET);
             restRequest.AddParameter("code", device.Code);
             restRequest.AddParameter("userId", userIds);
@@ -179,16 +179,16 @@ namespace Biovation.Repository.Api.v2
         public async void ModifyAccessGroup(List<Lookup> deviceBrands, string token = default)
         {
             var serviceInstances = _systemInfo.Services;
-            foreach (var serviceInstance in serviceInstances)
+            Parallel.ForEach(serviceInstances, serviceInstance =>
             {
-                foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
-                    $"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                    Method.POST)))
                 {
+                    var restRequest = new RestRequest(
+                        $"{serviceInstance.Id}/AccessGroup/ModifyAccessGroup",
+                        Method.POST);
                     restRequest.AddHeader("Authorization", token!);
-                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                     _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 }
-            }
+            });
         }
     }
 }

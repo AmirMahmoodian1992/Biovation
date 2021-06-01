@@ -592,7 +592,7 @@ namespace Biovation.Server.Controllers.v2
 
             var result = await _userService.EnrollFaceTemplate(device, id, deviceId, token);
 
-            //var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
+            //var restRequest = new RestRequest($@"{device.ServiceInstance.Id}/User/EnrollFaceTemplate", Method.POST);
             //restRequest.AddQueryParameter("userId", id.ToString());
             //restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             //restRequest.AddHeader("Authorization", token!);

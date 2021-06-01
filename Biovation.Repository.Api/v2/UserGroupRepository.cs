@@ -98,7 +98,7 @@ namespace Biovation.Repository.Api.v2
             {
                 var restRequest =
                     new RestRequest(
-                        $"/biovation/api/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/SendUserToAllDevices",
+                        $"/biovation/api/{serviceInstance.Id}/User/SendUserToAllDevices",
                         Method.POST);
                 token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
@@ -114,7 +114,7 @@ namespace Biovation.Repository.Api.v2
         public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
             var deleteUserRestRequest =
-                new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/DeleteUserFromDevice",
+                new RestRequest($"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
                     Method.POST);
 
             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
@@ -130,7 +130,7 @@ namespace Biovation.Repository.Api.v2
         public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToDeleteFromDevice, string token = default)
         {
             var sendUserRestRequest =
-                new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
+                new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice", Method.GET);
 
             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
 
@@ -150,7 +150,7 @@ namespace Biovation.Repository.Api.v2
             {
                 var restRequest =
                     new RestRequest(
-                        $"/biovation/api/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember",
+                        $"/biovation/api/{serviceInstance.Id}/UserGroup/ModifyUserGroupMember",
                         Method.POST);
 
                 token ??= _biovationConfigurationManager.DefaultToken;

@@ -4,7 +4,6 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -166,7 +165,7 @@ namespace Biovation.Repository.Api.v2
         // TODO - Verify method.
         public async void ModifyDeviceInfo(DeviceBasicInfo device, string token = default)
         {
-            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/ModifyDevice",
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/ModifyDevice",
                 Method.POST);
             restRequest.AddJsonBody(device);
             restRequest.AddHeader("Authorization", token!);
@@ -204,20 +203,18 @@ namespace Biovation.Repository.Api.v2
 
             if (deviceBrands == null) return resultList;
 
-            Parallel.ForEach(deviceBrands, deviceBrand =>
+            Parallel.ForEach(serviceInstances, serviceInstance =>
             {
-                foreach (var restRequest in serviceInstances.Select(serviceInstance =>
-                    new RestRequest($"{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Device/GetOnlineDevices")))
-                {
-                    token ??= _biovationConfigurationManager.DefaultToken;
-                    restRequest.AddHeader("Authorization", token);
-                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+                var restRequest = new RestRequest($"{serviceInstance.Id}/Device/GetOnlineDevices");
+                token ??= _biovationConfigurationManager.DefaultToken;
+                restRequest.AddHeader("Authorization", token);
+                var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
-                    if (result.StatusCode == HttpStatusCode.OK)
-                    {
-                        resultList.AddRange(result.Data);
-                    }
+                if (result.StatusCode == HttpStatusCode.OK)
+                {
+                    resultList.AddRange(result.Data);
                 }
+
             });
 
             return resultList;
@@ -225,7 +222,7 @@ namespace Biovation.Repository.Api.v2
 
         public IRestResponse<ResultViewModel> ClearLogsOfDevice(DeviceBasicInfo device, DateTime? fromDate, DateTime? toDate, string token)
         {
-            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Log/ClearLog", Method.POST);
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Log/ClearLog", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             if (fromDate.HasValue) restRequest.AddQueryParameter("fromDate", fromDate.Value.ToString(CultureInfo.InvariantCulture));
             if (toDate.HasValue) restRequest.AddQueryParameter("toDate", toDate.Value.ToString(CultureInfo.InvariantCulture));
@@ -239,11 +236,14 @@ namespace Biovation.Repository.Api.v2
 
         public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, List<uint> userId = default, string token = default)
         {
-            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/RetrieveUserFromDevice", Method.POST);
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveUserFromDevice", Method.POST);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             restRequest.AddQueryParameter("code", device.Code.ToString());
-            restRequest.AddJsonBody(userId);
+            if (userId != null)
+            {
+                restRequest.AddJsonBody(userId);
+            }
             var restResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).GetAwaiter();
             return restResult.GetResult();
         }
@@ -252,7 +252,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/RetrieveUsersListFromDevice");
+                    $"{device.ServiceInstance.Id}/Device/RetrieveUsersListFromDevice");
             restRequest.AddQueryParameter("code", device.Code.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
@@ -264,7 +264,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/ReadOfflineOfDevice");
+                    $"{device.ServiceInstance.Id}/Device/ReadOfflineOfDevice");
             restRequest.AddQueryParameter("code", device.Code.ToString());
             if (fromDate.HasValue) restRequest.AddQueryParameter("fromDate", fromDate.Value.ToString(CultureInfo.InvariantCulture));
             if (toDate.HasValue) restRequest.AddQueryParameter("toDate", toDate.Value.ToString(CultureInfo.InvariantCulture));
@@ -278,7 +278,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/DeleteUserFromDevice",
+                    $"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
                     Method.POST);
 
             restRequest.AddJsonBody(userId);
@@ -292,7 +292,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/DeleteUserFromDevice", Method.POST);
+                    $"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
@@ -303,7 +303,7 @@ namespace Biovation.Repository.Api.v2
         // TODO - Verify the method.
         public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
         {
-            var restRequest = new RestRequest($"{device.Brand?.Name}/{device.ServiceInstance.Id}/{device.Brand?.Name}Device/DeleteUserFromDevice", Method.POST);
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice", Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddJsonBody(userIds);
             restRequest.AddHeader("Authorization", token!);
@@ -315,7 +315,7 @@ namespace Biovation.Repository.Api.v2
         {
             var restRequest =
                 new RestRequest(
-                    $"/{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}User/SendUserToDevice",
+                    $"/{device.ServiceInstance.Id}/User/SendUserToDevice",
                     Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddQueryParameter("userId", JsonSerializer.Serialize(userIds));
@@ -326,7 +326,7 @@ namespace Biovation.Repository.Api.v2
         // TODO - Verify the method.
         public Task<IRestResponse<ResultViewModel>> SendUsersOfDevice(DeviceBasicInfo device, string token = default)
         {
-            var restRequest = new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/SendUsersOfDevice", Method.POST);
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/SendUsersOfDevice", Method.POST);
             restRequest.AddJsonBody(device);
             restRequest.AddHeader("Authorization", token!);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -335,7 +335,7 @@ namespace Biovation.Repository.Api.v2
         // TODO - Verify the method.
         public Task<IRestResponse<Dictionary<string, string>>> GetAdditionalData(DeviceBasicInfo device, string token = default)
         {
-            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/GetAdditionalData");
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/GetAdditionalData");
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddHeader("Authorization", token!);
             return _restClient.ExecuteAsync<Dictionary<string, string>>(restRequest);

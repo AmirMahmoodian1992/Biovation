@@ -91,7 +91,7 @@ namespace Biovation.Repository.Api.v2
         {
             var deleteUserRestRequest =
                 new RestRequest(
-                    $"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}Device/DeleteUserFromDevice",
+                    $"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
                     Method.POST);
 
             deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
@@ -104,7 +104,7 @@ namespace Biovation.Repository.Api.v2
         public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToAdd, string token = default)
         {
             var sendUserRestRequest =
-                new RestRequest($"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}User/SendUserToDevice",
+                new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice",
                     Method.GET);
 
             sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());

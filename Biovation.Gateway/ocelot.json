@@ -27,7 +27,7 @@
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
-      "UpstreamPathTemplate": "/biovation/api/zk/905bbeb8-d0ba-4657-b319-cd666886e098/{url}",
+      "UpstreamPathTemplate": "/biovation/api/905bbeb8-d0ba-4657-b319-cd666886e098/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
         {
@@ -39,7 +39,7 @@
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
-      "UpstreamPathTemplate": "/biovation/api/zk/905bbeb8-d0ba-4657-b319-cd666886e099/{url}",
+      "UpstreamPathTemplate": "/biovation/api/905bbeb8-d0ba-4657-b319-cd666886e099/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
         {

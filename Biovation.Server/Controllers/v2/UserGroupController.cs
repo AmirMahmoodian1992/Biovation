@@ -334,7 +334,7 @@ namespace Biovation.Server.Controllers.v2
                         _ = _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
                         //var sendUserRestRequest =
-                        //    new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
+                        //    new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice", Method.GET);
                         //sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                         //sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAddToDevice.Select(user => user.Code)));
                         ///*var additionResult =*/
@@ -344,7 +344,7 @@ namespace Biovation.Server.Controllers.v2
                         _userGroupService.SendUserToDevice(device, usersToAddToDevice, token);
 
                         //var sendUserRestRequest =
-                        //    new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice", Method.GET);
+                        //    new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice", Method.GET);
                         //sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                         //sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToDeleteFromDevice.Select(user => user.Code)));
                         ///*var additionResult =*/

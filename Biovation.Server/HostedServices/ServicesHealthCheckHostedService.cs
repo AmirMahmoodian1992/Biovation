@@ -64,7 +64,7 @@ namespace Biovation.Server.HostedServices
                 Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
                     var restRequest = new RestRequest(
-                        $"{deviceBrand.Name}/{instance.Id}/health");
+                        $"{instance.Id}/health");
                     var result = _restClient.Execute(restRequest);
 
                     if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy",

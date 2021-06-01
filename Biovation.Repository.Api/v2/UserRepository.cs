@@ -1,10 +1,10 @@
-﻿using Biovation.Domain;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -139,41 +139,38 @@ namespace Biovation.Repository.Api.v2
         }
 
         // TODO - Verify method.
-        public async void AddUser(List<Lookup> deviceBrands, User user, string token = default)
+        public void AddUser(List<Lookup> deviceBrands, User user, string token = default)
         {
             var serviceInstances = _systemInformation.Services;
-            foreach (var serviceInstance in serviceInstances)
+            Parallel.ForEach(serviceInstances, serviceInstance =>
             {
-                foreach (var restRequest in deviceBrands.Select(deviceBrand => 
-                    new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
-                {
-                    restRequest.AddJsonBody(user);
-                    restRequest.AddHeader("Authorization", token!);
-                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                }
-            }
+                var restRequest = new RestRequest($"/{serviceInstance.Id}/User/ModifyUser", Method.POST);
+
+                restRequest.AddJsonBody(user);
+                restRequest.AddHeader("Authorization", token!);
+                 _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            });
         }
 
         // TODO - Verify method.
         public async void ModifyUser(List<Lookup> deviceBrands, User user, string token = default)
         {
             var serviceInstances = _systemInformation.Services;
-            foreach (var serviceInstance in serviceInstances)
+
+            foreach (var restRequest in serviceInstances.Select(serviceInstance =>
+                new RestRequest($"/{serviceInstance.Id}/User/ModifyUser", Method.POST)))
             {
-                foreach (var restRequest in deviceBrands.Select(deviceBrand => 
-                    new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
-                {
-                    restRequest.AddJsonBody(user);
-                    restRequest.AddHeader("Authorization", token!);
-                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                }
+                restRequest.AddJsonBody(user);
+                restRequest.AddHeader("Authorization", token!);
+                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             }
+
         }
 
         // TODO - Verify method.
         public Task<IRestResponse<ResultViewModel>> EnrollFaceTemplate(DeviceBasicInfo device, int id = default, int deviceId = default, string token = default)
         {
-            var restRequest = new RestRequest($@"{device.Brand.Name}/{device.ServiceInstance.Id}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
+            var restRequest = new RestRequest($@"{device.ServiceInstance.Id}/User/EnrollFaceTemplate", Method.POST);
             restRequest.AddQueryParameter("userId", id.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddHeader("Authorization", token!);
@@ -184,7 +181,7 @@ namespace Biovation.Repository.Api.v2
         public Task<IRestResponse> UpdateUserGroupsOfUser(Lookup deviceBrand, DeviceBasicInfo device, int userId, string token = default)
         {
             var restRequest = new RestRequest(
-                $"/{deviceBrand.Name}/{device.ServiceInstance.Id}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                $"/{device.ServiceInstance.Id}/User/SendUserToDevice", Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddQueryParameter("userId", $"[{userId}]");
             restRequest.AddQueryParameter("updateServerSideIdentification",
@@ -196,7 +193,7 @@ namespace Biovation.Repository.Api.v2
         // TODO - Verify method.
         public async void Sync(Lookup deviceBrand, DeviceBasicInfo device, UserGroupMember userGroupMember, string token = default)
         {
-            var restRequest = new RestRequest($"/{deviceBrand.Name}/{device.ServiceInstance.Id}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+            var restRequest = new RestRequest($"/{device.ServiceInstance.Id}/User/SendUserToDevice", Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddQueryParameter("userId", $"[{userGroupMember.UserId}]");
             restRequest.AddHeader("Authorization", token!);
@@ -206,23 +203,21 @@ namespace Biovation.Repository.Api.v2
         public void DeleteUserFromAllTerminal(List<Lookup> deviceBrands, long[] usersToSync = default, string token = default)
         {
             var serviceInstances = _systemInformation.Services;
-            foreach (var restRequest in from deviceBrand in deviceBrands
-                                        from serviceInstance in serviceInstances
-                                        select
-new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST))
+            Parallel.ForEach(serviceInstances, serviceInstance =>
             {
+                var restRequest = new RestRequest($"/{serviceInstance.Id}/User/DeleteUserFromAllTerminal", Method.POST);
                 restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
                 token ??= _biovationConfigurationManager.DefaultToken;
                 restRequest.AddHeader("Authorization", token);
                 _restClient.ExecuteAsync(restRequest);
-            }
+            });
         }
 
         // TODO - Verify method.
         public Task<IRestResponse> DeleteUserFromDevice(Lookup deviceBrand, DeviceBasicInfo device, List<int> listOfUserId, string token = default)
         {
             var restRequest = new RestRequest(
-                $"/{deviceBrand.Name}/{device.ServiceInstance.Id}/{deviceBrand.Name}Device/DeleteUserFromDevice",
+                $"/{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
                 Method.POST);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.AddQueryParameter("updateServerSideIdentification",
@@ -239,7 +234,7 @@ new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Use
             var serviceInstances = _systemInformation.Services;
             foreach (var serviceInstance in serviceInstances)
             {
-                var restRequest = new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}User/SendUserToAllDevices", Method.POST);
+                var restRequest = new RestRequest($"/{serviceInstance.Id}/User/SendUserToAllDevices", Method.POST);
                 restRequest.AddJsonBody(user);
                 var restResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest).GetAwaiter().GetResult();
                 resultList.Add(new ResultViewModel
@@ -249,7 +244,7 @@ new RestRequest($"/{deviceBrand.Name}/{serviceInstance.Id}/{deviceBrand.Name}Use
                     Message = deviceBrand.Name
                 });
             }
-            
+
             return resultList;
         }
     }

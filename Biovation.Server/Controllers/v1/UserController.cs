@@ -749,7 +749,7 @@ namespace Biovation.Server.Controllers.v1
                 _taskService.InsertTask(task);
                 await _taskService.ProcessQueue(device.Brand, deviceId).ConfigureAwait(false);
 
-                var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
+                var restRequest = new RestRequest($@"{device.ServiceInstance.Id}/User/EnrollFaceTemplate", Method.POST);
                 restRequest.AddQueryParameter("userId", userId.ToString());
                 restRequest.AddQueryParameter("deviceId", deviceId.ToString());
 
@@ -1128,7 +1128,7 @@ namespace Biovation.Server.Controllers.v1
                     tasks.Add(Task.Run(async () =>
                     {
                         var restRequest =
-                            new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUsersDataToDevice",
+                            new RestRequest($"{device.ServiceInstance.Id}/User/SendUsersDataToDevice",
                                 Method.POST);
                         if (deviceId != default)
                             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
