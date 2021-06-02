@@ -317,14 +317,15 @@ namespace Biovation.Server
             var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
-
+            var fingerIndexMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(10);
 
             var genericCodeMappings = new GenericCodeMappings
             {
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
-                MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
+                MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data,
+                FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data
             };
 
 
