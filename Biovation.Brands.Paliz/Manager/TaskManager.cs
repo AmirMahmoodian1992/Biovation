@@ -342,6 +342,23 @@ namespace Biovation.Brands.Paliz.Manager
 
                             break;
                         }
+                    case TaskItemTypes.SetDeviceDateTimeCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.SetDeviceDateTime,
+                                        new List<object> { taskItem.DeviceId, taskItem.Id, taskItem.Data }).Execute();
+                                });
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
                 }
 
                 executeTask?.ContinueWith(task =>

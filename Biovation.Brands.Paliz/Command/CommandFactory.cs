@@ -130,6 +130,11 @@ namespace Biovation.Brands.Paliz.Command
                     //var timeToSet = Convert.ToInt32(transferModelData.Items.FirstOrDefault());
                     throw new NotImplementedException();
 
+                case CommandType.SetDeviceDateTime:
+                    {
+                        return new PalizSetDeviceDateTime(transferModelData.Items, _palizServer, _taskService, _deviceService);
+                    }
+
                 case CommandType.EnrollFromTerminal:
                     //Unlocks the device
                     {
@@ -137,11 +142,6 @@ namespace Biovation.Brands.Paliz.Command
                         //return new PalizEnrollFromTerminal(transferModelData.Items, PalizServer.GetOnlineDevices());
                         throw new NotImplementedException();
                     }
-
-                //case CommandType.GetUsersOfDevice:
-                //    //Gets users of devices
-                //    throw new NotImplementedException();
-
                 case CommandType.GetOnlineDevices:
                     //Gets online devices
                     throw new NotImplementedException();

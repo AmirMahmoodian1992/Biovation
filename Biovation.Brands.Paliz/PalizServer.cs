@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
+using System.Threading;
 
 namespace Biovation.Brands.Paliz
 {
@@ -258,7 +259,36 @@ namespace Biovation.Brands.Paliz
                 OrderIndex = 1
             });
 
-            _taskService.InsertTask(task);
+            _taskService.InsertTask(task).GetAwaiter().GetResult();
+
+            //var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+            //var fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+
+            task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.SetDeviceDateTime,
+                Priority = _taskPriorities.Medium,
+                TaskItems = new List<TaskItem>(),
+                DeviceBrand = _deviceBrands.Paliz,
+                DueDate = DateTimeOffset.Now
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.SetDeviceDateTime,
+                Priority = _taskPriorities.Medium,
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { device.DeviceId, DateTime = DateTime.Now }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1
+            });
+
+            _taskService.InsertTask(task).GetAwaiter().GetResult();
+
             //AccessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
             _taskService.ProcessQueue(_deviceBrands.Paliz, device.DeviceId).ConfigureAwait(false);
         }
@@ -266,6 +296,11 @@ namespace Biovation.Brands.Paliz
         private void GetDeviceInfoCallback(object sender, DeviceInfoEventArgs args)
         {
             // pass
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            //SetDateTime();
         }
 
         /// <summary>
