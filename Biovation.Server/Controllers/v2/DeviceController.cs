@@ -922,7 +922,8 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel<PagingResult<Lookup>>> DeviceBrands(bool loadedOnly = true)
         {
             if (!loadedOnly) return await _deviceService.GetDeviceBrands();
-            var loadedServices = _systemInformation.Services.Select(brand => _lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
+            //var loadedServices = _systemInformation.Services.Select(brand => _lookups.DeviceBrands.FirstOrDefault(lookup => string.Equals(lookup.Name, brand.Name))).ToList();
+            var loadedServices = _lookups.DeviceBrands;
             return new ResultViewModel<PagingResult<Lookup>>
             {
                 Success = true,
@@ -950,6 +951,10 @@ namespace Biovation.Server.Controllers.v2
             var loadedDeviceModels = deviceModels.Data.Data?.Where(dm => _systemInformation.Services.Any(db =>
                 string.Equals(dm.Brand.Name, db.Name, StringComparison.InvariantCultureIgnoreCase))).ToList();
 
+            if (loadedDeviceModels != null && loadedDeviceModels.Count == 0)
+            {
+                loadedDeviceModels = deviceModels?.Data?.Data;
+            }
             return new ResultViewModel<PagingResult<DeviceModel>>
             {
                 Success = true,

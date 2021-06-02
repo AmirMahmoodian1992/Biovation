@@ -75,7 +75,7 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@SSL", SqlDbType.Bit) { Value = device.SSL },
                 new SqlParameter("@TimeSync", SqlDbType.Bit) { Value = device.TimeSync },
                 new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId },
-                new SqlParameter("@ServiceInstanceId", SqlDbType.Int) { Value = device.ServiceInstance?.Id}
+                new SqlParameter("@ServiceInstanceId", SqlDbType.NVarChar) { Value = device.ServiceInstance?.Id}
             };
 
             if (device.HardwareVersion != null)
