@@ -18,7 +18,7 @@ namespace Biovation.Repository.Sql.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public ResultViewModel<PagingResult<AccessGroup>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
+        public ResultViewModel<PagingResult<AccessGroup>> AccessGroups(int userId = 0, int adminUserId = 0, int userGroupId = 0, int id = 0, int deviceId = 0, int deviceGroupId = default, int timeZoneId = 0, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5)
         {
             var parameters = new List<SqlParameter>
             {
@@ -27,10 +27,12 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@DeviceId ", deviceId),
                 new SqlParameter("@UserGroupId", userGroupId),
                 new SqlParameter("@DeviceGroupId", deviceGroupId),
+                new SqlParameter("@timeZoneId", timeZoneId),
                 new SqlParameter("@UserId", userId ),
                 new SqlParameter("@PageNumber", pageNumber),
                 new SqlParameter("@PageSize",pageSize)
             };
+
             return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByFilter", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 

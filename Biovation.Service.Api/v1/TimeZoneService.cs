@@ -23,9 +23,9 @@ namespace Biovation.Service.Api.v1
             return _timeZoneRepository.GetTimeZones().Result?.Data?.Data ?? new List<TimeZone>();
         }
 
-        public ResultViewModel ModifyTimeZone(TimeZone timeZone, string token = default)
+        public ResultViewModel ModifyTimeZone(int id, TimeZone timeZone, string token = default)
         {
-            return _timeZoneRepository.ModifyTimeZone(timeZone, token).Result;
+            return _timeZoneRepository.ModifyTimeZone(id, timeZone, token).Result;
         }
 
         public ResultViewModel DeleteTimeZone(int id, string token = default)
