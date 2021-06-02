@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -26,7 +25,7 @@ namespace Biovation.Server.Controllers.v2
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
         private readonly UserService _userService;
-        private readonly RestClient _restClient;
+        //private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
@@ -953,7 +952,7 @@ namespace Biovation.Server.Controllers.v2
 
             if (loadedDeviceModels != null && loadedDeviceModels.Count == 0)
             {
-                loadedDeviceModels = deviceModels?.Data?.Data;
+                loadedDeviceModels = deviceModels.Data?.Data;
             }
             return new ResultViewModel<PagingResult<DeviceModel>>
             {
