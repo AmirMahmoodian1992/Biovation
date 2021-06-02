@@ -5,7 +5,6 @@ using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +24,6 @@ namespace Biovation.Server.Controllers.v2
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
         private readonly UserService _userService;
-        //private readonly RestClient _restClient;
         private readonly SystemInfo _systemInformation;
         private readonly Lookups _lookups;
 
@@ -35,14 +33,13 @@ namespace Biovation.Server.Controllers.v2
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public DeviceController(AccessGroupService accessGroupService, DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, RestClient restClient, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+        public DeviceController(AccessGroupService accessGroupService, DeviceService deviceService, UserService userService, SystemInfo systemInformation, Lookups lookups, UserCardService userCardService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
             _userService = userService;
             _systemInformation = systemInformation;
             _lookups = lookups;
-            _restClient = restClient;
             _userCardService = userCardService;
 
             _taskTypes = taskTypes;
