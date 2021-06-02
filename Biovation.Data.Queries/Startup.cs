@@ -95,6 +95,7 @@ namespace Biovation.Data.Queries
             services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddScoped<IrisTemplateRepository, IrisTemplateRepository>();
             services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             services.AddScoped<LogRepository, LogRepository>();
             services.AddScoped<LookupRepository, LookupRepository>();

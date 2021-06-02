@@ -89,6 +89,7 @@
     <None Remove="Scripts\01.Tables\0077-Alter Task.sql" />
     <None Remove="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <None Remove="Scripts\01.Tables\0079-Alter User.sql" />
+    <None Remove="Scripts\01.Tables\0080-Create IrisTemplate-UP.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -282,8 +283,11 @@
     <None Remove="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
+    <None Remove="Scripts\03.SPs\0194-Create SelectIrisTemplatesByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
+    <None Remove="Scripts\03.SPs\0195-Create DeleteIrisTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
+    <None Remove="Scripts\03.SPs\0196-Create ModifyIrisTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
     <None Remove="Scripts\03.SPs\0198-Create AddUser-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
@@ -410,6 +414,7 @@
     <EmbeddedResource Include="Scripts\01.Tables\0068-Alter Log-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0069-Alter LogData TableType-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0080-Create IrisTemplate-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0079-Alter User.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0077-Alter Task.sql" />
@@ -610,6 +615,9 @@
     <EmbeddedResource Include="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPaging-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0194-Create SelectIrisTemplatesByFilter-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0196-Create ModifyIrisTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0195-Create DeleteIrisTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />

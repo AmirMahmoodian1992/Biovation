@@ -9,7 +9,6 @@ using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
 using Biovation.Server.Middleware;
-using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -27,7 +26,25 @@ using Serilog;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.Reflection;
+using Biovation.Service.Api.v2;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceGroupService = Biovation.Service.Api.v1.DeviceGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using GenericCodeMappingService = Biovation.Service.Api.v1.GenericCodeMappingService;
 using Log = Serilog.Log;
+using LogService = Biovation.Service.Api.v1.LogService;
+using LookupService = Biovation.Service.Api.v1.LookupService;
+using PlateDetectionService = Biovation.Service.Api.v1.PlateDetectionService;
+using SettingService = Biovation.Service.Api.v1.SettingService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserGroupService = Biovation.Service.Api.v1.UserGroupService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Server
 {
@@ -180,6 +197,7 @@ namespace Biovation.Server
             //services.AddTransient<BlackListRepository, BlackListRepository>();
             //services.AddTransient<DeviceGroupRepository, DeviceGroupRepository>();
             services.AddTransient<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddTransient<IrisTemplateRepository, IrisTemplateRepository>();
             //services.AddTransient<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             services.AddTransient<LogRepository, LogRepository>();
@@ -239,6 +257,7 @@ namespace Biovation.Server
             services.AddTransient<DeviceService, DeviceService>();
 
             services.AddTransient<FaceTemplateService, FaceTemplateService>();
+            services.AddTransient<IrisTemplateService, IrisTemplateService>();
             services.AddTransient<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
             services.AddTransient<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
             services.AddTransient<Service.Api.v2.LogService, Service.Api.v2.LogService>();
@@ -295,6 +314,7 @@ namespace Biovation.Server
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 12);
 
             var lookups = new Lookups
             {
@@ -307,6 +327,7 @@ namespace Biovation.Server
                 LogSubEvents = logSubEventsQuery.Result,
                 FingerTemplateType = fingerTemplateTypeQuery.Result,
                 FaceTemplateType = faceTemplateTypeQuery.Result,
+                IrisTemplateType = irisTemplateTypeQuery.Result,
                 LogEvents = logEventsQuery.Result,
                 MatchingTypes = matchingTypeQuery.Result
             };
@@ -342,6 +363,7 @@ namespace Biovation.Server
             services.AddSingleton<TaskPriorities, TaskPriorities>();
             services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
+            services.AddSingleton<IrisTemplateTypes, IrisTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
 

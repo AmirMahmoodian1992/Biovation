@@ -90,6 +90,7 @@ namespace Biovation.Data.Commands
             services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
             services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
             services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddScoped<IrisTemplateRepository, IrisTemplateRepository>();
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
