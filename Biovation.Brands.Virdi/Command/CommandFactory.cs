@@ -156,7 +156,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes,_virdiCodeMappings);
+                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes,_virdiCodeMappings,_rIrisTemplateService);
                     }
 
                 case CommandType.SendBlackList:

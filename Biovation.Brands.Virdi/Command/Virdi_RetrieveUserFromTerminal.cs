@@ -454,7 +454,7 @@ namespace Biovation.Brands.Virdi.Command
                                 if (user.FaceTemplates is null)
                                     user.FaceTemplates = new List<FaceTemplate>();
 
-                                var userFaces = _faceTemplateService.FaceTemplates(userId: _terminalUserData.UserID);
+                                var userFaces = _faceTemplateService.FaceTemplates(userId: user.Id);
                                 //existUser.FaceTemplates = new List<FaceTemplate>();
 
                                 if (existUser != null)
@@ -503,7 +503,7 @@ namespace Biovation.Brands.Virdi.Command
                                 var irisData = _terminalUserData.IrisData;
                                 if (user.IrisTemplates is null)
                                     user.IrisTemplates = new List<IrisTemplate>();
-                                var userIrises = _irisTemplateService.IrisTemplates(userId: _terminalUserData.UserID);
+                                var userIrises = _irisTemplateService.IrisTemplates(userId: user.Id);
                                 if (existUser != null)
                                     existUser.IrisTemplates = (userIrises.Any() ? userIrises : new List<IrisTemplate>());
                                 var irisTemplateData = (byte[]) irisData;

@@ -3,7 +3,6 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -13,8 +12,18 @@ using System.Linq;
 using System.Security.Cryptography;
 using Biovation.Brands.Virdi.Manager;
 using Biovation.Brands.Virdi.Model.Unis;
+using Biovation.Service.Api.v2;
 using UNIONCOMM.SDK.UCBioBSP;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
 using Encoding = System.Text.Encoding;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using LogService = Biovation.Service.Api.v1.LogService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -40,6 +49,7 @@ namespace Biovation.Brands.Virdi.Command
         private readonly AdminDeviceService _adminDeviceService;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
+        private readonly IrisTemplateService _irisTemplateService;
 
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
@@ -51,7 +61,7 @@ namespace Biovation.Brands.Virdi.Command
             'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی', 'ي', 'ء', 'إ', 'أ', 'ؤ', 'ئ', 'ة', 'ك'
         };
 
-        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, VirdiCodeMappings virdiCodeMappings)
+        public VirdiSendUserToDevice(IReadOnlyList<object> items, VirdiServer virdiServer, LogService logService, UserService userService, TaskService taskService, DeviceService deviceService, UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, VirdiCodeMappings virdiCodeMappings, IrisTemplateService irisTemplateService)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -63,6 +73,7 @@ namespace Biovation.Brands.Virdi.Command
             _logSubEvents = logSubEvents;
             _matchingTypes = matchingTypes;
             _virdiCodeMappings = virdiCodeMappings;
+            _irisTemplateService = irisTemplateService;
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -184,6 +195,14 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     var dataType = _virdiCodeMappings.GetFaceTemplateManufactureCode(FaceTemplateTypes.VWTFACECode);
                     _virdiServer.ServerUserData.SetWalkThroughData(int.Parse(dataType), vWTHFace.Size,vWTHFace.Template);
+                }
+
+                //Iris
+                var IrisData = _irisTemplateService.IrisTemplates(userId: UserObj.Id)
+                    .FirstOrDefault(i => i.IrisTemplateType.Code == IrisTemplateTypes.VIrisCode);
+                if (IrisData != null && IrisData.Size > 0)
+                {
+                    _virdiServer.ServerUserData.SetIrisData(IrisData.Size,IrisData.Template);
                 }
 
 
