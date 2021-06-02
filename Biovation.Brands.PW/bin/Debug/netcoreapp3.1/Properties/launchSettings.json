@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Biovation.Brands.PW": {
+      "commandName": "Project",
+      //"launchBrowser": true,
+      //"launchUrl": "Biovation/Api/PwDevice/GetOnlineDevices",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "http://localhost:9028;https://localhost:9029"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/Biovation/Api/PW",
+      "publishAllPorts": true,
+      "useSSL": true
+    }
+  }
+}

@@ -1,0 +1,13 @@
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.deps.json
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.dll
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.pdb
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\Biovation.Domain.dll
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\DataAccessLayerCore.dll
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\Biovation.Domain.pdb
+C:\Projects\BiovationCore\Biovation.CommonClasses\bin\Debug\netcoreapp3.1\win-x86\DataAccessLayerCore.pdb
+C:\Projects\BiovationCore\Biovation.CommonClasses\obj\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.AssemblyInfoInputs.cache
+C:\Projects\BiovationCore\Biovation.CommonClasses\obj\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.AssemblyInfo.cs
+C:\Projects\BiovationCore\Biovation.CommonClasses\obj\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.csproj.CoreCompileInputs.cache
+C:\Projects\BiovationCore\Biovation.CommonClasses\obj\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.csproj.CopyComplete
+C:\Projects\BiovationCore\Biovation.CommonClasses\obj\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.dll
+C:\Projects\BiovationCore\Biovation.CommonClasses\obj\Debug\netcoreapp3.1\win-x86\Biovation.CommonClasses.pdb
