@@ -1,8 +1,10 @@
-﻿using Biovation.Brands.Virdi.UniComAPI;
+﻿using Biovation.Brands.Virdi.Manager;
+using Biovation.Brands.Virdi.UniComAPI;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -10,9 +12,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using Biovation.Brands.Virdi.Manager;
-using Biovation.Brands.Virdi.Model.Unis;
-using Biovation.Service.Api.v2;
 using UNIONCOMM.SDK.UCBioBSP;
 using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
 using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
@@ -80,8 +79,8 @@ namespace Biovation.Brands.Virdi.Command
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            UserId = (int)data["UserId"];
-            UserObj = userService.GetUsers(UserId, withPicture: true,getTemplatesData: true).FirstOrDefault();
+            UserId = (int)data?["UserId"];
+            UserObj = userService.GetUsers(UserId, withPicture: true, getTemplatesData: true).FirstOrDefault();
 
             var blackList = blackListService.GetBlacklist(id: default, userId: UserId, deviceId: DeviceId, startDate: DateTime.Now, endDate: DateTime.Now).Result.FirstOrDefault();
             IsBlackList = blackList != null ? 1 : 0;
@@ -109,6 +108,7 @@ namespace Biovation.Brands.Virdi.Command
                 var isCard = false;
                 var isPassword = false;
                 var isFace = false;
+                var isIris = false;
 
                 //fpData.ClearFPData();
                 _virdiServer.ServerUserData.InitUserData();
@@ -189,24 +189,28 @@ namespace Biovation.Brands.Virdi.Command
                     _virdiServer.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
                     isFace = true;
                 }
-                
-                var vWTHFace = _faceTemplateService.FaceTemplates(userId: UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VWTFACECode);
-                if (vWTHFace != null && vWTHFace.Size > 0)
+
+                var vWthFace = _faceTemplateService.FaceTemplates(userId: UserObj.Id).FirstOrDefault(w => w.FaceTemplateType.Code == FaceTemplateTypes.VWTFACECode);
+                if (vWthFace != null && vWthFace.Size > 0)
                 {
                     var dataType = _virdiCodeMappings.GetFaceTemplateManufactureCode(FaceTemplateTypes.VWTFACECode);
-                    _virdiServer.ServerUserData.SetWalkThroughData(int.Parse(dataType), vWTHFace.Size,vWTHFace.Template);
+                    _virdiServer.ServerUserData.SetWalkThroughData(int.Parse(dataType), vWthFace.Size, vWthFace.Template);
+                    _virdiServer.ServerUserData.IsFace1toN = UserObj.IsActive ? 1 : 0;
+                    isFace = true;
                 }
 
                 //Iris
-                var IrisData = _irisTemplateService.IrisTemplates(userId: UserObj.Id)
+                var irisData = _irisTemplateService.IrisTemplates(userId: UserObj.Id)
                     .FirstOrDefault(i => i.IrisTemplateType.Code == IrisTemplateTypes.VIrisCode);
-                if (IrisData != null && IrisData.Size > 0)
+                if (irisData != null && irisData.Size > 0)
                 {
-                    _virdiServer.ServerUserData.SetIrisData(IrisData.Size,IrisData.Template);
+                    _virdiServer.ServerUserData.SetIrisData(irisData.Size, irisData.Template);
+                    _virdiServer.ServerUserData.IsIris1toN = UserObj.IsActive ? 1 : 0;
+                    isIris = true;
                 }
 
 
-                if (isCard && isFingerPrint && isFace)
+                if (isCard && isFingerPrint && (isFace || isIris))
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrFpOrFace;
                 }
@@ -214,7 +218,7 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrPassword;
                 }
-                else if (isFace && isPassword)
+                else if ((isFace || isIris) && isPassword)
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.FaceOrPassword;
                 }
@@ -222,7 +226,7 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.FpOrPassword;
                 }
-                else if (isFace && isFingerPrint)
+                else if ((isFace || isIris) && isFingerPrint)
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.FpOrFace;
                 }
@@ -230,11 +234,11 @@ namespace Biovation.Brands.Virdi.Command
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrFp;
                 }
-                else if (isCard && isFace)
+                else if (isCard && (isFace || isIris))
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.CardOrFace;
                 }
-                else if (isFace)
+                else if ((isFace || isIris))
                 {
                     _virdiServer.ServerUserData.AuthType = (int)AuthType.Face;
                 }
@@ -253,9 +257,9 @@ namespace Biovation.Brands.Virdi.Command
 
                 _virdiServer.ServerUserData.SetAuthType(Convert.ToInt32(false), Convert.ToInt32(isFingerPrint),
                     Convert.ToInt32(false), Convert.ToInt32(isPassword),
-                    Convert.ToInt32(isCard), Convert.ToInt32(false));
+                    Convert.ToInt32(isCard), Convert.ToInt32(isIris));
 
-                _virdiServer.ServerUserData.SetAuthTypeEx(Convert.ToInt32(isFace), 0, 0, 0, 0, 0, 0, 0);
+                _virdiServer.ServerUserData.SetAuthTypeEx(Convert.ToInt32(isFace), 0, 0, Convert.ToInt32(isIris), 0, 0, 0, 0);
 
                 var userAccessGroups = _accessGroupService.GetAccessGroups(userId: UserObj.Id);
 
@@ -321,24 +325,22 @@ namespace Biovation.Brands.Virdi.Command
             var EncryptionKey = "Kasra";
             cipherText = cipherText.Replace(" ", "+");
             var cipherBytes = Convert.FromBase64String(cipherText);
-            using (var encryptor = Aes.Create())
-            {
-                var pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
-                if (encryptor != null)
+            using var encryptor = Aes.Create();
+            var pdb = new Rfc2898DeriveBytes(EncryptionKey, new byte[] { 0x49, 0x76, 0x61, 0x6e, 0x20, 0x4d, 0x65, 0x64, 0x76, 0x65, 0x64, 0x65, 0x76 });
+          
+                encryptor.Key = pdb.GetBytes(32);
+                encryptor.IV = pdb.GetBytes(16);
+                using var ms = new MemoryStream();
+                using (var cs = new CryptoStream(ms, encryptor.CreateDecryptor(),
+                    CryptoStreamMode.Write))
                 {
-                    encryptor.Key = pdb.GetBytes(32);
-                    encryptor.IV = pdb.GetBytes(16);
-                    using var ms = new MemoryStream();
-                    using (var cs = new CryptoStream(ms, encryptor.CreateDecryptor(),
-                        CryptoStreamMode.Write))
-                    {
-                        cs.Write(cipherBytes, 0, cipherBytes.Length);
-                        cs.Close();
-                    }
-
-                    cipherText = Encoding.Unicode.GetString(ms.ToArray());
+                    cs.Write(cipherBytes, 0, cipherBytes.Length);
+                    cs.Close();
                 }
-            }
+
+                cipherText = Encoding.Unicode.GetString(ms.ToArray());
+            
+
             return cipherText;
         }
     }
