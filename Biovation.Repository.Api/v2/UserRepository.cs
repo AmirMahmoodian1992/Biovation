@@ -17,7 +17,7 @@ namespace Biovation.Repository.Api.v2
         }
 
         public async Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default,
-            int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
+            int size = default, bool getTemplatesData = default, long userId = default, long userGroupId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
         {
@@ -27,6 +27,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("size", size.ToString());
             restRequest.AddQueryParameter("getTemplatesData", getTemplatesData.ToString());
             restRequest.AddQueryParameter("userId", userId.ToString());
+            restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
             restRequest.AddQueryParameter("code", code.ToString());
             restRequest.AddQueryParameter("filterText", filterText ?? string.Empty);
             restRequest.AddQueryParameter("type", type.ToString());
