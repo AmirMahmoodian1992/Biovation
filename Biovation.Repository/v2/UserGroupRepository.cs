@@ -60,7 +60,7 @@ namespace Biovation.Repository.Sql.v2
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@Id",id),
-                new SqlParameter("@adminUserId",adminUserId),              
+                new SqlParameter("@adminUserId",adminUserId),               
                 new SqlParameter("@accessGroupId",accessGroupId ),
                 new SqlParameter("@UserId",userId),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},

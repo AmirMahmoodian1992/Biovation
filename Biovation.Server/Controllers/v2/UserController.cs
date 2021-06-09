@@ -47,11 +47,11 @@ namespace Biovation.Server.Controllers.v2
         //[Authorize(Policy = Policies.User)]
         //[Authorize(Policy = "OverrideTest")]
         public async Task<ResultViewModel<PagingResult<User>>> GetUsersByFilter(int from = default,
-            int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
+            int size = default, bool getTemplatesData = default, long userId = default, long userGroupId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default)
         {
-            return await _userService.GetUsers(from, size, getTemplatesData, userId, code, filterText, type,
+            return await _userService.GetUsers(from, size, getTemplatesData, userId, userGroupId, code, filterText, type,
                withPicture, isAdmin, pageNumber, pageSize, HttpContext.Items["Token"] as string);
         }
 
