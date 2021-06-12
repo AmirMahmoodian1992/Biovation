@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Remove="Scripts\00.Schema\0000-Pre Migrate-UP.sql" />
     <None Remove="Scripts\00.Schema\0001-Create RestaurantSchema-UP.sql" />
+    <None Remove="Scripts\00.Schema\0002-Create RelaySchema-UP.sql" />
     <None Remove="Scripts\01.Tables\0001-Create DeviceBrand-UP.sql" />
     <None Remove="Scripts\01.Tables\0002-Create DeviceModel-UP.sql" />
     <None Remove="Scripts\01.Tables\0003-Create Device-UP.sql" />
@@ -288,10 +289,25 @@
     <None Remove="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
+    <None Remove="Scripts\03.SPs\0194-Create DeleteEntranceById-UP.sql" />
     <None Remove="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
+    <None Remove="Scripts\03.SPs\0195-Create DeleteRelayHuById-UP.sql" />
     <None Remove="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
+    <None Remove="Scripts\03.SPs\0196-Create DeleteRelayById-UP.sql" />
     <None Remove="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
+    <None Remove="Scripts\03.SPs\0197-Create DeleteShedulingById-UP.sql" />
     <None Remove="Scripts\03.SPs\0198-Create AddUser-UP.sql" />
+    <None Remove="Scripts\03.SPs\0198-Create InsertEntrance-UP.sql" />
+    <None Remove="Scripts\03.SPs\0199-Create InsertRelayHub-UP.sql" />
+    <None Remove="Scripts\03.SPs\0200-Create InsertRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0201-Create InsertSheduling-UP.sql" />
+    <None Remove="Scripts\03.SPs\0202-Create SelectEntrance-UP.sql" />
+    <None Remove="Scripts\03.SPs\0203-Create SelectRelayHub-UP.sql" />
+    <None Remove="Scripts\03.SPs\0204-Create SelectRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0205-Create SelectScheduling-UP.sql" />
+    <None Remove="Scripts\03.SPs\0206-Create UpdateRelayHub-UP.sql" />
+    <None Remove="Scripts\03.SPs\0207-Create UpdateRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0207-Create UpdateSheduling-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -316,6 +332,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Scripts\00.Schema\0000-Pre Migrate-UP.sql" />
+    <EmbeddedResource Include="Scripts\00.Schema\0002-Create RelaySchema-UP.sql" />
     <EmbeddedResource Include="Scripts\00.Schema\0001-Create RestaurantSchema-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0001-Create DeviceBrand-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0002-Create DeviceModel-UP.sql" />
@@ -594,6 +611,21 @@
     <EmbeddedResource Include="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPaging-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0207-Create UpdateSheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0207-Create UpdateRelay-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0206-Create UpdateRelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0205-Create SelectScheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0204-Create SelectRelay-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0203-Create SelectRelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0202-Create SelectEntrance-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0201-Create InsertSheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0200-Create InsertRelay-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0199-Create InsertRelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0198-Create InsertEntrance-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0197-Create DeleteShedulingById-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0196-Create DeleteRelayById-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0195-Create DeleteRelayHuById-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0194-Create DeleteEntranceById-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
