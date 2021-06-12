@@ -24,12 +24,12 @@ namespace Biovation.Server.Controllers.v2.Relay
         [HttpGet]
         [Route("{id:int}")]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<RelayHub>>> RelayHub([FromRoute] int id = default, string ipAddress = null, int port = 0,
-            int capacity = 0, string relayHubModel = null, string description = null, int pageNumber = 0,
+        public Task<ResultViewModel<PagingResult<RelayHub>>> RelayHub([FromRoute] int id = default, int adminUserId = 0, string ipAddress = null, int port = 0,
+            int capacity = 0, DeviceModel relayHubModel = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () => await _relayHubService.GetRelayHubs(id, ipAddress, port, capacity, relayHubModel, description, pageNumber, pageSize,
+            return Task.Run(async () => await _relayHubService.GetRelayHubs(id, adminUserId, ipAddress, port, capacity, relayHubModel, description, pageNumber, pageSize,
                 nestingDepthLevel, token));
         }
 
@@ -43,7 +43,7 @@ namespace Biovation.Server.Controllers.v2.Relay
 
         [HttpPut]
         [Authorize]
-        public Task<ResultViewModel> ModifyEntrance([FromBody] RelayHub relayHub)
+        public Task<ResultViewModel> ModifyRelayHub([FromBody] RelayHub relayHub)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () => await _relayHubService.UpdateRelayHub(relayHub, token));
@@ -52,7 +52,7 @@ namespace Biovation.Server.Controllers.v2.Relay
         [HttpDelete]
         [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteEntrance([FromRoute] int id)
+        public Task<ResultViewModel> DeleteRelayHub([FromRoute] int id)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () => await _relayHubService.DeleteRelayHub(id, token));

@@ -12,6 +12,7 @@ using Serilog;
 using System.Reflection;
 using Biovation.Data.Queries.Middleware;
 using Biovation.Repository.Sql.v2;
+using Biovation.Repository.Sql.v2.RelayController;
 
 namespace Biovation.Data.Queries
 {
@@ -102,6 +103,10 @@ namespace Biovation.Data.Queries
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<SchedulingRepository, SchedulingRepository>();
+            services.AddScoped<RelayHubRepository, RelayHubRepository>();
+            services.AddScoped<EntranceRepository, EntranceRepository>();
+            services.AddScoped<RelayRepository, RelayRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

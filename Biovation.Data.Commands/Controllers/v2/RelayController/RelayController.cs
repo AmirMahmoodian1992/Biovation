@@ -19,14 +19,13 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
         }
 
         [HttpPost]
-        //[Authorize]
+        [Authorize]
         public Task<ResultViewModel> AddRelay([FromBody] Relay relay = default)
         {
             return Task.Run(() => _relayRepository.CreateRelay(relay));
         }
 
-        [HttpPost]
-        [Route("Relay")]
+        [HttpPut]
         [Authorize]
         public Task<ResultViewModel> UpdateRelay([FromBody] Relay relay = default)
         {
@@ -34,7 +33,7 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
         }
         [HttpDelete]
         [Authorize]
-        public Task<ResultViewModel> UpdateRelay(int id = default)
+        public Task<ResultViewModel> DeleteRelay(int id = default)
         {
             return Task.Run(() => _relayRepository.DeleteRelay(id));
         }

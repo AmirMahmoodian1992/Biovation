@@ -32,7 +32,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
             return _repository.ToResultList<ResultViewModel>("InsertEntrance", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel<PagingResult<Entrance>> GetEntrances(List<DeviceBasicInfo> devices, List<Scheduling> schedulings, int id = 0,
+        public ResultViewModel<PagingResult<Entrance>> GetEntrances(int deviceId, int schedulingId, int id = 0,
             string name = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
@@ -40,9 +40,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id },
                 new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
-                new SqlParameter("@DevicesJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(devices) },
-                new SqlParameter("@SchedulingsJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(schedulings) },
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
+                new SqlParameter("@DeviceId", SqlDbType.Int) { Value = deviceId },
+                new SqlParameter("@SchedulingId", SqlDbType.Int) { Value = schedulingId },
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
             };

@@ -22,11 +22,11 @@ namespace Biovation.Service.Sql.v1.RelayController
             return Task.Run(() => _entranceRepository.CreateEntrance(entrance));
         }
 
-        public Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(List<DeviceBasicInfo> devices, List<Scheduling> schedulings, int id = 0,
+        public Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(int deviceId, int schedulingId, int id = 0,
             string name = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
-            return Task.Run(() => _entranceRepository.GetEntrances(devices, schedulings, id, name,description, pageNumber, pageSize, nestingDepthLevel));
+            return Task.Run(() => _entranceRepository.GetEntrances(deviceId, schedulingId, id, name,description, pageNumber, pageSize, nestingDepthLevel));
         }
 
         public Task<ResultViewModel> UpdateEntrance(Entrance entrance)

@@ -23,9 +23,9 @@ namespace Biovation.Repository.Sql.v2.RelayController
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@Description", SqlDbType.DateTime) {Value = scheduling.StartTime},
-                new SqlParameter("@Description", SqlDbType.DateTime) {Value = scheduling.EndTime},
-                new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = scheduling.Mode}
+                new SqlParameter("@StartTime", SqlDbType.DateTime) {Value = scheduling.StartTime},
+                new SqlParameter("@EndTime", SqlDbType.DateTime) {Value = scheduling.EndTime},
+                new SqlParameter("@Mode", SqlDbType.Int) {Value = scheduling.Mode}
             };
 
             return _repository.ToResultList<ResultViewModel>("InsertScheduling", parameters).Data.FirstOrDefault();
@@ -38,9 +38,9 @@ namespace Biovation.Repository.Sql.v2.RelayController
             var sqlParameter = new List<SqlParameter>
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id },
-                new SqlParameter("@Description", SqlDbType.DateTime) {Value = startTime},
-                new SqlParameter("@Description", SqlDbType.DateTime) {Value = endTime},
-                new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = mode},
+                new SqlParameter("@StartTime", SqlDbType.DateTime) {Value = startTime},
+                new SqlParameter("@EndTime", SqlDbType.DateTime) {Value = endTime},
+                new SqlParameter("@Mode", SqlDbType.Int) {Value = mode},
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
 
@@ -54,9 +54,9 @@ namespace Biovation.Repository.Sql.v2.RelayController
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = scheduling.Id },
-                new SqlParameter("@Description", SqlDbType.DateTime) {Value = scheduling.StartTime},
-                new SqlParameter("@Description", SqlDbType.DateTime) {Value = scheduling.EndTime},
-                new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = scheduling.Mode}
+                new SqlParameter("@StartTime", SqlDbType.DateTime) {Value = scheduling.StartTime},
+                new SqlParameter("@EndTime", SqlDbType.DateTime) {Value = scheduling.EndTime},
+                new SqlParameter("@Mode", SqlDbType.Int) {Value = scheduling.Mode}
             };
 
             return _repository.ToResultList<ResultViewModel>("UpdateScheduling", parameters).Data.FirstOrDefault();

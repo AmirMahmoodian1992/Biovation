@@ -25,24 +25,25 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@IpAddress", SqlDbType.NVarChar) {Value = relayHub.IpAddress},
                 new SqlParameter("@Port", SqlDbType.Int) {Value = relayHub.Port},
                 new SqlParameter("@Capacity", SqlDbType.Int) {Value = relayHub.Capacity},
-                new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = relayHub.RelayHubModel},
+                new SqlParameter("@RelayHubModelId", SqlDbType.Int) {Value = relayHub.RelayHubModel.Id},
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
 
             return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel<PagingResult<RelayHub>> GetRelayHubs(int id = 0, string ipAddress = null, int port = 0,
-            int capacity = 0, string relayHubModel = null, string description = null, int pageNumber = 0,
+        public ResultViewModel<PagingResult<RelayHub>> GetRelayHubs(int adminUserId= 0 ,int id = 0, string ipAddress = null, int port = 0,
+            int capacity = 0, DeviceModel relayHubModel = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
             var sqlParameter = new List<SqlParameter>
                 {
+                    new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId },
                     new SqlParameter("@Id", SqlDbType.Int) {Value = id },
                     new SqlParameter("@IpAddress", SqlDbType.NVarChar) {Value = ipAddress},
                     new SqlParameter("@Port", SqlDbType.Int) {Value = port},
                     new SqlParameter("@Capacity", SqlDbType.Int) {Value = capacity},
-                    new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = relayHubModel},
+                    new SqlParameter("@RelayHubModelId", SqlDbType.Int) {Value = relayHubModel?.Id},
                     new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
                     new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                     new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
@@ -59,7 +60,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@IpAddress", SqlDbType.NVarChar) {Value = relayHub.IpAddress},
                 new SqlParameter("@Port", SqlDbType.Int) {Value = relayHub.Port},
                 new SqlParameter("@Capacity", SqlDbType.Int) {Value = relayHub.Capacity},
-                new SqlParameter("@RelayHubModel", SqlDbType.NVarChar) {Value = relayHub.RelayHubModel},
+                new SqlParameter("@RelayHubModelId", SqlDbType.Int) {Value = relayHub.RelayHubModel.Id},
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
 

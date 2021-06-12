@@ -27,11 +27,16 @@ namespace Biovation.Repository.Api.v2.RelayController
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(int id = 0, string name = null, string description = null, int pageNumber = 0,
-            int pageSize = 0, int nestingDepthLevel = 4, List<DeviceBasicInfo> devices = null, List<Scheduling> schedulings = null, string token = default)
+        public async Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(int id = 0, string name = null,int pageNumber = 0,
+            int pageSize = 0, int nestingDepthLevel = 4, int deviceId = default, int schedulingId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Entrance", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
+            restRequest.AddQueryParameter("name", name);
+            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+            restRequest.AddQueryParameter("schedulingId", schedulingId.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("PageSize", pageSize.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Entrance>>>(restRequest);

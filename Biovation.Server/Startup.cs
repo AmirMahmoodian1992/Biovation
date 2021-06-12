@@ -22,6 +22,8 @@ using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
+using Biovation.Repository.Api.v2.RelayController;
+using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -175,6 +177,11 @@ namespace Biovation.Server
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<SchedulingRepository, SchedulingRepository>();
+            services.AddScoped<RelayHubRepository, RelayHubRepository>();
+            services.AddScoped<EntranceRepository, EntranceRepository>();
+            services.AddScoped<RelayRepository, RelayRepository>();
+
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
 
@@ -220,6 +227,10 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
             services.AddScoped<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
             services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
+            services.AddScoped<SchedulingService, SchedulingService>();
+            services.AddScoped<RelayHubService, RelayHubService>();
+            services.AddScoped<EntranceService, EntranceService>();
+            services.AddScoped<RelayService, RelayService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddSingleton<TokenGenerator, TokenGenerator>();
         }

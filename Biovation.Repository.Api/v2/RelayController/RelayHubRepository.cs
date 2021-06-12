@@ -26,12 +26,21 @@ namespace Biovation.Repository.Api.v2.RelayController
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, string ipAddress = null, int port = 0,
-            int capacity = 0, string relayHubModel = null, string description = null, int pageNumber = 0,
+        public async Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, int adminUserId = 0, string ipAddress = null, int port = 0,
+            int capacity = 0, DeviceModel relayHubModel = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/RelayHub", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
+            restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
+            restRequest.AddQueryParameter("ipAddress", ipAddress ?? string.Empty);
+            restRequest.AddQueryParameter("port", port.ToString());
+            restRequest.AddQueryParameter("capacity", capacity.ToString());
+            restRequest.AddQueryParameter("description", description ?? string.Empty);
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
+            restRequest.AddJsonBody(relayHubModel ?? new DeviceModel());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<RelayHub>>>(restRequest);

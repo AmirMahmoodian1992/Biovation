@@ -94,6 +94,9 @@ namespace Biovation.Data.Commands
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddScoped<SchedulingRepository, SchedulingRepository>();
+            services.AddScoped<RelayHubRepository, RelayHubRepository>();
+            services.AddScoped<EntranceRepository, EntranceRepository>();
             services.AddScoped<RelayRepository, RelayRepository>();
 
 
