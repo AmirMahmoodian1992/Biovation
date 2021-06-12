@@ -70,7 +70,7 @@ namespace Biovation.Brands.Eos.Commands
                             $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}",
                         Validate = 0
                     };
-                user = _userService.GetUsers(userId: userId, getTemplatesData: true)?.Data?.Data.FirstOrDefault();
+                user = _userService.GetUsers(userId: userId, getTemplatesData: true).Result?.Data?.Data.FirstOrDefault();
 
                 if (user == null)
                 {
@@ -91,7 +91,7 @@ namespace Biovation.Brands.Eos.Commands
                 }
             }
 
-            var device = _deviceService.GetDevice(deviceId)?.Data;
+            var device = _deviceService.GetDevice(deviceId).Result?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
@@ -102,7 +102,7 @@ namespace Biovation.Brands.Eos.Commands
             try
             {
                 var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.Code).Value;
-                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Code)?.Data?.Data;
+                var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Id).Result?.Data?.Data;
                 user.IsAdmin = adminDevices?.Any(x => x.DeviceId == device.DeviceId) ?? false;
                 var result = onlineDevice.TransferUser(user);
 

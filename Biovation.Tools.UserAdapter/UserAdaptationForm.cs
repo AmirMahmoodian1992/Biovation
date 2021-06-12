@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace Biovation.Tools.UserAdapter
 {
@@ -92,43 +93,55 @@ namespace Biovation.Tools.UserAdapter
                 {
                     var filePath = openFileDialog.FileName;
 
-                    var connectionString =
-                        $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={filePath}; Extended Properties=Excel 12.0;";
+                    var registrySoftwareKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Classes");
+                    var oleDbKeys = registrySoftwareKey?.GetSubKeyNames().Where(subKey => subKey.Contains("Microsoft.ACE.OLEDB"));
 
-                    var dataSet = new DataSet();
-                    var adapter = new OleDbDataAdapter("SELECT * FROM [sheet1$]", connectionString);
-                    adapter.Fill(dataSet, "UserCodeMappings");
-                    var data = dataSet.Tables["UserCodeMappings"];
-                    _userCodeMappings.Clear();
-
-                    foreach (DataRow row in data.Rows)
+                    if (oleDbKeys is null)
                     {
-                        var parseResult = uint.TryParse(row["OldUserCardNumber"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture,
-                            out var oldUserCode);
-
-                        if (!parseResult)
-                            continue;
-
-                        parseResult = uint.TryParse(row["NewUserCardNumber"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture,
-                            out var newUserCode);
-
-                        if (!parseResult)
-                            continue;
-
-                        _userCodeMappings.Add(oldUserCode, newUserCode);
+                        MessageBox.Show(
+                            @"No OleDb found on device, please install appropriate version of OleDb (12.0, 14.0 or newer)");
+                        return;
                     }
 
-                    try
+                    foreach (var oleDbKey in oleDbKeys)
                     {
-                        if (BiovationDeviceListComboBox.SelectedItem is null || (int)BiovationDeviceListComboBox.SelectedValue < 1)
+
+                        try
                         {
-                            MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            return;
+                            var connectionString =
+                                $"Provider={oleDbKey};Data Source='{filePath}'; Extended Properties='Excel 12.0;IMEX=1;';";
+
+                            var dataSet = new DataSet();
+                            var adapter = new OleDbDataAdapter("SELECT * FROM [sheet1$]", connectionString);
+                            adapter.Fill(dataSet, "UserCodeMappings");
+                            var data = dataSet.Tables["UserCodeMappings"];
+                            _userCodeMappings.Clear();
+
+                            foreach (DataRow row in data.Rows)
+                            {
+                                var parseResult = uint.TryParse(row["OldUserCardNumber"].ToString(), NumberStyles.Integer,
+                                    CultureInfo.InvariantCulture,
+                                    out var oldUserCode);
+
+                                if (!parseResult)
+                                    continue;
+
+                                parseResult = uint.TryParse(row["NewUserCardNumber"].ToString(), NumberStyles.Integer,
+                                    CultureInfo.InvariantCulture,
+                                    out var newUserCode);
+
+                                if (!parseResult)
+                                    continue;
+
+                                _userCodeMappings.Add(oldUserCode, newUserCode);
+                            }
+
+                            break;
                         }
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show(@"لطفا یک دستگاه را انتخاب کنید و مجدد تلاش کنید", @"Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
                     }
 
                     StartProcessButton.Enabled = true;
@@ -172,7 +185,7 @@ namespace Biovation.Tools.UserAdapter
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
                 restRequest.AddJsonBody(_userCodeMappings);
-                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEyMzQ1Njc4OSIsInVuaXF1ZUlkIjoiMTIzNDU2Nzg5IiwianRpIjoiZmVmOTVkZDAtZDFmNy00MjYxLTllNTEtZjU3M2M5NmU2MTljIiwiZXhwIjoxNjA4NDA5MTQ5fQ._WO8v8kYJQRPIPRWxa-oC-vDSCYOUSZQG2XlB_BPu9s");
+                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6Ijk4NzY1NDMyMSIsInVuaXF1ZUlkIjoiOTg3NjU0MzIxIiwianRpIjoiMGM1NjVjMzctNjE0Yi00MTIyLWE3ZTAtMzRjNjY2OWM0ZjI5IiwiZXhwIjoxNjExNjY5OTI0fQ.yk-5b2W4mFxaUBQBHHcHhSTFG_ZCNUOuemQNyWwfdHs");
 
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 

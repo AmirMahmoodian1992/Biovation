@@ -1,6 +1,5 @@
 ﻿using Biovation.Brands.ZK.Command;
 using Biovation.Brands.ZK.Devices;
-using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
@@ -9,6 +8,7 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,13 +27,13 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly CommandFactory _commandFactory;
         private readonly ZkTecoServer _zkTecoServer;
+        private readonly ILogger _logger;
 
-        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskManager taskManager, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer)
+        public ZkDeviceController(DeviceService deviceService, AccessGroupService accessGroupService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices, TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
         {
             _deviceService = deviceService;
             _accessGroupService = accessGroupService;
@@ -43,10 +43,10 @@ namespace Biovation.Brands.ZK.Controllers
             _taskItemTypes = taskItemTypes;
             _deviceBrands = deviceBrands;
             _onlineDevices = onlineDevices;
-            _taskManager = taskManager;
             _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
             _zkTecoServer = zkTecoServer;
+            _logger = logger.ForContext<ZkDeviceController>();
         }
 
         [HttpGet]
@@ -61,14 +61,28 @@ namespace Biovation.Brands.ZK.Controllers
                 {
                     foreach (var onlineDevice in _onlineDevices)
                     {
-                        if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                        try
                         {
-                            onlineDevice.Value.GetDeviceInfo().Name = _deviceService
-                                .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault()
-                                ?.Name;
+                            if (string.IsNullOrEmpty(onlineDevice.Value.GetDeviceInfo().Name))
+                            {
+                                onlineDevice.Value.GetDeviceInfo().Name = _deviceService
+                                    .GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ZkTecoCode).FirstOrDefault()
+                                    ?.Name;
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
                         }
 
-                        onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                        try
+                        {
+                            onlineDevices.Add(onlineDevice.Value.GetDeviceInfo());
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                        }
                     }
                 }
 
@@ -92,80 +106,86 @@ namespace Biovation.Brands.ZK.Controllers
 
             if (device.Active)
             {
-                return await Task.Run(() =>
-                {
-                    try
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.ZkTeco,
-                            TaskItems = new List<TaskItem>()
-                        };
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(device.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                        _zkTecoServer.ConnectToDevice(device);
-                        _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
-                        return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
-                    }
-                    catch (Exception exception)
-                    {
-                        return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                    }
-                });
-            }
-
-
-            return await Task.Run(() =>
-            {
+                //return await Task.Run(async () =>
+                //{
                 try
                 {
                     var task = new TaskInfo
                     {
                         CreatedAt = DateTimeOffset.Now,
                         CreatedBy = creatorUser,
-                        TaskType = _taskTypes.LockDevice,
+                        TaskType = _taskTypes.UnlockDevice,
                         Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>(),
-                        DeviceBrand = _deviceBrands.ZkTeco
+                        DeviceBrand = _deviceBrands.ZkTeco,
+                        TaskItems = new List<TaskItem>()
                     };
                     task.TaskItems.Add(new TaskItem
                     {
                         Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.LockDevice,
+                        TaskItemType = _taskItemTypes.UnlockDevice,
                         Priority = _taskPriorities.Medium,
 
                         DeviceId = device.DeviceId,
                         Data = JsonConvert.SerializeObject(device.DeviceId),
                         IsParallelRestricted = true,
                         IsScheduled = false,
-                        OrderIndex = 1,
-
+                        OrderIndex = 1
                     });
+
+                    await Task.Run(() => _zkTecoServer.ConnectToDevice(device));
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
-                    return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
+                    await _taskService.ProcessQueue(_deviceBrands.ZkTeco, device.DeviceId).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue(device.DeviceId);
+                    return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
                 catch (Exception exception)
                 {
                     return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                 }
-            });
+                //});
+            }
 
+
+            //return await Task.Run(() =>
+            //{
+            try
+            {
+                var task = new TaskInfo
+                {
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.LockDevice,
+                    Priority = _taskPriorities.Medium,
+                    TaskItems = new List<TaskItem>(),
+                    DeviceBrand = _deviceBrands.ZkTeco
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.LockDevice,
+                    Priority = _taskPriorities.Medium,
+
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(device.DeviceId),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+                    OrderIndex = 1,
+
+                });
+
+                _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(_deviceBrands.ZkTeco, device.DeviceId).ConfigureAwait(false);
+                //_taskManager.ProcessQueue(device.DeviceId);
+                await _zkTecoServer.DisconnectFromDevice(device);
+                return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+            }
+
+
+            //});
         }
 
 
@@ -227,6 +247,7 @@ namespace Biovation.Brands.ZK.Controllers
                                 Priority = _taskPriorities.Medium,
                                 TaskItems = new List<TaskItem>(),
                                 DeviceBrand = _deviceBrands.ZkTeco,
+                                Status = _taskStatuses.Queued
                             };
 
                             task.TaskItems.Add(new TaskItem
@@ -241,7 +262,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1,
                             });
                             _taskService.InsertTask(task);
-                            _taskManager.ProcessQueue();
+                            _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                            //_taskManager.ProcessQueue();
                             return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
                         }
 
@@ -270,7 +292,8 @@ namespace Biovation.Brands.ZK.Controllers
                                 OrderIndex = 1
                             });
                             _taskService.InsertTask(task);
-                            _taskManager.ProcessQueue();
+                            _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                            //_taskManager.ProcessQueue();
                         }
 
                         return new ResultViewModel { Validate = 1, Message = "Retriving Log queued" };
@@ -331,7 +354,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
                     return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
@@ -438,7 +462,8 @@ namespace Biovation.Brands.ZK.Controllers
                     }
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
 
                     var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
                     return result;
@@ -529,12 +554,14 @@ namespace Biovation.Brands.ZK.Controllers
 
                 foreach (var deviceId in deviceIds)
                 {
+                    var device = _deviceService.GetDevice(deviceId);
                     lock (_onlineDevices)
                     {
-                        if (_onlineDevices.ContainsKey(deviceId))
+                        if (_onlineDevices.ContainsKey(device.Code))
                         {
-                            _onlineDevices[deviceId].Disconnect();
-                            _onlineDevices.Remove(deviceId);
+                            _onlineDevices[device.Code].Disconnect();
+                            if (_onlineDevices.ContainsKey(device.Code))
+                                _onlineDevices.Remove(device.Code);
                         }
                     }
 

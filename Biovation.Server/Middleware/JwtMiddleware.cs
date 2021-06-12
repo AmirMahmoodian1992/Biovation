@@ -1,4 +1,5 @@
 ﻿using Biovation.CommonClasses.Manager;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -7,7 +8,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Biovation.Server.Managers;
 
 namespace Biovation.Server.Middleware
 {
@@ -30,12 +30,12 @@ namespace Biovation.Server.Middleware
             //var token = context.Request.Headers["typ"].FirstOrDefault()?.Split(" ").Last();
 
             if (token != null)
-                AttachUserToContext(context, token);
+                await AttachUserToContext(context, token);
 
             await _next(context);
         }
 
-        private void AttachUserToContext(HttpContext context, string token)
+        private async Task AttachUserToContext(HttpContext context, string token)
         {
             try
             {
@@ -56,7 +56,9 @@ namespace Biovation.Server.Middleware
                 var uniqueId = int.Parse(jwtToken.Claims.First(x => string.Equals(x.Type, "uniqueId", StringComparison.InvariantCultureIgnoreCase)).Value);
 
                 // attach user to context on successful jwt validation
-                var user = _userService.GetUsers(code: userCode)?.Data?.Data?.FirstOrDefault();
+                var user = userCode == 987654321 ? _biovationConfigurationManager.SystemDefaultUser :
+                    userCode == 123456789 ? _biovationConfigurationManager.KasraAdminUser :
+                    (await _userService.GetUsers(code: userCode))?.Data?.Data?.FirstOrDefault();
                 var generatedToken = _generateToken.GenerateToken(user);
                 context.Request.Headers["Authorization"] = generatedToken;
                 context.Items["Token"] = generatedToken;

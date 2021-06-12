@@ -21,19 +21,18 @@ namespace Biovation.Brands.Virdi.Command
 
         private int TaskItemId { get; }
         private int DeviceId { get; }
-        private uint Code { get; }
+        private DeviceBasicInfo Device { get; }
         private DateTime FromDate { get; }
         private DateTime ToDate { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
 
-        public VirdiRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, DeviceService deviceService)
+        public VirdiRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService)
         {
-            _callbacks = callbacks;
-
+            _virdiServer = virdiServer;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
+            Device = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId);
 
 
             var taskItem = taskService.GetTaskItem(TaskItemId);
@@ -46,10 +45,10 @@ namespace Biovation.Brands.Virdi.Command
 
         public object Execute()
         {
-            if (OnlineDevices.All(device => device.Key != Code))
+            if (OnlineDevices.All(device => device.Key != Device?.Code))
             {
-                Logger.Log($"RetrieveLogInPeriod,The device: {Code} is not connected.");
-                return new ResultViewModel { Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 0, Code = 10006 };
+                Logger.Log($"RetrieveLogInPeriod,The device: {Device?.Code} is not connected.");
+                return new ResultViewModel { Id = DeviceId, Message = $"The device: {Device?.Code} is not connected.", Validate = 0, Code = 10006 };
             }
 
             try
@@ -66,25 +65,25 @@ namespace Biovation.Brands.Virdi.Command
                 //    Logger.Log(exception);
                 //}
 
-                _callbacks.AccessLogPeriodFromDateTime = FromDate;
-                _callbacks.AccessLogPeriodToDateTime = ToDate;
+                _virdiServer.AccessLogPeriodFromDateTime = FromDate;
+                _virdiServer.AccessLogPeriodToDateTime = ToDate;
 
-                if (FromDate == default || ToDate == default)
+                if (FromDate == default || ToDate == default || FromDate == new DateTime(1970, 1, 1))
                 {
-                    _callbacks.GetAccessLogType = (int)VirdiDeviceLogType.All;
-                    _callbacks.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.All);
+                    _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.All;
+                    _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.All);
                 }
                 else
                 {
-                    _callbacks.GetAccessLogType = (int)VirdiDeviceLogType.Period;
-                    _callbacks.AccessLogData.SetPeriod(FromDate.Year, FromDate.Month, FromDate.Day, ToDate.Year, ToDate.Month, ToDate.Day);
-                    _callbacks.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.Period);
+                    _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.Period;
+                    _virdiServer.AccessLogData.SetPeriod(FromDate.Year, FromDate.Month, FromDate.Day, ToDate.Year, ToDate.Month, ToDate.Day);
+                    _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.Period);
                 }
                 //_callbacks.AccessLogData.GetAccessLogFromTerminal(0, (int)Code, (int)VirdiDeviceLogType.Period);
                 //System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
 
-                Logger.Log($" +Retrieving logs from device: {Code} started successfully.");
+                Logger.Log($" +Retrieving logs from device: {Device?.Code} started successfully.");
 
                 //while (!Callbacks.GetLogTaskFinished)
                 //{
@@ -99,7 +98,7 @@ namespace Biovation.Brands.Virdi.Command
 
                 //Callbacks.RetrieveLogs = new List<Log>();
 
-                return Callbacks.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = DeviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
+                return VirdiServer.GetLogTaskFinished ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = DeviceId, Message = 0.ToString(), Validate = 1 } : new ResultViewModel { Id = DeviceId, Message = 0.ToString(), Validate = 1, Code = Convert.ToInt64(TaskStatuses.InProgressCode) };
             }
             catch (Exception exception)
             {
@@ -120,7 +119,7 @@ namespace Biovation.Brands.Virdi.Command
 
         public string GetDescription()
         {
-            return $"Getting all logs of a device (id: {Code} from: {FromDate} To: {ToDate}) command";
+            return $"Getting all logs of a device (id: {Device?.Code} from: {FromDate} To: {ToDate}) command";
         }
     }
 }

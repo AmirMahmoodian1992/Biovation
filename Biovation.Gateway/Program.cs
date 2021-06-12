@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System.Globalization;
 
 namespace Biovation.Gateway
 {
@@ -8,6 +9,7 @@ namespace Biovation.Gateway
     {
         public static void Main(string[] args)
         {
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
             CreateHostBuilder(args).Build().Run();
         }
 

@@ -1,7 +1,7 @@
 ﻿Create PROCEDURE [dbo].[SelectAdminUser]
 @adminUserId INT = null
 AS
-DECLARE @Message AS NVARCHAR (200) = N' درخواست با موفقیت انجام گرفت', @Validate AS INT = 1,  @Code AS nvarchar(5) = N'200';
+DECLARE @Message AS NVARCHAR (200) = N' درخواست با موفقیت انجام گرفت', @Validate AS INT = 1,  @Code AS NVARCHAR (15) = N'200';
 
 BEGIN
 	select distinct

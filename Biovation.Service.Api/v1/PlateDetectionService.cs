@@ -15,7 +15,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate = default, int entityId = default)
         {
-            return _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
+            return _plateDetectionRepository.GetLicensePlate(licensePlate, entityId).Result;
         }
 
         public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default,
@@ -26,17 +26,17 @@ namespace Biovation.Service.Api.v1
             int pageSize = default, string token = default)
         {
             return _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
-                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token).Result;
         }
 
         public ResultViewModel AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
-            return _plateDetectionRepository.AddLicensePlate(licensePlate, token);
+            return _plateDetectionRepository.AddLicensePlate(licensePlate, token).Result;
         }
 
         public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
-            return _plateDetectionRepository.AddPlateDetectionLog(log, token);
+            return _plateDetectionRepository.AddPlateDetectionLog(log, token).Result;
         }
     }
 }

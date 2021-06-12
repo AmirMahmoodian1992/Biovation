@@ -1,5 +1,6 @@
 ﻿using Biovation.Brands.EOS.Devices;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
@@ -9,63 +10,61 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.CommonClasses.Interface;
 
 namespace Biovation.Brands.EOS.Commands
 {
-    public class EosUserAdaptation: ICommand
+    public class EosUserAdaptation : ICommand
     {
 
         /// <summary>
         /// All connected devices
         /// </summary>
-        private readonly DeviceService _deviceService;
-        private readonly UserService _userService;
-
-
         private readonly TaskTypes _taskTypes;
+        private readonly RestClient _restClient;
         private readonly TaskService _taskService;
+        private readonly UserService _userService;
         private readonly TaskStatuses _taskStatuses;
+        private readonly DeviceService _deviceService;
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
-        private readonly RestClient _restClient;
 
 
         private Dictionary<uint, Device> OnlineDevices { get; }
         private Dictionary<uint, uint> EquivalentCodes { get; set; }
         private uint CreatorUserId { get; set; }
         private string Token { get; set; }
-        private long Code { get; set; }
+        //private long Code { get; set; }
         private TaskItem TaskItem { get; }
         public EosUserAdaptation(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskTypes taskTypes, TaskService taskService,
             TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, UserService userService, RestClient restClient)
         {
-            var taskItem = (TaskItem)items[0];
-            TaskItem = taskItem;
-
-            _deviceService = deviceService;
-
+            TaskItem = (TaskItem)items[0];
 
             OnlineDevices = devices;
             _taskTypes = taskTypes;
+            _restClient = restClient;
+            _userService = userService;
             _taskService = taskService;
             _taskStatuses = taskStatuses;
+            _deviceService = deviceService;
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
-            _userService = userService;
-            _restClient = restClient;
         }
 
         public object Execute()
         {
             if (TaskItem is null)
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
+                return new ResultViewModel { Id = TaskItem?.Id ?? 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem?.Id ?? 0}.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
-            Code = (_deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode)?.Data?.Data?.FirstOrDefault(d => d.DeviceId == deviceId)?.Code ?? 0);
-            if (OnlineDevices.All(dev => dev.Key != Code))
+            var device = _deviceService.GetDevice(deviceId).Result?.Data;
+
+            if (device is null)
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
+
+            if (!OnlineDevices.ContainsKey(device.Code))
             {
-                Logger.Log($"The device: {Code} is not connected.");
+                Logger.Log($"The device: {device.Code} is not connected.");
                 return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
@@ -82,21 +81,13 @@ namespace Biovation.Brands.EOS.Commands
             }
             catch (Exception e)
             {
-                Logger.Log($"The Data of device {Code} is not valid.");
+                Logger.Log($"The Data of device {device.Code} is not valid.");
                 Logger.Log(e, logType: LogType.Error);
                 return new ResultViewModel { Success = false, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
 
-
-            var device = _deviceService.GetDevice(deviceId).Data;
-            if (device is null)
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
-
-            if (!OnlineDevices.ContainsKey(device.Code))
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
-
-            var creatorUser = _userService.GetUsers(userId: CreatorUserId)?.Data?.Data?.FirstOrDefault();
-            var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == Code).Value;
+            var creatorUser = _userService.GetUsers(userId: CreatorUserId).Result?.Data?.Data?.FirstOrDefault();
+            var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.Code).Value;
 
             var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
@@ -113,9 +104,6 @@ namespace Biovation.Brands.EOS.Commands
                 try
                 {
                     var correctedUser = onlineDevice.GetUser(userCode);
-
-
-
                     if (correctedUser == null)
                     {
                         Logger.Log($"User {userCode}  doesn't exist on Device {device.DeviceId}");
@@ -166,8 +154,6 @@ namespace Biovation.Brands.EOS.Commands
                         DueDate = DateTime.Today
                     };
 
-                    //var correctedUser = userList.First(x => x.Code == userCode);
-
                     correctedUser.Code = EquivalentCodes[userCode];
 
                     task.TaskItems.Add(new TaskItem
@@ -183,20 +169,8 @@ namespace Biovation.Brands.EOS.Commands
                         CurrentIndex = 0,
                         TotalCount = 1
                     });
+
                     _taskService.InsertTask(task);
-
-                    restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                    return new ResultViewModel
-                    {
-                        Success = true,
-                        Id = deviceId,
-                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
-                        Message = $"The Delete and send User operations for User{userCode}  on Device {device.DeviceId} successfully started"
-                    };
-
-
                 }
                 catch (Exception exception)
                 {
@@ -205,7 +179,16 @@ namespace Biovation.Brands.EOS.Commands
                 }
             }
 
-            return new ResultViewModel { Validate = 0, Id = deviceId, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+            restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+            return new ResultViewModel
+            {
+                Success = true,
+                Id = deviceId,
+                Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                Message = $"The Delete and send User operations for Users  on Device {device.DeviceId} successfully started"
+            };
         }
 
         public void Rollback()
@@ -220,7 +203,8 @@ namespace Biovation.Brands.EOS.Commands
 
         public string GetDescription()
         {
-            return $"Adapt users' code for device {Code}";
+            return "Adapt users' Code.";
+            //return $"Adapt users' code for device {Code}";
         }
 
     }

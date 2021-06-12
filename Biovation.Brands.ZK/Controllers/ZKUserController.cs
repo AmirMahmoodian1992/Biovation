@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.ZK.Devices;
-using Biovation.Brands.ZK.Manager;
+﻿using Biovation.Brands.ZK.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
@@ -11,6 +6,10 @@ using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Controllers
 {
@@ -25,11 +24,10 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public ZkUserController(AccessGroupService accessGroupService, TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices)
+        public ZkUserController(AccessGroupService accessGroupService, TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices)
         {
             _accessGroupService = accessGroupService;
             _taskService = taskService;
@@ -38,7 +36,6 @@ namespace Biovation.Brands.ZK.Controllers
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
             _onlineDevices = onlineDevices;
         }
@@ -93,7 +90,8 @@ namespace Biovation.Brands.ZK.Controllers
                             _taskService.InsertTask(task);
                         }
 
-                        _taskManager.ProcessQueue();
+                        _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                        //_taskManager.ProcessQueue();
                     }
                     catch (Exception e)
                     {
@@ -162,7 +160,8 @@ namespace Biovation.Brands.ZK.Controllers
                         }
                     }
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
                     return new ResultViewModel { Id = user.Id, Validate = 1 };
                 });
         }
@@ -211,7 +210,8 @@ namespace Biovation.Brands.ZK.Controllers
                         result.Add(new ResultViewModel { Id = userCode, Validate = 1 });
                     }
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
                 }
                 return result;
             });

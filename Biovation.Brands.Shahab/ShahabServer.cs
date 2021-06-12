@@ -195,11 +195,14 @@ namespace Biovation.Brands.Shahab
                         detectorInstance.Grabbing = 0;
                         Logger.Log("Could not connect to camera stream. Please check the Url, Username, Password or other configuration and try again.", logType: LogType.Warning);
 
-                        detectorInstance.ReConnect(_drawMethod);
-                        _timers[instanceId]?.Stop();
-                        _timers[instanceId]?.Start();
-                        _timers[instanceId].Enabled = false;
-                        _timers[instanceId].Enabled = true;
+                        if (_timers.ContainsKey(instanceId))
+                        {
+                            detectorInstance.ReConnect(_drawMethod);
+                            _timers[instanceId]?.Stop();
+                            _timers[instanceId]?.Start();
+                            _timers[instanceId].Enabled = false;
+                            _timers[instanceId].Enabled = true;
+                        }
                         break;
 
                     case WM_NEW_FRAME:

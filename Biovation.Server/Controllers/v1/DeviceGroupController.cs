@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
@@ -10,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
 using Newtonsoft.Json;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -41,7 +41,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetDeviceGroup")]
         public List<DeviceGroup> GetDeviceGroup(int? id, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId).FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId).FirstOrDefault());
             return id == null ? _deviceGroupService.GetDeviceGroups(token: token) : _deviceGroupService.GetDeviceGroups((int)id, token: token);
         }
 
@@ -75,7 +75,7 @@ namespace Biovation.Server.Controllers.v1
                         Task.Run(() => Parallel.ForEach(deletedDevices, device =>
                        {
                            var authorizedUsersOfDevice =
-                               _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token: _kasraAdminToken);
+                               _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, _kasraAdminToken);
 
                            if (!existingAuthorizedUsersOfDeletedDevice.ContainsKey(device.DeviceId))
                                existingAuthorizedUsersOfDeletedDevice.Add(device.DeviceId, new List<User>());
@@ -95,7 +95,7 @@ namespace Biovation.Server.Controllers.v1
                         Task.Run(() => Parallel.ForEach(addedDevices, device =>
                         {
                             var authorizedUsersOfDevice =
-                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, token: _kasraAdminToken);
+                                _deviceService.GetAuthorizedUsersOfDevice(device.DeviceId, _kasraAdminToken);
 
                             if (!existingAuthorizedUsersOfAddedDevice.ContainsKey(device.DeviceId))
                                 existingAuthorizedUsersOfAddedDevice.Add(device.DeviceId, new List<User>());
@@ -113,7 +113,7 @@ namespace Biovation.Server.Controllers.v1
 
                     Task.WaitAll(computeExistingAuthorizedUsersToDelete, computeExistingAuthorizedUsersToAdd);
 
-                    var result = _deviceGroupService.ModifyDeviceGroup(deviceGroup, token: _kasraAdminToken);
+                    var result = await _deviceGroupService.ModifyDeviceGroup(deviceGroup, _kasraAdminToken);
 
                     if (result.Validate == 1)
                     {
@@ -153,7 +153,7 @@ namespace Biovation.Server.Controllers.v1
                                 var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
 
                                 var newAuthorizedUsersOfDevice =
-                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId, token: _kasraAdminToken);
+                                        _deviceService.GetAuthorizedUsersOfDevice(deviceId, _kasraAdminToken);
 
                                 var usersToAdd = existingAuthorizedUsersOfDeletedDevice.ContainsKey(deviceId) &&
                                                      existingAuthorizedUsersOfDeletedDevice[deviceId]?.Count > 0
@@ -189,7 +189,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                return ids.Select(id => _deviceGroupService.DeleteDeviceGroup(id, token: _kasraAdminToken)).ToList();
+                return ids.Select(id => _deviceGroupService.DeleteDeviceGroup(id, _kasraAdminToken)).ToList();
             }
             catch (Exception e)
             {

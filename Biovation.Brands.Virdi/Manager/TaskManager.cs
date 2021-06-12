@@ -7,7 +7,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using MoreLinq.Extensions;
 
 namespace Biovation.Brands.Virdi.Manager
 {
@@ -17,7 +19,7 @@ namespace Biovation.Brands.Virdi.Manager
         private readonly TaskStatuses _taskStatuses;
         private readonly CommandFactory _commandFactory;
 
-        private List<TaskInfo> _tasks = new List<TaskInfo>();
+        private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
         public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
@@ -27,7 +29,7 @@ namespace Biovation.Brands.Virdi.Manager
             _taskStatuses = taskStatuses;
         }
 
-        public void ExecuteTask(TaskInfo taskInfo)
+        public async Task ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)
             {
@@ -289,6 +291,25 @@ namespace Biovation.Brands.Virdi.Manager
 
                             break;
                         }
+
+                    case TaskItemTypes.UserAdaptationCode:
+                        {
+                            try
+                            {
+                                executeTask = Task.Run(() =>
+                                {
+                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.UserAdaptation,
+                                        new List<object> { taskItem }).Execute();
+                                });
+
+                            }
+                            catch (Exception exception)
+                            {
+                                Logger.Log(exception);
+                            }
+
+                            break;
+                        }
                 }
 
                 executeTask?.ContinueWith(task =>
@@ -300,18 +321,31 @@ namespace Biovation.Brands.Virdi.Manager
                     _taskService.UpdateTaskStatus(taskItem);
                 });
 
+                if (executeTask is null)
+                    return;
+
                 if (taskItem.IsParallelRestricted)
-                    executeTask?.Wait();
+                    await executeTask.ConfigureAwait(false);
+
+                executeTask.Dispose();
             }
         }
 
-        public void ProcessQueue()
+        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
+            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string>
+                {
+                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                });
+
             lock (_tasks)
             {
-                _tasks = _taskService.GetTasks(brandCode: DeviceBrands.VirdiCode,
-                        excludedTaskStatusCodes: new List<string> { _taskStatuses.Done.Code, _taskStatuses.Failed.Code })
-                    .Result;
+                var newTasks = allTasks.ExceptBy(_tasks, task => task.Id).ToList();
+
+                Logger.Log($"_tasks have {_tasks.Count} tasks, adding {newTasks.Count} tasks");
+                _tasks.AddRange(newTasks);
 
                 if (_processingQueueInProgress)
                     return;
@@ -319,27 +353,39 @@ namespace Biovation.Brands.Virdi.Manager
                 _processingQueueInProgress = true;
             }
 
-            Task.Run(() =>
+
+            _ = Task.Run(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    TaskInfo taskInfo;
-                    lock (_tasks)
+                    try
                     {
-                        if (_tasks.Count <= 0)
+                        TaskInfo taskInfo;
+                        lock (_tasks)
                         {
-                            _processingQueueInProgress = false;
-                            return;
+                            if (_tasks.Count <= 0)
+                            {
+                                _processingQueueInProgress = false;
+                                return;
+                            }
+
+                            taskInfo = _tasks.First();
                         }
 
-                        taskInfo = _tasks.First();
-                    }
+                        Logger.Log($"The task {taskInfo.Id} execution is started");
+                        await ExecuteTask(taskInfo);
+                        Logger.Log($"The task {taskInfo.Id} is executed");
 
-                    ExecuteTask(taskInfo);
-                    lock (_tasks)
-                        _tasks.Remove(taskInfo);
+                        lock (_tasks)
+                            if (_tasks.Any(task => task.Id == taskInfo.Id))
+                                _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
-            });
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

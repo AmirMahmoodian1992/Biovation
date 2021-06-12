@@ -41,7 +41,7 @@ namespace Biovation.Brands.EOS.Commands
             if (!parseResult || userCode == 0)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
 
-            var device = _deviceService.GetDevice(deviceId)?.Data;
+            var device = _deviceService.GetDevice(deviceId).Result?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 

@@ -38,7 +38,7 @@ namespace Biovation.Brands.Virdi.Manager
             try
             {
                 var restRequest = new RestRequest("/device/devices", Method.GET);
-                restRequest.AddQueryParameter("brandId", DeviceBrands.ProcessingWorldCode);
+                restRequest.AddQueryParameter("brandId", DeviceBrands.VirdiCode);
                 var restResult = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest).Result.Data;
 
                 if (restResult is null)

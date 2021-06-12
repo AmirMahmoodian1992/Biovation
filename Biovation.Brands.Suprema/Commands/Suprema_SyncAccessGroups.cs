@@ -1,9 +1,10 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 
@@ -39,26 +40,19 @@ namespace Biovation.Brands.Suprema.Commands
         {
 
 
-            var accessGroups = _accessGroupService.GetAccessGroups();
+            var accessGroups = _accessGroupService.GetAccessGroups().Result?.Data?.Data;
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
             //var o fflineEventService = new OfflineEventService();
             // var timeZoneService = new TimeZoneService();
 
-            var timeZones = _timeZoneService.GetTimeZones();
+            var timeZones = _timeZoneService.GetTimeZones().Result?.Data?.Data;
 
-            var tasksDevice = new List<Task>();
-
-            foreach (var device in Devices)
+            Task.WaitAll(Devices.Select(device => Task.Run(() =>
             {
-                tasksDevice.Add(Task.Run(() =>
-                {
-                    device.Value.DeleteAllTimeZones();
-                    device.Value.DeleteAllAccessGroups();
-                }));
-            }
-
-            Task.WaitAll(tasksDevice.ToArray());
+                device.Value.DeleteAllTimeZones();
+                device.Value.DeleteAllAccessGroups();
+            })).ToArray());
 
             foreach (var time in timeZones)
             {

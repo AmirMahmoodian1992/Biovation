@@ -150,7 +150,7 @@ namespace Biovation.Repository.Sql.v2
             return _repository.ToResultList<ResultViewModel>("DeleteUserByID", parameters).Data.FirstOrDefault();
         }
 
-        public ResultViewModel DeleteUsers(List<int> userIds)
+        public ResultViewModel DeleteUsers(List<long> userIds)
         {
 
             var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = userIds } };

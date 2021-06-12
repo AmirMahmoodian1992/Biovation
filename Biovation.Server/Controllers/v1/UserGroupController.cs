@@ -464,7 +464,7 @@ namespace Biovation.Server.Controllers.v1
         {
             try
             {
-                var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId)?.FirstOrDefault());
+                var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId)?.FirstOrDefault());
                 return _userGroupService.UsersGroup(token: token);
             }
             catch (Exception exception)
@@ -504,14 +504,14 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("DeleteUserGroups")]
-        public List<ResultViewModel> DeleteUserGroups([FromBody] List<int> groupIds)
+        public async Task<List<ResultViewModel>> DeleteUserGroups([FromBody] List<int> groupIds)
         {
             try
             {
                 var resultList = new List<ResultViewModel>();
                 foreach (var group in groupIds)
                 {
-                    var result = _userGroupService.DeleteUserGroup(group, token: _kasraAdminToken);
+                    var result = await _userGroupService.DeleteUserGroup(group, token: _kasraAdminToken);
                     resultList.Add(new ResultViewModel { Validate = result.Validate, Message = result.Message, Id = group });
                 }
 

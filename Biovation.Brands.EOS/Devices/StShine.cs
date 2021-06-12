@@ -1,6 +1,7 @@
 ﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using EosClocks;
 using MoreLinq;
 using Newtonsoft.Json;
@@ -12,8 +13,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v2;
 using Log = Biovation.Domain.Log;
+using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.EOS.Devices
 {
@@ -21,35 +22,40 @@ namespace Biovation.Brands.EOS.Devices
     /// برای ساعت ST-Pro
     /// </summary>
     /// <seealso cref="Device" />
-    public class StShineDevice : Device
+    public class StShineDevice : Device, IDisposable
     {
         private Clock _clock;
         private int _counter;
         private readonly ProtocolType _protocolType;
         private readonly object _clockInstantiationLock = new object();
+        private Timer _fixDaylightSavingTimer;
 
         private readonly ILogger _logger;
         private readonly DeviceBasicInfo _deviceInfo;
         private readonly LogService _logService;
 
         private readonly RestClient _restClient;
-        private readonly TaskManager _taskManager;
+        private readonly TaskService _taskService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
+        private const int _maxRecordCount = 350000;
 
-        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger)
+        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger, TaskService taskService, DeviceBrands deviceBrands)
          : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             _logService = logService;
             _restClient = restClient;
             _deviceInfo = deviceInfo;
-            _taskManager = taskManager;
             _protocolType = protocolType;
             _onlineDevices = onlineDevices;
+            _taskService = taskService;
+            _deviceBrands = deviceBrands;
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
 
+            TotalLogCount = 250000;
             _logger = logger.ForContext<StShineDevice>();
         }
 
@@ -99,42 +105,65 @@ namespace Biovation.Brands.EOS.Devices
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
+            var setDateTimeResult = SetDateTime();
+            if (!setDateTimeResult)
+                _logger.Warning("Could not set the time of device {deviceCode}", _deviceInfo.Code);
+
             try
             {
-                if (_deviceInfo.TimeSync)
-                    lock (_clock)
-                        _clock.SetDateTime(DateTime.Now);
+                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
             }
             catch (Exception exception)
             {
-                _logger.Debug(exception, exception.Message);
-                Thread.Sleep(500);
-                try
-                {
-                    if (_deviceInfo.TimeSync)
-                        lock (_clock)
-                            _clock.SetDateTime(DateTime.Now);
-                }
-                catch (Exception innerException)
-                {
-                    _logger.Debug(innerException, innerException.Message);
-                }
+                _logger.Warning(exception, exception.Message);
             }
 
-            _taskManager.ProcessQueue();
+            _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
 
-            //Valid = true;
+            Valid = true;
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
             return true;
         }
 
+        private bool SetDateTime()
+        {
+            lock (_deviceInfo)
+                if (!_deviceInfo.TimeSync)
+                    return true;
+
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_clock)
+                        _clock.SetDateTime(DateTime.Now);
+
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    _logger.Debug(exception, exception.Message);
+                    Thread.Sleep(++i * 200);
+                }
+            }
+
+            return false;
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
+        }
+
         private bool IsConnected()
         {
-            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0);
-            connection.RetryCount = 1;
+            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 500);
 
             lock (_clockInstantiationLock)
-                _clock = new Clock(connection, _protocolType, 1, ProtocolType.Suprema);
+                _clock = new Clock(connection, ProtocolType.Hdlc, 1, _protocolType);
 
             lock (_clock)
                 if (_clock.TestConnection())
@@ -143,7 +172,7 @@ namespace Biovation.Brands.EOS.Devices
                     return true;
                 }
 
-            while (true)
+            while (Valid)
             {
                 _logger.Debug("Could not connect to device {deviceCode} --> IP: {deviceIpAddress}", _deviceInfo.Code, _deviceInfo.IpAddress);
 
@@ -158,6 +187,7 @@ namespace Biovation.Brands.EOS.Devices
                     }
             }
 
+            return false;
         }
         public virtual ResultViewModel ReadOnlineLog(object token)
         {
@@ -184,18 +214,35 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists && Valid)
+                        while (newRecordExists)
                         {
+                            if (!Valid)
+                            {
+                                _logger.Debug("Disconnect requested for device {deviceCode}", _deviceInfo.Code);
+                                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                            }
+
                             var test = true;
                             var exceptionTester = false;
-                            while (test && Valid)
+                            while (test)
                             {
-                                ClockRecord record = null;
+                                if (!Valid)
+                                {
+                                    _logger.Debug("Disconnect requested for device {deviceCode}", _deviceInfo.Code);
+                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                }
 
+                                ClockRecord record = null;
                                 try
                                 {
                                     while (record == null)
                                     {
+                                        if (!Valid)
+                                        {
+                                            _logger.Debug("Disconnect requested for device {deviceCode}", _deviceInfo.Code);
+                                            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                        }
+
                                         lock (_clock)
                                             record = (ClockRecord)_clock.GetRecord();
                                         Thread.Sleep(300);
@@ -252,7 +299,27 @@ namespace Biovation.Brands.EOS.Devices
                                                 }
                                                 catch (Exception)
                                                 {
-                                                    _logger.Debug("Error in parsing bad record.");
+                                                    var rp = 0;
+                                                    for (var i = 0; i < 5; i++)
+                                                    {
+                                                        try
+                                                        {
+                                                            lock (_clock)
+                                                            {
+                                                                Thread.Sleep(500);
+                                                                rp = _clock.GetReadPointer();
+                                                            }
+
+                                                            break;
+                                                        }
+                                                        catch (Exception exception)
+                                                        {
+                                                            Logger.Log(exception, exception.Message);
+                                                            Thread.Sleep(++i * 100);
+                                                        }
+
+                                                    }
+                                                    _logger.Debug("Clock " + _deviceInfo.Code + ": " + "Error in parsing bad record." + "with Read Pointer: " + rp + "and" + badRecordRawData);
                                                 }
                                             }
 
@@ -309,7 +376,31 @@ namespace Biovation.Brands.EOS.Devices
                                     {
                                         if (!exceptionTester)
                                         {
-                                            _logger.Debug("Null record.");
+                                            var rp = 0;
+                                            for (var i = 0; i < 5; i++)
+                                            {
+                                                try
+                                                {
+                                                    lock (_clock)
+                                                    {
+                                                        Thread.Sleep(500);
+                                                        rp = _clock.GetReadPointer();
+                                                    }
+
+                                                    break;
+                                                }
+                                                catch (Exception exception)
+                                                {
+                                                    Logger.Log(exception, exception.Message);
+                                                    Thread.Sleep(++i * 100);
+                                                }
+
+                                            }
+                                            _logger.Debug("Clock " + _deviceInfo.Code + ": " +" Read Pointer: " + rp + " and " + "Null record.");
+                                            lock (_clock)
+                                            {
+                                                _clock.NextRecord();
+                                            }
                                         }
                                     }
                                 }
@@ -357,14 +448,12 @@ namespace Biovation.Brands.EOS.Devices
             //_clock?.Disconnect();
             //_clock?.Dispose();
             if (Valid)
-            {
                 Connect();
-            }
 
             //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
             return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-
         }
+
         public override bool Disconnect()
         {
             Valid = false;
@@ -398,56 +487,110 @@ namespace Biovation.Brands.EOS.Devices
                     }
 
                     var userId = Convert.ToInt32(userCode);
-                    List<byte[]> userFingerTemplates;
-                    try
+                    List<byte[]> userFingerTemplates = null;
+
+                    for (var i = 0; i < 3;)
                     {
-                        userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
-                    }
-                    catch (Exception exception)
-                    {
-                        _logger.Debug(exception, exception.Message);
-                        _logger.Debug($"User {userId} may not be on device {_deviceInfo.DeviceId}");
                         try
                         {
-                            DisconnectFromSensor();
-                            _clock.DeleteUser(userCode);
+                            userFingerTemplates = _clock.Sensor.GetUserTemplates(userId);
+                            if (userFingerTemplates != null && userFingerTemplates.Count > 0)
+                                break;
                         }
-                        catch (Exception innerException)
+                        catch (Exception exception)
                         {
-                            _logger.Debug(innerException, innerException.Message);
+                            _logger.Warning(exception, exception.Message);
+                            Thread.Sleep(100 * ++i);
                         }
-                        return true;
                     }
 
-                    if (userFingerTemplates == null)
+                    if (userFingerTemplates == null || userFingerTemplates.Count == 0)
                     {
+                        var deleteUser = false;
                         _logger.Debug($"User {userId} may not be on device {_deviceInfo.DeviceId}");
                         try
                         {
                             DisconnectFromSensor();
-                            _clock.DeleteUser(userCode);
+                            deleteUser = _clock.DeleteUser(userCode);
                         }
                         catch (Exception innerException)
                         {
                             _logger.Debug(innerException, innerException.Message);
                         }
-                        return true;
+
+                        return deleteUser;
                     }
+
+                    var deletedTemplatesCount = 0;
 
                     foreach (var fingerTemplate in userFingerTemplates)
                     {
-                        _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
+                        for (var j = 0; j < 5; j++)
+                        {
+                            try
+                            {
+                                var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, fingerTemplate);
+                                if (templateDeletionResult.ScanState != ScanState.Success &&
+                                    templateDeletionResult.ScanState != ScanState.Scan_Success) continue;
+                                _logger.Debug($"A finger print of user {userId} deleted");
+                                deletedTemplatesCount++;
+                                break;
+
+                                //if (templateDeletionResult.ScanState == ScanState.Not_Found)
+                                //    _clock.Sensor.DeleteTemplate(userId, i);
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.Warning(exception, exception.Message);
+                            }
+                        }
+                    }
+
+                    for (var i = 0; i < 3; i++)
+                    {
+                        for (var index = 0; index < 10; index++)
+                        {
+                            try
+                            {
+                                var templateDeletionResult = _clock.Sensor.DeleteTemplate(userId, index);
+                                if (templateDeletionResult.ScanState != ScanState.Success &&
+                                    templateDeletionResult.ScanState != ScanState.Scan_Success) continue;
+                                Logger.Log($"A finger print of user {userId} deleted");
+                                deletedTemplatesCount++;
+                            }
+                            catch (Exception exception)
+                            {
+                                _logger.Warning(exception, exception.Message);
+                            }
+                        }
+
+                        if (deletedTemplatesCount >= userFingerTemplates.Count)
+                            break;
                     }
 
                     //_clock.Sensor.DeleteByID(userId);
 
                     DisconnectFromSensor();
-                    _clock.DeleteUser(userCode);
-                    return true;
+
+                    var deletionResult = false;
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            deletionResult = _clock.DeleteUser(userCode);
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                        }
+                    }
+
+                    return deletionResult;
                 }
                 catch (Exception exception)
                 {
-                    _logger.Debug(exception, exception.Message);
+                    _logger.Warning(exception, exception.Message);
                 }
                 //finally
                 //{
@@ -462,11 +605,17 @@ namespace Biovation.Brands.EOS.Devices
         {
             lock (_clock)
             {
+                var userTemplates = user.FingerTemplates?.Where(fingerTemplate =>
+                    fingerTemplate.FingerTemplateType.Code == (_protocolType == ProtocolType.Suprema
+                        ? FingerTemplateTypes.SU384Code
+                        : FingerTemplateTypes.VX10Code)).ToList();
+
+                if (userTemplates is null || !userTemplates.Any())
+                    return true;
+
                 var isConnectToSensor = false;
                 try
                 {
-                    if (user.FingerTemplates is null || user.FingerTemplates.Count <= 0) return true;
-
                     bool addUserResult;
                     try
                     {
@@ -501,25 +650,80 @@ namespace Biovation.Brands.EOS.Devices
                         return false;
                     }
 
-                    foreach (var fingerTemplate in user.FingerTemplates)
+                    for (var index = 0; index < userTemplates.Count; index += 2)
                     {
-                        var successfullyEnrolled = false;
-                        for (var i = 0; i < 5; i++)
-                        {
-                            if (successfullyEnrolled)
-                                break;
+                        var sendTemplateResult = false;
+                        var firstFingerTemplate = userTemplates[index];
+                        var checkExistenceResult = new SensorRecord { ScanState = ScanState.Unsupported };
 
+                        for (var i = 0; i < 5;)
+                        {
                             try
                             {
-                                Thread.Sleep((i + 1) * 100);
-                                _clock.Sensor.EnrollByTemplate((int)user.Code, fingerTemplate.Template, EnrollOptions.Continue);
-                                successfullyEnrolled = true;
+                                try
+                                {
+                                    _clock.Connection.ClearInputBuffer(false);
+                                }
+                                catch (Exception)
+                                {
+                                    //ignore
+                                }
+
+                                checkExistenceResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                    firstFingerTemplate.Template, EnrollOptions.Check_Finger);
+                                sendTemplateResult = checkExistenceResult.ScanState == ScanState.Success ||
+                                                     checkExistenceResult.ScanState == ScanState.Scan_Success ||
+                                                     checkExistenceResult.ScanState == ScanState.Data_Ok || checkExistenceResult.ID > 0;
+                                if (checkExistenceResult.ScanState != ScanState.Exist_Finger) break;
+                                _logger.Debug($"The {index + 1} of {userTemplates.Count} finger template of user {user.Code} exists on device");
+                                break;
                             }
-                            catch (Exception innerException)
+                            catch (Exception exception)
                             {
-                                _logger.Debug(innerException, innerException.Message);
+                                _logger.Warning(exception, exception.Message);
+                                Thread.Sleep(++i * 200);
                             }
                         }
+
+                        if (checkExistenceResult.ScanState == ScanState.Exist_Finger) continue;
+
+                        if (userTemplates.Count > index + 1)
+                        {
+                            var secondFingerTemplate = userTemplates[index + 1];
+                            for (var i = 0; i < 5;)
+                            {
+                                try
+                                {
+                                    try
+                                    {
+                                        _clock.Connection.ClearInputBuffer(false);
+                                    }
+                                    catch (Exception)
+                                    {
+                                        //ignore
+                                    }
+
+                                    var templateEnrollResult = _clock.Sensor.EnrollByTemplate((int)user.Code,
+                                        secondFingerTemplate.Template, EnrollOptions.Add_New);
+                                    sendTemplateResult = templateEnrollResult.ScanState == ScanState.Success ||
+                                                         templateEnrollResult.ScanState == ScanState.Scan_Success ||
+                                                         templateEnrollResult.ScanState == ScanState.Data_Ok ||
+                                                         templateEnrollResult.ID > 0;
+
+                                    _logger.Debug(
+                                        $"The {index + 2} finger template of user {user.Code} has been sent to device");
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    _logger.Warning(exception, exception.Message);
+                                    Thread.Sleep(++i * 200);
+                                }
+                            }
+                        }
+
+                        if (!sendTemplateResult)
+                            return false;
                     }
 
                     return true;
@@ -564,21 +768,27 @@ namespace Biovation.Brands.EOS.Devices
                     //var intId = checked((int)userId);
                     //  var x = _clock.Sensor.GetUserIDList();
 
-                    List<byte[]> fingerTemplates;
+                    List<byte[]> fingerTemplates = null;
 
-                    try
+                    for (var i = 0; i < 5;)
                     {
-                        fingerTemplates = _clock.Sensor.GetUserTemplates((int)userId);
+                        try
+                        {
+                            fingerTemplates = _clock.Sensor.GetUserTemplates((int)userId);
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Debug(exception, exception.Message);
+                            Thread.Sleep(++i * 200);
+                        }
                     }
-                    catch (Exception exception)
+
+                    if (fingerTemplates is null || fingerTemplates.Count <= 0)
                     {
-                        _logger.Debug(exception, exception.Message);
                         _logger.Debug($"Error in retrieving user {userId} from device {_deviceInfo.DeviceId}, user may be not available on device.");
                         return null;
                     }
-
-
-                    if (fingerTemplates is null || fingerTemplates.Count <= 0) return null;
 
                     var retrievedUser = new User
                     {
@@ -590,13 +800,12 @@ namespace Biovation.Brands.EOS.Devices
 
                     for (var i = 0; i < fingerTemplates.Count; i += 2)
                     {
-
                         var firstTemplateBytes = fingerTemplates[i];
 
                         var fingerTemplate = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            FingerTemplateType = _fingerTemplateTypes.SU384,
+                            FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                             UserId = retrievedUser.Id,
                             Template = firstTemplateBytes,
                             CheckSum = firstTemplateBytes.Sum(b => b),
@@ -617,7 +826,7 @@ namespace Biovation.Brands.EOS.Devices
                         var secondFingerTemplateSample = new FingerTemplate
                         {
                             FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                            FingerTemplateType = _fingerTemplateTypes.SU384,
+                            FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                             UserId = retrievedUser.Id,
                             Template = secondTemplateBytes,
                             CheckSum = secondTemplateBytes.Sum(b => b),
@@ -669,7 +878,21 @@ namespace Biovation.Brands.EOS.Devices
                 var isConnectToSensor = false;
                 try
                 {
-                    var users = _clock.GetUserList();
+                    var users = new List<long>();
+                    for (var i = 0; i < 5;)
+                    {
+                        try
+                        {
+                            users = _clock.GetUserList();
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                            Thread.Sleep(++i * 200);
+                        }
+                    }
+
                     usersList.AddRange(users.Select(userCode => new User { Code = userCode }));
                     usersList = usersList.DistinctBy(user => user.Code).ToList();
 
@@ -715,7 +938,7 @@ namespace Biovation.Brands.EOS.Devices
                                 var fingerTemplate = new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                                     Template = firstTemplateBytes,
                                     CheckSum = firstTemplateBytes.Sum(b => b),
                                     Size = firstTemplateBytes.ToList()
@@ -735,7 +958,7 @@ namespace Biovation.Brands.EOS.Devices
                                 var secondFingerTemplateSample = new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    FingerTemplateType = _fingerTemplateTypes.SU384,
+                                    FingerTemplateType = _protocolType == ProtocolType.Suprema ? _fingerTemplateTypes.SU384 : _fingerTemplateTypes.VX10,
                                     Template = secondTemplateBytes,
                                     CheckSum = secondTemplateBytes.Sum(b => b),
                                     Size = secondTemplateBytes.ToList()
@@ -832,7 +1055,7 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (isConnectToSensor)
-                _logger.Debug("Successfully disconnected from sensor of device:{deviceId}", _deviceInfo.DeviceId);
+                _logger.Debug("Successfully connected to sensor of device:{deviceId}", _deviceInfo.DeviceId);
 
             return isConnectToSensor;
         }
@@ -855,7 +1078,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (disconnectedFromSensor)
                     break;
 
-                Thread.Sleep((i + 1) * 100);
+                Thread.Sleep((i + 1) * 200);
                 try
                 {
                     disconnectedFromSensor = _clock.DisconnectFromSensor();
@@ -870,6 +1093,772 @@ namespace Biovation.Brands.EOS.Devices
                 disconnectedFromSensor
                     ? "Successfully disconnected from sensor of device:{deviceId}"
                     : "Could not disconnect from sensor of device:{deviceId}", _deviceInfo.DeviceId);
+        }
+
+        //public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
+        //DateTime? endTime,
+        //bool saveFile = false)
+        //{
+        //    //lock (_clock)
+        //    //{
+        //    //    _logger.Information("dumping device");
+        //    //    var records = _clock.Dump(TotalLogCount, (DateTime)startTime, (DateTime)endTime, out var badRecords);
+        //    //    _logger.Information("Dumping finished, {recordsCount} records and {badRecordsCount} bad records retrieved", records.Count, badRecords.Count);
+        //    //    return new ResultViewModel { Success = true };
+        //    //}
+
+        //    var invalidTime = false;
+        //    if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
+        //    {
+        //        startTime = new DateTime(1921, 3, 21);
+        //        invalidTime = true;
+        //    }
+
+        //    if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
+        //    {
+        //        endTime = new DateTime(2021, 3, 19);
+        //        invalidTime = true;
+        //    }
+
+        //    if (invalidTime)
+        //        Logger.Log("The chosen Time Period is wrong.");
+
+        //    Thread.Sleep(1000);
+        //    string eosDeviceType;
+        //    lock (_clock)
+        //        eosDeviceType = _clock.GetModel();
+
+        //    lock (_onlineDevices)
+        //    {
+        //        Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+        //    }
+
+        //    bool deviceConnected;
+
+        //    lock (_clock)
+        //        deviceConnected = _clock.TestConnection();
+
+        //    var writePointer = -1;
+        //    var successSetPointer = false;
+
+        //    for (var i = 0; i < 5; i++)
+        //    {
+        //        try
+        //        {
+        //            lock (_clock)
+        //            {
+        //                Thread.Sleep(500);
+        //                writePointer = _clock.GetWritePointer();
+        //            }
+        //            break;
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception, exception.Message);
+        //            Thread.Sleep(++i * 100);
+        //        }
+
+        //    }
+
+        //    if (deviceConnected && Valid && writePointer != -1)
+        //    {
+        //        var initialReadPointer = writePointer;
+        //        _logger.Information("The initial pointer is: {initialPointer}", initialReadPointer);
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                lock (_clock)
+        //                {
+        //                    Thread.Sleep(500);
+        //                    initialReadPointer = _clock.GetReadPointer();
+        //                    _logger.Information("The Read Pointer is: {initialPointer}", initialReadPointer);
+        //                }
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //            }
+
+        //        }
+
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                byte[] command;
+        //                (command = new byte[1])[0] = 32;
+        //                lock (_clock)
+        //                {
+        //                    _clock.Connection.SendCommandAndGetHdlcResult(command);
+        //                }
+
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //            }
+        //        }
+
+
+
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                lock (_clock)
+        //                {
+        //                    successSetPointer = _clock.SetReadPointer(9000);
+        //                    //_clock.Connection.SendCommandAndGetResult("AUR=1", "\r");
+        //                    Thread.Sleep(500);
+        //                    var clockRecord = (ClockRecord)_clock.GetRecord();
+        //                    _logger.Debug("Before 1 set pointer: {dateTime}", clockRecord.DateTime);
+        //                    Thread.Sleep(500);
+        //                }
+
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //            }
+        //        }
+
+
+
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                byte[] command;
+        //                (command = new byte[1])[0] = 32;
+        //                lock (_clock)
+        //                {
+        //                    _clock.Connection.SendCommandAndGetHdlcResult(command);
+        //                }
+
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //            }
+        //        }
+
+
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                lock (_clock)
+        //                {
+        //                    successSetPointer = _clock.SetReadPointer(10000);
+        //                    //_clock.Connection.SendCommandAndGetResult("AUR=100", "\r");
+        //                    Thread.Sleep(500);
+        //                    var clockRecord = (ClockRecord)_clock.GetRecord();
+        //                    _logger.Debug("Before 2 set pointer: {dateTime}", clockRecord.DateTime);
+        //                    Thread.Sleep(500);
+        //                }
+
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //            }
+        //        }
+
+
+        //        var rightBoundary = writePointer;
+        //        var leftBoundary = writePointer + 2;
+
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                lock (_clock)
+        //                {
+        //                    Thread.Sleep(500);
+        //                    successSetPointer = _clock.SetReadPointer(leftBoundary);
+        //                }
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //            }
+
+        //        }
+
+        //        ClockRecord record = null;
+        //        for (var i = 0; i < 5; i++)
+        //        {
+        //            try
+        //            {
+        //                lock (_clock)
+        //                {
+        //                    Thread.Sleep(500);
+        //                    record = (ClockRecord)_clock.GetRecord();
+        //                    _logger.Debug("First record: {dateTime}", record.DateTime);
+        //                }
+        //                break;
+        //            }
+        //            catch (Exception exception)
+        //            {
+        //                Logger.Log(exception, exception.Message);
+        //                Thread.Sleep(++i * 100);
+        //                if (i == 4)
+        //                {
+        //                    leftBoundary = 1;
+        //                }
+        //            }
+        //        }
+        //        if (record is null)
+        //        {
+        //            leftBoundary = 1;
+        //        }
+
+        //        if (successSetPointer)
+        //        {
+        //            for (var i = 0; i < 5; i++)
+        //            {
+        //                try
+        //                {
+        //                    lock (_clock)
+        //                    {
+        //                        Thread.Sleep(500);
+        //                        var clockRecord = (ClockRecord)_clock.GetRecord();
+        //                        _logger.Debug("second record: {dateTime}", clockRecord.DateTime);
+        //                    }
+
+        //                    break;
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    Logger.Log(exception, exception.Message);
+        //                    Thread.Sleep(++i * 100);
+        //                }
+        //            }
+
+
+        //            (int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
+        //            BinarySearch(leftBoundary, rightBoundary, Convert.ToDateTime(startTime), ref nearestIndex,
+        //                (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
+
+        //            if (nearestIndex.Item1 < initialReadPointer)
+        //                for (var i = 0; i < 5; i++)
+        //                {
+        //                    try
+        //                    {
+        //                        lock (_clock)
+        //                        {
+        //                            Thread.Sleep(500);
+        //                            successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+        //                        }
+        //                        break;
+        //                    }
+        //                    catch (Exception exception)
+        //                    {
+        //                        Logger.Log(exception, exception.Message);
+        //                        Thread.Sleep(++i * 100);
+        //                    }
+
+        //                }
+        //        }
+
+        //        if (!successSetPointer)
+        //        {
+        //            for (var i = 0; i < 5; i++)
+        //            {
+        //                try
+        //                {
+        //                    lock (_clock)
+        //                    {
+        //                        Thread.Sleep(500);
+        //                        successSetPointer = _clock.SetReadPointer(initialReadPointer);
+        //                    }
+        //                    break;
+        //                }
+        //                catch (Exception exception)
+        //                {
+        //                    Logger.Log(exception, exception.Message);
+        //                    Thread.Sleep(++i * 100);
+        //                }
+
+        //            }
+        //        }
+
+        //        return new ResultViewModel { Id = _deviceInfo.DeviceId, Success = successSetPointer, Code = Convert.ToInt32(TaskStatuses.DoneCode) };
+        //    }
+
+        //    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
+
+        //}
+
+
+        public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
+           DateTime? endTime,
+           bool saveFile = false)
+        {
+            //lock (_clock)
+            //{
+            //    _logger.Information("dumping device");
+            //    var records = _clock.Dump(TotalLogCount, (DateTime)startTime, (DateTime)endTime, out var badRecords);
+            //    _logger.Information("Dumping finished, {recordsCount} records and {badRecordsCount} bad records retrieved", records.Count, badRecords.Count);
+            //    return new ResultViewModel { Success = true };
+            //}
+
+            var invalidTime = false;
+            Logger.Log($"The datetime start with {startTime}");
+            if (startTime is null ||
+                startTime < new DateTime(DateTime.Now.Year - 2, DateTime.Now.Month, DateTime.Now.Day) ||
+                startTime > DateTime.Now)
+            {
+                startTime = new DateTime(DateTime.Now.Year - 2, DateTime.Now.Month, DateTime.Now.Day);
+                invalidTime = true;
+            }
+
+            if (endTime is null || endTime > DateTime.Now ||
+                endTime < new DateTime(DateTime.Now.Year - 2, DateTime.Now.Month, DateTime.Now.Day))
+            {
+                //endTime = new DateTime(2021, 3, 19);
+                invalidTime = true;
+            }
+
+            if (invalidTime)
+                Logger.Log("The chosen Time Period is wrong.");
+
+            Thread.Sleep(1000);
+            string eosDeviceType;
+            lock (_clock)
+                eosDeviceType = _clock.GetModel();
+
+            lock (_onlineDevices)
+            {
+                Logger.Log($"-->ReadOfflineLogInPeriod Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType} from {startTime}");
+            }
+
+            bool deviceConnected;
+
+            lock (_clock)
+                deviceConnected = _clock.TestConnection();
+
+            var writePointer = -1;
+            var successSetPointer = false;
+
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_clock)
+                    {
+                        Thread.Sleep(500);
+                        writePointer = _clock.GetWritePointer();
+                    }
+
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, exception.Message);
+                    Thread.Sleep(++i * 100);
+                }
+
+            }
+
+            lock (_clock)
+            {
+
+                if (deviceConnected && Valid && writePointer != -1)
+                {
+                    var initialReadPointer = writePointer;
+                    Logger.Log($"The initial pointer is: {initialReadPointer}");
+
+                    var leftBoundary = writePointer - 1;
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            lock (_clock)
+                            {
+                                Thread.Sleep(500);
+                                successSetPointer = _clock.SetReadPointer(leftBoundary);
+                                if (!successSetPointer) continue;
+                                var reconnect = Connect();
+                                if (!reconnect) continue;
+                            }
+
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                        }
+
+                    }
+
+
+
+                    Logger.Log(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
+                    if (successSetPointer)
+                    {
+                        var firstIndex = leftBoundary;
+                        var clockRecord = new ClockRecord();
+                        try
+                        {
+                            for (var i = 0; i < 5; i++)
+                            {
+                                try
+                                {
+                                    lock (_clock)
+                                    {
+                                        clockRecord = (ClockRecord) _clock.GetRecord();
+                                    }
+
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception, exception.Message);
+                                    Thread.Sleep(++i * 100);
+                                }
+                            }
+
+                            Logger.Log($"First datetime {clockRecord.DateTime}");
+                            var goalDateTime = new DateTime(startTime.Value.Year, startTime.Value.Month,
+                                startTime.Value.Day - 1);
+                            var firstReturnedDateTime = EOSsearch(ref firstIndex, goalDateTime, 0, leftBoundary,
+                                clockRecord.DateTime);
+                            if (goalDateTime.Subtract(firstReturnedDateTime) > new TimeSpan(1, 0, 0, 0) ||
+                                goalDateTime.Subtract(firstReturnedDateTime) < new TimeSpan(-1, 0, 0, 0))
+                            {
+                                var secondIndex = firstIndex;
+                                var secondReturnedDateTime = EOSsearch(ref secondIndex, goalDateTime, leftBoundary,
+                                    _maxRecordCount, clockRecord.DateTime);
+                                if ((firstReturnedDateTime > goalDateTime && secondReturnedDateTime > goalDateTime &&
+                                     firstReturnedDateTime.Subtract(goalDateTime) <
+                                     secondReturnedDateTime.Subtract(goalDateTime)) ||
+                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime < goalDateTime &&
+                                     goalDateTime.Subtract(firstReturnedDateTime) <
+                                     goalDateTime.Subtract(secondReturnedDateTime)) ||
+                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime > goalDateTime &&
+                                     goalDateTime.Subtract(firstReturnedDateTime) <
+                                     secondReturnedDateTime.Subtract(goalDateTime)) ||
+                                    (firstReturnedDateTime > goalDateTime && secondReturnedDateTime < goalDateTime &&
+                                     firstReturnedDateTime.Subtract(goalDateTime) <
+                                     goalDateTime.Subtract(secondReturnedDateTime)))
+                                {
+                                    for (var i = 0; i < 5; i++)
+                                    {
+                                        try
+                                        {
+                                            lock (_clock)
+                                            {
+                                                Thread.Sleep(500);
+                                                successSetPointer = _clock.SetReadPointer(firstIndex);
+                                                if (!successSetPointer) continue;
+                                                var reconnect = Connect();
+                                                if (!reconnect) continue;
+                                            }
+
+                                            break;
+                                        }
+                                        catch (Exception exception)
+                                        {
+                                            Logger.Log(exception, exception.Message);
+                                            Thread.Sleep(++i * 100);
+                                        }
+
+                                    }
+
+                                    Logger.Log(
+                                        $@"YYYYYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEESSSSSSSSS First Read Offline log from {firstReturnedDateTime} with index {firstIndex}");
+                                }
+                                else
+                                {
+                                    Logger.Log(
+                                        $@"YYYYYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEESSSSSSSSS Second Read Offline log from {secondReturnedDateTime} with index {secondIndex}");
+                                }
+                            }
+                            else
+                            {
+                                Logger.Log(
+                                    $@"YYYYYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEESSSSSSSSS First Read Offline log from {firstReturnedDateTime} with index {firstIndex} without computing the second one");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                            throw;
+                        }
+
+
+                        //(int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
+                        //BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
+                        //    (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
+
+
+                        //for (var i = 0; i < 5; i++)
+                        //{
+                        //    try
+                        //    {
+                        //        lock (_clock)
+                        //        {
+                        //            Thread.Sleep(500);
+                        //            successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
+                        //        }
+                        //        break;
+                        //    }
+                        //    catch (Exception exception)
+                        //    {
+                        //        Logger.Log(exception, exception.Message);
+                        //        Thread.Sleep(++i * 100);
+                        //    }
+
+                        //}
+
+                        if (!successSetPointer)
+                        {
+                            for (var i = 0; i < 5; i++)
+                            {
+                                try
+                                {
+                                    lock (_clock)
+                                    {
+                                        Thread.Sleep(500);
+                                        successSetPointer = _clock.SetReadPointer(initialReadPointer);
+                                    }
+
+                                    break;
+                                }
+                                catch (Exception exception)
+                                {
+                                    Logger.Log(exception, exception.Message);
+                                    Thread.Sleep(++i * 100);
+                                }
+                            }
+                        }
+
+                        return new ResultViewModel
+                        {
+                            Id = _deviceInfo.DeviceId,
+                            Success = successSetPointer,
+                            Code = Convert.ToInt32(TaskStatuses.DoneCode)
+                        };
+                    }
+                }
+            }
+
+            return new ResultViewModel
+            {
+                Id = _deviceInfo.DeviceId,
+                Validate = 0,
+                Message = "0",
+                Code = Convert.ToInt32(TaskStatuses.FailedCode)
+            };
+        }
+
+        private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
+        {
+            if (Math.Abs(right - left) <= 1)
+            {
+                return;
+            }
+
+            _logger.Debug("Searching for appropriate log pointer value.");
+
+            var successSetPointer = false;
+            ClockRecord clockRecord = null;
+            var flag = false;
+
+            var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
+            var mid = (left + interval / 2);
+
+            _logger.Debug("The interval is: {interval} and the mid pointer is: {mid}", interval, mid);
+
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_clock)
+                    {
+                        if (!successSetPointer)
+                        {
+                            Thread.Sleep(500);
+                            successSetPointer = _clock.SetReadPointer(mid);
+                            _logger.Debug("The read pointer is successfully set to {mid}", mid);
+                        }
+                        Thread.Sleep(500);
+                        clockRecord = (ClockRecord)_clock.GetRecord();
+                        _logger.Debug("The log date is: {dateTime}", clockRecord.DateTime);
+                    }
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, exception.Message);
+                    Thread.Sleep(++i * 100);
+                }
+
+            }
+
+            if (clockRecord == null)
+                BinarySearch(0, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
+            else
+            {
+
+                if (previousDateTimes.Item1 != new DateTime(1900, 1, 1) &&
+                    previousDateTimes.Item2 != new DateTime(1900, 1, 1) &&
+                    previousDateTimes.Item3 != new DateTime(1900, 1, 1) &&
+                    ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
+                     (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)))
+                {
+                    _logger.Warning("Wrong value detected");
+                    flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
+                   (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
+                    Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
+                }
+
+                if (!(flag && !previousFlag))
+                {
+                    _logger.Debug("Trying to handling the situation");
+                    previousDateTimes.Item3 = previousDateTimes.Item2;
+                    previousDateTimes.Item2 = previousDateTimes.Item1;
+                    previousDateTimes.Item1 = clockRecord.DateTime;
+                }
+
+                if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
+                {
+                    nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
+                    _logger.Debug("The nearest value has been changes to: {nearestIndex} with date of: {dateTime}, and the difference is: {difference}", nearestIndex.Item1, clockRecord.DateTime, new DateTime(nearestIndex.Item2));
+                }
+
+                if (flag && !(previousFlag))
+                {
+                    if (previousmid > mid)
+                    {
+                        BinarySearch(right, right + (right - left), goalDateTime, ref nearestIndex,
+                            previousDateTimes, previousmid, true);
+                    }
+
+                    _logger.Debug("Searching, considering the wrong values");
+                    BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
+                        previousmid, true);
+                }
+                else if (clockRecord.DateTime > goalDateTime)
+                {
+                    _logger.Debug("Searching left side of mid");
+                    BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
+                }
+                else if (clockRecord.DateTime < goalDateTime)
+                {
+                    _logger.Debug("Searching right side of mid");
+                    BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
+                }
+            }
+        }
+
+        private DateTime EOSsearch(ref int currentIndex, DateTime goalDateTime, int beginingOfInterval, int endOfInterval, DateTime prevDateTime)
+        {
+            var successSetPointer = false;
+            ClockRecord clockRecord = null;
+            //if (currentIndex < stepLenght)
+            //{
+            //    return;
+            //}
+            Logger.Log("THe beginingOfInterval: " + beginingOfInterval);
+            Logger.Log("THe endOfInterval: " + endOfInterval);
+            if (Math.Abs(beginingOfInterval - endOfInterval) < 2)
+            {
+                return prevDateTime;
+            }
+            currentIndex = (beginingOfInterval + endOfInterval) / 2;
+            for (var i = 0; i < 15; i++) //15 may seems too much for that but trust me!!!
+            {
+                try
+                {
+                    lock (_clock)
+                    {
+                        if (!successSetPointer)
+                        {
+                            Thread.Sleep(500);
+                            successSetPointer = _clock.SetReadPointer(currentIndex);
+                            if(!successSetPointer) continue;
+                        }
+                        Thread.Sleep(500);
+                        var reconnect = Connect();
+                        if(!reconnect) continue;
+                        Thread.Sleep(500);
+                        clockRecord = (ClockRecord)_clock.GetRecord();
+                    }
+                    break;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, exception.Message);
+                    Thread.Sleep(++i * 100);
+                }
+            }
+
+            if (clockRecord == null)
+            {
+                return EOSsearch(ref currentIndex, goalDateTime, beginingOfInterval, currentIndex, prevDateTime);
+            }
+            var recordDateTime = clockRecord.DateTime;
+            Logger.Log($"NEW datetime {recordDateTime}");
+            if (recordDateTime > goalDateTime)
+            {
+                return EOSsearch(ref currentIndex, goalDateTime,beginingOfInterval,currentIndex,recordDateTime);
+            }
+            return recordDateTime < goalDateTime ? EOSsearch(ref currentIndex, goalDateTime, currentIndex, endOfInterval, recordDateTime) : recordDateTime;
+
+        }
+
+
+        public override Dictionary<string, string> GetAdditionalData(int code)
+        {
+            var dictionary = new Dictionary<string, string>();
+            int userCount;
+            int templateCount;
+            int packetCount;
+            lock (_clock)
+            {
+                dictionary.Add("DateTime",_clock.GetDateTime().ToString(CultureInfo.InvariantCulture));
+                dictionary.Add("Calender", _clock.GetCalendarType().ToString());
+                _clock.GetCountOfUsersAndTemplatesStShine(out userCount, out templateCount, out packetCount);
+                dictionary.Add("Firmware Version",_clock.GetFirmwareVersion());
+                dictionary.Add("Mac Address", _clock.GetMacAddress());
+                dictionary.Add("Wifi Mac Address",_clock.GetWifiMacAddress());
+                dictionary.Add("Write Pointer", _clock.GetWritePointer().ToString());
+                dictionary.Add("Read Pointer", _clock.GetReadPointer().ToString());
+            }
+            dictionary.Add("User Counts", userCount.ToString());
+            dictionary.Add("Template Counts", templateCount.ToString());
+            dictionary.Add("Packet Counts", packetCount.ToString());
+            return dictionary;
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                _clock?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
+            }
         }
     }
 }

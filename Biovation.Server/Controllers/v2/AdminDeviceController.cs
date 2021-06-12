@@ -24,24 +24,26 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
+        [Authorize]
         [Route("{userId}")]
-        public Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId([FromRoute] int userId = default, int pageNumber = default, int pageSize = default)
+        public async Task<ResultViewModel<PagingResult<AdminDeviceGroup>>> GetAdminDeviceGroupsByUserId([FromRoute] int userId = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _adminDeviceService.GetAdminDeviceGroupsByUserId(userId, pageNumber, pageSize));
+            return await _adminDeviceService.GetAdminDeviceGroupsByUserId(userId, pageNumber, pageSize);
         }
 
         [HttpPost]
+        [Authorize]
         public Task<IActionResult> AddAdminDevice([FromBody] AdminDevice adminDevice = default)
         {
             throw new NotImplementedException();
         }
 
         [HttpPut]
-        public Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
+        [Authorize]
+        public async Task<ResultViewModel> ModifyAdminDevice([FromBody] object adminDevice = default)
         {
-            var token = (string)HttpContext.Items["Token"];
             var adminDeviceSerializedData = JsonConvert.DeserializeObject<JObject>(JsonSerializer.Serialize(adminDevice));
-            return Task.FromResult(_adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, token));
+            return await _adminDeviceService.ModifyAdminDevice(adminDeviceSerializedData, HttpContext.Items["Token"] as string);
         }
     }
 }

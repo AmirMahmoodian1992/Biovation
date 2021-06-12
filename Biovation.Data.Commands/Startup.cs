@@ -102,6 +102,7 @@ namespace Biovation.Data.Commands
 
             //integration
             services.AddScoped<LogApiSink, LogApiSink>();
+            services.AddScoped<TaskApiSink, TaskApiSink>();
             services.AddScoped<LogMessageBusRepository, LogMessageBusRepository>();
             services.AddScoped<TaskMessageBusRepository, TaskMessageBusRepository>();
         }
@@ -115,7 +116,6 @@ namespace Biovation.Data.Commands
             }
 
             //app.UseHttpsRedirection();
-
             app.UseRouting();
 
             // app.UseAuthorization();
