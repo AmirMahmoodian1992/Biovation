@@ -9,7 +9,6 @@ namespace Biovation.Domain.RelayControllerModels
         public int Id { get; set; }
         public string Name { get; set; }
         public int NodeNumber { get; set; }
-        //public Tuple<Enum, DateTime> LastState { get; set; }
         [OneToOne]
         public RelayHub RelayHub { get; set; }
         [OneToOne]
