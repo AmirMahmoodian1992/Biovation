@@ -46,7 +46,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
 
             };
 
-            return _repository.ToResultList<PagingResult<Scheduling>>("SelectSchedulingByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<Scheduling>>("SelectScheduling", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel UpdateScheduling(Scheduling scheduling)

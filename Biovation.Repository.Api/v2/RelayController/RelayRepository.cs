@@ -18,7 +18,7 @@ namespace Biovation.Repository.Api.v2.RelayController
 
         public async Task<ResultViewModel<PagingResult<Relay>>> GetRelay(int id = 0, int adminUserId = 0,
            string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null,
-           int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, Scheduling scheduling = null, string token = default)
+           int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, int schedulingId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Relay", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
@@ -31,7 +31,7 @@ namespace Biovation.Repository.Api.v2.RelayController
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
-            restRequest.AddJsonBody(scheduling ?? new Scheduling());
+            restRequest.AddQueryParameter("schedulingId", schedulingId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Relay>>>(restRequest);

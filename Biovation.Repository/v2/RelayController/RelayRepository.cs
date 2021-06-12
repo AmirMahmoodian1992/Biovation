@@ -20,23 +20,23 @@ namespace Biovation.Repository.Sql.v2.RelayController
         }
 
         public ResultViewModel<PagingResult<Relay>> GetRelay(int adminUserId = 0, int id = 0,
-           string name = null, int nodeNumber = 0, int relayHubId =0, int entranceId = 0, string description = null, Scheduling scheduling = null,
+           string name = null, int nodeNumber = 0, int relayHubId =0, int entranceId = 0, string description = null, int schedulingId = default,
            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var sqlParameter = new List<SqlParameter>
             {
                 new SqlParameter("@AdminUserId", SqlDbType.Int) {Value = adminUserId },
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id },
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name ?? string.Empty},
                 new SqlParameter("@NodeNumber", SqlDbType.Int) {Value = nodeNumber},
                 new SqlParameter("@entranceId", SqlDbType.Int) {Value = entranceId},
                 new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relayHubId},
-                new SqlParameter("@schedulingId", SqlDbType.Int) {Value = scheduling.Id},
+                new SqlParameter("@schedulingId", SqlDbType.Int) {Value = schedulingId},
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
             };
 
-            return _repository.ToResultList<PagingResult<Relay>>("SelectRelayByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<Relay>>("SelectRelay", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel CreateRelay(Relay relay)

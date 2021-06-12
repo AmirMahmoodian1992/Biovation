@@ -20,10 +20,10 @@ namespace Biovation.Service.Api.v2.RelayController
         }
 
         public async Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, int adminUserId = 0, string ipAddress = null, int port = 0,
-            int capacity = 0, DeviceModel relayHubModel = null, string description = null, int pageNumber = 0,
+            int capacity = 0, int relayHubModelId = default, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
-            return await _relayHubRepository.GetRelayHubs(id, adminUserId, ipAddress, port, capacity, relayHubModel,
+            return await _relayHubRepository.GetRelayHubs(id, adminUserId, ipAddress, port, capacity, relayHubModelId,
                 description, pageNumber, pageSize, nestingDepthLevel, token);
         }
 

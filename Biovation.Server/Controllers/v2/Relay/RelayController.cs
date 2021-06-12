@@ -26,11 +26,11 @@ namespace Biovation.Server.Controllers.v2.Relay
         [AllowAnonymous]
         public Task<ResultViewModel<PagingResult<Domain.RelayControllerModels.Relay>>> Relay([FromRoute] int id = 0, int adminUserId = 0,
             string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null,
-            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, [FromBody] Scheduling scheduling = null)
+            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4,  int schedulingId = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () => await _relayService.GetRelay(id, adminUserId, name, nodeNumber, relayHubId, entranceId, description, pageNumber, pageSize,
-                nestingDepthLevel, scheduling, token));
+                nestingDepthLevel, schedulingId, token));
         }
 
         [HttpPost]

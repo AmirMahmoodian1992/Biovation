@@ -39,14 +39,14 @@ namespace Biovation.Repository.Sql.v2.RelayController
             var sqlParameter = new List<SqlParameter>
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id },
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name??string.Empty},
                 new SqlParameter("@DeviceId", SqlDbType.Int) { Value = deviceId },
                 new SqlParameter("@SchedulingId", SqlDbType.Int) { Value = schedulingId },
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
             };
 
-            return _repository.ToResultList<PagingResult<Entrance>>("SelectEntranceByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<Entrance>>("SelectEntrance", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel UpdateEntrance(Entrance entrance)

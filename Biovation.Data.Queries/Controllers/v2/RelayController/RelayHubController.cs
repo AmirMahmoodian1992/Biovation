@@ -20,10 +20,10 @@ namespace Biovation.Data.Queries.Controllers.v2.RelayController
         [HttpGet]
         [Authorize]
         public Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHub(int adminUserId = 0, int id = 0, string ipAddress = null, int port = 0,
-            int capacity = 0, [FromBody]DeviceModel relayHubModel = null, string description = null, int pageNumber = 0,
+            int capacity = 0,int relayHubModelId = default, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
-            return Task.Run(() => _relayHubRepository.GetRelayHubs(adminUserId,id, ipAddress, port, capacity, relayHubModel, description,
+            return Task.Run(() => _relayHubRepository.GetRelayHubs(adminUserId,id, ipAddress, port, capacity, relayHubModelId, description,
                 pageNumber, pageSize, nestingDepthLevel));
         }
     }
