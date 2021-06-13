@@ -24,12 +24,12 @@ namespace Biovation.Server.Controllers.v2.Relay
         [HttpGet]
         [Route("{id:int}")]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<RelayHub>>> RelayHub([FromRoute] int id = default, int adminUserId = 0, string ipAddress = null, int port = 0,
+        public Task<ResultViewModel<PagingResult<RelayHub>>> RelayHub([FromRoute] int id = default, int adminUserId = 0, string ipAddress = null, int port = 0, string name = default,
             int capacity = 0, int relayHubModelId = default, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () => await _relayHubService.GetRelayHubs(id, adminUserId, ipAddress, port, capacity, relayHubModelId, description, pageNumber, pageSize,
+            return Task.Run(async () => await _relayHubService.GetRelayHubs(id, adminUserId, ipAddress, port, name, capacity, relayHubModelId, description, pageNumber, pageSize,
                 nestingDepthLevel, token));
         }
 

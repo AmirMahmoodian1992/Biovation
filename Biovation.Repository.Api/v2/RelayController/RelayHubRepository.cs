@@ -26,7 +26,7 @@ namespace Biovation.Repository.Api.v2.RelayController
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, int adminUserId = 0, string ipAddress = null, int port = 0,
+        public async Task<ResultViewModel<PagingResult<RelayHub>>> GetRelayHubs(int id = 0, int adminUserId = 0, string ipAddress = default, int port = 0, string name = default,
             int capacity = 0, int relayHubModelId = default, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
@@ -35,6 +35,7 @@ namespace Biovation.Repository.Api.v2.RelayController
             restRequest.AddQueryParameter("adminUserId", adminUserId.ToString());
             restRequest.AddQueryParameter("ipAddress", ipAddress ?? string.Empty);
             restRequest.AddQueryParameter("port", port.ToString());
+            restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("capacity", capacity.ToString());
             restRequest.AddQueryParameter("description", description ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());

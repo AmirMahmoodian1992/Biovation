@@ -23,8 +23,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@StartTime", SqlDbType.DateTime) {Value = scheduling.StartTime},
-                new SqlParameter("@EndTime", SqlDbType.DateTime) {Value = scheduling.EndTime},
+                new SqlParameter("@StartTime", SqlDbType.BigInt) {Value = scheduling.StartTime.Ticks},
+                new SqlParameter("@EndTime", SqlDbType.BigInt) {Value = scheduling.EndTime.Ticks},
                 new SqlParameter("@Mode", SqlDbType.Int) {Value = scheduling.Mode}
             };
 
@@ -38,8 +38,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
             var sqlParameter = new List<SqlParameter>
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id },
-                new SqlParameter("@StartTime", SqlDbType.DateTime) {Value = startTime},
-                new SqlParameter("@EndTime", SqlDbType.DateTime) {Value = endTime},
+                new SqlParameter("@StartTime", SqlDbType.BigInt) {Value = startTime.Ticks},
+                new SqlParameter("@EndTime", SqlDbType.BigInt) {Value = endTime.Ticks},
                 new SqlParameter("@Mode", SqlDbType.Int) {Value = mode},
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
@@ -54,8 +54,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", SqlDbType.Int) {Value = scheduling.Id },
-                new SqlParameter("@StartTime", SqlDbType.DateTime) {Value = scheduling.StartTime},
-                new SqlParameter("@EndTime", SqlDbType.DateTime) {Value = scheduling.EndTime},
+                new SqlParameter("@StartTime", SqlDbType.BigInt) {Value = scheduling.StartTime.Ticks},
+                new SqlParameter("@EndTime", SqlDbType.BigInt) {Value = scheduling.EndTime.Ticks},
                 new SqlParameter("@Mode", SqlDbType.Int) {Value = scheduling.Mode}
             };
 
