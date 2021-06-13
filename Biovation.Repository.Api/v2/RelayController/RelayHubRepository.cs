@@ -67,5 +67,24 @@ namespace Biovation.Repository.Api.v2.RelayController
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
         }
+
+        public async Task<ResultViewModel<PagingResult<RelayHubModel>>> GetRelayHubModels(int id = default, string name = default, int manufactureCode = default, int brandCode = default, int defaultPortNumber = default, int defaultCapacity = default, int pageNumber = 0,
+            int pageSize = 0, int nestingDepthLevel = 4, string token = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/RelayHub/RelayHubModel", Method.GET);
+            restRequest.AddQueryParameter("id", id.ToString());
+            restRequest.AddQueryParameter("name", name ?? string.Empty);
+            restRequest.AddQueryParameter("manufactureCode", manufactureCode.ToString());
+            restRequest.AddQueryParameter("brandCode", brandCode.ToString());
+            restRequest.AddQueryParameter("defaultPortNumber", defaultPortNumber.ToString());
+            restRequest.AddQueryParameter("defaultCapacity", defaultCapacity.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<RelayHubModel>>>(restRequest);
+            return requestResult.Data;
+        }
     }
 }

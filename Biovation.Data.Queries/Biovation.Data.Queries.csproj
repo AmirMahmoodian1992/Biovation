@@ -97,6 +97,7 @@
     <None Remove="Scripts\01.Tables\0084-Create EntranceDevice-UP.sql" />
     <None Remove="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />
     <None Remove="Scripts\01.Tables\0086-Create RelayScheduling-UP.sql" />
+    <None Remove="Scripts\01.Tables\0087-Create RelayDevice-UP.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -437,6 +438,7 @@
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0084-Create EntranceDevice-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0087-Create RelayDevice-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0086-Create RelayScheduling-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0083-Create Scheduling-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0082-Create RelayHub-UP.sql" />

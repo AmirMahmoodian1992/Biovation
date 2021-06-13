@@ -15,6 +15,8 @@ namespace Biovation.Domain.RelayControllerModels
         public Entrance Entrance { get; set; }
         [OneToMany]
         public List<Scheduling> Schedulings { get; set; }
+        [OneToMany]
+        public List<DeviceBasicInfo> Devices { get; set; }
         public string Description { get; set; }
     }
 }

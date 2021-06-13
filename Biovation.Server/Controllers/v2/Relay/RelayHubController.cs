@@ -58,5 +58,16 @@ namespace Biovation.Server.Controllers.v2.Relay
             return Task.Run(async () => await _relayHubService.DeleteRelayHub(id, token));
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("RelayHubModel")]
+        public Task<ResultViewModel<PagingResult<RelayHubModel>>> RelayHubModels(int id = default, string name = default, int manufactureCode = default, int brandCode = default, int defaultPortNumber = default, int defaultCapacity = default, bool loadedBrandsOnly = true, int pageNumber = 0,
+            int pageSize = 0, int nestingDepthLevel = 4)
+        {
+            return Task.Run(() => _relayHubService.GetRelayHubModels(id, name, manufactureCode, brandCode, defaultPortNumber, defaultCapacity, pageNumber, pageSize
+            , nestingDepthLevel));
+
+        }
+
     }
 }

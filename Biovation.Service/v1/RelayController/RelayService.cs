@@ -15,11 +15,11 @@ namespace Biovation.Service.Sql.v1.RelayController
         }
 
         public Task<ResultViewModel<PagingResult<Relay>>> GetRelay(int adminUserId = 0, int id = 0,
-            string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null, int schedulingId = default,
+            string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null, int schedulingId = default, int deviceId = default,
             int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             return Task.Run(() => _relayRepository.GetRelay(adminUserId, id, name, nodeNumber, relayHubId, entranceId,
-                description, schedulingId, pageNumber, pageSize, nestingDepthLevel));
+                description, schedulingId, deviceId, pageNumber, pageSize, nestingDepthLevel));
         }
 
     }

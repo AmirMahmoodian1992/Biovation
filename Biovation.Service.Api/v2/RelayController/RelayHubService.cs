@@ -27,6 +27,13 @@ namespace Biovation.Service.Api.v2.RelayController
                 description, pageNumber, pageSize, nestingDepthLevel, token);
         }
 
+        public async Task<ResultViewModel<PagingResult<RelayHubModel>>> GetRelayHubModels(int id = default, string name = default, int manufactureCode = default, int brandCode = default, int defaultPortNumber = default, int defaultCapacity = default, int pageNumber = 0,
+            int pageSize = 0, int nestingDepthLevel = 4)
+        {
+            return await _relayHubRepository.GetRelayHubModels(id, name, manufactureCode, brandCode, defaultPortNumber, defaultCapacity, pageNumber, pageSize
+                , nestingDepthLevel);
+        }
+
         public async Task<ResultViewModel> UpdateRelayHub(RelayHub relayHub, string token = default)
         {
             return await _relayHubRepository.UpdateRelayHub(relayHub, token);

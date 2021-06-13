@@ -20,7 +20,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
         }
 
         public ResultViewModel<PagingResult<Relay>> GetRelay(int adminUserId = 0, int id = 0,
-           string name = null, int nodeNumber = 0, int relayHubId =0, int entranceId = 0, string description = null, int schedulingId = default,
+           string name = null, int nodeNumber = 0, int relayHubId =0, int entranceId = 0, string description = null, int schedulingId = default, int deviceId = default,
            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var sqlParameter = new List<SqlParameter>
@@ -32,6 +32,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@entranceId", SqlDbType.Int) {Value = entranceId},
                 new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relayHubId},
                 new SqlParameter("@schedulingId", SqlDbType.Int) {Value = schedulingId},
+                new SqlParameter("@deviceId", SqlDbType.Int) {Value = deviceId},
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
             };
@@ -48,7 +49,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@entranceId", SqlDbType.Int) {Value = relay.Entrance.Id},
                 new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relay.RelayHub.Id},
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description},
-                new SqlParameter("@SchedulingsJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) }
+                new SqlParameter("@SchedulingsJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) },
+                new SqlParameter("@DevicesJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(relay.Devices) }
             };
 
             return _repository.ToResultList<ResultViewModel>("CreateRelay", sqlParameter).Data.FirstOrDefault();
@@ -64,7 +66,8 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@entranceId", SqlDbType.Int) {Value = relay.Entrance.Id},
                 new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relay.RelayHub.Id},
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description},
-                new SqlParameter("@SchedulingsJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) }
+                new SqlParameter("@SchedulingsJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) },
+                new SqlParameter("@DevicesJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(relay.Devices) },
             };
 
             return _repository.ToResultList<ResultViewModel>("UpdateRelay", sqlParameter).Data.FirstOrDefault();
