@@ -43,22 +43,35 @@ namespace Biovation.Brands.PFK
             _pfkLogger.LogArose += OnLogHappened;
         }
 
-        //public static Dictionary<uint, Device> GetOnlineDevices()
-        //{
-        //    lock (_onlineDevices)
-        //    {
-        //        return _onlineDevices;
-        //    }
-        //}
-
         public void StartServer()
         {
+
+
             Logger.Log("Service started.");
             //CheckExit();
             foreach (var device in _cameras)
             {
                 ConnectToDevice(device);
                 //CheckConnectionStatus(device);
+            }
+        }
+
+        public void StopServer()
+        {
+            lock (_onlineCameras)
+            {
+                foreach (var onlineCamera in _onlineCameras)
+                {
+                    onlineCamera.Value.Disconnect();
+                }
+            }
+        }
+
+        public Dictionary<uint, Camera> GetOnlineDevices()
+        {
+            lock (_onlineCameras)
+            {
+                return _onlineCameras;
             }
         }
 
@@ -125,13 +138,7 @@ namespace Biovation.Brands.PFK
 [ Log DateTime ] = {log.DateTime}
 [ Log Comment ] = {log.Comment}
 [ Log Item ] = {log.Item}
-", string.Empty,
-                log.Type switch
-                {
-                    PFKParkingLibrary.Data.LogType.Errore => LogType.Error,
-                    PFKParkingLibrary.Data.LogType.Warning => CommonClasses.LogType.Warning,
-                    _ => CommonClasses.LogType.Information
-                });
+", string.Empty, log.Type == PFKParkingLibrary.Data.LogType.Errore ? LogType.Error : log.Type == PFKParkingLibrary.Data.LogType.Warning ? LogType.Warning : LogType.Information);
         }
     }
 }

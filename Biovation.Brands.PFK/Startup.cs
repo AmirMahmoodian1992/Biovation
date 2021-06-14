@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using App.Metrics;
-using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.PFK.HostedServices;
 using Biovation.Brands.PFK.Middleware;
 using Biovation.CommonClasses;
@@ -8,9 +6,6 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,11 +14,43 @@ using RestSharp;
 using Serilog;
 using System.Reflection;
 using Biovation.Brands.PFK.Devices;
+using Biovation.Brands.PFK.Managers;
+using System.Web.Mvc;
+#if NET472
+using System;
+    using Owin;
+    using System.Web.Http;
+#elif NETCORE31
+    using App.Metrics;
+    using App.Metrics.Extensions.Configuration;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Mvc;
+#endif
+
 
 namespace Biovation.Brands.PFK
 {
     public class Startup
     {
+#if NET472
+
+        public void Configuration(IAppBuilder appBuilder)
+        {
+            // Configure Web API for self-host. 
+            HttpConfiguration config = new HttpConfiguration();
+            config.Routes.MapHttpRoute(
+                name: "DefaultApi",
+                routeTemplate: "api/{controller}/{id}",
+                defaults: new { id = RouteParameter.Optional }
+            );
+
+            appBuilder.UseWebApi(config);
+        }
+#endif
+
+#if NETCORE31
+
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
@@ -65,7 +92,7 @@ namespace Biovation.Brands.PFK
 
             services.AddHealthChecks();
 
-            services.AddSingleton(BiovationConfiguration);
+        services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
 
             ConfigureRepositoriesServices(services);
@@ -236,5 +263,7 @@ namespace Biovation.Brands.PFK
                 endpoints.MapControllers();
             });
         }
+#endif
+
     }
 }

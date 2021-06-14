@@ -11,8 +11,8 @@ namespace Biovation.Brands.PFK.Managers
         public static Config SetConfiguration(this Config config, DeviceBasicInfo cameraInfo)
         {
             var cameraAddress = cameraInfo.IpAddress.Split('@').LastOrDefault();
-            var cameraConnectionUserName = cameraInfo.IpAddress.Split('@').FirstOrDefault()?.Split("//").LastOrDefault()?.Split(':').FirstOrDefault();
-            var cameraConnectionPassword = cameraInfo.IpAddress.Split('@').FirstOrDefault()?.Split("//").LastOrDefault()?.Split(':').LastOrDefault();
+            var cameraConnectionUserName = cameraInfo.IpAddress.Split('@').FirstOrDefault()?.Split('/').LastOrDefault()?.Split(':').FirstOrDefault();
+            var cameraConnectionPassword = cameraInfo.IpAddress.Split('@').FirstOrDefault()?.Split('/').LastOrDefault()?.Split(':').LastOrDefault();
 
             config.BoardConfig = new BoardConfig
             {

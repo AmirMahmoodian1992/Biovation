@@ -1,10 +1,13 @@
-using App.Metrics;
-using App.Metrics.AspNetCore;
-using App.Metrics.Formatters.Json;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using Serilog;
 using System;
+
+#if NET472
+using Microsoft.Owin.Hosting;
+#elif NETCORE31
+    using App.Metrics;
+    using App.Metrics.AspNetCore;
+    using App.Metrics.Formatters.Json;
+    using Microsoft.AspNetCore.Hosting;
+#endif
 
 namespace Biovation.Brands.PFK
 {
@@ -12,8 +15,23 @@ namespace Biovation.Brands.PFK
     {
         public static void Main(string[] args)
         {
+#if NET472
+
+            string baseAddress = "http://localhost:9000/";
+
+            // Start OWIN host 
+            using (WebApp.Start<Startup>(url: baseAddress))
+            {
+                Console.WriteLine($"Host started on {baseAddress}");
+                Console.ReadLine();
+            }
+
+#elif NETCORE31
             CreateHostBuilder(args).Build().Run();
+#endif
         }
+
+#if NETCORE31
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
@@ -35,5 +53,6 @@ namespace Biovation.Brands.PFK
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+#endif
     }
 }

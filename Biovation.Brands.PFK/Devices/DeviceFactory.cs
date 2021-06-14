@@ -1,15 +1,24 @@
 ﻿using System.Collections.Generic;
+using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
+using RestSharp;
 
 namespace Biovation.Brands.PFK.Devices
 {
     public class DeviceFactory
     {
+        private readonly LogEvents _logEvents;
         private readonly Dictionary<uint, Camera> _connectedCameras;
+        private readonly PlateDetectionService _plateDetectionService;
+        private readonly RestClient _logExternalSubmissionRestClient;
 
-        public DeviceFactory(Dictionary<uint, Camera> connectedCameras)
+        public DeviceFactory(Dictionary<uint, Camera> connectedCameras, LogEvents logEvents, PlateDetectionService plateDetectionService, RestClient logExternalSubmissionRestClient)
         {
+            _logEvents = logEvents;
             _connectedCameras = connectedCameras;
+            _plateDetectionService = plateDetectionService;
+            _logExternalSubmissionRestClient = logExternalSubmissionRestClient;
         }
 
         /// <summary>
@@ -29,7 +38,7 @@ namespace Biovation.Brands.PFK.Devices
 
                 default:
 
-                    return new Camera(cameraInfo, _connectedCameras);
+                    return new Camera(cameraInfo, _connectedCameras,_logExternalSubmissionRestClient, _plateDetectionService, _logEvents);
             }
         }
     }
