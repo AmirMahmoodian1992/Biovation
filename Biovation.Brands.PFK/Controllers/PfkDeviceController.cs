@@ -9,6 +9,7 @@ using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.PFK.Controllers
 {
+    [Route("Biovation/Api/[controller]/[action]")]
     public class PfkDeviceController : ApiController
     {
         private readonly PfkServer _pfkServer;
@@ -21,6 +22,7 @@ namespace Biovation.Brands.PFK.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public List<DeviceBasicInfo> GetOnlineDevices()
         {
             var onlineDevices = new List<DeviceBasicInfo>();

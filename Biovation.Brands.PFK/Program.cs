@@ -17,10 +17,10 @@ namespace Biovation.Brands.PFK
         {
 #if NET472
 
-            string baseAddress = "http://localhost:9000/";
+            var baseAddress = "http://localhost:9000/";
 
             // Start OWIN host 
-            using (WebApp.Start<Startup>(url: baseAddress))
+            using (WebApp.Start<Startup>(baseAddress))
             {
                 Console.WriteLine($"Host started on {baseAddress}");
                 Console.ReadLine();

@@ -1,51 +1,84 @@
 using System.Collections.Generic;
-using Biovation.Brands.PFK.HostedServices;
-using Biovation.Brands.PFK.Middleware;
-using Biovation.CommonClasses;
+using System.Linq;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using RestSharp;
-using Serilog;
-using System.Reflection;
 using Biovation.Brands.PFK.Devices;
 using Biovation.Brands.PFK.Managers;
 using System.Web.Mvc;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using RimDev.AspNet.Diagnostics.HealthChecks;
 #if NET472
 using System;
-    using Owin;
-    using System.Web.Http;
-#elif NETCORE31
-    using App.Metrics;
-    using App.Metrics.Extensions.Configuration;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
-#endif
+using Owin;
+using System.Web.Http;
 
+#elif NETCORE31
+using App.Metrics;
+using App.Metrics.Extensions.Configuration;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+#endif
 
 namespace Biovation.Brands.PFK
 {
     public class Startup
     {
-#if NET472
+        public IConfiguration ApplicationConfiguration { get; set; }
+        public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        public readonly Dictionary<uint, Camera> OnlineDevices = new Dictionary<uint, Camera>();
 
+#if NET472
         public void Configuration(IAppBuilder appBuilder)
         {
             // Configure Web API for self-host. 
-            HttpConfiguration config = new HttpConfiguration();
+            var config = new HttpConfiguration();
             config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
+                "DefaultApi",
+                "biovation/api/{controller}/{action}/{id}",
+                new { id = RouteParameter.Optional }
             );
+            
+            appBuilder.UseHealthChecks("/health", new List<IHealthCheck>());
 
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.development.json", true, true);
+
+            ApplicationConfiguration = builder.Build();
+            BiovationConfiguration = new BiovationConfigurationManager(ApplicationConfiguration);
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+
+            var resolver = new DefaultDependencyResolver(services.BuildServiceProvider());
+            config.DependencyResolver = resolver;
+            DependencyResolver.SetResolver(resolver);
             appBuilder.UseWebApi(config);
+        }
+
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddHealthChecks();
+
+            services.AddSingleton(BiovationConfiguration);
+            services.AddSingleton(BiovationConfiguration.Configuration);
+
+            ConfigureRepositoriesServices(services);
+            ConfigureConstantValues(services);
+
+            services.AddControllersAsServices(typeof(Startup).Assembly.GetExportedTypes()
+                .Where(t => !t.IsAbstract && !t.IsGenericTypeDefinition)
+                .Where(t => typeof(IController).IsAssignableFrom(t)
+                            || t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase)));
+
+            ConfigurePfkServices(services);
         }
 #endif
 
@@ -103,6 +136,35 @@ namespace Biovation.Brands.PFK
             services.AddHostedService<BroadcastMetricsHostedService>();
         }
 
+        
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            //app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+            app.UseMiddleware<JwtMiddleware>();
+
+            loggerFactory.AddSerilog();
+            app.UseSerilogRequestLogging();
+
+            app.UseHealthChecks("/biovation/api/health");
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+        }
+#endif
+
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
@@ -113,10 +175,12 @@ namespace Biovation.Brands.PFK
             services.AddSingleton<BlackListService, BlackListService>();
             services.AddSingleton<DeviceGroupService, DeviceGroupService>();
             services.AddSingleton<DeviceService, DeviceService>();
+            services.AddSingleton<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
             services.AddSingleton<FaceTemplateService, FaceTemplateService>();
             services.AddSingleton<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<PlateDetectionService, PlateDetectionService>();
+            services.AddSingleton<Service.Api.v2.PlateDetectionService, Service.Api.v2.PlateDetectionService>();
             services.AddSingleton<LogService, LogService>();
             services.AddSingleton<LookupService, LookupService>();
             services.AddSingleton<SettingService, SettingService>();
@@ -237,33 +301,5 @@ namespace Biovation.Brands.PFK
 
             pfkServer.StartServer();
         }
-
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
-        {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            //app.UseHttpsRedirection();
-
-            app.UseRouting();
-
-            app.UseAuthorization();
-            app.UseMiddleware<JwtMiddleware>();
-
-            loggerFactory.AddSerilog();
-            app.UseSerilogRequestLogging();
-
-            app.UseHealthChecks("/biovation/api/health");
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-        }
-#endif
-
     }
 }

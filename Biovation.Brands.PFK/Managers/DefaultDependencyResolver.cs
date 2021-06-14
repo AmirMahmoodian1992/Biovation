@@ -1,39 +1,49 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Web.Http.Dependencies;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Biovation.Brands.PFK.Managers
 {
-    public class DefaultDependencyResolver : IDependencyResolver
+    public class DefaultDependencyResolver : System.Web.Mvc.IDependencyResolver, IDependencyResolver
     {
         protected IServiceProvider ServiceProvider;
+        protected IServiceScope Scope;
 
         public DefaultDependencyResolver(IServiceProvider serviceProvider)
         {
-            this.ServiceProvider = serviceProvider;
+            ServiceProvider = serviceProvider;
+        }
+
+        public DefaultDependencyResolver(IServiceScope scope)
+        {
+            Scope = scope;
+            ServiceProvider = scope.ServiceProvider;
         }
 
         public object GetService(Type serviceType)
         {
-            return this.ServiceProvider.GetService(serviceType);
+            return ServiceProvider.GetService(serviceType);
         }
 
         public IEnumerable<object> GetServices(Type serviceType)
         {
-            return this.ServiceProvider.GetServices(serviceType);
+            return ServiceProvider.GetServices(serviceType);
         }
 
         public IDependencyScope BeginScope()
         {
-            throw new NotImplementedException();
+            return new DefaultDependencyResolver(ServiceProvider.CreateScope());
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            Scope?.Dispose();
         }
     }
 }
