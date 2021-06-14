@@ -1,3 +1,4 @@
+using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.EOS.Commands;
@@ -22,12 +23,17 @@ using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Biovation.Domain;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.EOS
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        private readonly IHostEnvironment _environment;
         public IConfiguration Configuration { get; }
 
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
@@ -35,6 +41,7 @@ namespace Biovation.Brands.EOS
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
 
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -75,7 +82,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton(BiovationConfiguration.Configuration);
 
             ConfigureRepositoriesServices(services);
-            ConfigureConstantValues(services);
+            ConfigureConstantValues(services).GetAwaiter().GetResult();
             ConfigureEosServices(services);
 
             services.AddHostedService<PingCollectorHostedService>();
@@ -85,6 +92,44 @@ namespace Biovation.Brands.EOS
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
+            if (!_environment.IsDevelopment())
+            {
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
+                {
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
+                    {
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
+                        {
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
+                    }
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+
+
+                #endregion 
+            }
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -103,6 +148,8 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
+
+            services.AddSingleton<Service.Api.v1.TaskService, Service.Api.v1.TaskService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -125,7 +172,7 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
         }
 
-        public void ConfigureConstantValues(IServiceCollection services)
+        public async Task ConfigureConstantValues(IServiceCollection services)
         {
             var serviceCollection = new ServiceCollection();
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
@@ -162,19 +209,21 @@ namespace Biovation.Brands.EOS
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
+            await Task.WhenAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery);
+
             var lookups = new Lookups
             {
-                TaskStatuses = taskStatusesQuery?.Data?.Data,
-                TaskTypes = taskTypesQuery?.Data?.Data,
-                TaskItemTypes = taskItemTypesQuery?.Data?.Data,
-                TaskPriorities = taskPrioritiesQuery?.Data?.Data,
-                FingerIndexNames = fingerIndexNamesQuery?.Data?.Data,
-                DeviceBrands = deviceBrandsQuery?.Data?.Data,
-                LogSubEvents = logSubEventsQuery?.Data?.Data,
-                FingerTemplateType = fingerTemplateTypeQuery?.Data?.Data,
-                FaceTemplateType = faceTemplateTypeQuery?.Data?.Data,
-                LogEvents = logEventsQuery?.Data?.Data,
-                MatchingTypes = matchingTypeQuery?.Data?.Data
+                TaskStatuses = (await taskStatusesQuery)?.Data?.Data,
+                TaskTypes = (await taskTypesQuery)?.Data?.Data,
+                TaskItemTypes = (await taskItemTypesQuery)?.Data?.Data,
+                TaskPriorities = (await taskPrioritiesQuery)?.Data?.Data,
+                FingerIndexNames = (await fingerIndexNamesQuery)?.Data?.Data,
+                DeviceBrands = (await deviceBrandsQuery)?.Data?.Data,
+                LogSubEvents = (await logSubEventsQuery)?.Data?.Data,
+                FingerTemplateType = (await fingerTemplateTypeQuery)?.Data?.Data,
+                FaceTemplateType = (await faceTemplateTypeQuery)?.Data?.Data,
+                LogEvents = (await logEventsQuery)?.Data?.Data,
+                MatchingTypes = (await matchingTypeQuery)?.Data?.Data
             };
 
             var genericCodeMappings = new GenericCodeMappings
@@ -214,10 +263,13 @@ namespace Biovation.Brands.EOS
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<EosServer, EosServer>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var eosServer = serviceProvider.GetService<EosServer>();
+            services.AddHostedService<EosHostedService>();
+            services.AddHostedService<TaskManagerHostedService>();
 
-            eosServer.StartServer();
+            //var serviceProvider = services.BuildServiceProvider();
+            //var eosServer = serviceProvider.GetService<EosServer>();
+
+            //eosServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

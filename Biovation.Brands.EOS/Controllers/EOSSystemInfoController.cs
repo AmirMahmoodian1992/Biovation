@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Biovation.Brands.EOS.Controllers
 {
     [ApiController]
-    [Route("Biovation/Api/[controller]")]
+    [Route("Biovation/Api/[controller]/[action]")]
     public class EosSystemInfoController : ControllerBase
     {
         [HttpGet]
@@ -14,10 +15,16 @@ namespace Biovation.Brands.EOS.Controllers
         {
             var brandInfo = new ServiceInfo();
             var result = new ResultViewModel<ServiceInfo>();
-            brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name.Split('.').LastOrDefault();
-            brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            brandInfo.Name = Assembly.GetExecutingAssembly().GetName().Name?.Split('.').LastOrDefault();
+            brandInfo.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
             result.Data = brandInfo;
             return result;
+        }
+
+        [HttpGet]
+        public void StopService()
+        {
+            Environment.Exit(0);
         }
     }
 }

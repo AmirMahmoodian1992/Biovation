@@ -1,15 +1,15 @@
 ﻿using Biovation.Brands.PW.Devices;
 using Biovation.CommonClasses;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
+using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v1;
-using RestSharp;
 
 namespace Biovation.Brands.PW
 {
@@ -21,7 +21,7 @@ namespace Biovation.Brands.PW
 
         private readonly RestClient _restClient;
         //private readonly UserService _userService = new UserService();
-        protected CancellationTokenSource Token;
+        protected CancellationToken CancellationToken;
         //public xLink.xLinkClass pwSdkClass;
 
         private readonly LogEvents _logEvents;
@@ -35,12 +35,12 @@ namespace Biovation.Brands.PW
             _logEvents = logEvents;
             _deviceFactory = deviceFactory;
             _pwDevices = commonDeviceService.GetDevices(brandId: DeviceBrands.ProcessingWorldCode)?.Where(x => x.Active).ToList();
-            Token = new CancellationTokenSource();
         }
 
-        public void StartServer()
+        public void StartServer(CancellationToken cancellationToken)
         {
             Logger.Log("Service started.");
+            CancellationToken = cancellationToken;
 
             Task.Run(() =>
             {
@@ -63,7 +63,7 @@ namespace Biovation.Brands.PW
                 //}
 
                 //Logger.Log("Reading log of devices function is canceled.");
-            }, Token.Token);
+            }, CancellationToken);
 
             //Task.Run(() =>
             //{
@@ -171,7 +171,7 @@ namespace Biovation.Brands.PW
                 if (!deviceInfo.Active) return;
 
                 var device = _deviceFactory.Factory(deviceInfo);
-                var connectResult = device.Connect();
+                var connectResult = device.Connect(CancellationToken);
                 if (!connectResult) return;
 
                 lock (_onlineDevices)
@@ -210,7 +210,7 @@ namespace Biovation.Brands.PW
                 }
                 //});
 
-            }, Token.Token);
+            }, CancellationToken);
         }
         public async void DisconnectFromDevice(DeviceBasicInfo deviceInfo)
         {
@@ -249,7 +249,7 @@ namespace Biovation.Brands.PW
                 {
                     //ignore
                 }
-            }, Token.Token);
+            }, CancellationToken);
         }
 
         public void StopServer()
@@ -260,15 +260,6 @@ namespace Biovation.Brands.PW
                 {
                     onlineDevice.Value.Disconnect();
                 }
-            }
-
-            try
-            {
-                Token.Cancel(false);
-            }
-            catch (Exception)
-            {
-                //ignore
             }
         }
 

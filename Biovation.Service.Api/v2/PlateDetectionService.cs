@@ -1,6 +1,7 @@
-﻿using System;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -13,32 +14,30 @@ namespace Biovation.Service.Api.v2
             _plateDetectionRepository = plateDetectionRepository;
         }
 
-        public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId)
+        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
         {
-            return _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
+            return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
         }
 
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default,
+        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
             int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
+            return await _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 
-        public ResultViewModel AddLicensePlate(LicensePlate licensePlate, string token = default)
+        public async Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
-            return _plateDetectionRepository.AddLicensePlate(licensePlate, token);
+            return await _plateDetectionRepository.AddLicensePlate(licensePlate, token);
         }
 
-        public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, string token = default)
+        public async Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
-            return _plateDetectionRepository.AddPlateDetectionLog(log, token);
+            return await _plateDetectionRepository.AddPlateDetectionLog(log, token);
         }
-
-
     }
 }

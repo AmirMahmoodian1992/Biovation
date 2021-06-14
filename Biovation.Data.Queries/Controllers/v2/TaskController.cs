@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
+using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -28,21 +28,9 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         /*[Route("GetTasks")]*/
         [Authorize]
-        public ResultViewModel<PagingResult<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
         {
-
-            var tasksResult = _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes,taskItemId);
-
-            var result = new PagingResult<TaskInfo>
-            {
-                Data = tasksResult,
-                Count = tasksResult.Count
-            };
-
-            return new ResultViewModel<PagingResult<TaskInfo>>
-            {
-                Data = result
-            };
+            return await _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes, taskItemId, pageNumber, pageSize);
         }
     }
 }

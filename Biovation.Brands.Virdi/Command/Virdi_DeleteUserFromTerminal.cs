@@ -24,14 +24,14 @@ namespace Biovation.Brands.Virdi.Command
 
         private int TaskItemId { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
         private readonly LogService _logService;
 
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
 
-        public VirdiDeleteUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, TaskService taskService, LogService logService, DeviceService deviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public VirdiDeleteUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, LogService logService, DeviceService deviceService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             DeviceId = Convert.ToInt32(items[0]);
 
@@ -43,7 +43,7 @@ namespace Biovation.Brands.Virdi.Command
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
             OnlineDevices = virdiServer.GetOnlineDevices();
 
-            _callbacks = callbacks; 
+            _virdiServer = virdiServer;
             _logService = logService;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
@@ -59,11 +59,11 @@ namespace Biovation.Brands.Virdi.Command
 
             try
             {
-                _callbacks.TerminalUserData.DeleteUserFromTerminal(TaskItemId, (int)Code, UserId);
+                _virdiServer.TerminalUserData.DeleteUserFromTerminal(TaskItemId, (int)Code, UserId);
 
                 Logger.Log("-->Delete user from terminal");
 
-                if (_callbacks.TerminalUserData.ErrorCode == 0)
+                if (_virdiServer.TerminalUserData.ErrorCode == 0)
                 {
                     Logger.Log($"  +User {UserId} successfully deleted from device: {Code}.\n");
 
@@ -84,14 +84,14 @@ namespace Biovation.Brands.Virdi.Command
                     return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfully deleted from device: {Code}.\n", Validate = 1 };
                 }
 
-                Logger.Log($"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n");
+                Logger.Log($"  +Cannot delete user {UserId} from device: {Code}. Error code = {_virdiServer.TerminalUserData.ErrorCode}\n");
 
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_virdiServer.TerminalUserData.ErrorCode}\n", Validate = 0 };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot delete user {UserId} from device: {Code}. Error code = {_virdiServer.TerminalUserData.ErrorCode}\n", Validate = 0 };
             }
         }
 

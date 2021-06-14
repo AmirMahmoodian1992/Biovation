@@ -12,44 +12,57 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Logger = Biovation.CommonClasses.Logger;
+using Timer = System.Timers.Timer;
 
 namespace Biovation.Brands.EOS.Devices
 {
-    public class HanvonBase : Device
+    public class HanvonBase : Device, IDisposable
     {
         private readonly StFace _stFace;
         private readonly DeviceBasicInfo _deviceInfo;
 
         private readonly RestClient _restClient;
         private readonly LogService _logService;
-        private readonly TaskManager _taskManager;
+        private readonly TaskService _taskService;
+        private readonly DeviceBrands _deviceBrands;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        private int _counter;
+        private System.Threading.Timer _fixDaylightSavingTimer;
 
+        private readonly Dictionary<uint, Timer> _readOnlineLogTimer = new Dictionary<uint, Timer>();
+        private readonly Dictionary<uint, DateTime> _lastReceivedLog = new Dictionary<uint, DateTime>();//it saves last log datetime even device is disconnect so its not a disposable object
+        private readonly Dictionary<uint, int> _zeroLog = new Dictionary<uint, int>();// Saves how many times device sends zero log consecutive
+        private const int ZeroLogRestart = 4000; //After ZeroLogRestart times that device sends zero log we have to restart it
         //private readonly EosCodeMappings EosCodeMappings;
         //private readonly DateTime _startDateTimeThreshold;
         //private readonly DateTime _endDateTimeThreshold;
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents,
             LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
-            TaskManager taskManager, RestClient restClient, Dictionary<uint, Device> onlineDevices) : base(deviceInfo,
+            RestClient restClient, Dictionary<uint, Device> onlineDevices, TaskService taskService, DeviceBrands deviceBrands) : base(deviceInfo,
             logEvents, logSubEvents, eosCodeMappings)
         {
             _restClient = restClient;
             _logService = logService;
             _deviceInfo = deviceInfo;
-            _taskManager = taskManager;
             _onlineDevices = onlineDevices;
+            _taskService = taskService;
+            _deviceBrands = deviceBrands;
             _faceTemplateTypes = faceTemplateTypes;
             _stFace = new StFace(new TCPIPConnection
             {
-                IP = _deviceInfo.IpAddress, Port = _deviceInfo.Port, ReadTimeout = 100, WriteTimeout = 100,
-                WaitBeforeRead = 100, ReadInCompleteTimeOut = 10, RetryCount = 1
+                IP = _deviceInfo.IpAddress,
+                Port = _deviceInfo.Port,
+                ReadTimeout = 100,
+                WriteTimeout = 100,
+                WaitBeforeRead = 100,
+                ReadInCompleteTimeOut = 10,
+                RetryCount = 1
             });
+
+            Valid = true;
         }
 
         public override bool Connect()
@@ -87,41 +100,59 @@ namespace Biovation.Brands.EOS.Devices
                     }
                 }
             }
-
+            Valid = true;
             var isConnect = IsConnected();
             if (!isConnect) return false;
 
-            try
-            {
-                if (_deviceInfo.TimeSync)
-                    lock (_stFace)
-                    {
-                        _stFace.SetDateTime(DateTime.Now);
-                    }
-            }
-            catch (Exception)
-            {
-                Thread.Sleep(500);
-                try
-                {
-                    if (_deviceInfo.TimeSync)
-                        lock (_stFace)
-                        {
-                            _stFace.SetDateTime(DateTime.Now);
-                        }
-                }
-                catch (Exception innerException)
-                {
-                    Logger.Log(innerException);
-                }
-            }
+            var setDateTimeResult = SetDateTime();
+            if (!setDateTimeResult)
+                Logger.Log($"Could not set the time of device {_deviceInfo.Code}");
 
             TimeZone(); //It should be called for the Format DateTime Func. (Knows work with Georgian or persian calender)
 
-            _taskManager.ProcessQueue(_deviceInfo.DeviceId);
-            Valid = true;
+            try
+            {
+                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
+                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
+                var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
+                _fixDaylightSavingTimer = new System.Threading.Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
+            }
 
-            Task.Run(() => { ReadOnlineLog(Token); }, Token);
+            _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
+            if (!_onlineDevices.ContainsKey(_deviceInfo.Code))
+            {
+                _onlineDevices.Add(_deviceInfo.Code, this);
+            }
+
+            if (!_zeroLog.ContainsKey(_deviceInfo.Code))
+            {
+                _zeroLog.Add(_deviceInfo.Code, 0);
+            }
+            else
+            {
+                _zeroLog[_deviceInfo.Code] = 0;
+            }
+
+            if (!_lastReceivedLog.ContainsKey(_deviceInfo.Code))
+            {
+                _lastReceivedLog.Add(_deviceInfo.Code, new DateTime(2017, 1, 1));
+            }
+            if (!_readOnlineLogTimer.ContainsKey(_deviceInfo.Code))
+                SetTimer(_deviceInfo.Code);
+            else
+            {
+                _readOnlineLogTimer[_deviceInfo.Code]?.Stop();
+                _readOnlineLogTimer[_deviceInfo.Code]?.Start();
+                _readOnlineLogTimer[_deviceInfo.Code].Enabled = false;
+                _readOnlineLogTimer[_deviceInfo.Code].Enabled = true;
+
+            }
+
+            //Task.Run(() => { ReadOnlineLog(Token); }, Token).ConfigureAwait(false);
             return true;
         }
 
@@ -157,7 +188,7 @@ namespace Biovation.Brands.EOS.Devices
 
                 }
 
-                while (true)
+                while (Valid)
                 {
                     Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
 
@@ -192,6 +223,35 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             return false;
+        }
+
+        public bool SetDateTime()
+        {
+            if (!_deviceInfo.TimeSync)
+                return true;
+
+            for (var i = 0; i < 5; i++)
+            {
+                try
+                {
+                    lock (_stFace)
+                        _stFace.SetDateTime(DateTime.Now);
+
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    Thread.Sleep(++i * 200);
+                }
+            }
+
+            return false;
+        }
+
+        private void FixDaylightSavingTimer_Elapsed(object state)
+        {
+            SetDateTime();
         }
 
         internal override User GetUser(uint userId)
@@ -273,6 +333,24 @@ namespace Biovation.Brands.EOS.Devices
                 _stFace?.Disconnect();
                 _stFace?.Dispose();
             }
+
+            try
+            {
+                if (_zeroLog.ContainsKey(_deviceInfo.Code))
+                {
+                    _zeroLog.Remove(_deviceInfo.Code);
+                }
+                //if (_readOnlineLogTimer.ContainsKey(_deviceInfo.Code))
+                //{
+                //    _readOnlineLogTimer[_deviceInfo.Code].Dispose();
+                //    _readOnlineLogTimer.Remove(_deviceInfo.Code);
+                //}
+            }
+            catch (Exception e)
+            {
+                Logger.Log($@"The timer of device {_deviceInfo.Code} can't stop: " + e);
+            }
+
 
             Valid = false;
             return true;
@@ -527,7 +605,6 @@ namespace Biovation.Brands.EOS.Devices
 
         public virtual ResultViewModel ReadOnlineLog(object token)
         {
-            Thread.Sleep(1000);
 
             try
             {
@@ -542,174 +619,60 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_stFace)
                     deviceConnected = _stFace.Connected;
 
-                while (deviceConnected && Valid)
+                if (deviceConnected && Valid && _onlineDevices.ContainsKey(_deviceInfo.Code))
                 {
                     try
                     {
-                        bool empty;
-                        lock (_stFace)
-                            empty = _stFace.IsEmpty();
-
-                        while (!empty && Valid)
+                        if (_lastReceivedLog.ContainsKey(_deviceInfo.Code))
                         {
-                            var test = true;
-                            var exceptionTester = false;
-                            while (test && Valid)
+                            var lastLogReceivedDateTime = _lastReceivedLog[_deviceInfo.Code];
+                            var startDateTime = lastLogReceivedDateTime;
+                            var difference = DateTime.Now.Subtract(lastLogReceivedDateTime);
+
+
+                            if (difference < new TimeSpan(0, 0, 2, 0))
                             {
-                                Record record = null;
-
-                                try
-                                {
-                                    while (record == null)
-                                    {
-                                        lock (_stFace)
-                                        {
-                                            record = _stFace.GetRecord();
-                                            Thread.Sleep(500);
-                                            //////Danger: maybe infinite loop
-                                            //TODO: Fix it
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    try
-                                    {
-                                        if (ex is InvalidRecordException ||
-                                            ex is InvalidDataInRecordException)
-                                        {
-                                            var badRecordRawData = ex.Data["RecordRawData"].ToString();
-                                            if (ex is InvalidDataInRecordException)
-                                            {
-                                                Logger.Log("Clock " + _deviceInfo.Code + ": " + "Bad record: " +
-                                                           badRecordRawData);
-                                            }
-
-                                            if (badRecordRawData != "")
-                                            {
-                                                try
-                                                {
-                                                    var year = Convert.ToInt32(badRecordRawData.Substring(24, 2)) +
-                                                               1300;
-                                                    var month = Convert.ToInt32(badRecordRawData.Substring(19, 2));
-                                                    var day = Convert.ToInt32(badRecordRawData.Substring(21, 2));
-                                                    var hour = Convert.ToInt32(badRecordRawData.Substring(15, 2));
-                                                    var minute = Convert.ToInt32(badRecordRawData.Substring(17, 2));
-                                                    var userId = Convert.ToInt32(badRecordRawData.Substring(6, 8));
-
-                                                    var gregorianDateOfRec = new DateTime(year, month, day, hour,
-                                                        minute, 10, new PersianCalendar());
-
-
-                                                    var receivedLog = new Log
-                                                    {
-                                                        LogDateTime = gregorianDateOfRec,
-                                                        UserId = userId,
-                                                        DeviceId = _deviceInfo.DeviceId,
-                                                        DeviceCode = _deviceInfo.Code,
-                                                        //RawData = generatedRecord,
-                                                        EventLog = LogEvents.Authorized,
-                                                        SubEvent = LogSubEvents.Normal,
-                                                        TnaEvent = 0,
-                                                    };
-
-                                                    //var logService = new EOSLogService();
-                                                    _logService.AddLog(receivedLog);
-                                                    test = false;
-                                                    Logger.Log($@"<--
-   +TerminalID:{_deviceInfo.Code}
-   +UserID:{userId}
-   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
-                                                }
-                                                catch (Exception)
-                                                {
-                                                    Logger.Log("Error in parsing bad record.");
-                                                }
-                                            }
-
-                                            if (!(ex is InvalidRecordException))
-                                                _counter++;
-                                            if (_counter == 4)
-                                            {
-                                                test = false;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (ex is InvalidRecordException)
-                                                exceptionTester = true;
-                                            else
-                                                Logger.Log(ex, "Clock " + _deviceInfo.Code);
-                                        }
-                                    }
-                                    catch (Exception exception)
-                                    {
-                                        Logger.Log(exception, "Clock " + _deviceInfo.Code);
-                                    }
-                                }
-
-                                try
-                                {
-                                    if (record != null)
-                                    {
-                                        var receivedLog = new Log
-                                        {
-                                            LogDateTime = record.DateTime,
-                                            UserId = (int)record.ID,
-                                            DeviceId = _deviceInfo.DeviceId,
-                                            DeviceCode = _deviceInfo.Code,
-                                            //SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
-                                            //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
-                                            EventLog = LogEvents.Authorized,
-                                            TnaEvent = 0,
-                                        };
-
-                                        _logService.AddLog(receivedLog);
-                                        test = false;
-                                        Logger.Log($@"<--
-   +TerminalID:{_deviceInfo.Code}
-   +UserID:{receivedLog.UserId}
-   +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
-
-                                        lock (_stFace)
-                                        {
-                                            _stFace.NextRecord();
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (!exceptionTester)
-                                        {
-                                            Logger.Log("Null record.");
-                                        }
-
-                                        break;
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
-                                                   "Error while Inserting Data to Attendance . record: " + record);
-                                }
+                                startDateTime = new DateTime(lastLogReceivedDateTime.Year, lastLogReceivedDateTime.Month, lastLogReceivedDateTime.Day);
+                                startDateTime += new TimeSpan(lastLogReceivedDateTime.Hour, lastLogReceivedDateTime.Minute - 5, 0);
+                            }
+                            else if (difference < new TimeSpan(0, 1, 0, 0))
+                            {
+                                startDateTime = new DateTime(lastLogReceivedDateTime.Year, lastLogReceivedDateTime.Month, lastLogReceivedDateTime.Day);
+                                startDateTime += new TimeSpan(lastLogReceivedDateTime.Hour - 1, lastLogReceivedDateTime.Minute - 30, 0);
+                            }
+                            else if (difference < new TimeSpan(7, 0, 0, 0))
+                            {
+                                startDateTime = new DateTime(lastLogReceivedDateTime.Year, lastLogReceivedDateTime.Month, lastLogReceivedDateTime.Day);
+                                startDateTime += new TimeSpan(-1, 0, 0, 0);
+                            }
+                            else
+                            {
+                                Valid = false;
                             }
 
-                            lock (_stFace)
-                                empty = _stFace.IsEmpty();
+                            var res = ReadOfflineLogInPeriod(null, startDateTime, DateTime.Now);
+                            if (res.Success)
+                            {
+                                _lastReceivedLog[_deviceInfo.Code] = DateTime.Now;
+                            }
+                            Logger.Log(res.Message);
                         }
+                        else
+                        {
+                            Valid = false;
+                        }
+
                     }
                     catch (Exception)
                     {
                         //ignore
                     }
-
-                    lock (_stFace)
-                        deviceConnected = _stFace.Connected;
                 }
 
                 //_stFace?.Disconnect();
                 // _stFace?.Dispose();
                 //Disconnect();
-                if (Valid)
+                if (!Valid)
                     Connect();
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
@@ -719,14 +682,13 @@ namespace Biovation.Brands.EOS.Devices
                 Logger.Log(exception, "Clock " + _deviceInfo.Code);
             }
 
-            Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " +
-                       _deviceInfo.IpAddress);
+            Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
 
-            if (Valid)
+            if (!Valid)
                 Connect();
 
             //EosServer.IsRunning[(uint)_deviceInfo.Code] = false;
-            return new ResultViewModel {Id = _deviceInfo.DeviceId, Validate = 0, Message = "0"};
+            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
         }
 
         public DateTime TimeZone()
@@ -811,15 +773,15 @@ namespace Biovation.Brands.EOS.Devices
             var logs = new List<string>();
             var eosLogs = new List<Log>();
             var invalidTime = false;
-            if (startTime is null || startTime < new DateTime(1921, 3, 21) || startTime > new DateTime(2021, 3, 19))
+            if (startTime is null || startTime < new DateTime(2017, 1, 1) || startTime > DateTime.Now)
             {
-                startTime = new DateTime(1921, 3, 21);
+                startTime = new DateTime(2017, 1, 1);
                 invalidTime = true;
             }
 
-            if (endTime is null || endTime > new DateTime(2021, 3, 19) || endTime < new DateTime(1921, 3, 21))
+            if (endTime is null || endTime > DateTime.Now || endTime < new DateTime(2017, 1, 1))
             {
-                endTime = new DateTime(2021, 3, 19);
+                endTime = DateTime.Now;
                 invalidTime = true;
             }
 
@@ -833,13 +795,14 @@ namespace Biovation.Brands.EOS.Devices
             {
                 var command =
                     $"GetRecord(start_time= \"{_stFace.FormatDateTime((DateTime)startTime)}\" end_time=\"{_stFace.FormatDateTime((DateTime)endTime)}\" )";
+                Logger.Log(command);
                 flag = _stFace.SendCommandAndGetResult(command, out text);
                 //Logger.Log("OutText : " + text);
             }
 
             if (!flag)
                 return new ResultViewModel
-                    {Success = false, Message = "Can't communicate with device with message" + text, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                { Success = false, Message = "Can't communicate with device with message" + text, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             var num = text.IndexOf("time=", 0, StringComparison.Ordinal);
             while (num > 0 && num + "time=".Length < text.Length)
             {
@@ -856,8 +819,41 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (logs.Count <= 0)
-                return new ResultViewModel {Success = false, Message = "Can't communicate with device", Code = Convert.ToInt64(TaskStatuses.FailedCode) };
-            var records = logs.Select(FaceIdRecord.Parse).Cast<Record>().ToList();
+            {
+                if (_zeroLog.ContainsKey(_deviceInfo.Code))
+                {
+                    _zeroLog[_deviceInfo.Code]++;
+                    if (_zeroLog[_deviceInfo.Code] > ZeroLogRestart)
+                    {
+                        Logger.Log($@"Device {_deviceInfo.Code} have to restart");
+                        Valid = false;//for restart
+                        _zeroLog[_deviceInfo.Code] = 0;
+                    }
+                }
+                else
+                {
+                    Valid = false; //for restart
+                }
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Message = logs.Count < 0 ? "Can't communicate with device" + text : "The Log count is zero: " + text,
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode)
+                };
+            }
+
+            if (_zeroLog.ContainsKey(_deviceInfo.Code))
+            {
+                _zeroLog[_deviceInfo.Code] = 0;
+            }
+            else
+            {
+                Valid = false;
+            }
+
+
+            //Logger.Log($@"THe Log Count is {logs.Count} At the time {DateTime.Now}");
+            var records = logs.Select(FaceIdRecord.Parse).ToList();
 
             foreach (var record in records)
             {
@@ -872,7 +868,8 @@ namespace Biovation.Brands.EOS.Devices
                             DeviceId = _deviceInfo.DeviceId,
                             DeviceCode = _deviceInfo.Code,
                             InOutMode = _deviceInfo.DeviceTypeId,
-                            //SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RawData),
+                            SubEvent = LogSubEvents.Normal,
+                            MatchingType = EosCodeMappings.GetMatchingTypeGenericLookup((int)record.FaceIdCheckmethodType),
                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
                             EventLog = LogEvents.Authorized,
                             TnaEvent = 0,
@@ -897,7 +894,87 @@ namespace Biovation.Brands.EOS.Devices
 
             _logService.AddLog(eosLogs);
             return new ResultViewModel
-                {Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                {Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {_deviceInfo.Code}"};
+        }
+
+        public override Dictionary<string, string> GetAdditionalData(int code)
+        {
+            var dictionary = new Dictionary<string, string>();
+            lock (_stFace)
+            {
+                dictionary.Add("Serial", _stFace.GetSerial());
+                dictionary.Add("Model", _stFace.GetModel());
+                dictionary.Add("Capacity", _stFace.GetDeviceCapacity().ToString());
+                dictionary.Add("FirmwareVersion", _stFace.GetFirmwareVersion());
+                dictionary.Add("Datetime", _stFace.GetDateTime().ToString(CultureInfo.InvariantCulture));
+            }
+
+            List<StFaceUserInfo> usersOfDevice;
+            lock (_stFace)
+                usersOfDevice = _stFace.GetUserList();
+            dictionary.Add("UserCount", usersOfDevice.Count.ToString());
+            string text;
+            bool flag;
+            lock (_stFace)
+            {
+                var command =
+                    $"GetManagerID()";
+                flag = _stFace.SendCommandAndGetResult(command, out text);
+            }
+
+            if (flag)
+            {
+                dictionary.Add("Admins", GetBetween(text, "total=", " id="));
+            }
+
+            return dictionary;
+        }
+
+
+        private static string GetBetween(string strSource, string strStart, string strEnd)
+        {
+            try
+            {
+
+                if (strSource.Contains(strStart) && strSource.Contains(strEnd))
+                {
+                    var start = strSource.IndexOf(strStart, 0, StringComparison.Ordinal) + strStart.Length;
+                    var end = strSource.IndexOf(strEnd, start, StringComparison.Ordinal);
+                    if (start >= 0 && strSource.Length > start) return strSource.Substring(start, end - start);
+                }
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+
+            return "";
+        }
+
+        private void SetTimer(uint deviceCode)
+        {
+            _readOnlineLogTimer.Add(deviceCode, new Timer(10000));
+            _readOnlineLogTimer[deviceCode].Elapsed += (sender, e) =>
+            {
+                var timer = sender as Timer;
+                timer?.Stop();
+                ReadOnlineLog(Token);
+                timer?.Start();
+            };
+            _readOnlineLogTimer[deviceCode].Enabled = true;
+            _readOnlineLogTimer[deviceCode].AutoReset = true;
+        }
+        public void Dispose()
+        {
+            try
+            {
+                _stFace?.Dispose();
+                _fixDaylightSavingTimer?.Dispose();
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, exception.Message);
+            }
         }
     }
 }

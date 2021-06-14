@@ -8,6 +8,7 @@ using Biovation.Brands.PW.Middleware;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
@@ -19,14 +20,18 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.PW
 {
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        private readonly IHostEnvironment _environment;
         public IConfiguration Configuration { get; }
 
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
@@ -34,6 +39,7 @@ namespace Biovation.Brands.PW
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
 
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -83,6 +89,43 @@ namespace Biovation.Brands.PW
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            if (!_environment.IsDevelopment())
+            {
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
+                {
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
+                    {
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
+                        {
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
+                    }
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+
+
+                #endregion
+            }
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -209,16 +252,17 @@ namespace Biovation.Brands.PW
             services.AddSingleton<TaskManager, TaskManager>();
             services.AddSingleton<PwCodeMappings, PwCodeMappings>();
 
+            services.AddSingleton<PwServer, PwServer>();
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<CommandFactory, CommandFactory>();
 
-            services.AddSingleton<PwServer, PwServer>();
             services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<PwHostedService>();
 
-            var serviceProvider = services.BuildServiceProvider();
-            var pwServer = serviceProvider.GetService<PwServer>();
+            //var serviceProvider = services.BuildServiceProvider();
+            //var pwServer = serviceProvider.GetService<PwServer>();
 
-            pwServer.StartServer();
+            //pwServer.StartServer();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MoreLinq.Extensions;
 
@@ -27,7 +28,7 @@ namespace Biovation.Brands.Suprema.Manager
             _taskStatuses = taskStatuses;
         }
 
-        public void ExecuteTask(TaskInfo taskInfo)
+        public async Task ExecuteTask(TaskInfo taskInfo)
         {
             foreach (var taskItem in taskInfo.TaskItems)
             {
@@ -347,19 +348,32 @@ namespace Biovation.Brands.Suprema.Manager
 
                 executeTask?.ContinueWith(task =>
                 {
+                    Logger.Log($"Processing of the Task Item (Id:{taskItem.Id}, Type:{taskItem.TaskItemType.Name}) Finished With Result: (Success:{result?.Success}, Code:{ result?.Code}, Message:{result?.Message})");
                     if (result is null) return;
                     taskItem.Result = JsonConvert.SerializeObject(result);
                     taskItem.Status = _taskStatuses.GetTaskStatusByCode(result.Code.ToString());
 
                     _taskService.UpdateTaskStatus(taskItem);
                 });
+
+                if (executeTask is null)
+                    return;
+
+                if (taskItem.IsParallelRestricted)
+                    await executeTask.ConfigureAwait(false);
+
+                executeTask.Dispose();
             }
         }
 
-        public void ProcessQueue(int deviceId = default)
+        public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.SupremaCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode }).Result;
+            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.SupremaCode, deviceId: deviceId,
+                excludedTaskStatusCodes: new List<string>
+                {
+                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                });
 
             lock (_tasks)
             {
@@ -375,31 +389,38 @@ namespace Biovation.Brands.Suprema.Manager
             }
 
 
-            Task.Run(() =>
+            _ = Task.Run(async () =>
             {
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    TaskInfo taskInfo;
-                    lock (_tasks)
+                    try
                     {
-                        if (_tasks.Count <= 0)
+                        TaskInfo taskInfo;
+                        lock (_tasks)
                         {
-                            _processingQueueInProgress = false;
-                            return;
+                            if (_tasks.Count <= 0)
+                            {
+                                _processingQueueInProgress = false;
+                                return;
+                            }
+
+                            taskInfo = _tasks.First();
                         }
 
-                        taskInfo = _tasks.First();
+                        Logger.Log($"The task {taskInfo.Id} execution is started");
+                        await ExecuteTask(taskInfo);
+                        Logger.Log($"The task {taskInfo.Id} is executed");
+
+                        lock (_tasks)
+                            if (_tasks.Any(task => task.Id == taskInfo.Id))
+                                _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
                     }
-
-                    Logger.Log($"The task {taskInfo.Id} execution is started");
-                    ExecuteTask(taskInfo);
-                    Logger.Log($"The task {taskInfo.Id} is executed");
-
-                    lock (_tasks)
-                        if (_tasks.Any(task => task.Id == taskInfo.Id))
-                            _tasks.Remove(_tasks.FirstOrDefault(task => task.Id == taskInfo.Id));
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 }
-            });
+            }, cancellationToken).ConfigureAwait(false);
         }
     }
 }

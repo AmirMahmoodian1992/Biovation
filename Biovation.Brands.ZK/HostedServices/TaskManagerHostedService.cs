@@ -1,14 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using App.Metrics;
-using Biovation.Brands.ZK.Manager;
-using Biovation.CommonClasses.Manager;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Biovation.Brands.ZK.Manager;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using RestSharp;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.HostedServices
 {
@@ -17,12 +12,10 @@ namespace Biovation.Brands.ZK.HostedServices
         private Timer _timer;
         private CancellationToken _cancellationToken;
         private readonly TaskManager _taskManager;
-        private readonly IServiceProvider _services;
-        private readonly ILogger<PingCollectorHostedService> _logger;
-        public TaskManagerHostedService(ILogger<PingCollectorHostedService> logger, IServiceProvider services, TaskManager taskManager)
+        private readonly ILogger<TaskManagerHostedService> _logger;
+        public TaskManagerHostedService(ILogger<TaskManagerHostedService> logger, TaskManager taskManager)
         {
             _logger = logger;
-            _services = services;
             _taskManager = taskManager;
         }
 
@@ -38,7 +31,7 @@ namespace Biovation.Brands.ZK.HostedServices
 
         private void ProcessQueue(object state)
         {
-            _taskManager.ProcessQueue().ConfigureAwait(false);
+            _taskManager.ProcessQueue(cancellationToken: _cancellationToken).ConfigureAwait(false);
             //using var scope = _services.CreateScope();
             //var pingCollector = new PingCollector(scope.ServiceProvider.GetRequiredService<RestClient>(),
             //    scope.ServiceProvider.GetRequiredService<IMetricsRoot>(),

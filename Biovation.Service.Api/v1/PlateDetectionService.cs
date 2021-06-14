@@ -17,7 +17,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate = default, int entityId = default)
         {
-            var result =  _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
+            var result =  _plateDetectionRepository.GetLicensePlate(licensePlate, entityId).Result;
             if (result is null)
             {
                 return null;
@@ -45,40 +45,44 @@ namespace Biovation.Service.Api.v1
             int pageSize = default, string token = default)
         {
             return _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
-                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token).Result;
         }
 
         public ResultViewModel AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
-            return _plateDetectionRepository.AddLicensePlate(licensePlate, token);
+            return _plateDetectionRepository.AddLicensePlate(licensePlate, token).Result;
         }
 
         public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
-            return _plateDetectionRepository.AddPlateDetectionLog(log, token);
+            return _plateDetectionRepository.AddPlateDetectionLog(log, token).Result;
         }
 
         public async Task<List<LicensePlate>> ReadLicensePlate(string licensePlateNumber, int entityId, bool isActive, DateTime startDate, DateTime endDate, TimeSpan intervalBeginningStartTime, TimeSpan intervalEndStartTime, TimeSpan intervalBeginningFinishTime, TimeSpan intervalEndFinishTime)
         {
-            var results =  _plateDetectionRepository.ReadLicensePlate(licensePlateNumber, entityId, isActive,
-                startDate, endDate, intervalBeginningStartTime, intervalEndStartTime, intervalBeginningFinishTime, intervalEndFinishTime).Data;
-            if (results is null)
-                return null;
-            foreach (var result in results)
+            return await Task.Run(() =>
             {
-                try
+                var results = _plateDetectionRepository.ReadLicensePlate(licensePlateNumber, entityId, isActive,
+                    startDate, endDate, intervalBeginningStartTime, intervalEndStartTime, intervalBeginningFinishTime,
+                    intervalEndFinishTime).Data;
+                if (results is null)
+                    return null;
+                foreach (var result in results)
                 {
-                    var str = result.LicensePlateNumber;
-                    result.LicensePlateNumber =
-                        str.Substring(3, 3) + "-" + str.Substring(6, 2) + str.Substring(2, 1) + str.Substring(0, 2);
+                    try
+                    {
+                        var str = result.LicensePlateNumber;
+                        result.LicensePlateNumber =
+                            str.Substring(3, 3) + "-" + str.Substring(6, 2) + str.Substring(2, 1) + str.Substring(0, 2);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
                 }
-                catch
-                {
-                    // ignored
-                }
-            }
 
-            return results;
+                return results;
+            });
         }
 
         public Task<ResultViewModel> DeleteLicensePlate(LicensePlate licensePlate, string modifiedBy = default, string action = default, DateTime? modifiedAt = null)

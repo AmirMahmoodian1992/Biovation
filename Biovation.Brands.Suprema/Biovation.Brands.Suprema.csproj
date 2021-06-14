@@ -61,11 +61,11 @@
 		</Reference>
 	</ItemGroup>
 
-	<ItemGroup>
-		<None Update="Libraries\BS_SDK.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>BS_SDK.dll</TargetPath>
-		</None>
-	</ItemGroup>
+  <ItemGroup>
+    <ContentWithTargetPath Include="Libraries\BS_SDK.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>BS_SDK.dll</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
 
 </Project>

@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.Brands.EOS.Manager;
+﻿using Biovation.Brands.EOS.Manager;
 using Biovation.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS.Controllers
 {
@@ -21,20 +21,17 @@ namespace Biovation.Brands.EOS.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("[Action]")]
-        public Task<ResultViewModel> RunProcessQueue(int deviceId = default)
+        public async Task<ResultViewModel> RunProcessQueue(int deviceId = default)
         {
-            return Task.Run(() =>
+            try
             {
-                try
-                {
-                    _taskManager.ProcessQueue(deviceId);
-                    return new ResultViewModel { Success = true };
-                }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel { Success = false, Message = exception.ToString() };
-                }
-            });
+                await _taskManager.ProcessQueue(deviceId).ConfigureAwait(false);
+                return new ResultViewModel { Success = true };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel { Success = false, Message = exception.ToString() };
+            }
         }
     }
 }

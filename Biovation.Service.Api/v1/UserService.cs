@@ -18,8 +18,8 @@ namespace Biovation.Service.Api.v1
             int type = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default, long code = default)
         {
-            return _userRepository. GetUsers(from: from, size:size, getTemplatesData: getTemplatesData, userId: userId, filterText: filterText, type: type,
-                withPicture: withPicture, isAdmin: isAdmin, pageNumber: pageNumber, pageSize: pageSize, token: token, code: code)?.Data?.Data ?? new List<User>();
+            return _userRepository. GetUsers(from, size, getTemplatesData, userId, filterText: filterText, type: type,
+                withPicture: withPicture, isAdmin: isAdmin, pageNumber: pageNumber, pageSize: pageSize, token: token, code: code).Result?.Data?.Data ?? new List<User>();
         }
 
         public List<User> GetAdminUser(long userId = 0, string token = default)
@@ -39,17 +39,17 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel ModifyUser(User user = default, string token = default)
         {
-            return _userRepository.ModifyUser(user, token);
+            return _userRepository.ModifyUser(user, token).Result;
         }
 
         public ResultViewModel DeleteUser(long id = default, string token = default)
         {
-            return _userRepository.DeleteUser(id, token);
+            return _userRepository.DeleteUser(id, token).Result;
         }
 
-        public ResultViewModel DeleteUsers(List<int> ids = default, string token = default)
+        public ResultViewModel DeleteUsers(List<long> ids = default, string token = default)
         {
-            return _userRepository.DeleteUsers(ids, token);
+            return _userRepository.DeleteUsers(ids, token).Result;
         }
 
         public ResultViewModel DeleteUserGroupsOfUser(int userId = default, int userTypeId = 1, string token = default)
@@ -59,12 +59,12 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel DeleteUserGroupOfUser(int userId = default, int userGroupId = default, int userTypeId = 1, string token = default)
         {
-            return _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId, token);
+            return _userRepository.DeleteUserGroupOfUser(userId, userGroupId, userTypeId, token).Result;
         }
 
         public ResultViewModel ModifyPassword(int id = default, string password = default, string token = default)
         {
-            return _userRepository.ModifyPassword(id, password, token);
+            return _userRepository.ModifyPassword(id, password, token).Result;
         }
     }
 }

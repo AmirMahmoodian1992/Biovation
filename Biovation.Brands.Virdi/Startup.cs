@@ -1,3 +1,4 @@
+using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Virdi.Command;
@@ -26,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 
@@ -34,6 +36,7 @@ namespace Biovation.Brands.Virdi
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        private readonly IHostEnvironment _environment;
         public IConfiguration Configuration { get; }
 
         public UCBioAPI UcBioApi;
@@ -45,6 +48,7 @@ namespace Biovation.Brands.Virdi
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
 
             Serilog.Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -96,6 +100,43 @@ namespace Biovation.Brands.Virdi
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            if (!_environment.IsDevelopment())
+            {
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
+                {
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
+                    {
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
+                        {
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
+                    }
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+
+
+                #endregion
+            }
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<AccessGroupService, AccessGroupService>();
@@ -246,12 +287,12 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<BiometricTemplateManager, BiometricTemplateManager>();
 
             services.AddSingleton<CommandFactory, CommandFactory>();
-            services.AddSingleton<Callbacks, Callbacks>();
+            services.AddSingleton<VirdiServer, VirdiServer>();
 
             var virdiObject = new Virdi();
-            var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
+            //var virdiServer = new VirdiServer(UcsApi, OnlineDevices);
             services.AddSingleton(virdiObject);
-            services.AddSingleton(virdiServer);
+            //services.AddSingleton(virdiServer);
             //var virdiCodeMappings = new VirdiCodeMappings(serviceProvider.GetService<GenericCodeMappings>());
 
             //var virdiCallBacks = new Callbacks(UcsApi, serviceProvider.GetService<UserService>(), serviceProvider.GetService<DeviceService>(), serviceProvider.GetService<UserCardService>()
@@ -260,9 +301,12 @@ namespace Biovation.Brands.Virdi
             //    , virdiServer, serviceProvider.GetService<FingerTemplateTypes>(), serviceProvider.GetService<VirdiCodeMappings>(), serviceProvider.GetService<DeviceBrands>(), serviceProvider.GetService<LogEvents>(), serviceProvider.GetService<FaceTemplateTypes>()
             //    , serviceProvider.GetService<BiometricTemplateManager>(), serviceProvider.GetService<ILogger<Callbacks>>(), serviceProvider.GetService<TaskStatuses>());
 
-            var serviceProvider = services.BuildServiceProvider();
-            var virdiCallBacks = serviceProvider.GetService<Callbacks>();
-            services.AddSingleton(virdiCallBacks);
+            services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<VirdiHostedService>();
+
+            //var serviceProvider = services.BuildServiceProvider();
+            //var virdiCallBacks = serviceProvider.GetService<VirdiServer>();
+            //services.AddSingleton(virdiCallBacks);
 
             //services.AddSingleton(virdiCodeMappings);
             //services.AddSingleton<Virdi, Virdi>();
@@ -276,12 +320,12 @@ namespace Biovation.Brands.Virdi
 
             //services.BuildServiceProvider().GetService<Callbacks>();
 
-            UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
+            //UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
 
-            Logger.Log(UcsApi.ErrorCode != 0
-                    ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
-                    : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
-                , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
+            //Logger.Log(UcsApi.ErrorCode != 0
+            //        ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
+            //        : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
+            //    , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
             //Callbacks.FactoryCallbacks(UcsApi, OnlineDevices);
         }
         //private void ConfigureVirdiServices(IServiceCollection services)

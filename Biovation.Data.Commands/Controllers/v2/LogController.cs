@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Data.Commands.Sinks;
 using Biovation.Domain;
@@ -6,15 +7,14 @@ using Biovation.Repository.MessageBus;
 using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading.Tasks;
-using Biovation.CommonClasses;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -26,13 +26,15 @@ namespace Biovation.Data.Commands.Controllers.v2
         private readonly LogRepository _logRepository;
         private readonly DeviceRepository _deviceRepository;
         private readonly LogMessageBusRepository _logMessageBusRepository;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository, LogApiSink logApiSink, DeviceRepository deviceRepository)
+        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository, LogApiSink logApiSink, DeviceRepository deviceRepository, BiovationConfigurationManager biovationConfigurationManager)
         {
             _logApiSink = logApiSink;
             _logRepository = logRepository;
             _deviceRepository = deviceRepository;
             _logMessageBusRepository = logMessageBusRepository;
+            _biovationConfigurationManager = biovationConfigurationManager;
         }
 
         [HttpPost]
@@ -40,11 +42,9 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("AddLog")]
         public async Task<ResultViewModel> AddLog([FromBody] Log log)
         {
-           
-
             var filePath = log.PicByte is null
                 ? string.Empty
-                : SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode,log.DeviceId.ToString(),log.Time).Result;
+                : await SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, log.DeviceId.ToString(), log.Time);
             log.Image = filePath;
 
             var logInsertionAwaiter = _logRepository.AddLog(log);
@@ -80,7 +80,10 @@ namespace Biovation.Data.Commands.Controllers.v2
             }));
 
             var logsDataTable = JsonConvert.DeserializeObject<DataTable>(json);
-            var logInsertionResult = await _logRepository.AddLog(logsDataTable);
+            var logInsertionResult = _logRepository.AddLog(logsDataTable);
+
+            if (!_biovationConfigurationManager.BroadcastToApi && !_biovationConfigurationManager.BroadcastToMessageBus)
+                return await logInsertionResult;
 
             foreach (var deviceId in logs.GroupBy(g => g.DeviceId).Select(s => s.Key).Where(s => s > 0))
             {
@@ -95,24 +98,25 @@ namespace Biovation.Data.Commands.Controllers.v2
                     tasks.Add(_logMessageBusRepository.SendLog(logsToTransfer));
 
                     var logsWithImages = logs.Where(log => logsToTransfer.Any(newLog =>
-                                                               log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
-                                                               log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
+                        log.UserId == newLog.UserId && log.LogDateTime == newLog.LogDateTime &&
+                        log.EventLog.Code == newLog.EventLog.Code && log.DeviceId == newLog.DeviceId) && log.PicByte?.Length > 0);
 
                     foreach (var log in logsWithImages)
                     {
                         var filePath = log.PicByte is null
                             ? string.Empty
-                            : SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, log.DeviceId.ToString(), log.Time).Result;
+                            : await SaveImage(log.PicByte, log.UserId, log.LogDateTime, log.DeviceCode, log.DeviceId.ToString(), log.Time);
                         log.Image = filePath;
 
-                        tasks.Add(_logRepository.AddLogImage(log));
+                        if (filePath != null)
+                            tasks.Add(_logRepository.AddLogImage(log));
                     }
 
                     await Task.WhenAll(tasks);
                 });
             }
 
-            return logInsertionResult;
+            return await logInsertionResult;
         }
 
         [HttpPost]
@@ -171,8 +175,8 @@ namespace Biovation.Data.Commands.Controllers.v2
             {
                 try
                 {
-                     var directory = Path.Combine(Directory.GetCurrentDirectory() ?? string.Empty,
-                        $@"LogPic\{deviceId}\{logTime}\{logDatetime.Year}\{logDatetime.Month}\{logDatetime.Day}");
+                    var directory = Path.Combine(Directory.GetCurrentDirectory() ?? string.Empty,
+                       $@"LogPic\{deviceId}\{logTime}\{logDatetime.Year}\{logDatetime.Month}\{logDatetime.Day}");
                     //var startupPath = System.IO.Directory.GetCurrentDirectory();
                     //var directory = Path.Combine(startupPath, path);
                     if (!Directory.Exists(directory))

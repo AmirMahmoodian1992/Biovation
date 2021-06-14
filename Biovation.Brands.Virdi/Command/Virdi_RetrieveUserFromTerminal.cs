@@ -33,7 +33,7 @@ namespace Biovation.Brands.Virdi.Command
         private int UserId { get; }
         private uint Code { get; }
 
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
@@ -44,10 +44,10 @@ namespace Biovation.Brands.Virdi.Command
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
 
-        public VirdiRetrieveUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, Callbacks callbacks, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager)
+        public VirdiRetrieveUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager)
         {
+            _virdiServer = virdiServer;
             _ucsApi = ucsApi;
-            _callbacks = callbacks;
             _userService = userService;
             _deviceService = deviceService;
             _userCardService = userCardService;
@@ -85,21 +85,21 @@ namespace Biovation.Brands.Virdi.Command
             {
                 //Callbacks.ModifyUserData = true;
                 _ucsApi.EventGetUserData += GetUserDataCallback;
-                _callbacks.TerminalUserData.GetUserDataFromTerminal(TaskItemId, (int)Code, UserId);
+                _virdiServer.TerminalUserData.GetUserDataFromTerminal(TaskItemId, (int)Code, UserId);
 
                 Logger.Log(GetDescription());
 
-                if (_callbacks.TerminalUserData.ErrorCode == 0)
+                if (_virdiServer.TerminalUserData.ErrorCode == 0)
                 {
                     Logger.Log($"  +User {UserId} successfully retrieved from device: {Code}.\n");
                     return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = DeviceId, Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n", Validate = 1 };
                 }
 
-                Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n");
+                Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}. Error code = {_virdiServer.TerminalUserData.ErrorCode}\n");
 
                 //Callbacks.ModifyUserData = false;
 
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot retrieve user {Code} from device: {Code}. Error code = {_callbacks.TerminalUserData.ErrorCode}\n", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  +Cannot retrieve user {Code} from device: {Code}. Error code = {_virdiServer.TerminalUserData.ErrorCode}\n", Validate = 0 };
             }
             catch (Exception exception)
             {
@@ -434,7 +434,7 @@ namespace Biovation.Brands.Virdi.Command
                             {
                                 try
                                 {
-                                    lock (_callbacks.LoadFingerTemplateLock)
+                                    lock (_virdiServer.LoadFingerTemplateLock)
                                     {
                                         var accessGroupsOfUser = _accessGroupService.GetAccessGroups(userId: user.Id);
                                         if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
@@ -444,7 +444,7 @@ namespace Biovation.Brands.Virdi.Command
 
                                             foreach (var device in devices)
                                             {
-                                                _callbacks.AddUserToDeviceFastSearch(device.Code, (int)user.Code);
+                                                _virdiServer.AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
                                             }
                                         }
 
@@ -456,7 +456,7 @@ namespace Biovation.Brands.Virdi.Command
                                                 {
                                                     foreach (var device in deviceGroup.Devices)
                                                     {
-                                                        _callbacks.AddUserToDeviceFastSearch(device.Code, (int)user.Code);
+                                                        _virdiServer.AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
                                                     }
                                                 }
                                             }

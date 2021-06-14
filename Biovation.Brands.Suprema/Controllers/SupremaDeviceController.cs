@@ -2,19 +2,18 @@
 using Biovation.Brands.Suprema.Devices;
 using Biovation.Brands.Suprema.Model;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Extension;
 using Biovation.CommonClasses.Manager;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Manager;
-using Biovation.CommonClasses.Extension;
-using Biovation.Constants;
-using Microsoft.AspNetCore.Authorization;
 
 
 namespace Biovation.Brands.Suprema.Controllers
@@ -33,12 +32,11 @@ namespace Biovation.Brands.Suprema.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         // private readonly DeviceService _deviceService;
         //private readonly UserService _userService;
 
-        public SupremaDeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService, TaskService taskService, TaskPriorities taskPriorities, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public SupremaDeviceController(AccessGroupService accessGroupServices, Dictionary<uint, Device> onlineDevices, CommandFactory commandFactory, BiovationConfigurationManager biovationConfigurationManager, DeviceService deviceService, TaskService taskService, TaskPriorities taskPriorities, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _accessGroupServices = accessGroupServices;
             _onlineDevices = onlineDevices;
@@ -50,7 +48,6 @@ namespace Biovation.Brands.Suprema.Controllers
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
         }
 
@@ -65,7 +62,7 @@ namespace Biovation.Brands.Suprema.Controllers
         [Authorize]
         public List<User> Users(int deviceId)
         {
-            var creatorUser = HttpContext.GetUser();
+            //var creatorUser = HttpContext.GetUser();
             var userObjects = _commandFactory.Factory(CommandType.GetUsersOfDevice, new List<object> { deviceId })
                 .Execute();
 
@@ -75,27 +72,27 @@ namespace Biovation.Brands.Suprema.Controllers
             }
 
             //var users = new List<User>();
-            var result = (ResultViewModel<List<User>>) userObjects;
+            var result = (ResultViewModel<List<User>>)userObjects;
 
             //foreach (var userObject in (IEnumerable<User>)userObjects)
             //{
             //    users.Add(userObject);
             //}
 
-           // return users;
-           return result.Data;
+            // return users;
+            return result.Data;
         }
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
+        public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
             try
             {
                 var creatorUser = HttpContext.GetUser();
                 var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
                 if (device is null)
-                    return new ResultViewModel {Success = false, Message = $"Device {code} does not exists."};
+                    return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
 
                 var task = new TaskInfo
                 {
@@ -115,7 +112,7 @@ namespace Biovation.Brands.Suprema.Controllers
                         TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new {userCode}),
+                        Data = JsonConvert.SerializeObject(new { userCode }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1
@@ -123,9 +120,9 @@ namespace Biovation.Brands.Suprema.Controllers
                 }
 
                 _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
+                await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
 
-                var result = new ResultViewModel {Validate = 1, Message = "Removing User queued"};
+                var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
                 return result;
             }
             catch (Exception exception)
@@ -137,9 +134,8 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpPost]
         [Authorize]
-        public List<ResultViewModel> RetrieveUserFromDevice(uint code, List<int> userIds)
+        public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, List<int> userIds)
         {
-
             try
             {
                 var creatorUser = HttpContext.GetUser();
@@ -175,7 +171,7 @@ namespace Biovation.Brands.Suprema.Controllers
                 }
 
                 _taskService.InsertTask(task);
-                _taskManager.ProcessQueue();
+                await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
 
                 return new List<ResultViewModel>
                         {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
@@ -273,79 +269,77 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            return Task.Run(() =>
+            try
             {
-                try
+                var creatorUser = HttpContext.GetUser();
+                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
+                if (device is null)
+                    return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
+                if (fromDate.HasValue && toDate.HasValue)
                 {
-                    var creatorUser = HttpContext.GetUser();
-                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.SupremaCode).FirstOrDefault();
-                    if (device is null)
-                        return new ResultViewModel { Success = false, Message = $"Device {code} does not exists." };
-                    if (fromDate.HasValue && toDate.HasValue)
+                    var task = new TaskInfo
                     {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Suprema,
-                        };
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.GetLogsInPeriod,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = _deviceBrands.Suprema,
+                    };
 
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                        });
-                        _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
-                        return new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"};
-                    }
-                    else
+                    task.TaskItems.Add(new TaskItem
                     {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogs,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Suprema,
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                        _taskService.InsertTask(task);
-                        _taskManager.ProcessQueue();
-                    }
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                    });
+                    _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
 
                     return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
-
-
                 }
-                catch (Exception exception)
+                else
                 {
-                    Logger.Log(exception);
-                    return new ResultViewModel { Validate = 0, Message = exception.Message };
+                    var task = new TaskInfo
+                    {
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.GetLogs,
+                        Priority = _taskPriorities.Medium,
+                        TaskItems = new List<TaskItem>(),
+                        DeviceBrand = _deviceBrands.Suprema,
+                    };
+
+                    task.TaskItems.Add(new TaskItem
+                    {
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.GetLogs,
+                        Priority = _taskPriorities.Medium,
+                        DeviceId = device.DeviceId,
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1
+                    });
+                    _taskService.InsertTask(task);
+                    await _taskService.ProcessQueue(_deviceBrands.Suprema, device.DeviceId).ConfigureAwait(false);
                 }
-            });
+
+                return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
+
+
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Validate = 0, Message = exception.Message };
+            }
         }
 
         [HttpGet]
