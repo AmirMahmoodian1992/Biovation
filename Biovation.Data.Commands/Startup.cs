@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
+using Biovation.Data.Commands.Manager;
 using Biovation.Data.Commands.Middleware;
 using Biovation.Data.Commands.Sinks;
 using Biovation.Repository.MessageBus;

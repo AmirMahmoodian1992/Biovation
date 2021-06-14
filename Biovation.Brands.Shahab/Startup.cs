@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Biovation.Brands.Shahab.Managers;
 using Log = Serilog.Log;
 
 namespace Biovation.Brands.Shahab

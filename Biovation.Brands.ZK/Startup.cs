@@ -27,6 +27,7 @@ using System.Text;
 using System.Threading;
 using Biovation.Domain;
 using Log = Serilog.Log;
+using TimeSpanToStringConverter = Biovation.Brands.ZK.Manager.TimeSpanToStringConverter;
 
 namespace Biovation.Brands.ZK
 {
