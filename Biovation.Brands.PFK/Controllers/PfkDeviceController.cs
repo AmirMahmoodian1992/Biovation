@@ -56,9 +56,9 @@ namespace Biovation.Brands.PFK.Controllers
             {
                 try
                 {
-                    if (device.Active)
+                    if (device.Active && !_pfkServer.GetOnlineDevices().ContainsKey(device.Code))
                         _pfkServer.ConnectToDevice(device);
-                    else
+                    else if (!device.Active && _pfkServer.GetOnlineDevices().ContainsKey(device.Code))
                         _pfkServer.DisconnectDevice(device);
 
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
