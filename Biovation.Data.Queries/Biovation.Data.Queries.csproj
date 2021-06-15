@@ -98,6 +98,7 @@
     <None Remove="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />
     <None Remove="Scripts\01.Tables\0086-Create RelayScheduling-UP.sql" />
     <None Remove="Scripts\01.Tables\0087-Create RelayDevice-UP.sql" />
+    <None Remove="Scripts\01.Tables\0088-Create RelayHubModel-UP.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -311,6 +312,9 @@
     <None Remove="Scripts\03.SPs\0207-Create UpdateRelay-UP.sql" />
     <None Remove="Scripts\03.SPs\0208-Create UpdateSheduling-UP.sql" />
     <None Remove="Scripts\03.SPs\0209-Create UpdateEntrance-UP.sql" />
+    <None Remove="Scripts\03.SPs\0210-Create InsertRelayHubModel-UP.sql" />
+    <None Remove="Scripts\03.SPs\0210-Create UpdateRelayHubModel-UP.sql" />
+    <None Remove="Scripts\03.SPs\0212-Create SelectRelayHubModel-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -438,6 +442,7 @@
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0084-Create EntranceDevice-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0088-Create RelayHubModel-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0087-Create RelayDevice-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0086-Create RelayScheduling-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0083-Create Scheduling-UP.sql" />
@@ -644,6 +649,9 @@
     <EmbeddedResource Include="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPaging-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0212-Create SelectRelayHubModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0210-Create UpdateRelayHubModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0210-Create InsertRelayHubModel-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0209-Create UpdateEntrance-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0208-Create UpdateSheduling-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0207-Create UpdateRelay-UP.sql" />

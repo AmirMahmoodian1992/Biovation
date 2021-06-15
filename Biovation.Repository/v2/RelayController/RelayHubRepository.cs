@@ -12,10 +12,12 @@ namespace Biovation.Repository.Sql.v2.RelayController
     public class RelayHubRepository
     {
         private readonly GenericRepository _repository;
+        private readonly RelayRepository _relayRepository;
 
-        public RelayHubRepository(GenericRepository repository)
+        public RelayHubRepository(GenericRepository repository, RelayRepository relayRepository)
         {
             _repository = repository;
+            _relayRepository = relayRepository;
         }
 
         public ResultViewModel CreateRelayHubs(RelayHub relayHub)
@@ -31,7 +33,17 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
 
-            return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
+            var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
+            if (insertRelayHubRes == null || !insertRelayHubRes.Success) return insertRelayHubRes;
+            if (relayHub.Relays.Select(relay => _relayRepository.CreateRelay(relay)).Any(relayResult => !relayResult.Success))
+            {
+                return new ResultViewModel()
+                {
+                    Success = false
+                };
+            }
+
+            return insertRelayHubRes;
         }
 
         public ResultViewModel<PagingResult<RelayHub>> GetRelayHubs(int adminUserId = 0, int id = 0, string ipAddress = default, int port = 0, string name = default,
@@ -55,6 +67,26 @@ namespace Biovation.Repository.Sql.v2.RelayController
             return _repository.ToResultList<PagingResult<RelayHub>>("SelectRelayHub", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
+        public ResultViewModel<PagingResult<RelayHubModel>> GetRelayHubModels(int id = 0, string name = default, int brandId = default, int manufactureCode = 0,
+            int defaultPortNumber = 0, int defaultCapacity = default, string description = null, int pageNumber = 0,
+            int pageSize = 0, int nestingDepthLevel = 4)
+        {
+            var sqlParameter = new List<SqlParameter>
+            {
+                new SqlParameter("@Id", SqlDbType.Int) {Value = id },
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
+                new SqlParameter("@BrandId", SqlDbType.Int) {Value = brandId},
+                new SqlParameter("@ManufactureCode", SqlDbType.Int) {Value = manufactureCode},
+                new SqlParameter("@DefaultPortNumber", SqlDbType.Int) {Value = defaultPortNumber},
+                new SqlParameter("@DefaultCapacity", SqlDbType.Int) {Value = defaultCapacity},
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
+            };
+
+            return _repository.ToResultList<PagingResult<RelayHubModel>>("SelectRelayHubModel", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+        }
+
         public ResultViewModel UpdateRelayHubs(RelayHub relayHub)
         {
             var parameters = new List<SqlParameter>
@@ -69,7 +101,16 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
 
-            return _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
+            var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
+            if (insertRelayHubRes == null || !insertRelayHubRes.Success) return insertRelayHubRes;
+            if (relayHub.Relays.Select(relay => _relayRepository.UpdateRelay(relay)).Any(relayResult => !relayResult.Success))
+            {
+                return new ResultViewModel()
+                {
+                    Success = false
+                };
+            }
+            return insertRelayHubRes;
         }
 
 
