@@ -9,8 +9,13 @@ using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.PFK.Controllers
 {
+#if NETCORE31
+    [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
+    public class PfkDeviceController : ControllerBase
+#elif NET472
     public class PfkDeviceController : ApiController
+#endif    
     {
         private readonly PfkServer _pfkServer;
         private readonly DeviceService _deviceService;
