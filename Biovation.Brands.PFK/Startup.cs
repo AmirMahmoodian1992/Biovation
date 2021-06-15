@@ -47,7 +47,7 @@ namespace Biovation.Brands.PFK
                 new { id = RouteParameter.Optional }
             );
             
-            appBuilder.UseHealthChecks("/health", new List<IHealthCheck>());
+            appBuilder.UseHealthChecks("/biovation/api/health", new List<IHealthCheck>());
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
