@@ -352,7 +352,7 @@ namespace Biovation.Brands.Paliz
                 UserId = args.LiveTraffic.Valid ? args.LiveTraffic.UserId : -1,
                 //UserId = log.UserId,
                 //LogDateTime = new DateTime(log.Time),
-                DateTimeTicks = Convert.ToUInt32(args.LiveTraffic.Time / 1000),
+                DateTimeTicks = (ulong)(args.LiveTraffic.Time / 1000),
                 MatchingType = _palizCodeMappings.GetMatchingTypeGenericLookup(args.LiveTraffic.TrafficType),
                 //SubEvent = _palizCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                 PicByte = args.LiveTraffic.Image,

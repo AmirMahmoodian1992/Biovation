@@ -764,7 +764,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     if (record.eventType == 40)
                         record.userID = 0;
-                    receivedLog.DateTimeTicks = (uint)record.eventTime;
+                    receivedLog.DateTimeTicks = (ulong)record.eventTime;
                     receivedLog.DeviceId = DeviceInfo.DeviceId;
                     receivedLog.EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup { Code = record.eventType.ToString() };
                     receivedLog.InOutMode = DeviceInfo.DeviceTypeId;
@@ -935,7 +935,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var receivedLog = new SupremaLog
                     {
-                        DateTimeTicks = (uint)record.eventTime,
+                        DateTimeTicks = (ulong)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup { Code = record.eventType.ToString() },

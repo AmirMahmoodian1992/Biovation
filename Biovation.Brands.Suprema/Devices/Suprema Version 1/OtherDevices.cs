@@ -659,7 +659,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     if (record.eventType == 40)
                         record.userID = 0;
-                    receivedLog.DateTimeTicks = (uint)record.eventTime;
+                    receivedLog.DateTimeTicks = (ulong)record.eventTime;
                     receivedLog.DeviceId = DeviceInfo.DeviceId;
                     receivedLog.DeviceCode = DeviceInfo.Code;
                     receivedLog.InOutMode = DeviceInfo.DeviceTypeId;
@@ -915,7 +915,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var receivedLog = new SupremaLog
                     {
-                        DateTimeTicks = (uint)record.eventTime,
+                        DateTimeTicks = (ulong)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
@@ -1429,7 +1429,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             var deleteLog = new SupremaLog
             {
-                DateTimeTicks = (uint)(DateTime.Now.Ticks / 100000),
+                DateTimeTicks = (ulong)(DateTime.Now.Ticks / 100000),
                 DeviceId = DeviceInfo.DeviceId,
                 DeviceCode = DeviceInfo.Code,
                 EventLog = _logEvents.RemoveUserFromDevice,
