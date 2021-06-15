@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Repository.Api.v2;
@@ -10,8 +11,10 @@ using RestSharp;
 using Biovation.Brands.PFK.Devices;
 using Biovation.Brands.PFK.Managers;
 using System.Web.Mvc;
+using Biovation.CommonClasses;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using RimDev.AspNet.Diagnostics.HealthChecks;
+using Serilog;
 #if NET472
 using System;
 using Owin;
@@ -53,6 +56,11 @@ namespace Biovation.Brands.PFK
 
             ApplicationConfiguration = builder.Build();
             BiovationConfiguration = new BiovationConfigurationManager(ApplicationConfiguration);
+
+            Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(ApplicationConfiguration)
+                .Enrich.With(new ThreadIdEnricher())
+                .Enrich.WithProperty("Version", Assembly.GetExecutingAssembly().GetName().Version)
+                .CreateLogger();
 
             var services = new ServiceCollection();
             ConfigureServices(services);
