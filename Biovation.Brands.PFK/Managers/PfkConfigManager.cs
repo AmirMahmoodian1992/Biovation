@@ -1,5 +1,7 @@
 ﻿using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using Biovation.Domain;
 using PFKParkingLibrary.Data;
 using PFKParkingLibrary.Devices;
@@ -13,6 +15,7 @@ namespace Biovation.Brands.PFK.Managers
             var cameraAddress = cameraInfo.IpAddress.Split('@').LastOrDefault();
             var cameraConnectionUserName = cameraInfo.IpAddress.Split('@').FirstOrDefault()?.Split('/').LastOrDefault()?.Split(':').FirstOrDefault();
             var cameraConnectionPassword = cameraInfo.IpAddress.Split('@').FirstOrDefault()?.Split('/').LastOrDefault()?.Split(':').LastOrDefault();
+            var executingPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             config.BoardConfig = new BoardConfig
             {
@@ -31,14 +34,17 @@ namespace Biovation.Brands.PFK.Managers
                 WriteTimeOut = 2000
             };
 
-            config.CamID = cameraInfo.DeviceId;
+            //config.CamID = cameraInfo.DeviceId;
+            config.CamID = 0;
             config.CameraConfig = new IpCamerConfig
             {
                 CameraIP = cameraAddress,
                 CameraImageHeight = 1080,
                 CameraImageWidth = 1920,
                 CameraPass = cameraConnectionPassword,
-                CameraRecordinFolder = $@"D:\PlateLogs\Record{cameraInfo.DeviceId}",
+                //CameraRecordinFolder = $@"D:\PlateLogs\Record{cameraInfo.DeviceId}",
+                //CameraRecordinFolder = $@"D:\Record{cameraInfo.Code}",
+                CameraRecordinFolder = $@"{executingPath}\PlateReader\Record{cameraInfo.Code}",
                 CameraType = CameraType.RTSP,
                 CameraUserName = cameraConnectionUserName,
                 CameraofflinePath = default,
@@ -69,7 +75,7 @@ namespace Biovation.Brands.PFK.Managers
                 BothDirections = true,
                 Direction = DirectionType.Ingoing,
                 Index = cameraInfo.DeviceId,
-                IngouingDir = new PointF(-1,-1),
+                IngouingDir = new PointF(-1, -1),
                 Name = cameraInfo.Name,
                 OpenAutomaticaly = true,
                 OutgouingDir = new PointF(-1, 1),
@@ -88,7 +94,8 @@ namespace Biovation.Brands.PFK.Managers
                 CameraImageHeight = 1080,
                 CameraImageWidth = 1920,
                 CameraPass = default,
-                CameraRecordinFolder = $@"D:\FaceCameraLogs\{cameraInfo.DeviceId}",
+                //CameraRecordinFolder = $@"D:\FaceCameraLogs\{cameraInfo.Code}",
+                CameraRecordinFolder = $@"{executingPath}\PlateReader\FaceCameraLogs\{cameraInfo.Code}",
                 FaceImageDelayInms = 0,
                 UseAsShowCamera = false,
                 UseFaceCamera = false
@@ -113,10 +120,14 @@ namespace Biovation.Brands.PFK.Managers
                 ShowRemoteWindow = true
             };
 
-            config.SaveFilesCopyDir = $@"D:\PlateLogs\Enter{cameraInfo.DeviceId}";
+            //config.SaveFilesCopyDir = $@"D:\PlateLogs\Enter{cameraInfo.DeviceId}";
+            //config.SaveFilesCopyDir = $@"D:\PlateReader\Enter{cameraInfo.Code}";
+            config.SaveFilesCopyDir = $@"{executingPath}\PlateReader\Enter{cameraInfo.Code}";
             config.SaveRowPlates = false;
-            config.SaveRowPlatesPath1 = $@"D:\PlateLogs\RowPlates{cameraInfo.DeviceId}_1";
-            config.SaveRowPlatesPath2 = $@"D:\PlateLogs\RowPlates{cameraInfo.DeviceId}_2";
+            //config.SaveRowPlatesPath1 = $@"D:\PlateLogs\RowPlates{cameraInfo.Code}_1";
+            config.SaveRowPlatesPath1 = $@"{executingPath}\PlateReader\Logs\RowPlates{cameraInfo.Code}_1";
+            //config.SaveRowPlatesPath2 = $@"D:\PlateLogs\RowPlates{cameraInfo.Code}_2";
+            config.SaveRowPlatesPath2 = $@"{executingPath}\PlateReader\Logs\RowPlates{cameraInfo.Code}_2";
             config.SenderConfig = new SenderConfig
             {
                 DfsIndex = 0,
@@ -124,14 +135,19 @@ namespace Biovation.Brands.PFK.Managers
                 SenderIP = "127.0.0.1",
                 SenderMaximumdelaySecond = 2,
                 SenderPort = 11124,
-                SenderResulSavePath = $@"D:\PlateLogs\Result{cameraInfo.DeviceId}",
-                Senderpath = "D:\\PlateReader\\LPR1\\generalRawFixCamLPR.exe",
-                Senderworkingpath = "D:\\PlateReader\\LPR1\\generalRawFixCamLPR.exe",
+                //SenderResulSavePath = $@"D:\PlateLogs\Result{cameraInfo.DeviceId}",
+                //SenderResulSavePath = $@"D:\LPR{cameraInfo.Code}",
+                SenderResulSavePath = $@"{executingPath}\PlateReader\LPR{cameraInfo.Code}",
+                //Senderpath = $@"D:\PlateReader\LPR{cameraInfo.Code}\generalRawFixCamLPR.exe",
+                Senderpath = $@"{executingPath}\PlateReader\LPR{cameraInfo.Code}\generalRawFixCamLPR.exe",
+                //Senderworkingpath = $@"D:\PlateReader\LPR{cameraInfo.Code}",
+                Senderworkingpath = $@"{executingPath}\PlateReader\LPR{cameraInfo.Code}",
                 TmpDir = "H:\\"
             };
 
             config.UseSoftWatchDog = false;
-            config.WorkingDir = "D:\\PlateReader";
+            //config.WorkingDir = @"D:\PlateReader";
+            config.WorkingDir = $@"{executingPath}\PlateReader";
 
             return config;
         }
