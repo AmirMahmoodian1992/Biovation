@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
+using System.Globalization;
 
 namespace Biovation.Brands.ZK
 {
@@ -12,6 +13,7 @@ namespace Biovation.Brands.ZK
     {
         public static void Main(string[] args)
         {
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
             CreateHostBuilder(args).Build().Run();
         }
 

@@ -1,5 +1,4 @@
 ﻿using Biovation.Brands.ZK.Devices;
-using Biovation.Brands.ZK.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
@@ -25,11 +24,10 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public ZkUserController(AccessGroupService accessGroupService, TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices)
+        public ZkUserController(AccessGroupService accessGroupService, TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices)
         {
             _accessGroupService = accessGroupService;
             _taskService = taskService;
@@ -38,7 +36,6 @@ namespace Biovation.Brands.ZK.Controllers
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
             _onlineDevices = onlineDevices;
         }

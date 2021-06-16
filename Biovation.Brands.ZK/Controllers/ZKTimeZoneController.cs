@@ -1,5 +1,4 @@
-﻿using Biovation.Brands.ZK.Manager;
-using Biovation.CommonClasses.Extension;
+﻿using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -22,10 +21,9 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public ZkTimeZoneController(DeviceService deviceService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public ZkTimeZoneController(DeviceService deviceService, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _taskService = taskService;
@@ -33,7 +31,6 @@ namespace Biovation.Brands.ZK.Controllers
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
         }
 

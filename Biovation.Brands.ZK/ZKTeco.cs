@@ -4,7 +4,6 @@ namespace Biovation.Brands.ZK
 {
     public class ZkTeco
     {
-
         /// <summary>
         /// Returns "ZKTeco"
         /// </summary>

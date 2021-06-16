@@ -37,7 +37,7 @@ namespace Biovation.Brands.Suprema.Commands
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
-        //private readonly AdminDeviceService _adminDeviceService;
+        private readonly AdminDeviceService _adminDeviceService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly FingerTemplateService _fingerTemplateService;
@@ -69,7 +69,7 @@ namespace Biovation.Brands.Suprema.Commands
         public CommandFactory(BioStarServer supremaServer, 
             UserService userService, DeviceService deviceService,
             UserCardService userCardService,  
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, Service.Api.v2.DeviceService deviceServicev2, RestClient restClient, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, Service.Api.v2.DeviceService deviceServicev2, RestClient restClient, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, AdminDeviceService adminDeviceService)
         {
             _bioStarServer = supremaServer;
             //_logService = logService;
@@ -98,6 +98,7 @@ namespace Biovation.Brands.Suprema.Commands
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _taskService = taskService;
+            _adminDeviceService = adminDeviceService;
             _deviceService = deviceServicev2;
         }
 
@@ -158,7 +159,7 @@ namespace Biovation.Brands.Suprema.Commands
                 case CommandType.SendUserToDevice:
                     //Transfer Specific User to Specific Device request
                     {
-                        return new SupremaSyncUserOfDevice(taskItem, _onlineDevices, _accessGroupService,_userService, _deviceService);
+                        return new SupremaSyncUserOfDevice(taskItem, _onlineDevices, _accessGroupService,_userService, _deviceService, _adminDeviceService);
                     }
 
                 case CommandType.SyncAllUsers:

@@ -379,7 +379,11 @@ namespace Biovation.Brands.ZK.Manager
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
             var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.ZkTecoCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+                excludedTaskStatusCodes: new List<string>
+                {
+                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                });
 
             lock (_tasks)
             {
@@ -395,7 +399,7 @@ namespace Biovation.Brands.ZK.Manager
             }
 
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
