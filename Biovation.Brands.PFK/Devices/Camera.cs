@@ -385,7 +385,7 @@ namespace Biovation.Brands.PFK.Devices
 
             //ReverseText
             var charArray = plateNumber.ToCharArray();
-            Array.Reverse(charArray);
+            //Array.Reverse(charArray);
             var str = new string(charArray);
             return string.Concat(str.Where(c => !char.IsWhiteSpace(c)));
         }
