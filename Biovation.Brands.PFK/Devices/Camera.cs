@@ -1,19 +1,18 @@
-﻿using System;
+﻿using Biovation.Brands.PFK.Managers;
+using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v2;
+using PFKParkingLibrary;
+using PFKParkingLibrary.Data;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Biovation.Brands.PFK.Managers;
-using Biovation.CommonClasses.Interface;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v2;
-using Newtonsoft.Json;
-using PFKParkingLibrary;
-using PFKParkingLibrary.Data;
-using RestSharp;
 using Logger = Biovation.CommonClasses.Logger;
 
 namespace Biovation.Brands.PFK.Devices
@@ -75,14 +74,10 @@ namespace Biovation.Brands.PFK.Devices
             {
                 _pfkConfig.SetConfiguration(_cameraInfo);
 
-                var config = JsonConvert.SerializeObject(_pfkConfig);
-
-                //_plateReader = new PlateReader(_pfkConfig, _cameraInfo.DeviceId);
                 _plateReader = new PlateReader(_pfkConfig, Convert.ToInt32(_cameraInfo.Code) - 1);
                 _plateReader.PlateDetected += OnPlateDetected;
                 _plateReader.PlateUpdated += OnPlateUpdated;
                 _plateReader.Start();
-                //SetTimer();
             }
             catch (Exception exception)
             {
@@ -311,11 +306,11 @@ namespace Biovation.Brands.PFK.Devices
                         //    DeviceName = _cameraInfo.Name,
                         //});
                         restRequest.AddJsonBody(detectedLog);
-                        await _logExternalSubmissionRestClient.ExecuteTaskAsync(restRequest);
+                        await _logExternalSubmissionRestClient.ExecuteAsync(restRequest);
 
                         var altRestRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
                         altRestRequest.AddJsonBody(detectedLog);
-                        await _logExternalSubmissionRestClient.ExecuteTaskAsync(altRestRequest);
+                        await _logExternalSubmissionRestClient.ExecuteAsync(altRestRequest);
                     }
                     catch (Exception exception)
                     {
@@ -368,26 +363,23 @@ namespace Biovation.Brands.PFK.Devices
 
         public byte[] ImageToByteArray(Image imageIn)
         {
-            using (var ms = new MemoryStream())
-            {
-                imageIn.Save(ms, imageIn.RawFormat);
-                return ms.ToArray();
-            }
+            using var ms = new MemoryStream();
+            imageIn.Save(ms, imageIn.RawFormat);
+            return ms.ToArray();
         }
 
         private static string BiovationPlateFormat(string plateNumber)
         {
             //GetPersianNumber
+            plateNumber = string.Concat(plateNumber.Where(c => !char.IsWhiteSpace(c)));
             for (var i = 48; i < 58; i++)
             {
                 plateNumber = plateNumber.Replace(Convert.ToChar(i), Convert.ToChar(1728 + i));
             }
 
             //ReverseText
-            var charArray = plateNumber.ToCharArray();
-            //Array.Reverse(charArray);
-            var str = new string(charArray);
-            return string.Concat(str.Where(c => !char.IsWhiteSpace(c)));
+            plateNumber = plateNumber.Substring(6, 2) + plateNumber.Substring(5, 1) + plateNumber.Substring(2, 3) + plateNumber.Substring(0, 2);
+            return plateNumber;
         }
 
         //private void SetTimer()   /////TEEEESSSSTT
