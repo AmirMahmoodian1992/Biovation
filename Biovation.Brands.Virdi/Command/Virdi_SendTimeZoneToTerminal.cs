@@ -49,44 +49,50 @@ namespace Biovation.Brands.Virdi.Command
 
             try
             {
+                foreach (var timeZoneDetail in TimeZoneObj.Details)
+                {
+                    _virdiServer.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"), timeZoneDetail.DayNumber,
+                        timeZoneDetail.FromTime.Hours, timeZoneDetail.FromTime.Minutes, timeZoneDetail.ToTime.Hours, timeZoneDetail.ToTime.Minutes);
+                }
+
                 _virdiServer.AccessControlData.SetAccessTime(TimeZoneObj.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 1)?.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 2)?.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 3)?.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 4)?.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 5)?.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 6)?.Id.ToString("D4"),
-                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 0)?.Id.ToString("D4"), "", "");
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 1)?.Id.ToString("D4") ?? "****",
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 2)?.Id.ToString("D4") ?? "****",
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 3)?.Id.ToString("D4") ?? "****",
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 4)?.Id.ToString("D4") ?? "****",
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 5)?.Id.ToString("D4") ?? "****",
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 6)?.Id.ToString("D4") ?? "****",
+                    TimeZoneObj.Details.FirstOrDefault(tz => tz.DayNumber == 0)?.Id.ToString("D4") ?? "****", "", "");
 
                 // 0: TimeZone information
                 _virdiServer.AccessControlData.SetAccessControlDataToTerminal(0, (int)Code, 0);
 
-                var accessGroups = _accessGroupService.GetAccessGroups(timeZoneId: TimeZoneId).GetAwaiter().GetResult()?.Data?.Data;
-                if (accessGroups != null)
-                    foreach (var accessGroup in accessGroups)
-                    {
-                        _virdiServer.AccessControlData.InitData();
+                //var accessGroups = _accessGroupService.GetAccessGroups(timeZoneId: TimeZoneId).GetAwaiter().GetResult()?.Data?.Data;
+                //if (accessGroups != null)
+                //    foreach (var accessGroup in accessGroups)
+                //    {
+                //        _virdiServer.AccessControlData.InitData();
 
-                        foreach (var timeZoneDetail in TimeZoneObj.Details)
-                        {
-                            _virdiServer.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"),
-                                timeZoneDetail.DayNumber,
-                                timeZoneDetail.FromTime.Hours, timeZoneDetail.FromTime.Minutes,
-                                timeZoneDetail.ToTime.Hours, timeZoneDetail.ToTime.Minutes);
-                        }
+                //        foreach (var timeZoneDetail in TimeZoneObj.Details)
+                //        {
+                //            _virdiServer.AccessControlData.SetTimeZone(timeZoneDetail.Id.ToString("D4"),
+                //                timeZoneDetail.DayNumber,
+                //                timeZoneDetail.FromTime.Hours, timeZoneDetail.FromTime.Minutes,
+                //                timeZoneDetail.ToTime.Hours, timeZoneDetail.ToTime.Minutes);
+                //        }
 
-                        //_callbacks.AccessControlData.SetAuthProperty("0001", 1, 1, 0, 0, 1, 0, 0, 0);
-                        //_callbacks.AccessControlData.SetTimeZoneToAuthProperty("0001", 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-                        //_callbackInstance.AccessControlData.SetHoliday("1000", 0, 1, 1);
+                //        //_callbacks.AccessControlData.SetAuthProperty("0001", 1, 1, 0, 0, 1, 0, 0, 0);
+                //        //_callbacks.AccessControlData.SetTimeZoneToAuthProperty("0001", 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+                //        //_callbackInstance.AccessControlData.SetHoliday("1000", 0, 1, 1);
 
-                        _virdiServer.AccessControlData.SetAccessGroup(accessGroup.Id.ToString("D4"), 0,
-                            TimeZoneObj.Id.ToString("D4"));
+                //        _virdiServer.AccessControlData.SetAccessGroup(accessGroup.Id.ToString("D4"), 0,
+                //            TimeZoneObj.Id.ToString("D4"));
 
-                        // 1: Holiday information
-                        //_callbacks.AccessControlData.SetAccessControlDataToTerminal(0, terminalID, 1);
-                        // 2: AccessTime information
-                        _virdiServer.AccessControlData.SetAccessControlDataToTerminal(0, (int) Code, 2);
-                    }
+                //        // 1: Holiday information
+                //        //_callbacks.AccessControlData.SetAccessControlDataToTerminal(0, terminalID, 1);
+                //        // 2: AccessTime information
+                //        _virdiServer.AccessControlData.SetAccessControlDataToTerminal(0, (int) Code, 2);
+                //    }
             }
             catch (Exception exception)
             {
