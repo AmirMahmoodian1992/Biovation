@@ -137,7 +137,7 @@ namespace Biovation.Brands.PFK.Managers
                 SenderPort = 11124,
                 //SenderResulSavePath = $@"D:\PlateLogs\Result{cameraInfo.DeviceId}",
                 //SenderResulSavePath = $@"D:\LPR{cameraInfo.Code}",
-                SenderResulSavePath = $@"{executingPath}\PlateReader\LPR{cameraInfo.Code}",
+                SenderResulSavePath = $@"{executingPath}\PlateReader\Result{cameraInfo.Code}",
                 //Senderpath = $@"D:\PlateReader\LPR{cameraInfo.Code}\generalRawFixCamLPR.exe",
                 Senderpath = $@"{executingPath}\PlateReader\LPR{cameraInfo.Code}\generalRawFixCamLPR.exe",
                 //Senderworkingpath = $@"D:\PlateReader\LPR{cameraInfo.Code}",
