@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System;
+using Biovation.Domain;
 using Biovation.Domain.RelayControllerModels;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
@@ -35,6 +36,10 @@ namespace Biovation.Repository.Sql.v2.RelayController
 
             var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
             if (insertRelayHubRes == null || !insertRelayHubRes.Success) return insertRelayHubRes;
+            foreach (var relay in relayHub.Relays)
+            {
+                relay.RelayHub.Id = Convert.ToInt32(insertRelayHubRes.Id);
+            }
             if (relayHub.Relays.Select(relay => _relayRepository.CreateRelay(relay)).Any(relayResult => !relayResult.Success))
             {
                 return new ResultViewModel()
