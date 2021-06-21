@@ -1,8 +1,8 @@
-﻿using Biovation.Domain.RelayControllerModels;
-using Biovation.Services.RelayController.Common;
+﻿using Biovation.Services.RelayController.Common;
 using Biovation.Services.RelayController.Domain;
 using System;
 using System.Net.Sockets;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Services.RelayController.Relays
 {

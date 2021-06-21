@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
+using Biovation.Domain.RelayModels;
 using Biovation.Repository.Sql.v2.RelayController;
 
 namespace Biovation.Service.Sql.v1.RelayController

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using Biovation.Domain.RelayControllerModels;
+using Biovation.Domain.RelayModels;
 using Biovation.Services.RelayController.Common;
 
 namespace Biovation.Services.RelayController.Relays

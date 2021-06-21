@@ -1,5 +1,4 @@
 ﻿using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
@@ -7,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Repository.Sql.v2.RelayController
 {

@@ -1,5 +1,4 @@
-﻿using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
+﻿using Biovation.Domain.RelayModels;
 using Biovation.Services.RelayController.Common;
 using Biovation.Services.RelayController.Relays;
 using Biovation.Services.RelayController.Services;
@@ -32,7 +31,7 @@ namespace Biovation.Services.RelayController.Commands
                     IpAddress = "192.168.1.200",
                     Port = 23,
                     Capacity = 4,
-                    RelayHubModel = new DeviceModel { Name = "Behsan" },
+                    RelayHubModel = new RelayHubModel() { Name = "Behsan" },
                     Description = "Blah Blah Blah"
                 },
                 Entrance = new Entrance

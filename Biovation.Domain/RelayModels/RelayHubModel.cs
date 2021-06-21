@@ -1,6 +1,6 @@
 ﻿using DataAccessLayerCore.Attributes;
 
-namespace Biovation.Domain.RelayControllerModels
+namespace Biovation.Domain.RelayModels
 {
     public class RelayHubModel
     {

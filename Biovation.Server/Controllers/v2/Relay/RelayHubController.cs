@@ -1,9 +1,9 @@
 ﻿using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Server.Controllers.v2.Relay
 {

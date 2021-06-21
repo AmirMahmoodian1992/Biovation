@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
+using Biovation.Domain.RelayModels;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;

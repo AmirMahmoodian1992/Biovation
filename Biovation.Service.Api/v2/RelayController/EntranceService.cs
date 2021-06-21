@@ -1,7 +1,7 @@
 ﻿using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
 using Biovation.Repository.Api.v2.RelayController;
 using System.Threading.Tasks;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Service.Api.v2.RelayController
 {

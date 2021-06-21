@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
 using Biovation.Repository.Sql.v2.RelayController;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Data.Queries.Controllers.v2.RelayController
 {

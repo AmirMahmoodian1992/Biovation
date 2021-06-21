@@ -1,9 +1,9 @@
 ﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
 using RestSharp;
 using System;
 using System.Threading.Tasks;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Repository.Api.v2.RelayController
 {

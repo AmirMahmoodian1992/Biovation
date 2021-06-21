@@ -1,5 +1,4 @@
 ﻿using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
 using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +23,7 @@ namespace Biovation.Server.Controllers.v2.Relay
         [HttpGet]
         [Route("{id:int}")]
         [AllowAnonymous]
-        public Task<ResultViewModel<PagingResult<Domain.RelayControllerModels.Relay>>> Relay([FromRoute] int id = 0, int adminUserId = 0,
+        public Task<ResultViewModel<PagingResult<Domain.RelayModels.Relay>>> Relay([FromRoute] int id = 0, int adminUserId = 0,
             string name = null, int nodeNumber = 0, int relayHubId = 0, int entranceId = 0, string description = null,
             int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4,  int schedulingId = default , int deviceId = default)
         {
@@ -35,7 +34,7 @@ namespace Biovation.Server.Controllers.v2.Relay
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> AddRelay([FromBody] Domain.RelayControllerModels.Relay relay = default)
+        public Task<ResultViewModel> AddRelay([FromBody] Domain.RelayModels.Relay relay = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _relayService.CreateRelay(relay, token));
@@ -44,7 +43,7 @@ namespace Biovation.Server.Controllers.v2.Relay
         [HttpPost]
         [Route("Relay")]
         [Authorize]
-        public Task<ResultViewModel> UpdateRelay([FromBody] Domain.RelayControllerModels.Relay relay = default)
+        public Task<ResultViewModel> UpdateRelay([FromBody] Domain.RelayModels.Relay relay = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _relayService.UpdateRelay(relay, token));

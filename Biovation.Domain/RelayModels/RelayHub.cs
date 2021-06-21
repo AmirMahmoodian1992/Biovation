@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using DataAccessLayerCore.Attributes;
 
-namespace Biovation.Domain.RelayControllerModels
+namespace Biovation.Domain.RelayModels
 {
     public class RelayHub
     {
