@@ -7,9 +7,10 @@ namespace Biovation.Domain.RelayModels
     {
         [Id]
         public int Id { get; set; }
+        public int Code { get; set; }
         public string Name { get; set; }
         [OneToMany]
-        public List<DeviceBasicInfo> Devices { get; set; }
+        public List<Camera> Cameras { get; set; }
         [OneToMany]
         public List<Scheduling> Schedulings { get; set; }
         public string Description { get; set; }

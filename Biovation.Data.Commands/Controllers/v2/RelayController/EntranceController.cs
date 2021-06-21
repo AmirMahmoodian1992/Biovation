@@ -21,7 +21,7 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
         [Authorize]
         public Task<ResultViewModel> AddRelay([FromBody] Entrance entrance = default)
         {
-            return Task.Run(() => _entranceRepository.CreateEntrance(entrance));
+            return Task.Run(() => _entranceRepository.InsertEntrance(entrance));
         }
 
         [HttpPost]
