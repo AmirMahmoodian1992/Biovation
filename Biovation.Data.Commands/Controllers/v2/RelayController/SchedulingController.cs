@@ -25,8 +25,7 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
             return Task.Run(() => _schedulingRepository.CreateScheduling(scheduling));
         }
 
-        [HttpPost]
-        [Route("Scheduling")]
+        [HttpPut]
         [Authorize]
         public Task<ResultViewModel> UpdateScheduling([FromBody] Scheduling scheduling = default)
         {

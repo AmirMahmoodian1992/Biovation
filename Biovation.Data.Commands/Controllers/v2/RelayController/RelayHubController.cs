@@ -25,8 +25,7 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
             return Task.Run(() => _relayHubRepository.CreateRelayHubs(relayHub));
         }
 
-        [HttpPost]
-        [Route("RelayHub")]
+        [HttpPut]
         [Authorize]
         public Task<ResultViewModel> UpdateRelayHub([FromBody] RelayHub relayHub = default)
         {

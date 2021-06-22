@@ -1,8 +1,8 @@
-﻿using Biovation.Domain;
+﻿using System.Threading.Tasks;
+using Biovation.Domain;
+using Biovation.Domain.RelayModels;
 using Biovation.Repository.Sql.v2.RelayController;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
-using Biovation.Domain.RelayModels;
 
 namespace Biovation.Data.Commands.Controllers.v2.RelayController
 {
@@ -19,21 +19,20 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> AddRelay([FromBody] Entrance entrance = default)
+        public Task<ResultViewModel> AddEntrance([FromBody] Entrance entrance = default)
         {
             return Task.Run(() => _entranceRepository.InsertEntrance(entrance));
         }
 
-        [HttpPost]
-        [Route("Relay")]
+        [HttpPut]
         [Authorize]
-        public Task<ResultViewModel> UpdateRelay([FromBody] Entrance entrance = default)
+        public Task<ResultViewModel> UpdateEntrance([FromBody] Entrance entrance = default)
         {
             return Task.Run(() => _entranceRepository.UpdateEntrance(entrance));
         }
         [HttpDelete]
         [Authorize]
-        public Task<ResultViewModel> UpdateRelay(int id = default)
+        public Task<ResultViewModel> DeleteEntrance(int id = default)
         {
             return Task.Run(() => _entranceRepository.DeleteEntrance(id));
         }
