@@ -106,7 +106,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@" + nameof(id), id)
             };
 
-            return _repository.ToResultList<ResultViewModel>("DeleteCameraByID", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("DeleteCamera", parameters).Data.FirstOrDefault();
         }
     }
 }
