@@ -10,10 +10,7 @@ using PalizTiara.Api.Helpers;
 using PalizTiara.Api.Models;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using Encoding = System.Text.Encoding;
 
 namespace Biovation.Brands.Paliz.Command
 {

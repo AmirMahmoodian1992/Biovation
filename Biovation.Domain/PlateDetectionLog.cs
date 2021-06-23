@@ -48,14 +48,14 @@ namespace Biovation.Domain
         /// زمان گزارش
         /// </summary>
         /// <value>زمان گزارش</value>
-        protected uint NDateTime { get; set; }
+        protected ulong NDateTime { get; set; }
 
         /// <summary>
         /// زمان گزارش
         /// </summary>
         /// <value>زمان گزارش</value>
-        [DataMapper(Mapper = typeof(BigIntToUIntMapper))]
-        public virtual uint DateTimeTicks
+        [DataMapper(Mapper = typeof(BigIntToULongMapper))]
+        public virtual ulong DateTimeTicks
         {
             get => NDateTime;
             set

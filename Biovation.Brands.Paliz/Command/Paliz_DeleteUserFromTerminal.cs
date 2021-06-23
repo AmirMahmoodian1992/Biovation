@@ -31,7 +31,9 @@ namespace Biovation.Brands.Paliz.Command
         private int UserId { get; }
         private readonly PalizServer _palizServer;
         private readonly MatchingTypes _matchingTypes;
-        private UserActionEventArgs _userDeletionResult;
+        private bool _userDeletionFinished;
+        private bool _userDeletedSuccessfully;
+
         public PalizDeleteUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService,
             LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
@@ -74,22 +76,24 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(GetDescription());
 
                 // Waiting for the deletion result to get sent to the callback method.
-                System.Threading.Thread.Sleep(500);
-                while (_userDeletionResult == null)
+                System.Threading.Thread.Sleep(50);
+                while (!_userDeletionFinished)
                 {
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(50);
                 }
 
                 _palizServer._serverManager.DeleteUserEvent -= DeleteUserByIdEventCallBack;
-                if (_userDeletionResult.Result)
+                if (_userDeletedSuccessfully)
                 {
                     return new ResultViewModel
-                    { 
+                    {
+                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
                         Id = TerminalId,
                         Message = $"  +User {UserId} successfully deleted from device: {Code}.\n",
                         Validate = 1
                     };
                 }
+
                 return new ResultViewModel
                 {
                     Code = Convert.ToInt64(TaskStatuses.FailedCode),
@@ -108,28 +112,36 @@ namespace Biovation.Brands.Paliz.Command
         }
         private void DeleteUserByIdEventCallBack(object sender, UserActionEventArgs args)
         {
-            _userDeletionResult = args;
-            if (_userDeletionResult.Result == false)
+            try
             {
-                Logger.Log($"  +Cannot delete user {UserId} from device: {Code}.\n");
-                return;
+                if (args.Result == false)
+                {
+                    _userDeletedSuccessfully = false;
+                    return;
+                }
+
+                _userDeletedSuccessfully = true;
+
+                var log = new Log
+                {
+                    DeviceId = TerminalId,
+                    LogDateTime = DateTime.Now,
+                    EventLog = _logEvents.RemoveUserFromDevice,
+                    UserId = UserId,
+                    MatchingType = _matchingTypes.Unknown,
+                    SubEvent = _logSubEvents.Normal,
+                    TnaEvent = 0,
+                    SuccessTransfer = true
+                };
+
+                _logService.AddLog(log).GetAwaiter().GetResult();
             }
-            Logger.Log($"  +User {UserId} successfully deleted from device: {Code}.\n");
-
-            var log = new Log
+            finally
             {
-                DeviceId = TerminalId,
-                LogDateTime = DateTime.Now,
-                EventLog = _logEvents.RemoveUserFromDevice,
-                UserId = UserId,
-                MatchingType = _matchingTypes.Unknown,
-                SubEvent = _logSubEvents.Normal,
-                TnaEvent = 0,
-                SuccessTransfer = true
-            };
-
-            _logService.AddLog(log);
+                _userDeletionFinished = true;
+            }
         }
+
         public void Rollback()
         {
             throw new NotImplementedException();

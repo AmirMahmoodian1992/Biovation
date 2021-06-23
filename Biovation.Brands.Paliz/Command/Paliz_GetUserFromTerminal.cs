@@ -27,13 +27,14 @@ namespace Biovation.Brands.Paliz.Command
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly UserCardService _userCardService;
-        private UserInfoEventArgs _getUserResult;
         private int TaskItemId { get; }
         private string TerminalName { get; }
         private int TerminalId { get; }
         private uint Code { get; }
         private int UserId { get; }
         private readonly PalizServer _palizServer;
+        private bool _userRetrievingFinished;
+        private bool _userRetrievedSuccessfully;
 
         public PalizGetUserFromTerminal(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
             , DeviceService deviceService, UserService userService, BiometricTemplateManager biometricTemplateManager
@@ -82,27 +83,28 @@ namespace Biovation.Brands.Paliz.Command
                 Logger.Log(GetDescription());
 
                 // Wait for the task to return its execution result in the callback method.
-                while (_getUserResult == null)
+                while (!_userRetrievingFinished)
                 {
                     System.Threading.Thread.Sleep(100);
                 }
 
                 _palizServer._serverManager.UserInfoEvent -= GetUserInfoEventCallBack;
-                if (_getUserResult.Result)
+                if (_userRetrievedSuccessfully)
                 {
                     return new ResultViewModel
                     {
                         Code = Convert.ToInt64(TaskStatuses.DoneCode),
                         Id = TerminalId,
-                        Message = $"  +User {UserId} successfully retrieved from device: {Code}.\n",
+                        Message = $"+User {UserId} successfully retrieved from device: {Code}.\n",
                         Validate = 1
                     };
                 }
+
                 return new ResultViewModel
                 {
                     Code = Convert.ToInt64(TaskStatuses.FailedCode),
                     Id = TerminalId,
-                    Message = $"  +Cannot retrieve user {Code} from device: {Code}.\n",
+                    Message = $"+Cannot retrieve user {Code} from device: {Code}.\n",
                     Validate = 0
                 };
             }
@@ -246,59 +248,66 @@ namespace Biovation.Brands.Paliz.Command
             //    return;
             //}
 
-            if (args.Result == false)
-            {
-                Logger.Log($"  +Cannot retrieve user {Code} from device: {Code}.\n");
-                return;
-            }
-
-            Logger.Log($"  +User {UserId} successfully retrieved from device: {Code}.\n");
-
-            var userInfoModel = args.UserInfoModel;
-            var user = new User
-            {
-                Code = userInfoModel.Id,
-                AdminLevel = (int)userInfoModel.Level,
-                StartDate = DateTime.Parse("1970/01/01"),
-                EndDate = DateTime.Parse("2050/01/01"),
-                AuthMode = userInfoModel.Locked ? 0 : 1,
-                Password = userInfoModel.Password,
-                FullName = userInfoModel.Name,
-                IsActive = userInfoModel.Locked,
-                ImageBytes = userInfoModel.Image,
-                SurName = userInfoModel.Name.Split(' ').LastOrDefault(),
-                FirstName = userInfoModel.Name.Split(' ').FirstOrDefault()
-            };
-
-            //PalizTiara.Api.Definition.VerificationDevices.
-
-            var existingUser = _userService.GetUsers(code: userInfoModel.Id, getTemplatesData: true)
-                .GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
-            if (existingUser != null)
-            {
-                user.Id = existingUser.Id;
-                user.FingerTemplates = existingUser.FingerTemplates;
-            }
-
-            var userInsertionResult = _userService.ModifyUser(user).GetAwaiter().GetResult();
-
-            Logger.Log("<--User is Modified");
-            user.Id = userInsertionResult.Id;
-
             try
             {
-                Logger.Log($"   +TotalCardCount:{userInfoModel.Cards?.Length ?? 0}");
-                ModifyUserCards(userInfoModel, user);
+                if (args.Result == false)
+                {
+                    _userRetrievedSuccessfully = false;
+                    return;
+                }
 
-                Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints?.Length ?? 0}");
-                ModifyFingerTemplates(userInfoModel, user);
+                _userRetrievedSuccessfully = true;
 
-                Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces?.Length ?? 0}");
-                ModifyFaceTemplates(userInfoModel, user);
+                var userInfoModel = args.UserInfoModel;
+                var user = new User
+                {
+                    Code = userInfoModel.Id,
+                    AdminLevel = (int)userInfoModel.Level,
+                    StartDate = DateTime.Parse("1970/01/01"),
+                    EndDate = DateTime.Parse("2050/01/01"),
+                    AuthMode = userInfoModel.Locked ? 0 : 1,
+                    Password = userInfoModel.Password,
+                    FullName = userInfoModel.Name,
+                    IsActive = userInfoModel.Locked,
+                    ImageBytes = userInfoModel.Image,
+                    SurName = userInfoModel.Name.Split(' ').LastOrDefault(),
+                    FirstName = userInfoModel.Name.Split(' ').FirstOrDefault()
+                };
+
+                //PalizTiara.Api.Definition.VerificationDevices.
+
+                var existingUser = _userService.GetUsers(code: userInfoModel.Id, getTemplatesData: true)
+                    .GetAwaiter().GetResult()?.Data?.Data?.FirstOrDefault();
+                if (existingUser != null)
+                {
+                    user.Id = existingUser.Id;
+                    user.FingerTemplates = existingUser.FingerTemplates;
+                }
+
+                var userInsertionResult = _userService.ModifyUser(user).GetAwaiter().GetResult();
+
+                Logger.Log("<--User is Modified");
+                user.Id = userInsertionResult.Id;
+
+                try
+                {
+                    Logger.Log($"   +TotalCardCount:{userInfoModel.Cards?.Length ?? 0}");
+                    ModifyUserCards(userInfoModel, user);
+
+                    Logger.Log($"   +TotalFingerCount:{userInfoModel.Fingerprints?.Length ?? 0}");
+                    ModifyFingerTemplates(userInfoModel, user);
+
+                    Logger.Log($"   +TotalFaceCount:{userInfoModel.Faces?.Length ?? 0}");
+                    ModifyFaceTemplates(userInfoModel, user);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(ex);
+                }
             }
-            catch (Exception ex)
+            finally
             {
-                Logger.Log(ex);
+                _userRetrievingFinished = true;
             }
         }
         public void Rollback()

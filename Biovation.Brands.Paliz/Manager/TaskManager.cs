@@ -382,9 +382,16 @@ namespace Biovation.Brands.Paliz.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.PalizCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode })?.GetAwaiter().GetResult()
-                .Data?.Data ?? new List<TaskInfo>();
+            //var allTasks = _taskService.GetTasks(brandCode: DeviceBrands.PalizCode, deviceId: deviceId,
+            //    excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode })?.GetAwaiter().GetResult()
+            //    .Data?.Data ?? new List<TaskInfo>();
+
+            var allTasks = (await _taskService.GetTasks(brandCode: DeviceBrands.PalizCode, deviceId: deviceId,
+                    excludedTaskStatusCodes: new List<string>
+                    {
+                                    TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,
+                                    TaskStatuses.ScheduledCode, TaskStatuses.InProgressCode
+                    }))?.Data?.Data ?? new List<TaskInfo>();
 
             lock (_tasks)
             {
@@ -401,7 +408,7 @@ namespace Biovation.Brands.Paliz.Manager
             }
 
 
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -434,6 +441,5 @@ namespace Biovation.Brands.Paliz.Manager
                 }
             }, cancellationToken).ConfigureAwait(false);
         }
-
     }
 }
