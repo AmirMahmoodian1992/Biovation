@@ -16,6 +16,8 @@ using Microsoft.Extensions.Hosting;
 using RestSharp;
 using Serilog;
 using System.Reflection;
+using Biovation.Services.RelayController.Common;
+using Biovation.Services.RelayController.Relays;
 using Biovation.Services.RelayController.Services;
 
 namespace Biovation.Services.RelayController
@@ -25,7 +27,7 @@ namespace Biovation.Services.RelayController
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public IConfiguration Configuration { get; }
 
-        public Dictionary<int,TcpClient> RelaysTcpClients{ get; set; }
+        public Dictionary<int,IRelay> ConnectedRelays{ get; set; }
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
@@ -50,7 +52,7 @@ namespace Biovation.Services.RelayController
             Configuration = builder.Build();
             metrics.Build();
 
-            RelaysTcpClients = new Dictionary<int, TcpClient>();
+            ConnectedRelays = new Dictionary<int, IRelay>();
         }
 
 
@@ -74,8 +76,9 @@ namespace Biovation.Services.RelayController
             ConfigureConstantValues(services);
             //ConfigureRelayServices(services);
 
-            
-            services.AddScoped<TcpClientGetterService>();
+            services.AddSingleton(ConnectedRelays);
+            services.AddSingleton<RelayFactory>();
+            services.AddTransient<GetRelayService>();
             services.AddHostedService<RelaysConnectionHolderHostedService>();
             //services.AddHostedService<PingCollectorHostedService>();
             //services.AddHostedService<BroadcastMetricsHostedService>();
@@ -123,7 +126,7 @@ namespace Biovation.Services.RelayController
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
 
-            services.AddSingleton(RelaysTcpClients);
+            
         }
 
         public void ConfigureConstantValues(IServiceCollection services)

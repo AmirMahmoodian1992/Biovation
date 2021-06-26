@@ -16,20 +16,19 @@ namespace Biovation.Services.RelayController.Relays
         private readonly bool _autoReconnect = true;
         private readonly int _readBufferSize = 300;
 
-        public BehsanRelay(Relay relayInfo, TcpClient tcpClient)
+        public BehsanRelay(Relay relayInfo)
         {
             RelayInfo = relayInfo;
-            _tcpClient = tcpClient;
+            _tcpClient = new TcpClient();
             _asciiEncoding = new ASCIIEncoding();
-            _stream = _tcpClient.GetStream();
         }
 
         public bool Connect()
         {
             try
             {
-                _tcpClient.ConnectAsync(RelayInfo.Hub.IpAddress, RelayInfo.Hub.Port).Wait(2000);
-                //_stream = _tcpClient.GetStream();
+                _tcpClient.ConnectAsync(RelayInfo.Hub.IpAddress, RelayInfo.Hub.Port).Wait(1000);
+                _stream = _tcpClient.GetStream();
                 _tcpClient.ReceiveTimeout = 2000;
                 return true;
             }

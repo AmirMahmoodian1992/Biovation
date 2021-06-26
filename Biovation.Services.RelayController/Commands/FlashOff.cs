@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Biovation.Domain;
 using Biovation.Services.RelayController.Common;
 
 namespace Biovation.Services.RelayController.Commands
@@ -12,20 +12,20 @@ namespace Biovation.Services.RelayController.Commands
             Relay = relay;
         }
 
-        public object Execute()
+        public ResultViewModel Execute()
         {
            // if (!Relay.IsConnected())
            //    if (!Relay.Connect())
            //         throw new Exception("connection error !");
 
             if (!Relay.FlashOff())
-                throw new Exception("Contact command failed !");
+                return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} flash off command failed !.", Code = 1, Id = Relay.RelayInfo.Id };
 
             //if (!Relay.Disconnect())
             //    throw new Exception("relay could not disconnect successfully!");
 
 
-            return 1;
+            return new ResultViewModel { Validate = 0, Success = true, Message = $"Relay Id: {Relay.RelayInfo.Id} stopped flashing successfully.", Code = 1, Id = Relay.RelayInfo.Id };
         }
     }
 }

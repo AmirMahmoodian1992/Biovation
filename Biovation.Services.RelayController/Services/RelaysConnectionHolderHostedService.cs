@@ -1,101 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Domain;
+using Biovation.Domain.RelayControllerModels;
+using Biovation.Services.RelayController.Common;
+using Biovation.Services.RelayController.Relays;
 
 
 namespace Biovation.Services.RelayController.Services
 {
     public class RelaysConnectionHolderHostedService : BackgroundService
     {
-        public Dictionary<int, TcpClient> RelaysTcpClients { get; set; }
+        public Dictionary<int, IRelay> ConnectedRelays { get; set; }
+        private readonly RelayFactory _relayFactory;
 
-        public RelaysConnectionHolderHostedService(Dictionary<int, TcpClient> relaysTcpClients)
+        public RelaysConnectionHolderHostedService(Dictionary<int, IRelay> connectedRelays, RelayFactory relayFactory)
         {
-            RelaysTcpClients = relaysTcpClients;
+            ConnectedRelays = connectedRelays;
+            _relayFactory = relayFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                for (var id = 1; id <= 4; id++)
+                for (var relayId = 1; relayId <= 4; relayId++)
                 {
-                    if (RelaysTcpClients.ContainsKey(id))
+                    if (ConnectedRelays.ContainsKey(relayId))
                     {
-                        var tcpClient = RelaysTcpClients[id];
+                        var relay = ConnectedRelays[relayId];
 
-                        if (IsConnected(tcpClient))
+                        if (relay.IsConnected())
                         {
-                            Console.WriteLine($"relay number {id} is alive.");
-                            continue;
+                            Console.WriteLine($"relay number {relayId} is alive.");
                         }
                         else
                         {
-                            Console.WriteLine($"relay number {id} is disconnected!");
-                            RelaysTcpClients.Remove(id);
+                            Console.WriteLine($"relay number {relayId} is disconnected!");
+                            ConnectedRelays.Remove(relayId);
                         }
                     }
                     else
                     {
-                        var tcpClient = new TcpClient();
+                        var relayInfo = new Relay
+                        {
+                            Id = relayId,
+                            Name = $"relay_{relayId}",
+                            NodeNumber = relayId,
+                            Hub = new RelayHub
+                            {
+                                Id = 1,
+                                IpAddress = "192.168.1.200",
+                                Port = 23,
+                                Capacity = 4,
+                                RelayHubModel = new DeviceModel { Name = "Behsan" },
+                                Description = "Blah Blah Blah"
+                            },
+                            Entrance = new Entrance
+                            {
+                                Id = 1,
+                                Name = "MainEntrance",
+                                Description = "Blah Blah Blah"
+                            },
+                            Description = "Blah Blah Blah"
+                        };
+                        var relay = _relayFactory.Factory(relayInfo);
                         try
                         {
-                            tcpClient.ConnectAsync("192.168.1.200", 23).Wait(1000);
+                            relay.Connect();
                         }
                         catch (Exception)
                         {
-                            Console.WriteLine($"relay number {id} not found!");
+                            Console.WriteLine($"relay number {relayId} not found!");
                             continue;
                         }
-                        RelaysTcpClients.Add(id,tcpClient);
+                        ConnectedRelays.Add(relayId,relay);
                     }
 
                 }
                 await Task.Delay(5000, stoppingToken);
-            }
-        }
-
-        private static bool IsConnected(TcpClient tcpClient)
-        {
-            try
-            {
-                if (tcpClient != null && tcpClient.Client != null && tcpClient.Client.Connected)
-                {
-                    /* pear to the documentation on Poll:
-                    * When passing SelectMode.SelectRead as a parameter to the Poll method it will return 
-                    * -either- true if Socket.Listen(Int32) has been called and a connection is pending;
-                    * -or- true if data is available for reading; 
-                    * -or- true if the connection has been closed, reset, or terminated; 
-                    * otherwise, returns false
-                    */
-                    // Detect if client disconnected
-                    if (tcpClient.Client.Poll(0, SelectMode.SelectRead))
-                    {
-                        byte[] buff = new byte[1];
-                        if (tcpClient.Client.Receive(buff, SocketFlags.Peek) == 0)
-                        {
-                            // Client disconnected
-                            return false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                    }
-
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            catch
-            {
-                return false;
             }
         }
     }
