@@ -120,7 +120,11 @@ namespace Biovation.Brands.Paliz.Command
                 case CommandType.ForceUpdateForSpecificDevice:
                     //Force Update for Specific Device request
                     throw new NotImplementedException();
-
+                //Get some data like mac,firmware and etc from device
+                case CommandType.GetDeviceAdditionalData:
+                    {
+                        return new PalizGetAdditionalData(transferModelData.Items, _palizServer, _deviceService);
+                    }
                 case CommandType.SyncAllUsers:
                     //Sync Update request
                     throw new NotImplementedException();

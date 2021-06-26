@@ -12,6 +12,7 @@ using PalizTiara.Api.CallBacks;
 using PalizTiara.Api.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -39,6 +40,7 @@ namespace Biovation.Brands.Paliz.Command
         /// Paliz sdk has a limit of maximum number of 100 logs per page
         /// </summary>
         private const int MaxLogCountPerPage = 100;
+        private static Queue<AutoResetEvent> autoResetEvents = new Queue<AutoResetEvent>();
 
         public PalizGetTrafficLogsInPeriod(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
@@ -87,16 +89,23 @@ namespace Biovation.Brands.Paliz.Command
 
                 Logger.Log($" +Retrieving logs from device: {code} started successfully.\n");
 
-                _palizServer._serverManager.TrafficLogEvent += TrafficLogEventCallBack;
-                _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request);
-                _palizServer._serverManager.FailLogEvent += FailTrafficLogEventCallBack;
-                _palizServer._serverManager.GetFailLogAsyncTask(terminalName, request);
-
-                System.Threading.Thread.Sleep(1000);
-                while (!succeedLogsRetrieved || !failedLogsRetrieved)
+                for (int i = 0; i < 2; i++)
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    autoResetEvents.Enqueue(new AutoResetEvent(false));
                 }
+
+                _palizServer._serverManager.TrafficLogEvent += TrafficLogEventCallBack;
+                _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request).Wait();
+                _palizServer._serverManager.FailLogEvent += FailTrafficLogEventCallBack;
+                _palizServer._serverManager.GetFailLogAsyncTask(terminalName, request).Wait();
+
+                //System.Threading.Thread.Sleep(100);
+                //while (!succeedLogsRetrieved || !failedLogsRetrieved)
+                //{
+                //    System.Threading.Thread.Sleep(100);
+                //}
+
+                WaitHandle.WaitAll(autoResetEvents.ToArray());
 
                 _palizServer._serverManager.TrafficLogEvent -= TrafficLogEventCallBack;
                 _palizServer._serverManager.FailLogEvent -= FailTrafficLogEventCallBack;
@@ -125,7 +134,12 @@ namespace Biovation.Brands.Paliz.Command
 
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
-                failedLogsRetrieved = true;
+                lock (autoResetEvents)
+                {
+                    var waitHandle = autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //failedLogsRetrieved = true;
                 return;
             }
 
@@ -165,7 +179,12 @@ namespace Biovation.Brands.Paliz.Command
             }
             else
             {
-                failedLogsRetrieved = true;
+                lock (autoResetEvents)
+                {
+                    var waitHandle = autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //failedLogsRetrieved = true;
             }
         }
 
@@ -173,7 +192,12 @@ namespace Biovation.Brands.Paliz.Command
         {
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
-                succeedLogsRetrieved = true;
+                lock (autoResetEvents)
+                {
+                    var waitHandle = autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //succeedLogsRetrieved = true;
                 return;
             }
 
@@ -212,7 +236,12 @@ namespace Biovation.Brands.Paliz.Command
             }
             else
             {
-                succeedLogsRetrieved = true;
+                lock (autoResetEvents)
+                {
+                    var waitHandle = autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //succeedLogsRetrieved = true;
             }
         }
 

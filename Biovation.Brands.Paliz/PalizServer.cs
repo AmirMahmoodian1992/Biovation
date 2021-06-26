@@ -122,7 +122,6 @@ namespace Biovation.Brands.Paliz
             }
 
             var tiaraSettings = args.TiaraSettings;
-
             var terminalName = tiaraSettings.ServerSetting.TerminalName;
             var terminalId = Convert.ToUInt32(tiaraSettings.ServerSetting.TerminalId);
             var existedDevice = _commonDeviceService.GetDevices(code: terminalId, brandId: DeviceBrands.PalizCode)
@@ -300,7 +299,35 @@ namespace Biovation.Brands.Paliz
 
         private void FixDaylightSavingTimer_Elapsed(object state)
         {
-            //SetDateTime();
+            //var creatorUser = _commonUserService.GetUsers(code: 987654321).GetAwaiter().GetResult().Data?.Data?.FirstOrDefault();
+
+            //var task = new TaskInfo
+            //{
+            //    CreatedAt = DateTimeOffset.Now,
+            //    CreatedBy = creatorUser,
+            //    TaskType = _taskTypes.SetDeviceDateTime,
+            //    Priority = _taskPriorities.Medium,
+            //    TaskItems = new List<TaskItem>(),
+            //    DeviceBrand = _deviceBrands.Paliz,
+            //    DueDate = DateTimeOffset.Now
+            //};
+
+            //task.TaskItems.Add(new TaskItem
+            //{
+            //    Status = _taskStatuses.Queued,
+            //    TaskItemType = _taskItemTypes.SetDeviceDateTime,
+            //    Priority = _taskPriorities.Medium,
+            //    DeviceId = device.DeviceId,
+            //    Data = JsonConvert.SerializeObject(new { device.DeviceId, DateTime = DateTime.Now }),
+            //    IsParallelRestricted = true,
+            //    IsScheduled = false,
+            //    OrderIndex = 1
+            //});
+
+            //_taskService.InsertTask(task).GetAwaiter().GetResult();
+
+            ////AccessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
+            //_taskService.ProcessQueue(_deviceBrands.Paliz, device.DeviceId).ConfigureAwait(false);
         }
 
         /// <summary>

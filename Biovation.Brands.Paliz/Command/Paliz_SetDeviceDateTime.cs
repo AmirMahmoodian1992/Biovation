@@ -11,6 +11,7 @@ using PalizTiara.Api.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -23,9 +24,9 @@ namespace Biovation.Brands.Paliz.Command
         private readonly uint _code;
         private readonly int _taskItemId;
         private readonly PalizServer _palizServer;
-        private DeviceBasicInfo _onlineDevice { get; set; }
         private DateTime _inputDateTime;
         private bool _datetimeSyncingFinished;
+        private AutoResetEvent waitHandle = new AutoResetEvent(false);
 
         public PalizSetDeviceDateTime(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService
                 , DeviceService deviceService)
@@ -49,7 +50,7 @@ namespace Biovation.Brands.Paliz.Command
                 return;
             }
 
-            _code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Code ?? 7;
+            _code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Code ?? 0;
             _terminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Name ?? string.Empty;
             _onlineDevices = palizServer.GetOnlineDevices();
         }
@@ -95,8 +96,6 @@ namespace Biovation.Brands.Paliz.Command
                 };
             }
 
-            _onlineDevice = _onlineDevices.FirstOrDefault(device => device.Key == _code).Value;
-
             try
             {
                 var taskItem = _taskService.GetTaskItem(_taskItemId).GetAwaiter().GetResult().Data;
@@ -104,6 +103,14 @@ namespace Biovation.Brands.Paliz.Command
                 if (taskData != null && taskData.ContainsKey("DateTime"))
                 {
                     var parseResult = DateTime.TryParse(taskData["DateTime"].ToString() ?? DateTime.Now.ToString(), out var dateTime);
+                    if (parseResult)
+                    {
+                        _inputDateTime = (DateTime)taskData["DateTime"];
+                    }
+                    else
+                    {
+                        _inputDateTime = DateTime.Now;
+                    }
 
                     //if (!parseResult || dateTime == 0)
                     //    return new ResultViewModel
@@ -144,10 +151,12 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.SetDateTimeEvent += SetDatetimeEventCallBack;
                 _palizServer._serverManager.SetDateTimeAsyncTask(request, _terminalName);
 
-                while (!_datetimeSyncingFinished)
-                {
-                    System.Threading.Thread.Sleep(50);
-                }
+                waitHandle.WaitOne();
+
+                //while (!_datetimeSyncingFinished)
+                //{
+                //    Thread.Sleep(50);
+                //}
 
                 _palizServer._serverManager.SetDateTimeEvent -= SetDatetimeEventCallBack;
 
@@ -169,6 +178,8 @@ namespace Biovation.Brands.Paliz.Command
         private void SetDatetimeEventCallBack(object sender, SetActionEventArgs args)
         {
             _datetimeSyncingFinished = true;
+
+            waitHandle.Set();
         }
 
         public void Rollback()

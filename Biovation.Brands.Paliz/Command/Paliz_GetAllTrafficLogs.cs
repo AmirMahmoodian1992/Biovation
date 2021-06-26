@@ -9,6 +9,7 @@ using PalizTiara.Api.Models;
 using PalizTiara.Api.CallBacks;
 using Biovation.CommonClasses.Interface;
 using Biovation.Brands.Paliz.Manager;
+using System.Threading;
 
 namespace Biovation.Brands.Paliz.Command
 {
@@ -17,27 +18,27 @@ namespace Biovation.Brands.Paliz.Command
         /// <summary>
         /// All connected devices
         /// </summary>
-        private Dictionary<uint, DeviceBasicInfo> onlineDevices { get; }
+        private Dictionary<uint, DeviceBasicInfo> _onlineDevices { get; }
         //private int taskItemId { get; }
-        private string terminalName { get; }
-        private int terminalId { get; }
-        private uint code { get; }
-        private DeviceBasicInfo onlineDevice { get; set; }
+        private string _terminalName { get; }
+        private int _terminalId { get; }
+        private uint _code { get; }
+        private DeviceBasicInfo _onlineDevice { get; set; }
 
         private LogEvents _logEvents;
         private PalizCodeMappings _palizCodeMappings;
         private readonly PalizServer _palizServer;
-        private bool succeedLogsRetrieved;
-        private bool failedLogsRetrieved;
-        private int totalOfflineLogs;
+        private int _totalOfflineLogs;
         /// <summary>
         /// Paliz sdk has a limit of maximum number of 100 logs per page
         /// </summary>
         private const int MaxLogCountPerPage = 100;
+        private static Queue<AutoResetEvent> _autoResetEvents = new Queue<AutoResetEvent>();
 
-        public PalizGetAllTrafficLogs(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService, DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
+        public PalizGetAllTrafficLogs(IReadOnlyList<object> items, PalizServer palizServer, TaskService taskService,
+            DeviceService deviceService, LogEvents logEvents, PalizCodeMappings palizCodeMappings)
         {
-            terminalId = Convert.ToInt32(items[0]);
+            _terminalId = Convert.ToInt32(items[0]);
             //taskItemId = Convert.ToInt32(items[1]);
 
             _palizCodeMappings = palizCodeMappings;
@@ -46,27 +47,27 @@ namespace Biovation.Brands.Paliz.Command
             //var taskItem = taskService.GetTaskItem(taskItemId)?.Data ?? new TaskItem();
             //var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             //UserId = (int)data["userId"];
-            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+            var devices = deviceService.GetDevices(brandId: DeviceBrands.PalizCode).GetAwaiter().GetResult();
             if (devices is null)
             {
-                onlineDevices = new Dictionary<uint, DeviceBasicInfo>();
+                _onlineDevices = new Dictionary<uint, DeviceBasicInfo>();
                 return;
             }
 
-            code = devices.GetAwaiter().GetResult().Data?.Data.FirstOrDefault(d => d.DeviceId == terminalId)?.Code ?? 0;
-            terminalName = devices.GetAwaiter().GetResult().Data?.Data.FirstOrDefault(d => d.DeviceId == terminalId)?.Name ?? string.Empty;
-            onlineDevices = _palizServer.GetOnlineDevices();
+            _code = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Code ?? 0;
+            _terminalName = devices.Data?.Data.FirstOrDefault(d => d.DeviceId == _terminalId)?.Name ?? string.Empty;
+            _onlineDevices = _palizServer.GetOnlineDevices();
         }
 
         public object Execute()
         {
-            if (onlineDevices.All(device => device.Key != code))
+            if (_onlineDevices.All(device => device.Key != _code))
             {
-                Logger.Log($"RetriveAllLogsOfDevice,The device: {code} is not connected.");
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = terminalId, Message = $"The device: {code} is not connected.", Validate = 1 };
+                Logger.Log($"RetriveAllLogsOfDevice,The device: {_code} is not connected.");
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = _terminalId, Message = $"The device: {_code} is not connected.", Validate = 1 };
             }
 
-            onlineDevice = onlineDevices.FirstOrDefault(device => device.Key == code).Value;
+            _onlineDevice = _onlineDevices.FirstOrDefault(device => device.Key == _code).Value;
 
             try
             {
@@ -78,34 +79,41 @@ namespace Biovation.Brands.Paliz.Command
                     EndDate = 0
                 };
 
-                Logger.Log($"Retrieving logs from device: {code} started successfully.\n");
+                Logger.Log($"Retrieving logs from device: {_code} started successfully.\n");
+
+                for (int i = 0; i < 2; i++)
+                {
+                    _autoResetEvents.Enqueue(new AutoResetEvent(false));
+                }
 
                 _palizServer._serverManager.TrafficLogEvent += TrafficLogEventCallBack;
-                _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request);
+                _palizServer._serverManager.GetTrafficLogAsyncTask(_terminalName, request);
                 _palizServer._serverManager.FailLogEvent += FailTrafficLogEventCallBack;
-                _palizServer._serverManager.GetFailLogAsyncTask(terminalName, request);
+                _palizServer._serverManager.GetFailLogAsyncTask(_terminalName, request);
 
-                System.Threading.Thread.Sleep(1000);
-                while (!succeedLogsRetrieved || !failedLogsRetrieved)
-                {
-                    System.Threading.Thread.Sleep(1000);
-                }
+                //System.Threading.Thread.Sleep(1000);
+                //while (!succeedLogsRetrieved || !failedLogsRetrieved)
+                //{
+                //    System.Threading.Thread.Sleep(1000);
+                //}
+
+                WaitHandle.WaitAll(_autoResetEvents.ToArray());
 
                 _palizServer._serverManager.TrafficLogEvent -= TrafficLogEventCallBack;
                 _palizServer._serverManager.FailLogEvent -= FailTrafficLogEventCallBack;
 
                 //Logger.Log(GetDescription());
-                Logger.Log($"{totalOfflineLogs} Offline log retrieved from DeviceId: {code}.");
+                Logger.Log($"{_totalOfflineLogs} Offline log retrieved from DeviceId: {_code}.");
 
                 PalizServer.GetLogTaskFinished = true;
                 return PalizServer.GetLogTaskFinished
-                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = terminalId, Message = 0.ToString(), Validate = 1 }
-                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = terminalId, Message = 0.ToString(), Validate = 1 };
+                    ? new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DoneCode), Id = _terminalId, Message = 0.ToString(), Validate = 1 }
+                    : new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.InProgressCode), Id = _terminalId, Message = 0.ToString(), Validate = 1 };
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = terminalId, Message = "Error in command execute", Validate = 0 };
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = _terminalId, Message = "Error in command execute", Validate = 0 };
             }
         }
 
@@ -118,7 +126,12 @@ namespace Biovation.Brands.Paliz.Command
 
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
-                failedLogsRetrieved = true;
+                lock (_autoResetEvents)
+                {
+                    var waitHandle = _autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //failedLogsRetrieved = true;
                 return;
             }
 
@@ -127,8 +140,8 @@ namespace Biovation.Brands.Paliz.Command
             {
                 logList.Add(new Log
                 {
-                    DeviceId = onlineDevice.DeviceId,
-                    DeviceCode = onlineDevice.Code,
+                    DeviceId = _onlineDevice.DeviceId,
+                    DeviceCode = _onlineDevice.Code,
                     EventLog = _logEvents.UnAuthorized,
                     UserId = -1,
                     //UserId = log.UserId,
@@ -137,12 +150,12 @@ namespace Biovation.Brands.Paliz.Command
                     MatchingType = _palizCodeMappings.GetMatchingTypeGenericLookup(log.TrafficType),
                     //SubEvent = _palizCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                     PicByte = log.Image,
-                    InOutMode = onlineDevice.DeviceTypeId
+                    InOutMode = _onlineDevice.DeviceTypeId
                 });
             }
 
             await _palizServer._logService.AddLog(logList);
-            totalOfflineLogs += logs.TrafficLogModel.Logs.Length;
+            _totalOfflineLogs += logs.TrafficLogModel.Logs.Length;
 
             if (logs.TrafficLogModel.Logs.Length >= MaxLogCountPerPage)
             {
@@ -154,11 +167,16 @@ namespace Biovation.Brands.Paliz.Command
                     EndDate = 0
                 };
 
-                await _palizServer._serverManager.GetFailLogAsyncTask(terminalName, request);
+                await _palizServer._serverManager.GetFailLogAsyncTask(_terminalName, request);
             }
             else
             {
-                failedLogsRetrieved = true;
+                lock (_autoResetEvents)
+                {
+                    var waitHandle = _autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //failedLogsRetrieved = true;
             }
         }
 
@@ -166,7 +184,12 @@ namespace Biovation.Brands.Paliz.Command
         {
             if (logs.Result == false || logs.TrafficLogModel?.Logs is null)
             {
-                succeedLogsRetrieved = true;
+                lock (_autoResetEvents)
+                {
+                    var waitHandle = _autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //succeedLogsRetrieved = true;
                 return;
             }
 
@@ -175,8 +198,8 @@ namespace Biovation.Brands.Paliz.Command
             {
                 logList.Add(new Log
                 {
-                    DeviceId = onlineDevice.DeviceId,
-                    DeviceCode = onlineDevice.Code,
+                    DeviceId = _onlineDevice.DeviceId,
+                    DeviceCode = _onlineDevice.Code,
                     EventLog = _logEvents.Authorized,
                     UserId = log.UserId,
                     DateTimeTicks = (ulong)(log.Time / 1000),
@@ -184,12 +207,12 @@ namespace Biovation.Brands.Paliz.Command
                     MatchingType = _palizCodeMappings.GetMatchingTypeGenericLookup(log.TrafficType),
                     //SubEvent = _palizCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
                     PicByte = log.Image,
-                    InOutMode = onlineDevice.DeviceTypeId
+                    InOutMode = _onlineDevice.DeviceTypeId
                 });
             }
 
             await _palizServer._logService.AddLog(logList);
-            totalOfflineLogs += logs.TrafficLogModel.Logs.Length;
+            _totalOfflineLogs += logs.TrafficLogModel.Logs.Length;
 
             if (logs.TrafficLogModel.Logs.Length >= MaxLogCountPerPage)
             {
@@ -201,11 +224,16 @@ namespace Biovation.Brands.Paliz.Command
                     EndDate = 0
                 };
 
-                await _palizServer._serverManager.GetTrafficLogAsyncTask(terminalName, request);
+                await _palizServer._serverManager.GetTrafficLogAsyncTask(_terminalName, request);
             }
             else
             {
-                succeedLogsRetrieved = true;
+                lock (_autoResetEvents)
+                {
+                    var waitHandle = _autoResetEvents.Dequeue();
+                    waitHandle.Set();
+                }
+                //succeedLogsRetrieved = true;
             }
         }
 
