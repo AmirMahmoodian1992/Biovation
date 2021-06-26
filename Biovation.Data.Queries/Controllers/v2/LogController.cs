@@ -1,6 +1,7 @@
 ﻿using Biovation.Domain;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using Biovation.CommonClasses.Extension;
 using Biovation.Repository.Sql.v2;
 
@@ -30,6 +31,27 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
 
             var logResult = _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, HttpContext.GetUser().Id, successTransfer).Result;
+            var result = new PagingResult<Log>
+            {
+                Data = logResult,
+                PageSize = pageSize,
+                PageNumber = pageNumber,
+                From = pageNumber * pageSize,
+                Count = logResult.FirstOrDefault()?.Total ?? 0
+            };
+
+            return new ResultViewModel<PagingResult<Log>>
+            {
+                Data = result
+            };
+        }
+
+        [HttpGet]
+        [Route("LogImage/{id?}")]
+        public ResultViewModel<PagingResult<Log>> LogImage([FromRoute] int id = default)
+        {
+
+            var logResult = _logRepository.LogImage(id).Result;
             var result = new PagingResult<Log>
             {
                 Data = logResult,

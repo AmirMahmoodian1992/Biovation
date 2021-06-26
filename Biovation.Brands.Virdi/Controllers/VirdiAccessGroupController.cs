@@ -1,5 +1,4 @@
 ﻿using Biovation.Brands.Virdi.Command;
-using Biovation.Brands.Virdi.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
@@ -18,9 +17,8 @@ namespace Biovation.Brands.Virdi.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class VirdiAccessGroupController : ControllerBase
     {
-        private readonly Callbacks _callbacks;
+        private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
@@ -30,13 +28,12 @@ namespace Biovation.Brands.Virdi.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public VirdiAccessGroupController(TaskService taskService, DeviceService deviceService, Callbacks callbacks, CommandFactory commandFactory, TaskManager taskManager, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public VirdiAccessGroupController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;
-            _callbacks = callbacks;
+            _virdiServer = virdiServer;
             _commandFactory = commandFactory;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
             _taskTypes = taskTypes;
             _taskStatuses = taskStatuses;
@@ -48,52 +45,49 @@ namespace Biovation.Brands.Virdi.Controllers
         [Authorize]
         public async Task<ResultViewModel> SendAccessGroupToAllDevices([FromBody] int accessGroupId)
         {
-            return await Task.Run(() =>
+            try
             {
-                try
+                var devices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                var creatorUser = HttpContext.GetUser();
+                var task = new TaskInfo
                 {
-                    var devices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                    var creatorUser = HttpContext.GetUser();
-                    var task = new TaskInfo
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendUsers,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = _deviceBrands.Virdi,
+                    TaskItems = new List<TaskItem>(),
+                    DueDate = DateTime.Today
+                };
+                foreach (var device in devices)
+                {
+                    task.TaskItems.Add(new TaskItem
                     {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.SendUsers,
+                        Status = _taskStatuses.Queued,
+                        TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
                         Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Virdi,
-                        TaskItems = new List<TaskItem>(),
-                        DueDate = DateTime.Today
-                    };
-                    foreach (var device in devices)
-                    {
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { accessGroupId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                            CurrentIndex = 0,
-                            TotalCount = 1
-                        });
-                    }
-
-                    _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
-
-
-                    return new ResultViewModel { Validate = 1, Message = "Sending users queued" };
+                        DeviceId = device.DeviceId,
+                        Data = JsonConvert.SerializeObject(new { accessGroupId }),
+                        IsParallelRestricted = true,
+                        IsScheduled = false,
+                        OrderIndex = 1,
+                        CurrentIndex = 0,
+                        TotalCount = 1
+                    });
                 }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                }
-            });
+
+                _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+
+                return new ResultViewModel { Validate = 1, Message = "Sending users queued" };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+            }
         }
+
         /*   public ResultViewModel SendAccessGroupToAllDevices([FromBody]int accessGroupId)
            {
                var devices = _deviceService.GetAllDevicesBasicInfosByBrandId(DeviceBrands.VirdiCode);
@@ -127,7 +121,7 @@ namespace Biovation.Brands.Virdi.Controllers
         {
             try
             {
-                _callbacks.LoadFingerTemplates();
+                _virdiServer.LoadFingerTemplates().ConfigureAwait(false);
                 return new ResultViewModel { Validate = 1 };
             }
             catch (Exception exception)

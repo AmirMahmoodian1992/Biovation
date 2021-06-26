@@ -21,22 +21,22 @@ namespace Biovation.Service.Api.v1
         public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null,
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, bool successTransfer = default, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer: successTransfer, token: token)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, successTransfer: successTransfer, token: token).Result?.Data?.Data ?? new List<Log>());
         }
 
         public Task<List<Log>> Logs(DeviceTraffic dTraffic, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token).Result?.Data?.Data ?? new List<Log>());
         }
 
         public Task<List<Log>> SelectSearchedOfflineLogs(DeviceTraffic dTraffic, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token).Result?.Data?.Data ?? new List<Log>());
         }
 
         public Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic dTraffic, string token = default)
         {
-            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token)?.Data?.Data ?? new List<Log>());
+            return Task.Run(() => _logRepository.Logs(dTraffic.Id, (int)dTraffic.DeviceId, dTraffic.UserId, dTraffic.FromDate, dTraffic.ToDate, dTraffic.PageNumber, dTraffic.PageSize, dTraffic.Where, dTraffic.Order, dTraffic.State, token).Result?.Data?.Data ?? new List<Log>());
         }
 
 
@@ -130,7 +130,7 @@ namespace Biovation.Service.Api.v1
         {
             return Task.Run(() =>
            {
-               var log = Logs(((int)id)).Result.FirstOrDefault();
+               var log = _logRepository.LogImage(id).Result.Data.Data.FirstOrDefault();
                if (log == null || string.IsNullOrEmpty(log.Image)) return new byte[0];
                var path = log.Image;
                var bytes = File.ReadAllBytes(path);
@@ -166,7 +166,7 @@ namespace Biovation.Service.Api.v1
         {
             //todo:check new method functionality
             return Task.Run(() =>
-                _logRepository.Logs(deviceId: (int)deviceId, pageNumber: 1, pageSize: 5)?.Data?.Data ??
+                _logRepository.Logs(deviceId: (int)deviceId, pageNumber: 1, pageSize: 5).Result?.Data?.Data ??
                 new List<Log>());
             //return _logService.GetLastLogsOfDevice(deviceId);
         }

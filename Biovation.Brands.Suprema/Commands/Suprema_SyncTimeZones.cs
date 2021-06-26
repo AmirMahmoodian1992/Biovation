@@ -1,7 +1,7 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ namespace Biovation.Brands.Suprema.Commands
         {
 
 
-            var timeZones = _timeZoneService.GetTimeZones();
+            var timeZones = _timeZoneService.GetTimeZones().Result?.Data?.Data;
 
             //var offlineAccessAndTimeEventService = new OfflineAccessAndTimeEventService();
             //var offlineEventService = new OfflineEventService();

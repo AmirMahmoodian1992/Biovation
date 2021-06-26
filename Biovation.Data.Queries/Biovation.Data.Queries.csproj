@@ -4,11 +4,13 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>da06cf4a-23c7-44f0-bec7-e21a0861ee2a</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Scripts\00.Schema\0000-Pre Migrate-UP.sql" />
     <None Remove="Scripts\00.Schema\0001-Create RestaurantSchema-UP.sql" />
+    <None Remove="Scripts\00.Schema\0002-Create RelaySchema-UP.sql" />
     <None Remove="Scripts\01.Tables\0001-Create DeviceBrand-UP.sql" />
     <None Remove="Scripts\01.Tables\0002-Create DeviceModel-UP.sql" />
     <None Remove="Scripts\01.Tables\0003-Create Device-UP.sql" />
@@ -88,6 +90,19 @@
     <None Remove="Scripts\01.Tables\0077-Alter Task.sql" />
     <None Remove="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <None Remove="Scripts\01.Tables\0079-Alter User.sql" />
+    <None Remove="Scripts\01.Tables\0080-Create Entrance-UP.sql" />
+    <None Remove="Scripts\01.Tables\0081-Create Relay-UP.sql" />
+    <None Remove="Scripts\01.Tables\0082-Create RelayHub-UP.sql" />
+    <None Remove="Scripts\01.Tables\0083-Create Scheduling-UP.sql" />
+    <None Remove="Scripts\01.Tables\0084-Create EntranceCamera-UP.sql" />
+    <None Remove="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />
+    <None Remove="Scripts\01.Tables\0086-Create RelayScheduling-UP.sql" />
+    <None Remove="Scripts\01.Tables\0087-Create RelayDevice-UP.sql" />
+    <None Remove="Scripts\01.Tables\0088-Create RelayHubModel-UP.sql" />
+    <None Remove="Scripts\01.Tables\0089-Create Camera-UP.sql" />
+    <None Remove="Scripts\01.Tables\0090-Create CameraModel-UP.sql" />
+    <None Remove="Scripts\01.Tables\0091-Create ProtocolRemainAddressesCameraModel-UP.sql" />
+    <None Remove="Scripts\01.Tables\0092-Create ProtocolRemainAddresses-UP.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -263,7 +278,7 @@
     <None Remove="Scripts\03.SPs\0173-Create InsertLicensePlate-UP.sql" />
     <None Remove="Scripts\03.SPs\0174-Create InsertPlateDetectionLog-UP.sql" />
     <None Remove="Scripts\03.SPs\0175-Create InsertPlateDetectionPictureLog-UP.sql" />
-    <None Remove="Scripts\03.SPs\0176-Create SelectPlateDetectoionLogs-UP.sql" />
+    <None Remove="Scripts\03.SPs\0176-Create SelectPlateDetectionLogs-UP.sql" />
     <None Remove="Scripts\03.SPs\0177-Create SelectDeviceByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0178-Create SelectLicensePlateByFilter-UP.sql" />
     <None Remove="Scripts\03.SPs\0179-Create SelecFingerTemplateByFilter-UP.sql" />
@@ -281,10 +296,33 @@
     <None Remove="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <None Remove="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
+    <None Remove="Scripts\03.SPs\0194-Create DeleteEntranceById-UP.sql" />
     <None Remove="Scripts\03.SPs\0195-Create AddTimeZone-UP.sql" />
+    <None Remove="Scripts\03.SPs\0195-Create DeleteRelayHuById-UP.sql" />
     <None Remove="Scripts\03.SPs\0196-Create AddTimeZoneDetail-UP.sql" />
+    <None Remove="Scripts\03.SPs\0196-Create DeleteRelayById-UP.sql" />
     <None Remove="Scripts\03.SPs\0197-Create AddUserCard-UP.sql" />
+    <None Remove="Scripts\03.SPs\0197-Create DeleteShedulingById-UP.sql" />
     <None Remove="Scripts\03.SPs\0198-Create AddUser-UP.sql" />
+    <None Remove="Scripts\03.SPs\0198-Create InsertEntrance-UP.sql" />
+    <None Remove="Scripts\03.SPs\0199-Create InsertRelayHub-UP.sql" />
+    <None Remove="Scripts\03.SPs\0200-Create InsertRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0201-Create InsertSheduling-UP.sql" />
+    <None Remove="Scripts\03.SPs\0202-Create SelectEntrance-UP.sql" />
+    <None Remove="Scripts\03.SPs\0203-Create SelectRelayHub-UP.sql" />
+    <None Remove="Scripts\03.SPs\0204-Create SelectRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0205-Create SelectScheduling-UP.sql" />
+    <None Remove="Scripts\03.SPs\0206-Create UpdateRelayHub-UP.sql" />
+    <None Remove="Scripts\03.SPs\0207-Create UpdateRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0208-Create UpdateSheduling-UP.sql" />
+    <None Remove="Scripts\03.SPs\0209-Create UpdateEntrance-UP.sql" />
+    <None Remove="Scripts\03.SPs\0210-Create InsertRelayHubModel-UP.sql" />
+    <None Remove="Scripts\03.SPs\0210-Create UpdateRelayHubModel-UP.sql" />
+    <None Remove="Scripts\03.SPs\0212-Create SelectRelayHubModel-UP.sql" />
+    <None Remove="Scripts\03.SPs\0213-Create InsertCamera-UP.sql" />
+    <None Remove="Scripts\03.SPs\0214-Create SelectCamera-UP.sql" />
+    <None Remove="Scripts\03.SPs\0215-Create UpdateCamera-UP.sql" />
+    <None Remove="Scripts\03.SPs\0216-Create DeleteCamera-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -305,10 +343,40 @@
     <None Remove="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <None Remove="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
     <None Remove="Scripts\06.Views\0001-Select TaskOrdered.sql" />
+    <None Remove="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0003-Log IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0004-Log IX_DateTime_Event_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0005-Log IX_Device_Event_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0006-Log IX_User_Event_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0007-Log IX_Device_DateTime_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0008-Log IX_User_DateTime_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0009-Log IX_Device_DateTime_SuccessTransfer_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0010-Log IX_User_DateTime_SuccessTransfer_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0011-Log IX_Id_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0012-TaskItem IX_Task_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0013-TaskItem IX_Device_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0014-TaskItem IX_Task_Status_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0015-TaskItem IX_Device_Status_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0016-Device IX_Model_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0017-Device IX_Code_Model_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0018-DeviceModel IX_Brand_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0022-FingerTemplate IX_User_TemplateType_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0023-GenericCodeMapping IX_Category_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0024-Lookup IX_Category_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0025-Task IX_Brand_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
+    <None Remove="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
+    <None Remove="Scripts\08.Indexes\0029-Log IX_SuccessTransfer_NonClustered.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Scripts\00.Schema\0000-Pre Migrate-UP.sql" />
+    <EmbeddedResource Include="Scripts\00.Schema\0002-Create RelaySchema-UP.sql" />
     <EmbeddedResource Include="Scripts\00.Schema\0001-Create RestaurantSchema-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0001-Create DeviceBrand-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0002-Create DeviceModel-UP.sql" />
@@ -380,6 +448,19 @@
     <EmbeddedResource Include="Scripts\01.Tables\0068-Alter Log-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0069-Alter LogData TableType-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0084-Create EntranceCamera-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0092-Create ProtocolRemainAddresses-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0091-Create ProtocolRemainAddressesCameraModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0090-Create CameraModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0089-Create Camera-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0088-Create RelayHubModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0087-Create RelayDevice-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0086-Create RelayScheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0083-Create Scheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0082-Create RelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0081-Create Relay-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0080-Create Entrance-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0079-Alter User.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0077-Alter Task.sql" />
@@ -564,7 +645,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0173-Create InsertLicensePlate-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0174-Create InsertPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0175-Create InsertPlateDetectionPictureLog-UP.sql" />
-    <EmbeddedResource Include="Scripts\03.SPs\0176-Create SelectPlateDetectoionLogs-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0176-Create SelectPlateDetectionLogs-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0177-Create SelectDeviceByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0178-Create SelectLicensePlateByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0179-Create SelecFingerTemplateByFilter-UP.sql" />
@@ -580,6 +661,29 @@
     <EmbeddedResource Include="Scripts\03.SPs\0189-Create SelectAdminDevicesByUserIdByPaging-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0190-Create DeleteBlackLists-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0191-Create DeleteFaceTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0215-Create UpdateCamera-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0216-Create DeleteCamera-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0213-Create InsertCamera-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0214-Create SelectCamera-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0212-Create SelectRelayHubModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0210-Create UpdateRelayHubModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0210-Create InsertRelayHubModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0209-Create UpdateEntrance-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0208-Create UpdateSheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0207-Create UpdateRelay-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0206-Create UpdateRelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0205-Create SelectScheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0204-Create SelectRelay-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0203-Create SelectRelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0202-Create SelectEntrance-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0201-Create InsertSheduling-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0200-Create InsertRelay-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0199-Create InsertRelayHub-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0198-Create InsertEntrance-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0197-Create DeleteShedulingById-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0196-Create DeleteRelayById-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0195-Create DeleteRelayHuById-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0194-Create DeleteEntranceById-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
@@ -601,6 +705,35 @@
     <EmbeddedResource Include="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0003-Log IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0029-Log IX_SuccessTransfer_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0019-FaceTemplate IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0021-FingerTemplate IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0020-FaceTemplate IX_User_TemplateType_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0028-UserCard IX_User_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0027-UserCode IX_CardNumber_Clustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0026-User IX_Code_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0025-Task IX_Brand_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0024-Lookup IX_Category_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0023-GenericCodeMapping IX_Category_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0022-FingerTemplate IX_User_TemplateType_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0018-DeviceModel IX_Brand_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0017-Device IX_Code_Model_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0016-Device IX_Model_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0015-TaskItem IX_Device_Status_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0013-TaskItem IX_Device_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0014-TaskItem IX_Task_Status_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0012-TaskItem IX_Task_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0011-Log IX_Id_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0010-Log IX_User_DateTime_SuccessTransfer_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0009-Log IX_Device_DateTime_SuccessTransfer_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0008-Log IX_User_DateTime_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0007-Log IX_Device_DateTime_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0004-Log IX_DateTime_Event_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0006-Log IX_User_Event_NonClustered.sql" />
+    <EmbeddedResource Include="Scripts\08.Indexes\0005-Log IX_Device_Event_NonClustered.sql" />
     <EmbeddedResource Include="Scripts\06.Views\0001-Select TaskOrdered.sql" />
   </ItemGroup>
 

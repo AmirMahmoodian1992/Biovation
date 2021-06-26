@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
+﻿using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Reflection;
+using Biovation.Domain.RelayModels;
 
 namespace Biovation.Repository.Sql.v2.RelayController
 {
@@ -19,67 +20,61 @@ namespace Biovation.Repository.Sql.v2.RelayController
             _repository = repository;
         }
 
-
-
-
-        public ResultViewModel CreateEntrance(Entrance entrance)
+        public ResultViewModel InsertEntrance(Entrance entrance)
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = entrance.Name},
-                new SqlParameter("@DevicesJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Devices) },
-                new SqlParameter("@SchedulingJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) },
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = entrance.Description},
-
+                new SqlParameter(nameof(entrance.Name), SqlDbType.NVarChar) {Value = entrance.Name},
+                new SqlParameter(nameof(entrance.Code), SqlDbType.Int) {Value = entrance.Code},
+                new SqlParameter(nameof(entrance.Cameras) + "Json", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Cameras) },
+                new SqlParameter(nameof(entrance.Schedulings) + "Json", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) },
+                new SqlParameter(nameof(entrance.Description), SqlDbType.NVarChar) {Value = entrance.Description}
             };
-            return _repository.ToResultList<ResultViewModel>("InsertEntrance", parameters).Data.FirstOrDefault();
 
+            return _repository.ToResultList<ResultViewModel>(MethodBase.GetCurrentMethod()?.Name, parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel<PagingResult<Entrance>> GetEntrances(List<DeviceBasicInfo> devices, List<Scheduling> schedulings, int id = 0,
+
+        public ResultViewModel<PagingResult<Entrance>> SelectEntrance(int cameraId, int schedulingId, int id = 0, int code = 0,
             string name = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
             var sqlParameter = new List<SqlParameter>
             {
-                new SqlParameter("@Id", SqlDbType.Int) {Value = id },
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
-                new SqlParameter("@DevicesJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(devices) },
-                new SqlParameter("@SchedulingsJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(schedulings) },
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
-                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
-                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
-
+                new SqlParameter(nameof(id), SqlDbType.Int) {Value = id },
+                new SqlParameter(nameof(code), SqlDbType.Int) {Value = code },
+                new SqlParameter(nameof(name), SqlDbType.NVarChar) {Value = name??string.Empty},
+                new SqlParameter(nameof(cameraId), SqlDbType.Int) { Value = cameraId },
+                new SqlParameter(nameof(schedulingId), SqlDbType.Int) { Value = schedulingId },
+                new SqlParameter(nameof(pageNumber), SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter(nameof(pageSize), SqlDbType.Int) {Value = pageSize}
             };
-            return _repository.ToResultList<PagingResult<Entrance>>($"SelectEntranceByFilter", sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
 
+            return _repository.ToResultList<PagingResult<Entrance>>(MethodBase.GetCurrentMethod()?.Name, sqlParameter, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel UpdateEntrance(Entrance entrance)
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@Id", SqlDbType.Int) {Value = entrance.Id },
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = entrance.Name},
-                new SqlParameter("@DevicesJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Devices) },
-                new SqlParameter("@SchedulingJson", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) },
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = entrance.Description},
-
+                new SqlParameter(nameof(entrance.Id), SqlDbType.Int) {Value = entrance.Id},
+                new SqlParameter(nameof(entrance.Name), SqlDbType.NVarChar) {Value = entrance.Name},
+                new SqlParameter(nameof(entrance.Code), SqlDbType.BigInt) {Value = entrance.Code},
+                new SqlParameter(nameof(entrance.Cameras) + "Json", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Cameras) },
+                new SqlParameter(nameof(entrance.Schedulings) + "Json", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) },
+                new SqlParameter(nameof(entrance.Description), SqlDbType.NVarChar) {Value = entrance.Description}
             };
-            return _repository.ToResultList<ResultViewModel>("UpdateEntrance", parameters).Data.FirstOrDefault();
 
+            return _repository.ToResultList<ResultViewModel>(MethodBase.GetCurrentMethod()?.Name, parameters).Data.FirstOrDefault();
         }
 
         public ResultViewModel DeleteEntrance(int id)
         {
             var parameters = new List<SqlParameter>
             {
-                new SqlParameter("@Id", SqlDbType.Int) {Value = id }
+                new SqlParameter(nameof(id), SqlDbType.Int) {Value = id }
             };
-            return _repository.ToResultList<ResultViewModel>("DeleteEntrance", parameters).Data.FirstOrDefault();
 
+            return _repository.ToResultList<ResultViewModel>(MethodBase.GetCurrentMethod()?.Name, parameters).Data.FirstOrDefault();
         }
-
-
-
     }
 }

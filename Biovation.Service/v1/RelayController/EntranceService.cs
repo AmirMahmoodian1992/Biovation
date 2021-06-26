@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Biovation.Domain;
-using Biovation.Domain.RelayControllerModels;
+﻿using Biovation.Domain;
+using Biovation.Domain.RelayModels;
 using Biovation.Repository.Sql.v2.RelayController;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Sql.v1.RelayController
 {
@@ -17,16 +14,16 @@ namespace Biovation.Service.Sql.v1.RelayController
             _entranceRepository = entranceRepository;
         }
 
-        public Task<ResultViewModel> CreateEntrance(Entrance entrance)
+        public Task<ResultViewModel> InsertEntrance(Entrance entrance)
         {
-            return Task.Run(() => _entranceRepository.CreateEntrance(entrance));
+            return Task.Run(() => _entranceRepository.InsertEntrance(entrance));
         }
 
-        public Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(List<DeviceBasicInfo> devices, List<Scheduling> schedulings, int id = 0,
+        public Task<ResultViewModel<PagingResult<Entrance>>> SelectEntrance(int deviceId, int schedulingId, int id = 0, int code = 0,
             string name = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
-            return Task.Run(() => _entranceRepository.GetEntrances(devices, schedulings, id, name,description, pageNumber, pageSize, nestingDepthLevel));
+            return Task.Run(() => _entranceRepository.SelectEntrance(deviceId, schedulingId, id, code, name, description, pageNumber, pageSize, nestingDepthLevel));
         }
 
         public Task<ResultViewModel> UpdateEntrance(Entrance entrance)

@@ -2,7 +2,7 @@
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
-using Biovation.Domain.RelayControllerModels;
+using Biovation.Domain.RelayModels;
 using Biovation.Services.RelayController.Common;
 
 namespace Biovation.Services.RelayController.Relays
@@ -27,8 +27,8 @@ namespace Biovation.Services.RelayController.Relays
         {
             try
             {
-                _tcpClient.ConnectAsync(RelayInfo.Hub.IpAddress, RelayInfo.Hub.Port).Wait(1000);
-                _stream = _tcpClient.GetStream();
+                _tcpClient.ConnectAsync(RelayInfo.RelayHub.IpAddress, RelayInfo.RelayHub.Port).Wait(2000);
+                //_stream = _tcpClient.GetStream();
                 _tcpClient.ReceiveTimeout = 2000;
                 return true;
             }

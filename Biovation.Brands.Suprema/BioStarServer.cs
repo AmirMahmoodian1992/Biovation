@@ -2,6 +2,7 @@
 using Biovation.Brands.Suprema.Manager;
 using Biovation.Brands.Suprema.Model;
 using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -16,7 +17,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
 
 namespace Biovation.Brands.Suprema
 {
@@ -29,7 +29,7 @@ namespace Biovation.Brands.Suprema
         /// <summary>
         /// پورت سرور برای اتصال ساعت ها
         /// </summary>
-        private int _mPort;
+        private readonly int _mPort;
         /// <summary>
         /// ماکزیمم تعداد کانکشن مجاز
         /// </summary>
@@ -49,6 +49,7 @@ namespace Biovation.Brands.Suprema
 
         private readonly Dictionary<uint, Device> _onlineDevices;
 
+        private readonly TaskService _taskService;
         private readonly Dictionary<int, string> _deviceTypes;
         private readonly SupremaCodeMappings _supremaCodeMappings;
         private readonly DeviceFactory _deviceFactory;
@@ -64,9 +65,7 @@ namespace Biovation.Brands.Suprema
         //private static readonly object Log1Object = new object();
 
         public readonly Semaphore DeviceConnectionSemaphore = new Semaphore(1, 1);
-        public readonly CancellationToken ServiceCancellationToken = new CancellationToken(false);
-
-        /// 
+        public CancellationToken ServiceCancellationToken;
 
         private BSSDK.BS_ConnectionProc _fnCallbackConnected;
         private BSSDK.BS_DisconnectedProc _fnCallbackDisconnected;
@@ -83,7 +82,7 @@ namespace Biovation.Brands.Suprema
         private bool _handlingOfflineEventsInProgress;
 
         private readonly LogEvents _logEvents;
-        private readonly MatchingTypes _matchingTypes;
+        private readonly DeviceBrands _deviceBrands;
 
 
         public Queue<KeyValuePair<uint, Task>> LogReaderQueue = new Queue<KeyValuePair<uint, Task>>();
@@ -91,17 +90,18 @@ namespace Biovation.Brands.Suprema
 
         private bool _readingLogsInProgress;
 
-        public BioStarServer(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, RestClient monitoringRestClient, SupremaCodeMappings supremaCodeMappings, BiovationConfigurationManager biovationConfigurationManager, DeviceFactory deviceFactory)
+        public BioStarServer(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, Dictionary<int, string> deviceTypes, LogEvents logEvents, MatchingTypes matchingTypes, LogService logService, RestClient monitoringRestClient, SupremaCodeMappings supremaCodeMappings, BiovationConfigurationManager biovationConfigurationManager, DeviceFactory deviceFactory, TaskService taskService, DeviceBrands deviceBrands)
         {
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _deviceTypes = deviceTypes;
             _logEvents = logEvents;
-            _matchingTypes = matchingTypes;
             _logService = logService;
             _monitoringRestClient = monitoringRestClient;
             _supremaCodeMappings = supremaCodeMappings;
             _deviceFactory = deviceFactory;
+            _taskService = taskService;
+            _deviceBrands = deviceBrands;
 
             _mPort = biovationConfigurationManager.SupremaDevicesConnectionPort;
             BSSDK.BS_InitSDK();
@@ -125,8 +125,9 @@ namespace Biovation.Brands.Suprema
         /// <En>Starts Biostar server to connect to the devices</En>
         /// <Fa>سرور مربوط به ساعت هارا برای اتصال به ساعت ها راه اندازی می کند.</Fa>
         /// </summary>
-        public void StartService()
+        public void StartService(CancellationToken cancellationToken)
         {
+            ServiceCancellationToken = cancellationToken;
             //Set event procedure. 
 
             _fnCallbackConnected = new BSSDK.BS_ConnectionProc(ConnectedProc);
@@ -533,6 +534,9 @@ namespace Biovation.Brands.Suprema
 
                 //_onlineDevices[deviceId].ReadOfflineEvent();
                 OfflineEventHandlersQueue.Enqueue(new KeyValuePair<uint, Task>(deviceId, new Task(() => _onlineDevices[deviceId].ReadOfflineEvent(), token)));
+                //_taskManager.ProcessQueue(_onlineDevices[deviceId].GetDeviceInfo().DeviceId);
+                _taskService.ProcessQueue(_deviceBrands.Suprema, _onlineDevices[deviceId].GetDeviceInfo().DeviceId).ConfigureAwait(false);
+
                 //StartHandleOfflineEvents();
             }
             catch (Exception exception)

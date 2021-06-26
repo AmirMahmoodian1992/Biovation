@@ -1,6 +1,7 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Biovation.Server.Managers;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using MoreLinq;
@@ -13,7 +14,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-using Biovation.Server.Managers;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -47,7 +47,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsersByFilter")]
         public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(onlineUserId == 0 || onlineUserId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
             return Task.Run(() => _userService.GetUsers(userId, withPicture, from, size, getTemplatesData, filterText, type, isAdmin, token: token));
         }
 
@@ -55,7 +55,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUsers")]
         public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(onlineUserId == 0 || onlineUserId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
             return Task.Run(() =>
            {
                try
@@ -103,7 +103,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SearchUserFilter")]
         public List<User> SearchUser(string filterText, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
                 return _userService.GetUsers(filterText: filterText, token: token);
@@ -118,7 +118,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("SearchUser")]
         public List<User> SearchUser(string filterText, int type, long userId)
         {
-            var token = _tokenGenerator.GenerateToken(_userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
             try
             {
                 return _userService.GetUsers(filterText: filterText, type: type, token: token);
@@ -133,7 +133,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("ModifyUser")]
         public Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 try
                 {
@@ -156,7 +156,7 @@ namespace Biovation.Server.Controllers.v1
                         user.FullName = string.IsNullOrWhiteSpace(user.FullName)
                             ? existingUser.FullName
                             : user.FullName;
-                        user.IdentityCard = user.IdentityCard ?? existingUser.IdentityCard;
+                        user.IdentityCard ??= existingUser.IdentityCard;
                         user.Image = user.Image is null || user.Image.Length < 1 ? existingUser.Image : user.Image;
                         user.Type = user.Type == default ? existingUser.Type : user.Type;
                         user.TelNumber = string.IsNullOrWhiteSpace(user.TelNumber)
@@ -166,19 +166,22 @@ namespace Biovation.Server.Controllers.v1
 
                     var result = _userService.ModifyUser(user, _kasraAdminToken);
 
-                    await Task.Run(async () =>
+                    if (result.Success)
                     {
-                        var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
-                        foreach (var deviceBrand in deviceBrands)
+#pragma warning disable 4014
+                        Task.Run(async () =>
+#pragma warning restore 4014
                         {
-                            //_communicationManager.CallRest($"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", "Post", null, $"{JsonConvert.SerializeObject(user)}");
-                            var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
-                            restRequest.AddJsonBody(user);
-                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        }
-                    });
-
+                            var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                            foreach (var deviceBrand in deviceBrands)
+                            {
+                                var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
+                                restRequest.AddJsonBody(user);
+                                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            }
+                        });
+                    }
 
                     return result;
                 }
@@ -224,7 +227,7 @@ namespace Biovation.Server.Controllers.v1
 
         [HttpPost]
         [Route("SendUserToDevice")]
-        public List<ResultViewModel> SendUserToDevice(string deviceId, string userId)
+        public async Task<List<ResultViewModel>> SendUserToDevice(string deviceId, string userId)
         {
             try
             {
@@ -253,7 +256,10 @@ namespace Biovation.Server.Controllers.v1
                     restRequest.AddParameter("code", deviceBasic.Code);
                     restRequest.AddParameter("userId", userId);
                     restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
-                    result.AddRange(_restClient.ExecuteAsync<List<ResultViewModel>>(restRequest).Result.Data);
+                    var requestResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                    if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
+                        result.AddRange(requestResult.Data);
                 }
 
                 return result;
@@ -689,7 +695,7 @@ namespace Biovation.Server.Controllers.v1
                         {
                             UserId = userId,
                             GroupId = userGroupId,
-                            UserType = 1.ToString(),
+                            UserType = 1,
                             UserTypeTitle = string.Empty
                         }, _kasraAdminToken);
                     }
@@ -827,7 +833,7 @@ namespace Biovation.Server.Controllers.v1
                     {
                         UserId = userId,
                         GroupId = userGroupId,
-                        UserType = 1.ToString(),
+                        UserType = 1,
                         UserTypeTitle = string.Empty
                     }, _kasraAdminToken);
                 }

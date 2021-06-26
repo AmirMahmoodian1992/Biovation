@@ -20,7 +20,7 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public ResultViewModel<PagingResult<Log>> Logs(int id = default, int deviceId = default, int userId = default,
+        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default, int userId = default,
             DateTime? fromDate = null,
             DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default,
             string order = default, bool? successTransfer = null, string token = default)
@@ -36,16 +36,22 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("where", where ?? string.Empty);
             restRequest.AddQueryParameter("order", order ?? string.Empty);
-            // restRequest.AddQueryParameter("onlineUserId", onlineUserId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<Log>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Log>>>(restRequest);
+            return requestResult.Data;
+        }
+
+        public async Task<ResultViewModel<PagingResult<Log>>> LogImage(long id = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/Log/LogImage/{id}", Method.GET);
+            restRequest.AddUrlSegment("id", id.ToString());
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Log>>>(restRequest);
+            return requestResult.Data;
         }
 
         public async Task<ResultViewModel> AddLog(Log log, string token = default)
         {
-
             var restRequest = new RestRequest("Commands/v2/Log/AddLog", Method.POST);
             restRequest.AddJsonBody(log);
             token ??= _biovationConfigurationManager.DefaultToken;

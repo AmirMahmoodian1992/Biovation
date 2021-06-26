@@ -1,5 +1,4 @@
-﻿using Biovation.Brands.ZK.Manager;
-using Biovation.CommonClasses.Extension;
+﻿using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
@@ -22,10 +21,9 @@ namespace Biovation.Brands.ZK.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskManager _taskManager;
         private readonly DeviceBrands _deviceBrands;
 
-        public ZkLogController(TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskManager taskManager, DeviceBrands deviceBrands)
+        public ZkLogController(TaskService taskService, DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands)
         {
             _taskService = taskService;
             _deviceService = deviceService;
@@ -33,7 +31,6 @@ namespace Biovation.Brands.ZK.Controllers
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _taskManager = taskManager;
             _deviceBrands = deviceBrands;
         }
 
@@ -77,7 +74,8 @@ namespace Biovation.Brands.ZK.Controllers
 
 
                     _taskService.InsertTask(task);
-                    _taskManager.ProcessQueue();
+                    _taskService.ProcessQueue(_deviceBrands.ZkTeco).ConfigureAwait(false);
+                    //_taskManager.ProcessQueue();
                     return new ResultViewModel { Validate = 1, Message = "Clear LOg queued" };
                 }
                 catch (Exception exception)

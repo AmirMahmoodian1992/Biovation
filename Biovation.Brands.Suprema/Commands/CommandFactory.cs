@@ -7,7 +7,7 @@ using System.Linq;
 using Biovation.Brands.Suprema.Devices;
 using Biovation.Brands.Suprema.Manager;
 using Biovation.Constants;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using RestSharp;
 
 namespace Biovation.Brands.Suprema.Commands
@@ -37,7 +37,7 @@ namespace Biovation.Brands.Suprema.Commands
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
-        //private readonly AdminDeviceService _adminDeviceService;
+        private readonly AdminDeviceService _adminDeviceService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly FingerTemplateService _fingerTemplateService;
@@ -69,7 +69,7 @@ namespace Biovation.Brands.Suprema.Commands
         public CommandFactory(BioStarServer supremaServer, 
             UserService userService, DeviceService deviceService,
             UserCardService userCardService,  
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, RestClient restClient, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, DeviceBrands deviceBrands, TaskStatuses taskStatuses, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, Service.Api.v2.DeviceService deviceServicev2, RestClient restClient, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, AdminDeviceService adminDeviceService)
         {
             _bioStarServer = supremaServer;
             //_logService = logService;
@@ -98,6 +98,8 @@ namespace Biovation.Brands.Suprema.Commands
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _taskService = taskService;
+            _adminDeviceService = adminDeviceService;
+            _deviceService = deviceServicev2;
         }
 
         public  ICommand Factory(int eventId, List<object> items)
@@ -120,6 +122,7 @@ namespace Biovation.Brands.Suprema.Commands
         /// <returns></returns>
         public  ICommand Factory(DataTransferModel transferModelData)
         {
+            var taskItem = (TaskItem)transferModelData.Items[0];
             switch (transferModelData.EventId)
             {
                 #region DatabaseRequests(NoResponces)
@@ -156,9 +159,7 @@ namespace Biovation.Brands.Suprema.Commands
                 case CommandType.SendUserToDevice:
                     //Transfer Specific User to Specific Device request
                     {
-                        var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
-                        var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new SupremaSyncUserOfDevice(deviceCode, userId, _onlineDevices,_bioStarServer,_accessGroupService,_userService);
+                        return new SupremaSyncUserOfDevice(taskItem, _onlineDevices, _accessGroupService,_userService, _deviceService, _adminDeviceService);
                     }
 
                 case CommandType.SyncAllUsers:
@@ -174,7 +175,7 @@ namespace Biovation.Brands.Suprema.Commands
                     //Gets and updates all logs from device
                     {
                         var deviceId = Convert.ToUInt32(transferModelData.Items.FirstOrDefault());
-                        return new SupremaGetAllLogsOfDevice(deviceId, _onlineDevices,_bioStarServer);
+                        return new SupremaGetAllLogsOfDevice(taskItem, _onlineDevices,_bioStarServer, _deviceService);
                     }
 
                 case CommandType.GetLogsOfDeviceInPeriod:
@@ -183,8 +184,7 @@ namespace Biovation.Brands.Suprema.Commands
                         var deviceId = Convert.ToUInt32(transferModelData.Items[0]);
                         var startDate = Convert.ToInt64(transferModelData.Items[1]);
                         var endDate = Convert.ToInt64(transferModelData.Items[2]);
-                        return new SupremaGetLogsOfDeviceInPeriod(deviceId, startDate, endDate,
-                            _onlineDevices);
+                        return new SupremaGetLogsOfDeviceInPeriod(taskItem, _onlineDevices, _deviceService);
                     }
 
                 case CommandType.GetLogsOfAllDevicesInPeriod:
@@ -194,17 +194,13 @@ namespace Biovation.Brands.Suprema.Commands
                 case CommandType.DeleteUserFromTerminal:
                     {
                         //delete one or multiple users of device
-                        var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
-                        var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
-                        return new SupremaDeleteUserFromTerminal(deviceCode, _onlineDevices, userIds,_taskStatuses);
+                        return new SupremaDeleteUserFromTerminal(taskItem, _onlineDevices, _deviceService);
                     }
 
                 case CommandType.RetrieveUserFromDevice:
                     {
                         //gets one or multiple users of device
-                        var deviceCode = Convert.ToUInt32(transferModelData.Items[0]);
-                        var userIds = (uint)Convert.ToInt32(transferModelData.Items[1]);
-                        return new SupremaRetrieveUserFromDevice(deviceCode, userIds, _deviceService,_onlineDevices, _userService,_userCardService,_fingerTemplateService,_faceTemplateService,_accessGroupService,_fingerTemplateTypes,_biometricTemplateManager,_faceTemplateTypes);
+                        return new SupremaRetrieveUserFromDevice(taskItem, _deviceService ,_onlineDevices, _userService,_userCardService,_fingerTemplateService,_faceTemplateService,_accessGroupService,_fingerTemplateTypes,_biometricTemplateManager,_faceTemplateTypes);
                     }
 
                 #endregion

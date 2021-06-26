@@ -13,18 +13,25 @@ using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using Quartz;
 using RestSharp;
 using Serilog;
 using System.Reflection;
+using Biovation.Repository.Api.v2.RelayController;
+using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic;
+using System.Reflection;
 using Log = Serilog.Log;
 
 namespace Biovation.Server
@@ -80,32 +87,43 @@ namespace Biovation.Server
 
             services.AddVersionedApiExplorer();
 
-            services.AddSwaggerGen();
-
-            services.AddQuartz(config =>
+            services.AddSwaggerGen(config =>
             {
-                config.UseMicrosoftDependencyInjectionJobFactory(options =>
+                config.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {  
+                    Name = "Authorization",  
+                    Type = SecuritySchemeType.ApiKey,  
+                    Scheme = "Bearer",  
+                    BearerFormat = "JWT",  
+                    In = ParameterLocation.Header,  
+                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",  
+                }); 
+
+                config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                    options.AllowDefaultConstructor = true;
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
                 });
 
-                config.UseMicrosoftDependencyInjectionScopedJobFactory();
-
-                config.UseSimpleTypeLoader();
-                config.UseInMemoryStore();
-                config.UseDefaultThreadPool(tp =>
-                {
-                    tp.MaxConcurrency = 10;
-                });
-
-                config.AddJob<ExecuteScheduledTaskJob>(options => { options.StoreDurably(); });
-                config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
+                //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                //config.IncludeXmlComments(xmlPath);
             });
 
             services.AddMvc();
             //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
-
-            services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -118,8 +136,30 @@ namespace Biovation.Server
             ConfigureConstantValues(services);
             ConfigureRepositoriesServices(services);
 
-            services.AddScoped<ScheduledTasksManager, ScheduledTasksManager>();
-            services.AddScoped<RecurringTasksManager, RecurringTasksManager>();
+            services.AddQuartz(config =>
+            {
+                config.UseMicrosoftDependencyInjectionJobFactory(options =>
+                {
+                    options.AllowDefaultConstructor = true;
+                });
+
+                //config.UseMicrosoftDependencyInjectionScopedJobFactory();
+
+                config.UseSimpleTypeLoader();
+                config.UseInMemoryStore();
+                config.UseDefaultThreadPool(tp =>
+                {
+                    tp.MaxConcurrency = 10;
+                });
+
+                config.AddJob<ExecuteScheduledTaskJob>(options => { options.StoreDurably(); });
+                config.AddJob<ExecuteRecurringTaskJob>(options => { options.StoreDurably(); });
+            });
+
+            services.AddQuartzServer(config => { config.WaitForJobsToComplete = true; });
+
+            services.AddTransient<ScheduledTasksManager, ScheduledTasksManager>();
+            services.AddTransient<RecurringTasksManager, RecurringTasksManager>();
 
             services.AddHostedService<TaskMangerHostedService>();
             services.AddHostedService<ServicesHealthCheckHostedService>();
@@ -134,28 +174,28 @@ namespace Biovation.Server
 
             services.AddSingleton(restClient);
 
-            //services.AddScoped<FoodRepository, FoodRepository>();
-            //services.AddScoped<MealRepository, MealRepository>();
-            //services.AddScoped<ReservationRepository, ReservationRepository>();
-            //services.AddScoped<RestaurantRepository, RestaurantRepository>();
-            //services.AddScoped<ServeLogRepository, ServeLogRepository>();
+            //services.AddTransient<FoodRepository, FoodRepository>();
+            //services.AddTransient<MealRepository, MealRepository>();
+            //services.AddTransient<ReservationRepository, ReservationRepository>();
+            //services.AddTransient<RestaurantRepository, RestaurantRepository>();
+            //services.AddTransient<ServeLogRepository, ServeLogRepository>();
 
-            //services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
-            //services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
-            //services.AddScoped<BlackListRepository, BlackListRepository>();
-            //services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
-            services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
-            //services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
+            //services.AddTransient<AccessGroupRepository, AccessGroupRepository>();
+            //services.AddTransient<AdminDeviceRepository, AdminDeviceRepository>();
+            //services.AddTransient<BlackListRepository, BlackListRepository>();
+            //services.AddTransient<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddTransient<FaceTemplateRepository, FaceTemplateRepository>();
+            //services.AddTransient<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-            services.AddScoped<LogRepository, LogRepository>();
+            services.AddTransient<LogRepository, LogRepository>();
             //services.AddSingleton<LookupRepository, LookupRepository>();
-            //services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
-            services.AddScoped<SettingRepository, SettingRepository>();
-            //services.AddScoped<TaskRepository, TaskRepository>();
-            //services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
-            //services.AddScoped<UserCardRepository, UserCardRepository>();
-            //services.AddScoped<UserGroupRepository, UserGroupRepository>();
-            //services.AddScoped<UserRepository, UserRepository>();
+            //services.AddTransient<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddTransient<SettingRepository, SettingRepository>();
+            //services.AddTransient<TaskRepository, TaskRepository>();
+            //services.AddTransient<TimeZoneRepository, TimeZoneRepository>();
+            //services.AddTransient<UserCardRepository, UserCardRepository>();
+            //services.AddTransient<UserGroupRepository, UserGroupRepository>();
+            //services.AddTransient<UserRepository, UserRepository>();
             services.AddSingleton<UserRepository, UserRepository>();
             services.AddScoped<DeviceRepository, DeviceRepository>();
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
@@ -175,39 +215,44 @@ namespace Biovation.Server
             services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
             services.AddScoped<UserCardRepository, UserCardRepository>();
             services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<SchedulingRepository, SchedulingRepository>();
+            services.AddScoped<RelayHubRepository, RelayHubRepository>();
+            services.AddScoped<EntranceRepository, EntranceRepository>();
+            services.AddScoped<RelayRepository, RelayRepository>();
+
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
 
-            //services.AddScoped<FoodService, FoodService>();
-            //services.AddScoped<MealService, MealService>();
-            //services.AddScoped<ReservationService, ReservationService>();
-            //services.AddScoped<RestaurantService, RestaurantService>();
-            //services.AddScoped<ServeLogService, ServeLogService>();
+            //services.AddTransient<FoodService, FoodService>();
+            //services.AddTransient<MealService, MealService>();
+            //services.AddTransient<ReservationService, ReservationService>();
+            //services.AddTransient<RestaurantService, RestaurantService>();
+            //services.AddTransient<ServeLogService, ServeLogService>();
 
-            services.AddScoped<AccessGroupService, AccessGroupService>();
-            services.AddScoped<AdminDeviceService, AdminDeviceService>();
-            services.AddScoped<BlackListService, BlackListService>();
-            services.AddScoped<DeviceGroupService, DeviceGroupService>();
-            services.AddScoped<FingerTemplateService, FingerTemplateService>();
-            services.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
-            services.AddScoped<LogService, LogService>();
-            services.AddScoped<LookupService, LookupService>();
-            services.AddScoped<PlateDetectionService, PlateDetectionService>();
-            services.AddScoped<TaskService, TaskService>();
-            services.AddScoped<TimeZoneService, TimeZoneService>();
-            services.AddScoped<UserCardService, UserCardService>();
-            services.AddScoped<UserGroupService, UserGroupService>();
-            services.AddScoped<UserService, UserService>();
-            services.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
-            services.AddScoped<SettingService, SettingService>();
-            services.AddScoped<LogService, LogService>();
-            services.AddScoped<DeviceService, DeviceService>();
+            services.AddTransient<AccessGroupService, AccessGroupService>();
+            services.AddTransient<AdminDeviceService, AdminDeviceService>();
+            services.AddTransient<BlackListService, BlackListService>();
+            services.AddTransient<DeviceGroupService, DeviceGroupService>();
+            services.AddTransient<FingerTemplateService, FingerTemplateService>();
+            services.AddTransient<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddTransient<LogService, LogService>();
+            services.AddTransient<LookupService, LookupService>();
+            services.AddTransient<PlateDetectionService, PlateDetectionService>();
+            services.AddTransient<TaskService, TaskService>();
+            services.AddTransient<TimeZoneService, TimeZoneService>();
+            services.AddTransient<UserCardService, UserCardService>();
+            services.AddTransient<UserGroupService, UserGroupService>();
+            services.AddTransient<UserService, UserService>();
+            services.AddTransient<GenericCodeMappingService, GenericCodeMappingService>();
+            services.AddTransient<SettingService, SettingService>();
+            services.AddTransient<LogService, LogService>();
+            services.AddTransient<DeviceService, DeviceService>();
 
-            services.AddScoped<FaceTemplateService, FaceTemplateService>();
-            services.AddScoped<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
-            services.AddScoped<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
-            services.AddScoped<Service.Api.v2.LogService, Service.Api.v2.LogService>();
-            services.AddScoped<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
+            services.AddTransient<FaceTemplateService, FaceTemplateService>();
+            services.AddTransient<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
+            services.AddTransient<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
+            services.AddTransient<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+            services.AddTransient<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
             services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
             services.AddScoped<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
             services.AddScoped<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
@@ -220,6 +265,10 @@ namespace Biovation.Server
             services.AddScoped<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
             services.AddScoped<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
             services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
+            services.AddScoped<SchedulingService, SchedulingService>();
+            services.AddScoped<RelayHubService, RelayHubService>();
+            services.AddScoped<EntranceService, EntranceService>();
+            services.AddScoped<RelayService, RelayService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddSingleton<TokenGenerator, TokenGenerator>();
         }
@@ -236,13 +285,13 @@ namespace Biovation.Server
 
             serviceCollection.AddSingleton(restClient);
 
-            serviceCollection.AddScoped<LookupRepository, LookupRepository>();
-            serviceCollection.AddScoped<LookupService, LookupService>();
-            serviceCollection.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-            serviceCollection.AddScoped<GenericCodeMappingService, GenericCodeMappingService>();
+            serviceCollection.AddTransient<LookupRepository, LookupRepository>();
+            serviceCollection.AddTransient<LookupService, LookupService>();
+            serviceCollection.AddTransient<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            serviceCollection.AddTransient<GenericCodeMappingService, GenericCodeMappingService>();
 
-            //serviceCollection.AddScoped<Lookups, Lookups>();
-            //serviceCollection.AddScoped<GenericCodeMappings, GenericCodeMappings>();
+            //serviceCollection.AddTransient<Lookups, Lookups>();
+            //serviceCollection.AddTransient<GenericCodeMappings, GenericCodeMappings>();
 
 
             var serviceProvider = serviceCollection.BuildServiceProvider();

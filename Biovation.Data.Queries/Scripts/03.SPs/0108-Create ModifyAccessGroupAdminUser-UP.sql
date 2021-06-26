@@ -12,9 +12,9 @@ BEGIN
             DELETE [dbo].[AdminAccessGroup]
             WHERE  AccessGroupId = @AccessGroupId
             INSERT INTO [dbo].[AdminAccessGroup] (UserId, AccessGroupId)
-            SELECT Id,
+            SELECT UserId,
                    @AccessGroupId
-            FROM   OPENXML (@DocId, '/Root/AdminUsers', 2) WITH (Id BIGINT)
+            FROM   OPENXML (@DocId, '/Root/AdminUsers', 2) WITH (UserId BIGINT) WHERE [UserId] IS NOT NULL
         END
         EXECUTE sp_xml_removedocument @DocId
         COMMIT TRANSACTION T1

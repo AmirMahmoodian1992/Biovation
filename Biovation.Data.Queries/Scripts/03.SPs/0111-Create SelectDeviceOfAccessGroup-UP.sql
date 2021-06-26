@@ -2,7 +2,7 @@
 @Id INT, @pageNumber INT = NULL, @PageSize INT = Null
 AS
 BEGIN
-DECLARE @Message AS NVARCHAR (200) = N'عملیات با موفقیت انجام گرفت', @Validate AS INT = 1, @Code AS nvarchar(5) = N'200'
+DECLARE @Message AS NVARCHAR (200) = N'عملیات با موفقیت انجام گرفت', @Validate AS INT = 1, @Code AS NVARCHAR (15) = N'200'
 DECLARE  @HasPaging  BIT;
 	 SET @HasPaging = CASE
                                        WHEN @PageSize =0

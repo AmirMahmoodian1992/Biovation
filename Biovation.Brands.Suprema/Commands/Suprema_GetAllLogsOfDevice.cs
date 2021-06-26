@@ -1,6 +1,9 @@
 ﻿using Biovation.Brands.Suprema.Devices;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -19,14 +22,17 @@ namespace Biovation.Brands.Suprema.Commands
         private readonly Dictionary<uint, Device> _onlineDevices;
 
         private readonly BioStarServer _bioStarServer;
+        private readonly DeviceService _deviceService;
 
-        private uint DeviceId { get; }
+        private uint DeviceId { get; set; }
+        private TaskItem TaskItem { get; }
 
-        public SupremaGetAllLogsOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices, BioStarServer bioStarServer)
+        public SupremaGetAllLogsOfDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, BioStarServer bioStarServer, DeviceService deviceService)
         {
-            DeviceId = deviceId;
             _onlineDevices = onlineDevices;
             _bioStarServer = bioStarServer;
+            _deviceService = deviceService;
+            TaskItem = taskItem;
         }
 
         /// <summary>
@@ -35,18 +41,27 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-            if (_onlineDevices.ContainsKey(DeviceId))
+            if (TaskItem is null)
+                return new ResultViewModel { Id = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item.{Environment.NewLine}", Validate = 0 };
+
+            DeviceId = (uint)TaskItem.DeviceId;
+
+            var device = _deviceService.GetDevice(DeviceId).Result?.Data;
+            if (device is null)
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
+
+            if (!_onlineDevices.ContainsKey(device.Code))
             {
-                //_onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken());
-                _bioStarServer.LogReaderQueue.Enqueue(new KeyValuePair<uint, Task>(DeviceId, new Task(() => _onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken()))));
-                _bioStarServer.StartReadLogs();
-                return true;
+                Logger.Log($"The device: {device.DeviceId} is not connected.");
+                return new ResultViewModel { Validate = 0, Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
             }
-            else
-            {
-                Logger.Log($"Device: {DeviceId} is not connected.");
-                return false;
-            }
+
+
+            //_onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken());
+            _bioStarServer.LogReaderQueue.Enqueue(new KeyValuePair<uint, Task>(DeviceId, new Task(() => _onlineDevices[DeviceId].ReadOfflineLog(new CancellationToken()))));
+            _bioStarServer.StartReadLogs();
+            return true;
+
         }
 
         public void Rollback()

@@ -2,11 +2,14 @@
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.Suprema.Commands;
 using Biovation.Brands.Suprema.Devices;
+using Biovation.Brands.Suprema.HostedServices;
 using Biovation.Brands.Suprema.Manager;
+using Biovation.Brands.Suprema.Middleware;
 using Biovation.Brands.Suprema.Services;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using DataAccessLayerCore;
@@ -18,12 +21,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Biovation.Brands.Suprema.Middleware;
-using Microsoft.Extensions.Logging;
+using System.Threading;
+using Log = Serilog.Log;
 
 namespace Biovation.Brands.Suprema
 {
@@ -33,15 +38,13 @@ namespace Biovation.Brands.Suprema
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         private readonly Dictionary<int, string> _deviceTypes = new Dictionary<int, string>();
 
+        private readonly IHostEnvironment _environment;
         public IConfiguration Configuration { get; }
-        //biostartserver
-
-        //
-
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
 
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -76,11 +79,7 @@ namespace Biovation.Brands.Suprema
                     options.JsonSerializerOptions.IgnoreNullValues = true;
                 }).AddMetrics();
 
-            //services.AddMvcCore().AddMetricsCore();
             services.AddHealthChecks();
-
-
-            
 
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -88,10 +87,6 @@ namespace Biovation.Brands.Suprema
             ConfigureRepositoriesServices(services);
             ConfigureConstantValues(services);
             ConfigureSupremaServices(services);
-            // services.AddHostedService<PingCollectorHostedService>();
-            //  services.AddHostedService<BroadcastMetricsHostedService>();
-
-
         }
 
 
@@ -112,6 +107,44 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
 
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+
+            if (!_environment.IsDevelopment())
+            {
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
+                {
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
+                    {
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
+                        {
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
+                    }
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Environment.Exit(0);
+                }
+
+
+                #endregion
+            }
+
             services.AddSingleton(restClient);
 
             services.AddSingleton<GenericRepository, GenericRepository>();
@@ -133,6 +166,23 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<UserService, UserService>();
             services.AddSingleton<FastSearchService, FastSearchService>();
 
+            services.AddSingleton<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
+            services.AddSingleton<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
+            services.AddSingleton<Service.Api.v2.BlackListService, Service.Api.v2.BlackListService>();
+            services.AddSingleton<Service.Api.v2.DeviceGroupService, Service.Api.v2.DeviceGroupService>();
+            services.AddSingleton<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
+            services.AddSingleton<Service.Api.v2.FaceTemplateService, Service.Api.v2.FaceTemplateService>();
+            services.AddSingleton<Service.Api.v2.FingerTemplateService, Service.Api.v2.FingerTemplateService>();
+            services.AddSingleton<Service.Api.v2.GenericCodeMappingService, Service.Api.v2.GenericCodeMappingService>();
+            services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+            services.AddSingleton<Service.Api.v2.LookupService, Service.Api.v2.LookupService>();
+            services.AddSingleton<Service.Api.v2.SettingService, Service.Api.v2.SettingService>();
+            services.AddSingleton<Service.Api.v2.TaskService, Service.Api.v2.TaskService>();
+            services.AddSingleton<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
+            services.AddSingleton<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
+            services.AddSingleton<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
+            services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
+
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
             services.AddSingleton<BlackListRepository, BlackListRepository>();
@@ -152,6 +202,7 @@ namespace Biovation.Brands.Suprema
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -302,18 +353,22 @@ namespace Biovation.Brands.Suprema
             services.AddSingleton<DeviceFactory, DeviceFactory>();
             services.AddSingleton<FastSearchService, FastSearchService>();
 
+            services.AddSingleton<Suprema, Suprema>();
+
+            services.AddHostedService<TaskManagerHostedService>();
+            services.AddHostedService<SupremaHostedService>();
 
 
-            var serviceProvider = services.BuildServiceProvider();
-            var supremaServer = serviceProvider.GetService<BioStarServer>();
-            var supremaObject = new Suprema();
-            // var virdiServer = new BioStarServer(UcsApi, OnlineDevices);
+            //var serviceProvider = services.BuildServiceProvider();
+            //var supremaServer = serviceProvider.GetService<BioStarServer>();
+            //var supremaObject = new Suprema();
+            //// var virdiServer = new BioStarServer(UcsApi, OnlineDevices);
 
 
-            //services.AddSingleton(UcsApi);
-            services.AddSingleton(supremaServer);
-            services.AddSingleton(supremaObject);
-            supremaServer.StartService();
+            ////services.AddSingleton(UcsApi);
+            //services.AddSingleton(supremaServer);
+            //services.AddSingleton(supremaObject);
+            //supremaServer.StartService();
 
 
 

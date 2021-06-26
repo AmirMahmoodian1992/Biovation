@@ -29,7 +29,7 @@ namespace Biovation.Server.Controllers.v1
         [Route("ModifyUserCard")]
         public ResultViewModel ModifyUserCard([FromBody]UserCard userCard)
         {
-            var res = _userCard.ModifyUserCard(userCard, token: _kasraAdminToken);
+            var res = _userCard.ModifyUserCard(userCard, _kasraAdminToken);
             return res;
         }
 
@@ -37,14 +37,14 @@ namespace Biovation.Server.Controllers.v1
         [Route("GetUserCard")]
         public List<UserCard> GetUserCard(int userId = 0)
         {
-            return _userCard.GetCardsByFilter(userId: userId, token: _kasraAdminToken);
+            return _userCard.GetCardsByFilter(userId, token: _kasraAdminToken).Result;
         }
 
         [HttpPost]
         [Route("DeleteUserCard")]
         public ResultViewModel DeleteUserCard(int id)
         {
-            return _userCard.DeleteUserCard(id, token: _kasraAdminToken);
+            return _userCard.DeleteUserCard(id, _kasraAdminToken).Result;
         }
 
         [HttpGet]

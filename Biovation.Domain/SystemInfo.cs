@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Biovation.Domain
 {
@@ -9,5 +10,6 @@ namespace Biovation.Domain
 
         public  string MinimumPatchVersionRequired = "9.2.6";
         public  List<ServiceInfo> Services { get; set; }
+        public  string LockEndTime { get; set; }
     }
 }

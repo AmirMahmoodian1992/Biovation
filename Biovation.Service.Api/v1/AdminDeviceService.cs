@@ -17,17 +17,17 @@ namespace Biovation.Service.Api.v1
         public List<AdminDevice> GetAdminDevicesByUserId(int personId,
             int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize, token)?.Data?.Data ?? new List<AdminDevice>();
+            return _adminDeviceRepository.GetAdminDevicesByUserId(personId, pageNumber, pageSize, token).Result?.Data?.Data ?? new List<AdminDevice>();
         }
         public List<AdminDeviceGroup> GetAdminDeviceGroupsByUserId(int personId,
             int pageNumber = default, int pageSize = default, string token = default)
         {
-            return _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize, token)?.Data?.Data ?? new List<AdminDeviceGroup>();
+            return _adminDeviceRepository.GetAdminDeviceGroupsByUserId(personId, pageNumber, pageSize, token).Result?.Data?.Data ?? new List<AdminDeviceGroup>();
         }
 
         public ResultViewModel ModifyAdminDevice(JObject adminDevice = default, string token = default)
         {
-            return _adminDeviceRepository.ModifyAdminDevice(adminDevice, token);
+            return _adminDeviceRepository.ModifyAdminDevice(adminDevice, token).Result;
         }
     }
 }

@@ -2,7 +2,7 @@
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ namespace Biovation.Brands.Suprema.Commands
         public SupremaSyncUser(int userId, Dictionary<uint, Device> onlineDevices, UserService userService, AccessGroupService accessGroupService)
         {
             //todo:usercode
-            User = _userService.GetUsers(userId).FirstOrDefault();
+            User = _userService.GetUsers(userId).Result?.Data?.Data.FirstOrDefault();
             OnlineDevices = onlineDevices;
             _userService = userService;
             _accessGroupService = accessGroupService;
@@ -41,17 +41,17 @@ namespace Biovation.Brands.Suprema.Commands
         public object Execute()
         {
 
-            var userAccess = _accessGroupService.GetAccessGroups(User.Id);
+            var userAccess = _accessGroupService.GetAccessGroups(User.Id).Result;
 
-            var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
-            var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
-            var disable = userAccess.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
+            var fullAccess = userAccess?.Data?.Data.FirstOrDefault(ua => ua.Id == 254);
+            var noAccess = userAccess?.Data?.Data.FirstOrDefault(ua => ua.Id == 253);
+            var disable = userAccess?.Data?.Data.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
 
             //List<DeviceBasicInfo> offlineCheckerDevices;
             //var validDevice = deviceService.GetUserValidDevices(User.Id, ConnectionType);
 
             var validDevice = new List<DeviceBasicInfo>();
-            var accessGroups = _accessGroupService.GetAccessGroups(User.Id);
+            var accessGroups = _accessGroupService.GetAccessGroups(User.Id).Result?.Data?.Data;
             if (!accessGroups.Any())
             {
                 return true;

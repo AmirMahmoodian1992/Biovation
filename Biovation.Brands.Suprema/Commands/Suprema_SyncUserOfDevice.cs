@@ -5,7 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Service.Api.v1;
+using Biovation.Constants;
+using Biovation.Domain;
+using Biovation.Service.Api.v2;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using DeviceService = Biovation.Service.Api.v2.DeviceService;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -14,8 +19,6 @@ namespace Biovation.Brands.Suprema.Commands
     /// </summary>
     public class SupremaSyncUserOfDevice : ICommand
     {
-        private uint DeviceCode { get; }
-        private int UserId { get; }
 
         /// <summary>
         /// All connected devices
@@ -23,20 +26,22 @@ namespace Biovation.Brands.Suprema.Commands
         ///
         /// 
         private readonly Dictionary<uint, Device> _onlineDevices;
+        private TaskItem TaskItem { get; }
+        private readonly DeviceService _deviceService;
 
-        private readonly BioStarServer _bioStarServer;
         private readonly AccessGroupService _accessGroupService;
         private readonly UserService _userService;
+        private readonly AdminDeviceService _adminDeviceService;
 
-        public SupremaSyncUserOfDevice(uint deviceCode, int userId, Dictionary<uint, Device> onlineDevices, BioStarServer bioStarServer, AccessGroupService accessGroupService, UserService userService)
+        public SupremaSyncUserOfDevice(TaskItem taskItem, Dictionary<uint, Device> onlineDevices, AccessGroupService accessGroupService, UserService userService, DeviceService deviceService, AdminDeviceService adminDeviceService)
         {
-            DeviceCode = deviceCode;
+            TaskItem = taskItem;
             _onlineDevices = onlineDevices;
-            UserId = userId;
 
-            _bioStarServer = bioStarServer;
             _accessGroupService = accessGroupService;
             _userService = userService;
+            _deviceService = deviceService;
+            _adminDeviceService = adminDeviceService;
         }
 
         /// <summary>
@@ -45,11 +50,29 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         public object Execute()
         {
-            //var eventID = Convert.ToInt32(items.First());
+
+            if (TaskItem is null)
+                return new ResultViewModel { Id = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item.{Environment.NewLine}", Validate = 0 };
+
+            var deviceId = TaskItem.DeviceId;
+
+            var parseResult = uint.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["UserId"]?.ToString() ?? "0", out var userId);
+
+            if (!parseResult || userId == 0)
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
+
+            var deviceBasicInfo = _deviceService.GetDevice(deviceId).Result?.Data;
+            if (deviceBasicInfo is null)
+                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
+
+            if (!_onlineDevices.ContainsKey(deviceBasicInfo.Code))
+            {
+                Logger.Log($"The device: {deviceBasicInfo.DeviceId} is not connected.");
+                return new ResultViewModel { Validate = 0, Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
+            }
 
 
-
-            var user = _userService.GetUsers(UserId).FirstOrDefault();
+            var user = _userService.GetUsers(userId:userId).Result?.Data?.Data.FirstOrDefault();
 
             if (user == null)
             {
@@ -57,75 +80,24 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var userAccess = _accessGroupService.GetAccessGroups(user.Id);
+            var userAccess = _accessGroupService.GetAccessGroups(user.Id).Result?.Data?.Data;
 
             var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
             var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
             var disable = userAccess.FirstOrDefault(ua => ua.Name.ToUpper() == "DISABLE");
 
-            /* var offlineEventService = new OfflineEventService();*/
-
-            //#region manageOfflineDevices
-
-            //if (fullAccess != null)
-            //{
-            //    offlineEventService.AddOfflineEvent(new OfflineEvent
-            //    {
-            //        DeviceCode = DeviceCode,
-            //        Data = user.Id.ToString(),
-            //        Type = OfflineEventType.UserInserted
-            //    });
-            //}
-
-            //else if (noAccess != null)
-            //{
-            //    offlineEventService.AddOfflineEvent(new OfflineEvent
-            //    {
-            //        DeviceCode = DeviceCode,
-            //        Data = user.Id.ToString(),
-            //        Type = OfflineEventType.UserDeleted
-            //    });
-            //}
-
-            //else if (disable != null)
-            //{
-            //    offlineEventService.AddOfflineEvent(new OfflineEvent
-            //    {
-            //        DeviceCode = DeviceCode,
-            //        Data = user.Id.ToString(),
-            //        Type = OfflineEventType.UserDeleted
-            //    });
-            //}
-
-            //else
-            //{
-            //    offlineEventService.AddOfflineEvent(new OfflineEvent
-            //    {
-            //        DeviceCode = DeviceCode,
-            //        Data = user.Id.ToString(),
-            //        Type = OfflineEventType.UserInserted
-            //    });
-            //}
-
-            //#endregion manageOfflineDevices
-
-
+            var adminDevices = _adminDeviceService.GetAdminDevicesByUserId((int)user.Id).GetAwaiter().GetResult()?.Data?.Data;
+            user.AdminLevel = (adminDevices ?? new List<AdminDevice>()).Any(x => x.DeviceId == deviceBasicInfo.DeviceId) ? 240 : 0;
             #region transferUserToDevice
 
             try
             {
-                var device = _onlineDevices[Convert.ToUInt32(DeviceCode)];
+                var device = _onlineDevices[Convert.ToUInt32(deviceBasicInfo.Code)];
 
                 Task.Run(() =>
                 {
                     if (device == null) return;
                     if (!device.TransferUser(user)) return;
-                    //offlineEventService.DeleteOfflineEvent(new OfflineEvent
-                    //{
-                    //    DeviceCode = device.GetDeviceInfo().Code,
-                    //    Data = user.Id.ToString(),
-                    //    Type = OfflineEventType.UserInserted
-                    //});
 
                     Logger.Log($"User {user.Id} transferred to device {device.GetDeviceInfo().DeviceId} successfully.");
                 });
