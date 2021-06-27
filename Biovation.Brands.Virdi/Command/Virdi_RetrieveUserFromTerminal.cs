@@ -84,7 +84,7 @@ namespace Biovation.Brands.Virdi.Command
             try
             {
                 //Callbacks.ModifyUserData = true;
-                _ucsApi.EventGetUserData += GetUserDataCallback;
+                //_ucsApi.EventGetUserData += GetUserDataCallback;
                 _virdiServer.TerminalUserData.GetUserDataFromTerminal(TaskItemId, (int)Code, UserId);
 
                 Logger.Log(GetDescription());
@@ -239,7 +239,7 @@ namespace Biovation.Brands.Virdi.Command
 
                             for (var i = 0; i < nFpDataCount; i++)
                             {
-                                var sameTemplateExists = false;
+                                //var sameTemplateExists = false;
                                 var fingerIndex = _terminalUserData.FingerID[i];
                                 if (existUser != null)
                                 {
@@ -264,34 +264,34 @@ namespace Biovation.Brands.Virdi.Command
                                         if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
                                         if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
 
-                                        if (_fpData == null) continue;
-                                        _fpData.ClearFPData();
-                                        _fpData.Import(1, _terminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
+                                        //if (_fpData == null) continue;
+                                        //_fpData.ClearFPData();
+                                        //_fpData.Import(1, _terminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
 
-                                        var deviceTemplate = _fpData.TextFIR;
+                                        //var deviceTemplate = _fpData.TextFIR;
                                         var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id)).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
 
                                         if (fingerTemplates.Exists(ft => ft.CheckSum == firstSampleCheckSum) || fingerTemplates.Exists(ft => ft.CheckSum == secondSampleCheckSum))
                                             continue;
 
-                                        for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
-                                        {
-                                            if (_fpData == null) continue;
-                                            _fpData.ClearFPData();
-                                            _fpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
-                                                fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
-                                            var firTemplate = _fpData.TextFIR;
-                                            lock (_matching)
-                                            {
-                                                _matching.VerifyMatch(deviceTemplate, firTemplate);
-                                                if (_matching.MatchingResult == 0) continue;
-                                            }
+                                        //for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
+                                        //{
+                                        //    if (_fpData == null) continue;
+                                        //    _fpData.ClearFPData();
+                                        //    _fpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
+                                        //        fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
+                                        //    var firTemplate = _fpData.TextFIR;
+                                        //    lock (_matching)
+                                        //    {
+                                        //        _matching.VerifyMatch(deviceTemplate, firTemplate);
+                                        //        if (_matching.MatchingResult == 0) continue;
+                                        //    }
 
-                                            sameTemplateExists = true;
-                                            break;
-                                        }
+                                        //    sameTemplateExists = true;
+                                        //    break;
+                                        //}
 
-                                        if (sameTemplateExists) continue;
+                                        //if (sameTemplateExists) continue;
 
                                         user.FingerTemplates.Add(new FingerTemplate
                                         {
@@ -491,7 +491,7 @@ namespace Biovation.Brands.Virdi.Command
                 Logger.Log($"--> Error On GetUserDataCallback Error: {e.Message} ");
             }
 
-            _ucsApi.EventGetUserData -= GetUserDataCallback;
+            //_ucsApi.EventGetUserData -= GetUserDataCallback;
         }
 
         public void Rollback()
