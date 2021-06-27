@@ -12,9 +12,9 @@ namespace Biovation.Repository.Sql.v2.RelayController
     {
         private readonly GenericRepository _repository;
 
-        public CameraRepository()
+        public CameraRepository(GenericRepository repository)
         {
-            _repository = new GenericRepository();
+            _repository = repository;
         }
 
         public ResultViewModel CreateCamera(Camera camera)
