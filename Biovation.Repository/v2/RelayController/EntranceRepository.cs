@@ -36,7 +36,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
 
         public ResultViewModel<PagingResult<Entrance>> SelectEntrance(int cameraId, int schedulingId, int id = 0, int code = 0,
             string name = null, string description = null, int pageNumber = 0,
-            int pageSize = 0, int nestingDepthLevel = 4)
+            int pageSize = 0, int nestingDepthLevel = 6)
         {
             var sqlParameter = new List<SqlParameter>
             {
