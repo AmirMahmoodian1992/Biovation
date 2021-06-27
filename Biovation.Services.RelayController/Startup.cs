@@ -82,6 +82,7 @@ namespace Biovation.Services.RelayController
             services.AddSingleton<RelayFactory>();
             services.AddTransient<GetRelayService>();
             services.AddHostedService<RelaysConnectionHolderHostedService>();
+            services.AddSingleton<Lookups,Lookups>();
             //services.AddHostedService<PingCollectorHostedService>();
             //services.AddHostedService<BroadcastMetricsHostedService>();
         }

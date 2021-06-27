@@ -30,55 +30,31 @@ namespace Biovation.Services.RelayController.Services
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                for (var relayId = 2; relayId <= 5; relayId++)
+                foreach (var relayInRelays in _relayService.GetRelay().Result.Data.Data)
                 {
-                    if (ConnectedRelays.ContainsKey(relayId))
+                    if (ConnectedRelays.ContainsKey(relayInRelays.Id))
                     {
-                        var relay = ConnectedRelays[relayId];
+                        var relay = ConnectedRelays[relayInRelays.Id];
 
                         if (relay.IsConnected())
                         {
-                            Console.WriteLine($"relay number {relayId} is alive.");
+                            Console.WriteLine($"relay number {relay.RelayInfo.Id} is alive.");
                         }
                         else
                         {
-                            Console.WriteLine($"relay number {relayId} is disconnected!");
-                            ConnectedRelays.Remove(relayId);
+                            Console.WriteLine($"relay number {relay.RelayInfo.Id} is disconnected!");
+                            ConnectedRelays.Remove(relay.RelayInfo.Id);
                         }
                     }
                     else
                     {
-                        //var relayInfo = new Relay
-                        //{
-                        //    Id = relayId,
-                        //    Name = $"relay_{relayId}",
-                        //    NodeNumber = relayId,
-                        //    RelayHub = new RelayHub
-                        //    {
-                        //        Id = 1,
-                        //        IpAddress = "192.168.3.200",
-                        //        Port = 23,
-                        //        Capacity = 4,
-                        //        RelayHubModel = new RelayHubModel() { Name = "Behsan" },
-                        //        Description = "Blah Blah Blah"
-                        //    },
-                        //    Entrance = new Entrance
-                        //    {
-                        //        Id = 1,
-                        //        Name = "MainEntrance",
-                        //        Description = "Blah Blah Blah"
-                        //    },
-                        //    Description = "Blah Blah Blah"
-                        //};
-                       
-                        
-                        var relayInfo = _relayService.GetRelay(id:relayId).Result?.Data?.Data?.FirstOrDefault();
+                        var relayInfo = _relayService.GetRelay(id:relayInRelays.Id).Result?.Data?.Data?.FirstOrDefault();
                         var relay = _relayFactory.Factory(relayInfo);
                         if (relay.Connect())
-                            ConnectedRelays.Add(relayId, relay);
+                            ConnectedRelays.Add(relay.RelayInfo.Id, relay);
                         else
                         {
-                            Console.WriteLine($"relay number {relayId} not found!");
+                            Console.WriteLine($"relay number {relay.RelayInfo.Id} not found!");
                             continue;
                         }
                         

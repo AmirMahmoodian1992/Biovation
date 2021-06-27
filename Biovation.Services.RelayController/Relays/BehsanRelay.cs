@@ -29,7 +29,7 @@ namespace Biovation.Services.RelayController.Relays
             {
                 _tcpClient.Connect(RelayInfo.RelayHub.IpAddress, RelayInfo.RelayHub.Port);
                 _stream = _tcpClient.GetStream();
-                //_tcpClient.ReceiveTimeout = 2000;
+                _tcpClient.ReceiveTimeout = 2000;
                 return true;
             }
             catch (Exception)
@@ -67,7 +67,7 @@ namespace Biovation.Services.RelayController.Relays
                     // Detect if client disconnected
                     if (_tcpClient.Client.Poll(0, SelectMode.SelectRead))
                     {
-                        byte[] buff = new byte[1];
+                        byte[] buff = new byte[10];
                         if (_tcpClient.Client.Receive(buff, SocketFlags.Peek) == 0)
                         {
                             // Client disconnected
