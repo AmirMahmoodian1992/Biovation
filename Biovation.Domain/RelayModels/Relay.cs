@@ -10,7 +10,7 @@ namespace Biovation.Domain.RelayModels
         public string Name { get; set; }
         public int NodeNumber { get; set; }
         [OneToOne]
-        public Entrance Entrance { get; set; }
+        public Lookup RelayType { get; set; }
         [OneToOne]
         public RelayHub RelayHub { get; set; }
         [OneToMany]

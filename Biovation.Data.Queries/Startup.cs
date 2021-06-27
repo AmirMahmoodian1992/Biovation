@@ -107,6 +107,7 @@ namespace Biovation.Data.Queries
             services.AddScoped<RelayHubRepository, RelayHubRepository>();
             services.AddScoped<EntranceRepository, EntranceRepository>();
             services.AddScoped<RelayRepository, RelayRepository>();
+            services.AddScoped<CameraRepository, CameraRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

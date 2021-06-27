@@ -9,6 +9,9 @@ namespace Biovation.Domain.RelayModels
         public int Id { get; set; }
         public int Code { get; set; }
         public string Name { get; set; }
+        public Lookup DirectionType { get; set; }
+        public Lookup Mode { get; set; }
+        //TODO: DeviceGroup
         [OneToMany]
         public List<Camera> Cameras { get; set; }
         [OneToMany]

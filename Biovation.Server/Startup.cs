@@ -219,6 +219,7 @@ namespace Biovation.Server
             services.AddScoped<RelayHubRepository, RelayHubRepository>();
             services.AddScoped<EntranceRepository, EntranceRepository>();
             services.AddScoped<RelayRepository, RelayRepository>();
+            services.AddScoped<CameraRepository, CameraRepository>();
 
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
@@ -269,6 +270,7 @@ namespace Biovation.Server
             services.AddScoped<RelayHubService, RelayHubService>();
             services.AddScoped<EntranceService, EntranceService>();
             services.AddScoped<RelayService, RelayService>();
+            services.AddScoped<CameraService, CameraService>();
             //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddSingleton<TokenGenerator, TokenGenerator>();
         }

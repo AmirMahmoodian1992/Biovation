@@ -98,6 +98,7 @@ namespace Biovation.Data.Commands
             services.AddScoped<RelayHubRepository, RelayHubRepository>();
             services.AddScoped<EntranceRepository, EntranceRepository>();
             services.AddScoped<RelayRepository, RelayRepository>();
+            services.AddScoped<CameraRepository, CameraRepository>();
 
 
             //integration
