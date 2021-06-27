@@ -4,7 +4,7 @@
     "Biovation.Services.RelayController": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "Biovation/biovation/api/relay/contact/1",
+      "launchUrl": "biovation/api/relay/contact/1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

@@ -10,7 +10,7 @@ namespace Biovation.Services.RelayController.Relays
     public class BehsanRelay : IRelay
     {
         public Relay RelayInfo { get; set; }
-        private readonly TcpClient _tcpClient;
+        private TcpClient _tcpClient;
         private Stream _stream;
         private readonly ASCIIEncoding _asciiEncoding;
         private readonly bool _autoReconnect = true;
@@ -27,9 +27,9 @@ namespace Biovation.Services.RelayController.Relays
         {
             try
             {
-                _tcpClient.ConnectAsync(RelayInfo.RelayHub.IpAddress, RelayInfo.RelayHub.Port).Wait(2000);
-                //_stream = _tcpClient.GetStream();
-                _tcpClient.ReceiveTimeout = 2000;
+                _tcpClient.Connect(RelayInfo.RelayHub.IpAddress, RelayInfo.RelayHub.Port);
+                _stream = _tcpClient.GetStream();
+                //_tcpClient.ReceiveTimeout = 2000;
                 return true;
             }
             catch (Exception)
