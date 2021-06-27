@@ -21,7 +21,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
 
         public ResultViewModel<PagingResult<Relay>> GetRelay(int adminUserId = 0, int id = 0,
            string name = null, int nodeNumber = 0, int relayHubId =0, int relayTypeId = 0, string description = null, int schedulingId = default, int deviceId = default,
-           int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
+           int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 6)
         {
             var sqlParameter = new List<SqlParameter>
             {
