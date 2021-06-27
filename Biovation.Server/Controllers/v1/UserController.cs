@@ -1,0 +1,939 @@
+﻿using Biovation.CommonClasses;
+using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
+using Biovation.Server.Managers;
+using Biovation.Service.Api.v1;
+using Microsoft.AspNetCore.Mvc;
+using MoreLinq;
+using Newtonsoft.Json;
+using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+
+namespace Biovation.Server.Controllers.v1
+{
+    [ApiController]
+    [ApiVersion("1.0")]
+    [Route("biovation/api/v{version:apiVersion}/[controller]")]
+    public class UserController : ControllerBase
+    {
+        private readonly UserService _userService;
+        private readonly DeviceService _deviceService;
+        private readonly UserGroupService _userGroupService;
+        private readonly AccessGroupService _accessGroupService;
+        private readonly string _kasraAdminToken;
+        private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly TokenGenerator _tokenGenerator;
+
+        private readonly RestClient _restClient;
+
+        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator)
+        {
+            _userService = userService;
+            _deviceService = deviceService;
+            _userGroupService = userGroupService;
+            _accessGroupService = accessGroupService;
+            _biovationConfigurationManager = biovationConfigurationManager;
+            _kasraAdminToken = _biovationConfigurationManager.KasraAdminToken;
+            _restClient = restClient;
+            _tokenGenerator = tokenGenerator;
+        }
+        [HttpGet]
+        [Route("GetUsersByFilter")]
+        public Task<List<User>> GetUsersByFilter(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true, long userId = default, string filterText = null, int type = default, bool withPicture = true, bool isAdmin = false)
+        {
+            var token = _tokenGenerator.GenerateToken(onlineUserId == 0 || onlineUserId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            return Task.Run(() => _userService.GetUsers(userId, withPicture, from, size, getTemplatesData, filterText, type, isAdmin, token: token));
+        }
+
+        [HttpGet]
+        [Route("GetUsers")]
+        public Task<List<User>> GetUsers(long onlineUserId = 0, int from = 0, int size = 0, bool getTemplatesData = true)
+        {
+            var token = _tokenGenerator.GenerateToken(onlineUserId == 0 || onlineUserId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: onlineUserId, token: _kasraAdminToken)?.FirstOrDefault());
+            return Task.Run(() =>
+           {
+               try
+               {
+                   return _userService.GetUsers(from: from, size: size, getTemplatesData: getTemplatesData, token: token);
+               }
+               catch (Exception exception)
+               {
+                   Logger.Log(exception);
+                   return new List<User>();
+               }
+           });
+        }
+
+        [HttpGet]
+        [Route("GetAdminUser")]
+        public List<User> GetAdminUser(long userId = 0)
+        {
+            return _userService.GetAdminUser(userId, _kasraAdminToken);
+        }
+
+        [HttpGet]
+        [Route("GetAdminUserOfAccessGroup")]
+        public List<User> GetAdminUserOfAccessGroup(long userId = 0, int accessGroupId = 0)
+        {
+            return _accessGroupService.GetAdminUserOfAccessGroup(userId, accessGroupId, _kasraAdminToken);
+        }
+
+        [HttpGet]
+        [Route("GetUser")]
+        public User GetUser(int id)
+        {
+            try
+            {
+                return _userService.GetUsers(id, token: _kasraAdminToken)?.FirstOrDefault();
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                throw;
+            }
+        }
+
+        [HttpGet]
+        [Route("SearchUserFilter")]
+        public List<User> SearchUser(string filterText, long userId)
+        {
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
+            try
+            {
+                return _userService.GetUsers(filterText: filterText, token: token);
+            }
+            catch (Exception)
+            {
+                return new List<User>();
+            }
+        }
+
+        [HttpGet]
+        [Route("SearchUser")]
+        public List<User> SearchUser(string filterText, int type, long userId)
+        {
+            var token = _tokenGenerator.GenerateToken(userId == 0 || userId == 123456789 ? _biovationConfigurationManager.KasraAdminUser : _userService.GetUsers(code: userId, token: _kasraAdminToken)?.FirstOrDefault());
+            try
+            {
+                return _userService.GetUsers(filterText: filterText, type: type, token: token);
+            }
+            catch (Exception)
+            {
+                return new List<User>();
+            }
+        }
+
+        [HttpPost]
+        [Route("ModifyUser")]
+        public Task<ResultViewModel> ModifyUser([FromBody] User user)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    var existingUser = _userService.GetUsers(user.Id, token: _kasraAdminToken).FirstOrDefault();
+
+                    if (existingUser != null)
+                    {
+                        user.UserName = string.IsNullOrWhiteSpace(user.UserName)
+                            ? existingUser.UserName
+                            : user.UserName;
+
+                        user.StartDate = user.StartDate == default ? existingUser.StartDate : user.StartDate;
+                        user.EndDate = user.EndDate == default ? existingUser.EndDate : user.EndDate;
+                        user.AdminLevel = user.AdminLevel == default ? existingUser.AdminLevel : user.AdminLevel;
+                        user.Email = string.IsNullOrWhiteSpace(user.Email) ? existingUser.Email : user.Email;
+                        user.FirstName = string.IsNullOrWhiteSpace(user.FirstName)
+                            ? existingUser.FirstName
+                            : user.FirstName;
+                        user.SurName = string.IsNullOrWhiteSpace(user.SurName) ? existingUser.SurName : user.SurName;
+                        user.FullName = string.IsNullOrWhiteSpace(user.FullName)
+                            ? existingUser.FullName
+                            : user.FullName;
+                        user.IdentityCard ??= existingUser.IdentityCard;
+                        user.Image = user.Image is null || user.Image.Length < 1 ? existingUser.Image : user.Image;
+                        user.Type = user.Type == default ? existingUser.Type : user.Type;
+                        user.TelNumber = string.IsNullOrWhiteSpace(user.TelNumber)
+                            ? existingUser.TelNumber
+                            : user.TelNumber;
+                    }
+
+                    var result = _userService.ModifyUser(user, _kasraAdminToken);
+
+                    if (result.Success)
+                    {
+#pragma warning disable 4014
+                        Task.Run(async () =>
+#pragma warning restore 4014
+                        {
+                            var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                            foreach (var deviceBrand in deviceBrands)
+                            {
+                                var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST);
+                                restRequest.AddJsonBody(user);
+                                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            }
+                        });
+                    }
+
+                    return result;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new ResultViewModel { Validate = 0, Message = exception.Message };
+                }
+            });
+        }
+
+        [HttpPost]
+        [Route("DeleteUser")]
+        public List<ResultViewModel> DeleteUser([FromBody] List<long> ids)
+        {
+            try
+            {
+                return ids.Select(id => _userService.DeleteUser(id, _kasraAdminToken)).ToList();
+
+                //Task.Run(() =>
+                //{
+                //    foreach (var user in result)
+                //    {
+                //        if(user.Validate == 1)
+                //        {
+                //            var deviceBrands = _deviceService.GetDeviceBrands();
+                //            foreach (var deviceBrand in deviceBrands)
+                //            {
+                //                _communicationManager.CallRest(
+                //                $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", "Post", null, $"{JsonConvert.SerializeObject(ids)}");
+                //            }
+                //        }
+
+                //    }
+
+                //});
+            }
+            catch (Exception exception)
+            {
+                return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = exception.Message } };
+            }
+        }
+
+        [HttpPost]
+        [Route("SendUserToDevice")]
+        public async Task<List<ResultViewModel>> SendUserToDevice(string deviceId, string userId)
+        {
+            try
+            {
+                var deviceIds = JsonConvert.DeserializeObject<int[]>(deviceId);
+                //return _userService.SendUserToDevice(deviceId, userId);
+                if (!userId.Any())
+                {
+                    return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "User is empty" } };
+                }
+
+                var result = new List<ResultViewModel>();
+                foreach (var device in deviceIds)
+                {
+                    var deviceBasic = _deviceService.GetDevice(device, token: _kasraAdminToken);
+                    if (deviceBasic == null)
+                    {
+                        var msg = "DeviceId " + device + " does not exist.";
+                        Logger.Log(msg);
+                        return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = msg } };
+                    }
+
+                    var restRequest =
+                        new RestRequest(
+                            $"/{deviceBasic.Brand.Name}/{deviceBasic.Brand.Name}User/SendUserToDevice",
+                            Method.GET);
+                    restRequest.AddParameter("code", deviceBasic.Code);
+                    restRequest.AddParameter("userId", userId);
+                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                    var requestResult = await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+                    if (requestResult.IsSuccessful && requestResult.StatusCode == HttpStatusCode.OK && requestResult.Data != null)
+                        result.AddRange(requestResult.Data);
+                }
+
+                return result;
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new List<ResultViewModel> { new ResultViewModel { Validate = 0, Message = "SendUserToDevice Failed." } };
+            }
+        }
+
+        [HttpPost]
+        [Route("SendUserToAllDevices")]
+        [Obsolete]
+        public Task<List<ResultViewModel>> SendUserToAllDevices(string ids)
+        {
+            return Task.Run(async () =>
+            {
+                try
+                {
+                    var userIds = JsonConvert.DeserializeObject<int[]>(ids);
+                    var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                    var length = userIds.Length;
+                    var result = new List<ResultViewModel>();
+                    for (var i = 0; i < length; i++)
+                    {
+                        var user = _userService.GetUsers(userIds[i], token: _kasraAdminToken).FirstOrDefault();
+                        if (user == null)
+                        {
+                            Logger.Log($"User {userIds[i]} not exists.");
+                            result.Add(new ResultViewModel
+                            { Validate = 0, Message = $"User {userIds[i]} not exists.", Id = userIds[i] });
+                        }
+
+                        foreach (var deviceBrand in deviceBrands)
+                        {
+                            //var restResult = _communicationManager.CallRest(
+                            //            $"/biovation/api/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", "Post", null, $"{JsonConvert.SerializeObject(user)}");
+
+                            var restRequest =
+                                new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices",
+                                    Method.POST);
+                            restRequest.AddJsonBody(user);
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                            var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            result.Add(new ResultViewModel { Validate = restResult.Data?.Validate ?? 0, Id = userIds[i], Message = deviceBrand.Name });
+                        }
+
+                        //result.Add(new ResultViewModel { Validate = 1, Id = userIds[i] });
+                    }
+
+                    return result;
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new List<ResultViewModel>
+                        {new ResultViewModel {Validate = 0, Message = "SendUserToDevice Failed.", Id = 0}};
+                }
+            });
+        }
+
+        [HttpGet]
+        [Route("ModifyPassword")]
+        public ResultViewModel ModifyPassword(int userId, string password)
+        {
+            try
+            {
+                return _userService.ModifyPassword(userId, password, _kasraAdminToken);
+            }
+            catch (Exception e)
+            {
+                return new ResultViewModel { Message = e.Message, Validate = 0 };
+            }
+        }
+
+        ///// <param name="updateUsers">لیست افرادی که تغییر کرده و در گروه بایویی هم حضور دارند و باید به دستگاههای جدید ارسال شوند</param>
+        ///// <param name="changeUsers">لیست افرادی که تغییر کرده اند و باید از روی دستگاهها پاک شوند</param>
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route("SyncDeviceAndAccessGroup")]
+        public Task<bool> SyncDeviceAndAccessGroup([FromBody] ParamViewModel param)
+        {
+            return Task.Run(async () =>
+            {
+                var changeUsers = param.ChangeUsers;
+                var updateUsers = param.UpdateUsers;
+                if (string.IsNullOrEmpty(changeUsers))
+                {
+                    return false;
+                }
+
+                changeUsers = changeUsers.Trim(',');
+                var usersToSync = changeUsers.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
+                var result = await Sync(usersToSync.Distinct().ToArray(), updateUsers);
+                return result;
+            });
+        }
+
+        private Task<bool> Sync(long[] usersToSync, string updateUsers)
+        {
+            return Task.Run(() =>
+            {
+                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                try
+                {
+                    foreach (var deviceBrand in deviceBrands)
+                    {
+                        //_communicationManager.CallRest($"/biovation/api/{brand.Name}/{brand.Name}User/DeleteUserFromAllTerminal", "Post", null, $"{JsonConvert.SerializeObject(lstchangeUsers)}");
+                        var restRequest =
+                            new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST);
+                        restRequest.AddJsonBody(usersToSync);
+
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                        _restClient.ExecuteAsync(restRequest);
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, "Delete User From Device");
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(updateUsers.Replace("<Root/>", "")))
+                {
+                    return true;
+                }
+
+                //var xmlDoc = new XmlDocument();
+                //xmlDoc.LoadXml(updateUsers);
+                //var fromXml = JsonConvert.SerializeXmlNode(xmlDoc);
+                //var fromJson = JsonConvert.DeserializeObject<List<User>>(fromXml);
+                List<UserGroupMember> lstUserGroupMember;
+                try
+                {
+                    var serializer = new XmlSerializer(typeof(List<UserGroupMember>), new XmlRootAttribute("Root"));
+                    var stringReader = new StringReader(updateUsers);
+                    lstUserGroupMember = (List<UserGroupMember>)serializer.Deserialize(stringReader);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, "Error on serialize users");
+                    return false;
+                }
+
+                var resultUpdate = UpdateUserGroupMember(usersToSync, lstUserGroupMember);
+                if (!resultUpdate)
+                {
+                    return false;
+                }
+
+                try
+                {
+                    Task.Run(() =>
+                    {
+                        //updateUsers = updateUsers.Trim(',');
+                        //var lstupdateUsers = updateUsers.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
+                        var count = lstUserGroupMember.Count();
+                        for (var i = 0; i < count; i++)
+                        {
+                            var accessGroups = _accessGroupService.GetAccessGroups(lstUserGroupMember[i].UserId, token: _kasraAdminToken);
+                            foreach (var accessGroup in accessGroups)
+                            {
+                                if (accessGroup.DeviceGroup == null)
+                                {
+                                    Logger.Log($"Not a standard access group, [{accessGroup.Id}].\n",
+                                        "The access group does not have any device group.");
+                                    continue;
+                                }
+
+                                foreach (var deviceGroup in accessGroup.DeviceGroup)
+                                {
+                                    if (deviceGroup.Devices == null)
+                                    {
+                                        continue;
+                                    }
+
+                                    foreach (var device in deviceGroup.Devices)
+                                    {
+                                        //var parameters = new List<object> { $"code={device.Code}", $"userId=[{lstUserGroupMember[i].UserId}]", };
+                                        //_communicationManager.CallRest($"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice","Get", parameters, null);
+
+                                        var deviceBrand = deviceBrands.First(devBrand => devBrand.Code == device.Brand.Code);
+                                        var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                                        restRequest.AddQueryParameter("code", device.Code.ToString());
+                                        restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
+
+                                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                                        _restClient.ExecuteAsync(restRequest);
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    return true;
+
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception, "Add User To Devices");
+                    return false;
+                }
+            });
+        }
+
+        //[HttpPost]
+        //private bool Sync(long[] usersList)
+        //{
+        //    var deviceBrands = _deviceService.GetDeviceBrands();
+        //    try
+        //    {
+        //        foreach (var brand in deviceBrands)
+        //        {
+        //            _communicationManager.CallRest(
+        //                        $"/biovation/api/{brand.Name}/{brand.Name}User/DeleteUserFromAllTerminal", "Post", null, $"{JsonConvert.SerializeObject(usersList)}");
+        //        }
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Logger.Log(exception, "Delete User From Device");
+        //        return false;
+        //    }
+
+        //    if (string.IsNullOrEmpty(updateUsers.Replace("<Root/>", "")))
+        //    {
+        //        return true;
+        //    }
+        //    //var xmlDoc = new XmlDocument();
+        //    //xmlDoc.LoadXml(updateUsers);
+        //    //var fromXml = JsonConvert.SerializeXmlNode(xmlDoc);
+        //    //var fromJson = JsonConvert.DeserializeObject<List<User>>(fromXml);
+        //    List<UserGroupMember> lstUserGroupMember;
+        //    try
+        //    {
+        //        var serializer = new XmlSerializer(typeof(List<UserGroupMember>), new XmlRootAttribute("Root"));
+        //        var stringReader = new StringReader(updateUsers);
+        //        lstUserGroupMember = (List<UserGroupMember>)serializer.Deserialize(stringReader);
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Logger.Log(exception, "Error on serialize users");
+        //        return false;
+        //    }
+
+        //    var resultUpdate = UpdateUserGroupMember(usersList, lstUserGroupMember);
+        //    if (!resultUpdate)
+        //    {
+        //        return false;
+        //    }
+        //    try
+        //    {
+        //        Task.Run(() =>
+        //        {
+        //            //updateUsers = updateUsers.Trim(',');
+        //            //var lstupdateUsers = updateUsers.Split(',').Select(s => Convert.ToInt64(s)).ToArray();
+        //            var service = new AccessGroupService();
+        //            var count = lstUserGroupMember.Count();
+        //            for (var i = 0; i < count; i++)
+        //            {
+        //                var accessGroups = service.GetAccessGroupsOfUser(lstUserGroupMember[i].UserId);
+        //                foreach (var accessGroup in accessGroups)
+        //                {
+        //                    if (accessGroup.DeviceGroup == null)
+        //                    {
+        //                        Logger.Log($"Not a standard access group, [{accessGroup.Id}].\n", "The access group does not have any device group.");
+        //                        continue;
+        //                    }
+        //                    foreach (var deviceGroup in accessGroup.DeviceGroup)
+        //                    {
+        //                        if (deviceGroup.Devices == null)
+        //                        {
+        //                            continue;
+        //                        }
+        //                        foreach (var device in deviceGroup.Devices)
+        //                        {
+        //                            var deviceBrand = deviceBrands.FirstOrDefault(devBrand => devBrand.Id == device.BrandId);
+        //                            var parameters = new List<object> { $"code={device.Code}", $"userId=[{lstUserGroupMember[i].UserId}]", };
+        //                            _communicationManager.CallRest(
+        //                                $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice", "Get", parameters, null);
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        });
+
+        //        return true;
+
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        Logger.Log(exception, "Add User To Devices");
+        //        return false;
+        //    }
+        //}
+
+        [HttpPost]
+        public Task<ResultViewModel> EnrollFaceTemplate(int userId, int deviceId)
+        {
+            return Task.Run(async () =>
+            {
+                var user = _userService.GetUsers(userId, token: _kasraAdminToken).FirstOrDefault();
+                if (user is null)
+                    return new ResultViewModel { Validate = 0, Id = userId, Message = "Wrong user id is provided." };
+
+                var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
+                if (device is null)
+                    return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
+
+                var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
+                restRequest.AddQueryParameter("userId", userId.ToString());
+                restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+
+                var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
+            });
+        }
+
+        [HttpPost]
+        [Route("UpdateUserGroupsOfUsers")]
+        private bool UpdateUserGroupMember(long[] userIds, [FromBody] List<UserGroupMember> lstToAdd)
+        {
+            //try
+            //{
+            //    var count = userIds.Length;
+            //    var groupIds = new List<int>();
+            //    for (var i = 0; i < count; i++)
+            //    {
+            //        var group = _userGroupService.UsersGroup(userId: userIds[i]);
+            //        groupIds.AddRange(group.Select(s => s.Id));
+            //    }
+            //    if (groupIds.Any())
+            //    {
+            //        var grpIds = string.Join(",", groupIds.Distinct());
+
+            //        var restRequest = new RestRequest("/UserGroupMember/GetUserGroupMemberDetail", Method.GET);
+            //        restRequest.AddQueryParameter("userGroupId", grpIds);
+            //        //var parameters = new List<object> { $"userGroupid={grpIds}", };
+            //        //var member = _communicationUserGroup.CallRest("/api/Biovation/UserGroupMember/GetUserGroupMemberDetail", "Get", parameters);
+            //        var member = _restClient.Execute<List<UserGroupMember>>(restRequest);
+
+            //        var grpMember = member?.Data.GroupBy(g => g.GroupId).ToList() ?? new List<IGrouping<int, UserGroupMember>>();
+            //        foreach (var members in grpMember)
+            //        {
+            //            //var strWp = JsonConvert.SerializeObject(members);
+            //            //var wrappedDocument = $"{{ UserGroupMember: {strWp} }}";
+            //            //var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
+            //            //var node = xDocument.OuterXml;
+
+            //            _userGroupService.ModifyUserGroupMember(member.Data, members.Key);
+            //        }
+            //    }
+
+            //    foreach (var userMember in lstToAdd)
+            //    {
+            //        _userGroupService.AddUserGroup(userMember);
+            //    }
+            //    return true;
+            //}
+            //catch (Exception exception)
+            //{
+            //    Logger.Log(exception, "Error on Get User Group Member");
+            //    return false;
+            //}
+            throw new NotImplementedException();
+        }
+
+        [HttpGet]
+        [Route("UpdateUserGroupsOfUsers")]
+        public List<ResultViewModel> UpdateUserGroupsOfUsers(/*string userIds,*/ string usersGroupIds, bool sendUsersToDevice = true)
+        {
+            try
+            {
+                var resultList = new List<ResultViewModel>();
+                //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
+                var userGroupIdList = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(usersGroupIds);
+
+                var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+
+                foreach (var userId in userGroupIdList.Keys)
+                {
+                    if (!userGroupIdList.ContainsKey(userId))
+                        continue;
+
+                    // for rolling back on problem occuring
+                    var userExistingDevices = new List<DeviceBasicInfo>();
+                    var userGroupsOfUser = _userGroupService.UsersGroup(userId, _kasraAdminToken);
+                    foreach (var userGroup in userGroupsOfUser)
+                    {
+                        var accessGroups = _accessGroupService.GetAccessGroups(userGroupId: userGroup.Id, token: _kasraAdminToken);
+                        foreach (var accessGroup in accessGroups)
+                        {
+                            var deviceGroups = accessGroup.DeviceGroup;
+                            foreach (var deviceGroup in deviceGroups)
+                            {
+                                if (deviceGroup.Devices == null)
+                                    continue;
+
+                                userExistingDevices.AddRange(deviceGroup.Devices);
+                            }
+                        }
+                    }
+
+                    var result = _userService.DeleteUserGroupsOfUser(userId, token: _kasraAdminToken);
+                    if (result.Validate != 1)
+                    {
+                        resultList.Add(new ResultViewModel { Id = userId, Validate = 0, Message = $"Cannot update user groups of user {userId}" });
+                        Logger.Log($"Cannot update user groups of user {userId}");
+
+                        foreach (var userGroup in userGroupsOfUser)
+                        {
+                            try
+                            {
+                                var userGroupMember = userGroup.Users.FirstOrDefault(userGroupMem => userGroupMem.UserId == userId);
+                                _userGroupService.AddUserGroup(userGroupMember, _kasraAdminToken);
+                            }
+                            catch (Exception)
+                            {
+                                //ignore
+                            }
+                        }
+                        continue;
+                    }
+
+                    foreach (var userGroupId in userGroupIdList[userId])
+                    {
+                        _userGroupService.AddUserGroup(new UserGroupMember
+                        {
+                            UserId = userId,
+                            GroupId = userGroupId,
+                            UserType = 1,
+                            UserTypeTitle = string.Empty
+                        }, _kasraAdminToken);
+                    }
+                    //_userGroupService.ModifyUserGroupMember(userGroupMembersList,)
+
+                    Logger.Log($"User groups of user {userId} updated successfully");
+                    resultList.Add(new ResultViewModel { Id = userId, Validate = 1, Message = $"User groups of user {userId} updated successfully" });
+
+
+                    //foreach (var deviceBrand in deviceBrands)
+                    //{
+                    //    Task.Run(async () =>
+                    //    {
+                    //        var modifyUserGroupRestRequest =
+                    //            new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}UserGroup/ModifyUserGroupMember", Method.POST);
+                    //        modifyUserGroupRestRequest.AddJsonBody(new List<UserGroupMember>());
+                    //       await _restClient.ExecuteAsync<ResultViewModel>(modifyUserGroupRestRequest);
+                    //    });
+                    //}
+
+                    if (sendUsersToDevice)
+                    {
+                        try
+                        {
+                            Task.Run(async () =>
+                            {
+                                var devicesToExistsOn = new List<DeviceBasicInfo>();
+                                var accessGroups = _accessGroupService.GetAccessGroups(userId, token: _kasraAdminToken);
+                                foreach (var accessGroup in accessGroups)
+                                {
+                                    if (accessGroup.DeviceGroup == null)
+                                    {
+                                        Logger.Log($"Not a standard access group, [{accessGroup.Id}].",
+                                            "The access group does not have any device group.");
+                                        continue;
+                                    }
+
+                                    foreach (var deviceGroup in accessGroup.DeviceGroup)
+                                    {
+                                        if (deviceGroup.Devices == null)
+                                            continue;
+
+                                        devicesToExistsOn.AddRange(deviceGroup.Devices);
+                                    }
+                                }
+
+
+                                var devicesToDelete =
+                                    userExistingDevices.ExceptBy(devicesToExistsOn, device => device.DeviceId).ToList();
+
+                                var devicesToAdd =
+                                    devicesToExistsOn.ExceptBy(userExistingDevices, device => device.DeviceId).ToList();
+
+                                foreach (var device in devicesToAdd)
+                                {
+                                    var deviceBrand = deviceBrands.First(devBrand => devBrand.Code == device.Brand.Code);
+                                    var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                                    restRequest.AddQueryParameter("code", device.Code.ToString());
+                                    restRequest.AddQueryParameter("userId", $"[{userId}]");
+                                    restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
+                                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                                    var restResult = await _restClient.ExecuteAsync(restRequest);
+
+                                    if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
+                                        resultList.Add(new ResultViewModel
+                                        {
+                                            Id = userId,
+                                            Validate = 1,
+                                            Message =
+                                                $"User {userId} deleted from device {device.Code} successfully"
+                                        });
+                                }
+
+                                foreach (var deviceToDelete in devicesToDelete)
+                                {
+                                    var deviceBrand = deviceBrands.First(devBrand => devBrand.Code == deviceToDelete.Brand.Code);
+                                    var listOfUserId = new List<int> { userId };
+                                    var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice", Method.POST);
+                                    restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
+                                    restRequest.AddQueryParameter("updateServerSideIdentification", bool.TrueString);
+                                    restRequest.AddJsonBody(listOfUserId);
+                                    restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                                    var restResult = await _restClient.ExecuteAsync(restRequest);
+
+                                    if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
+                                        resultList.Add(new ResultViewModel
+                                        {
+                                            Id = userId,
+                                            Validate = 1,
+                                            Message =
+                                            $"User {userId} transferred to device {deviceToDelete.Code} successfully"
+                                        });
+                                }
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, "Add User To Devices");
+                            resultList.Add(new ResultViewModel
+                            {
+                                Id = userId,
+                                Validate = 1,
+                                Message = $"Error on transferring user {userId} to device"
+                            });
+                        }
+                    }
+                }
+
+                return resultList;
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, "Error on Get User Group Member");
+                return new List<ResultViewModel> { new ResultViewModel { Id = 0, Validate = 0, Message = "Cannot update user groups of users" } };
+            }
+        }
+
+        [HttpGet]
+        [Route("UpdateUserGroupsOfUser")]
+        public ResultViewModel UpdateUserGroupsOfUser(long userId, string userGroupIds)
+        {
+            try
+            {
+                // for rolling back on problem occuring
+                //var userGroupsOfUser = _userGroupService.GetUserGroupsOfUser(userId);
+
+                var userGroupIdList = JsonConvert.DeserializeObject<List<int>>(userGroupIds);
+
+                var result = _userService.DeleteUserGroupsOfUser((int)userId, token: _kasraAdminToken);
+                if (result.Validate != 1) return new ResultViewModel { Id = userId, Validate = 0, Message = $"Cannot update user groups of user {userId}" };
+
+                foreach (var userGroupId in userGroupIdList)
+                {
+                    _userGroupService.AddUserGroup(new UserGroupMember
+                    {
+                        UserId = userId,
+                        GroupId = userGroupId,
+                        UserType = 1,
+                        UserTypeTitle = string.Empty
+                    }, _kasraAdminToken);
+                }
+
+                return new ResultViewModel { Id = userId, Validate = 1, Message = $"User groups of user {userId} updated successfully" };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception, "Error on Get User Group Member");
+                return new ResultViewModel { Id = userId, Validate = 0, Message = $"Cannot update user groups of user {userId}" };
+            }
+        }
+
+        [HttpPost]
+        [Route("SendUsersDataToDevice")]
+        public Task<List<ResultViewModel>> SendUsersDataToDevice([FromBody] List<int> userIds, int deviceId = default)
+        {
+            return Task.Run(() =>
+            {
+                var results = new List<ResultViewModel>();
+
+                var tasks = new List<Task>();
+                if (deviceId == default)
+                {
+                    var deviceBrands = _deviceService.GetDeviceBrands(token: _kasraAdminToken);
+                    foreach (var deviceBrand in deviceBrands)
+                    {
+                        tasks.Add(Task.Run(async () =>
+                        {
+                            var restRequest =
+                                new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}User/SendUsersDataToDevice",
+                                    Method.POST);
+                            if (deviceId != default)
+                                restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+                            if (userIds != null)
+                                restRequest.AddJsonBody(userIds);
+                            restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                            var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                            lock (results)
+                            {
+                                if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
+                                    results.Add(new ResultViewModel
+                                    {
+                                        Id = result.Data.Id,
+                                        Code = result.Data.Code,
+                                        Validate = result.IsSuccessful && result.Data.Validate == 1 ? 1 : 0,
+                                        Message = deviceBrand.Name
+                                    });
+                            }
+                        }));
+                    }
+                }
+                else
+                {
+                    var device = _deviceService.GetDevice(deviceId, token: _kasraAdminToken);
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        var restRequest =
+                            new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUsersDataToDevice",
+                                Method.POST);
+                        if (deviceId != default)
+                            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+                        if (userIds != null)
+                            restRequest.AddJsonBody(userIds);
+
+                        restRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
+                        var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                        lock (results)
+                        {
+                            if (result.StatusCode == HttpStatusCode.OK && result.Data != null)
+                                results.Add(new ResultViewModel
+                                {
+                                    Id = result.Data.Id,
+                                    Code = result.Data.Code,
+                                    Validate = result.IsSuccessful && result.Data.Validate == 1 ? 1 : 0,
+                                    Message = device.Brand.Name
+                                });
+                        }
+                    }));
+                }
+
+                Task.WaitAll(tasks.ToArray());
+                return results;
+            });
+        }
+    }
+
+    public class ParamViewModel
+    {
+        public string UpdateUsers { get; set; }
+        public string ChangeUsers { get; set; }
+
+        public string GetJson()
+        {
+            var model = new ParamViewModel
+            {
+                UpdateUsers = "<Root><UserGroupMember></UserGroupMember><UserGroupMember></UserGroupMember></Root>",
+                ChangeUsers = "941364,951444,961515"
+            };
+            return JsonConvert.SerializeObject(model);
+        }
+    }
+}
