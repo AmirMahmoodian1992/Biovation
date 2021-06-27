@@ -9,11 +9,7 @@ namespace Biovation.Domain.RelayModels
         [Id] public int Id { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
-
-        public enum Mode
-        {
-            Open,
-            Close
-        };
+        [OneToOne]
+        public Lookup Mode { get; set; }
     }
 }
