@@ -2,6 +2,7 @@
 using System;
 using Biovation.Constants;
 using Biovation.Domain.RelayModels;
+using Biovation.Services.RelayController.Domain;
 
 namespace Biovation.Services.RelayController.Relays
 {
@@ -24,13 +25,13 @@ namespace Biovation.Services.RelayController.Relays
 
         public IRelay Factory(Relay relay)
         {
-            /*return relay.RelayHub.RelayHubModel.Brand.Code switch
+            return relay.RelayHub.RelayHubModel.Brand.Code switch
             {
-                "240001" => new BehsanRelay(relay),
+                RelayBrands.Behsan => new BehsanRelay(relay),
                 _ => throw new ArgumentException(message: $"{relay.RelayHub.RelayHubModel.Name} is not defined as a relay's brand")
-            };*/
+            };
 
-            return new BehsanRelay(relay);
+            //return new BehsanRelay(relay);
         }
     }
 }

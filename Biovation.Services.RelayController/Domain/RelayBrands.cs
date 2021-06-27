@@ -2,7 +2,7 @@
 {
     public class RelayBrands
     {
-        public const string Behsan = "Behsan";
+        public const string Behsan = "24001";
     }
 
 }
