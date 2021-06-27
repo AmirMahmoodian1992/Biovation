@@ -28,7 +28,6 @@ namespace Biovation.Brands.EOS.Devices
         private int _counter;
         private readonly object _clockInstantiationLock = new object();
 
-        private readonly DeviceBasicInfo _deviceInfo;
         private readonly LogService _logService;
         private Timer _fixDaylightSavingTimer;
 
@@ -43,7 +42,6 @@ namespace Biovation.Brands.EOS.Devices
          : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             Valid = true;
-            _deviceInfo = deviceInfo;
             _logService = logService;
             _fingerTemplateTypes = fingerTemplateTypes;
             _restClient = restClient;
@@ -342,14 +340,14 @@ namespace Biovation.Brands.EOS.Devices
         {
             lock (_onlineDevices)
             {
-                if (_onlineDevices.ContainsKey(_deviceInfo.Code))
+                if (_onlineDevices.ContainsKey(DeviceInfo.Code))
                 {
-                    _onlineDevices[_deviceInfo.Code].Disconnect();
-                    _onlineDevices.Remove(_deviceInfo.Code);
+                    _onlineDevices[DeviceInfo.Code].Disconnect();
+                    _onlineDevices.Remove(DeviceInfo.Code);
 
                     var disconnectConnectionStatus = new ConnectionStatus
                     {
-                        DeviceId = _deviceInfo.DeviceId,
+                        DeviceId = DeviceInfo.DeviceId,
                         IsConnected = false
                     };
 
@@ -362,8 +360,8 @@ namespace Biovation.Brands.EOS.Devices
 
                         _logService.AddLog(new Log
                         {
-                            DeviceId = _deviceInfo.DeviceId,
-                            DeviceCode = _deviceInfo.Code,
+                            DeviceId = DeviceInfo.DeviceId,
+                            DeviceCode = DeviceInfo.Code,
                             LogDateTime = DateTime.Now,
                             EventLog = LogEvents.Disconnect
                         });
@@ -380,7 +378,7 @@ namespace Biovation.Brands.EOS.Devices
 
             var setDateTimeResult = SetDateTime();
             if (!setDateTimeResult)
-                Logger.Log($"Could not set the time of device {_deviceInfo.Code}");
+                Logger.Log($"Could not set the time of device {DeviceInfo.Code}");
 
             try
             {
@@ -394,18 +392,18 @@ namespace Biovation.Brands.EOS.Devices
                 Logger.Log(exception, exception.Message);
             }
 
-            _taskService.ProcessQueue(_deviceBrands.Eos, _deviceInfo.DeviceId).ConfigureAwait(false);
+            _taskService.ProcessQueue(_deviceBrands.Eos, DeviceInfo.DeviceId).ConfigureAwait(false);
 
             lock (_onlineDevices)
             {
-                if (!_onlineDevices.ContainsKey(_deviceInfo.Code))
+                if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
                 {
-                    _onlineDevices.Add(_deviceInfo.Code, this);
+                    _onlineDevices.Add(DeviceInfo.Code, this);
 
 
                     var connectionStatus = new ConnectionStatus
                     {
-                        DeviceId = _deviceInfo.DeviceId,
+                        DeviceId = DeviceInfo.DeviceId,
                         IsConnected = true
                     };
 
@@ -418,7 +416,7 @@ namespace Biovation.Brands.EOS.Devices
 
                         _logService.AddLog(new Log
                         {
-                            DeviceId = _deviceInfo.DeviceId,
+                            DeviceId = DeviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
                             EventLog = LogEvents.Connect
                         });
@@ -437,8 +435,8 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool SetDateTime()
         {
-            lock (_deviceInfo)
-                if (!_deviceInfo.TimeSync)
+            lock (DeviceInfo)
+                if (!DeviceInfo.TimeSync)
                     return true;
 
             for (var i = 0; i < 5; i++)
@@ -467,7 +465,7 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool IsConnected()
         {
-            var connection = ConnectionFactory.CreateTCPIPConnection(_deviceInfo.IpAddress, _deviceInfo.Port, 1000, 500, 0,
+            var connection = ConnectionFactory.CreateTCPIPConnection(DeviceInfo.IpAddress, DeviceInfo.Port, 1000, 500, 0,
                 false, string.Empty, string.Empty, NetworkModuleType.Tibbo);
 
             lock (_clockInstantiationLock)
@@ -476,21 +474,21 @@ namespace Biovation.Brands.EOS.Devices
             lock (_clock)
                 if (_clock.TestConnection())
                 {
-                    Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
+                    Logger.Log($"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}", logType: LogType.Information);
                     return true;
                 }
 
             while (true)
             {
-                Logger.Log($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
+                Logger.Log($"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}");
 
                 Thread.Sleep(10000);
-                Logger.Log($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
+                Logger.Log($"Retrying connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}");
 
                 lock (_clock)
                     if (_clock.TestConnection())
                     {
-                        Logger.Log($"Successfully connected to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}", logType: LogType.Information);
+                        Logger.Log($"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}", logType: LogType.Information);
                         return true;
                     }
             }
@@ -505,7 +503,7 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_clock)
                     eosDeviceType = _clock.GetModel();
 
-                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+                Logger.Log($"--> Retrieving Log from Terminal : {DeviceInfo.Code} Device type: {eosDeviceType}");
 
                 bool deviceConnected;
 
@@ -525,8 +523,8 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             if (!Valid)
                             {
-                                Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
-                                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                Logger.Log($"Disconnect requested for device {DeviceInfo.Code}");
+                                return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0" };
                             }
 
                             var test = true;
@@ -535,8 +533,8 @@ namespace Biovation.Brands.EOS.Devices
                             {
                                 if (!Valid)
                                 {
-                                    Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
-                                    return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                    Logger.Log($"Disconnect requested for device {DeviceInfo.Code}");
+                                    return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0" };
                                 }
 
                                 ClockRecord record = null;
@@ -547,8 +545,8 @@ namespace Biovation.Brands.EOS.Devices
                                     {
                                         if (!Valid)
                                         {
-                                            Logger.Log($"Disconnect requested for device {_deviceInfo.Code}");
-                                            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+                                            Logger.Log($"Disconnect requested for device {DeviceInfo.Code}");
+                                            return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0" };
                                         }
 
                                         lock (_clock)
@@ -568,7 +566,7 @@ namespace Biovation.Brands.EOS.Devices
                                             var badRecordRawData = ex.Data["RecordRawData"].ToString();
                                             if (ex is InvalidDataInRecordException)
                                             {
-                                                Logger.Log("Clock " + _deviceInfo.Code + ": " + "Bad record: " + badRecordRawData);
+                                                Logger.Log("Clock " + DeviceInfo.Code + ": " + "Bad record: " + badRecordRawData);
                                             }
 
                                             if (badRecordRawData != "")
@@ -588,12 +586,12 @@ namespace Biovation.Brands.EOS.Devices
                                                     {
                                                         LogDateTime = gregorianDateOfRec,
                                                         UserId = userId,
-                                                        DeviceId = _deviceInfo.DeviceId,
-                                                        DeviceCode = _deviceInfo.Code,
+                                                        DeviceId = DeviceInfo.DeviceId,
+                                                        DeviceCode = DeviceInfo.Code,
                                                         //RawData = generatedRecord,
                                                         EventLog = LogEvents.Authorized,
                                                         SubEvent = LogSubEvents.Normal,
-                                                        InOutMode = _deviceInfo.DeviceTypeId,
+                                                        InOutMode = DeviceInfo.DeviceTypeId,
                                                         TnaEvent = 0,
                                                     };
 
@@ -601,7 +599,7 @@ namespace Biovation.Brands.EOS.Devices
                                                     _logService.AddLog(receivedLog);
                                                     test = false;
                                                     Logger.Log($@"<--
-   +TerminalID:{_deviceInfo.Code}
+   +TerminalID:{DeviceInfo.Code}
    +UserID:{userId}
    +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
                                                 }
@@ -623,12 +621,12 @@ namespace Biovation.Brands.EOS.Devices
                                             if (ex is InvalidRecordException)
                                                 exceptionTester = true;
                                             else
-                                                Logger.Log(ex, "Clock " + _deviceInfo.Code);
+                                                Logger.Log(ex, "Clock " + DeviceInfo.Code);
                                         }
                                     }
                                     catch (Exception exception)
                                     {
-                                        Logger.Log(exception, "Clock " + _deviceInfo.Code);
+                                        Logger.Log(exception, "Clock " + DeviceInfo.Code);
                                     }
                                 }
 
@@ -640,19 +638,19 @@ namespace Biovation.Brands.EOS.Devices
                                         {
                                             LogDateTime = record.DateTime,
                                             UserId = (int)record.ID,
-                                            DeviceId = _deviceInfo.DeviceId,
-                                            DeviceCode = _deviceInfo.Code,
+                                            DeviceId = DeviceInfo.DeviceId,
+                                            DeviceCode = DeviceInfo.Code,
                                             SubEvent = EosCodeMappings.GetLogSubEventGenericLookup(record.RecType1),
                                             //RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray()),
                                             EventLog = LogEvents.Authorized,
-                                            InOutMode = _deviceInfo.DeviceTypeId,
+                                            InOutMode = DeviceInfo.DeviceTypeId,
                                             TnaEvent = 0,
                                         };
 
                                         _logService.AddLog(receivedLog);
                                         test = false;
                                         Logger.Log($@"<--
-   +TerminalID:{_deviceInfo.Code}
+   +TerminalID:{DeviceInfo.Code}
    +UserID:{receivedLog.UserId}
    +DateTime:{receivedLog.LogDateTime}", logType: LogType.Information);
 
@@ -670,7 +668,7 @@ namespace Biovation.Brands.EOS.Devices
                                 }
                                 catch (Exception ex)
                                 {
-                                    Logger.Log(ex, "Clock " + _deviceInfo.Code + ": " +
+                                    Logger.Log(ex, "Clock " + DeviceInfo.Code + ": " +
                                         "Error while Inserting Data to Attendance . record: " + record);
                                 }
                             }
@@ -691,19 +689,19 @@ namespace Biovation.Brands.EOS.Devices
                 if (Valid)
                     Connect();
 
-                return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 1, Message = "0" };
+                return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 1, Message = "0" };
             }
             catch (Exception ex)
             {
-                Logger.Log(ex, "Clock " + _deviceInfo.Code);
+                Logger.Log(ex, "Clock " + DeviceInfo.Code);
             }
 
-            Logger.Log("Connection fail. Cannot connect to device: " + _deviceInfo.Code + ", IP: " + _deviceInfo.IpAddress);
+            Logger.Log("Connection fail. Cannot connect to device: " + DeviceInfo.Code + ", IP: " + DeviceInfo.IpAddress);
 
             if (Valid)
                 Connect();
 
-            return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
+            return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0" };
         }
         public override bool Disconnect()
         {
@@ -733,7 +731,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (!isConnectToSensor)
                     {
-                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        Logger.Log($"Could not connect to device {DeviceInfo.DeviceId} sensor.");
                         return false;
                     }
 
@@ -751,14 +749,14 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception);
-                            //Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                            //Logger.Log($"User {userId} may not be on device {DeviceInfo.DeviceId}");
                         }
                     }
 
                     SensorRecord deletionResult = null;
                     if (userFingerTemplates == null || userFingerTemplates.Count == 0)
                     {
-                        Logger.Log($"User {userId} may not be on device {_deviceInfo.DeviceId}");
+                        Logger.Log($"User {userId} may not be on device {DeviceInfo.DeviceId}");
                         try
                         {
                             deletionResult = _clock.Sensor.DeleteByID(userId);
@@ -866,7 +864,7 @@ namespace Biovation.Brands.EOS.Devices
                     if (!isConnectToSensor)
                         return false;
 
-                    Logger.Log($"Transferring user {user.Code} to device {_deviceInfo.Code},  the user has {userTemplates.Count} valid templates");
+                    Logger.Log($"Transferring user {user.Code} to device {DeviceInfo.Code},  the user has {userTemplates.Count} valid templates");
 
                     var supremaMatcher = new UFMatcher();
 
@@ -989,7 +987,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (!isConnectToSensor)
                     {
-                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        Logger.Log($"Could not connect to device {DeviceInfo.DeviceId} sensor.");
                         return new User();
                     }
 
@@ -1014,7 +1012,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     if (fingerTemplates is null || fingerTemplates.Count <= 0)
                     {
-                        Logger.Log($"Error in retrieving user {userId} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                        Logger.Log($"Error in retrieving user {userId} from device {DeviceInfo.DeviceId}, user may be not available on device.");
                         return null;
                     }
 
@@ -1117,7 +1115,7 @@ namespace Biovation.Brands.EOS.Devices
                     isConnectToSensor = ConnectToSensor();
                     if (!isConnectToSensor)
                     {
-                        Logger.Log($"Could not connect to device {_deviceInfo.DeviceId} sensor.");
+                        Logger.Log($"Could not connect to device {DeviceInfo.DeviceId} sensor.");
                         return usersList;
                     }
 
@@ -1168,7 +1166,7 @@ namespace Biovation.Brands.EOS.Devices
                             catch (Exception exception)
                             {
                                 Logger.Log(exception);
-                                Logger.Log($"Error in retrieving user {user.Code} from device {_deviceInfo.DeviceId}, user may be not available on device.");
+                                Logger.Log($"Error in retrieving user {user.Code} from device {DeviceInfo.DeviceId}, user may be not available on device.");
                                 continue;
                             }
 
@@ -1300,8 +1298,8 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             if (isConnectToSensor)
-                //Logger.Log("Successfully connected to sensor of device:{deviceId}", _deviceInfo.DeviceId);
-                Logger.Log($"Successfully connected to sensor of device:{_deviceInfo.DeviceId}");
+                //Logger.Log("Successfully connected to sensor of device:{deviceId}", DeviceInfo.DeviceId);
+                Logger.Log($"Successfully connected to sensor of device:{DeviceInfo.DeviceId}");
 
             return isConnectToSensor;
         }
@@ -1340,12 +1338,12 @@ namespace Biovation.Brands.EOS.Devices
             //Logger.Log(
             //    disconnectedFromSensor
             //        ? "Successfully disconnected from sensor of device:{deviceId}"
-            //        : "Could not disconnect from sensor of device:{deviceId}", _deviceInfo.DeviceId);
+            //        : "Could not disconnect from sensor of device:{deviceId}", DeviceInfo.DeviceId);
 
             Logger.Log(
                 disconnectedFromSensor
                     ? "Successfully disconnected from sensor of device:{deviceId}"
-                    : $"Could not disconnect from sensor of device:{_deviceInfo.DeviceId}");
+                    : $"Could not disconnect from sensor of device:{DeviceInfo.DeviceId}");
         }
 
         public override ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime,
@@ -1387,7 +1385,7 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_onlineDevices)
             {
-                Logger.Log($"--> Retrieving Log from Terminal : {_deviceInfo.Code} Device type: {eosDeviceType}");
+                Logger.Log($"--> Retrieving Log from Terminal : {DeviceInfo.Code} Device type: {eosDeviceType}");
             }
 
             bool deviceConnected;
@@ -1538,7 +1536,7 @@ namespace Biovation.Brands.EOS.Devices
 
                         return new ResultViewModel
                         {
-                             Id = _deviceInfo.DeviceId,
+                             Id = DeviceInfo.DeviceId,
                             Success = successSetPointer,
                             Code = Convert.ToInt32(TaskStatuses.DoneCode)
                         };
@@ -1547,7 +1545,7 @@ namespace Biovation.Brands.EOS.Devices
 
             return new ResultViewModel
             {
-                Id = _deviceInfo.DeviceId,
+                Id = DeviceInfo.DeviceId,
                 Validate = 0,
                 Message = "0",
                 Code = Convert.ToInt32(TaskStatuses.FailedCode)
