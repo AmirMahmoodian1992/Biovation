@@ -24,7 +24,6 @@ namespace Biovation.Brands.EOS.Devices
 {
     public class ZkBaseDevice : Device, IDisposable
     {
-        protected readonly DeviceBasicInfo DeviceInfo;
         private readonly TaskService _taskService;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -64,7 +63,6 @@ namespace Biovation.Brands.EOS.Devices
             FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
             : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
-            DeviceInfo = deviceInfo;
             _logService = logService;
             _taskService = taskService;
             UserService = userService;
@@ -88,6 +86,12 @@ namespace Biovation.Brands.EOS.Devices
 
         public override bool Connect()
         {
+            if (_onlineDevices.ContainsKey(base.DeviceInfo.Code))
+            {
+                _onlineDevices[base.DeviceInfo.Code].Disconnect();
+                _onlineDevices.Remove(base.DeviceInfo.Code);
+            }
+
             lock (ZkTecoSdk)
             {
                 if (!string.IsNullOrEmpty(DeviceInfo.DeviceLockPassword))
