@@ -1,8 +1,10 @@
-﻿using Biovation.Domain;
+﻿using System.Collections.Generic;
+using Biovation.Domain;
 using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v2.Relay
 {
@@ -13,11 +15,13 @@ namespace Biovation.Server.Controllers.v2.Relay
     public class RelayController : ControllerBase
     {
         private readonly RelayService _relayService;
+        private readonly Lookups _lookups;
 
 
-        public RelayController(RelayService relayService)
+        public RelayController(RelayService relayService, Lookups lookups)
         {
             _relayService = relayService;
+            _lookups = lookups;
         }
 
         [HttpGet]
@@ -55,6 +59,13 @@ namespace Biovation.Server.Controllers.v2.Relay
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(() => _relayService.DeleteRelay(id, token));
+        }
+
+        [HttpGet]
+        [Route("Types")]
+        public Task<List<Lookup>> RelayTypes()
+        {
+            return Task.Run(() => _lookups.RelayType);
         }
 
     }

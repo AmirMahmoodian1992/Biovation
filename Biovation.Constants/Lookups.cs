@@ -47,5 +47,11 @@ namespace Biovation.Constants
         public List<Lookup> FaceTemplateType { get; set; }
         public List<Lookup> LogEvents { get; set; }
         public List<Lookup> MatchingTypes { get; set; }
+        public List<Lookup> CameraProtocol { get; set; }
+        public List<Lookup> Resolution { get; set; }
+        public List<Lookup> CameraBrand { get; set; }
+        public List<Lookup> RelayType { get; set; }
+        public List<Lookup> RelayHubBrand { get; set; }
+       
     }
 }

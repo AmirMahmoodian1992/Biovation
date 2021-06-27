@@ -311,6 +311,11 @@ namespace Biovation.Server
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+            var cameraProtocol = lookupService.GetLookups(lookupCategoryId: 12);
+            var resolution = lookupService.GetLookups(lookupCategoryId: 13);
+            var cameraBrand = lookupService.GetLookups(lookupCategoryId: 14);
+            var relayType = lookupService.GetLookups(lookupCategoryId: 15);
+            var relayHubBrand = lookupService.GetLookups(lookupCategoryId: 16);
 
             var lookups = new Lookups
             {
@@ -324,7 +329,12 @@ namespace Biovation.Server
                 FingerTemplateType = fingerTemplateTypeQuery.Result,
                 FaceTemplateType = faceTemplateTypeQuery.Result,
                 LogEvents = logEventsQuery.Result,
-                MatchingTypes = matchingTypeQuery.Result
+                MatchingTypes = matchingTypeQuery.Result,
+                CameraProtocol = cameraProtocol.Result,
+                Resolution = resolution.Result,
+                CameraBrand = cameraBrand.Result,
+                RelayType = relayType.Result,
+                RelayHubBrand = relayHubBrand.Result,
             };
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
