@@ -27,6 +27,7 @@ using Serilog;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Log = Serilog.Log;
 
 namespace Biovation.Server
@@ -365,6 +366,12 @@ namespace Biovation.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health/ready", new HealthCheckOptions()
+                {
+                    Predicate = check => check.Tags.Contains("ready"),
+                });
+
+                endpoints.MapHealthChecks("/health/live", new HealthCheckOptions());
             });
 
             loggerFactory.AddSerilog();
