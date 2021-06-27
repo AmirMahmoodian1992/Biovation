@@ -1,0 +1,16 @@
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.Repository.MessageBus.deps.json
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.Repository.MessageBus.dll
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.Repository.MessageBus.pdb
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.CommonClasses.dll
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.Domain.dll
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\DataAccessLayerCore.dll
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.CommonClasses.pdb
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\Biovation.Domain.pdb
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\bin\Release\netcoreapp3.1\DataAccessLayerCore.pdb
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.csprojAssemblyReference.cache
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.AssemblyInfoInputs.cache
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.AssemblyInfo.cs
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.csproj.CoreCompileInputs.cache
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.csproj.CopyComplete
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.dll
+C:\Projects\BiovationCore\Biovation.Repository.MessageBus\obj\Release\netcoreapp3.1\Biovation.Repository.MessageBus.pdb

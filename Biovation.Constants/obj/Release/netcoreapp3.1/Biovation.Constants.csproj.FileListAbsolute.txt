@@ -1,0 +1,14 @@
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\Biovation.Constants.deps.json
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\Biovation.Constants.dll
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\Biovation.Constants.pdb
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\Biovation.Domain.dll
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\DataAccessLayerCore.dll
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\Biovation.Domain.pdb
+C:\Projects\BiovationCore\Biovation.Constants\bin\Release\netcoreapp3.1\DataAccessLayerCore.pdb
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.csprojAssemblyReference.cache
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.AssemblyInfoInputs.cache
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.AssemblyInfo.cs
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.csproj.CoreCompileInputs.cache
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.csproj.CopyComplete
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.dll
+C:\Projects\BiovationCore\Biovation.Constants\obj\Release\netcoreapp3.1\Biovation.Constants.pdb
