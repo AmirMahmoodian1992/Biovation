@@ -14,7 +14,7 @@ namespace Biovation.Services.RelayController.Controllers
     {
         private readonly CommandFactory _commandFactory;
 
-        public RelayController(TcpClientGetterService tcpClientGetter)
+        public RelayController(GetRelayService tcpClientGetter)
         {
             _commandFactory = new CommandFactory(tcpClientGetter);
         }
@@ -31,8 +31,10 @@ namespace Biovation.Services.RelayController.Controllers
             try
             {
                 var command = _commandFactory.Factory(CommandType.Contact, relayId);
-                command.Execute();
-                return $"relay {relayId} contacted successfully :) ";
+                if (!command.Success) return command.Message;
+                var result = command.Data.Execute();
+                return result.Message;
+
             }
             catch (Exception e)
             {
@@ -52,8 +54,9 @@ namespace Biovation.Services.RelayController.Controllers
             try
             {
                 var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
-                command.Execute();
-                return $"relay {relayId} turned on successfully :) ";
+                if (!command.Success) return command.Message;
+                var result = command.Data.Execute();
+                return result.Message;
             }
             catch (Exception e)
             {
@@ -73,8 +76,9 @@ namespace Biovation.Services.RelayController.Controllers
             try
             {
                 var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
-                command.Execute();
-                return $"relay {relayId} turned off successfully :) ";
+                if (!command.Success) return command.Message;
+                var result = command.Data.Execute();
+                return result.Message;
             }
             catch (Exception e)
             {
@@ -94,8 +98,9 @@ namespace Biovation.Services.RelayController.Controllers
             try
             {
                 var command = _commandFactory.Factory(CommandType.FlashOn, relayId);
-                command.Execute();
-                return $"relay {relayId} started flashing successfully :) ";
+                if (!command.Success) return command.Message;
+                var result = command.Data.Execute();
+                return result.Message;
             }
             catch (Exception e)
             {
@@ -115,8 +120,9 @@ namespace Biovation.Services.RelayController.Controllers
             try
             {
                 var command = _commandFactory.Factory(CommandType.FlashOff, relayId);
-                command.Execute();
-                return $"relay {relayId} stopped flashing successfully :) ";
+                if (!command.Success) return command.Message;
+                var result = command.Data.Execute();
+                return result.Message;
             }
             catch (Exception e)
             {

@@ -1,9 +1,11 @@
-﻿namespace Biovation.Services.RelayController.Common
+﻿using Biovation.Domain;
+
+namespace Biovation.Services.RelayController.Common
 {
     public interface ICommand
     {
         public IRelay Relay { get; set; }
 
-        public object Execute();
+        public ResultViewModel Execute();
     }
 }
