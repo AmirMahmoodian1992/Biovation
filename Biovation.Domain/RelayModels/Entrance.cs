@@ -15,6 +15,8 @@ namespace Biovation.Domain.RelayModels
         [OneToMany]
         public List<Camera> Cameras { get; set; }
         [OneToMany]
+        public List<DeviceBasicInfo> Devices { get; set; }
+        [OneToMany]
         public List<Scheduling> Schedulings { get; set; }
         public string Description { get; set; }
     }
