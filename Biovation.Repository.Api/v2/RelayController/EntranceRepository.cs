@@ -28,11 +28,12 @@ namespace Biovation.Repository.Api.v2.RelayController
         }
 
         public async Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(int id = 0, string name = null,int pageNumber = 0,
-            int pageSize = 0, int nestingDepthLevel = 4, int deviceId = default, int schedulingId = default, string token = default)
+            int pageSize = 0, int nestingDepthLevel = 4, int cameraId = default, int deviceId = default, int schedulingId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Entrance", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
             restRequest.AddQueryParameter("name", name);
+            restRequest.AddQueryParameter(nameof(cameraId), cameraId.ToString());
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             restRequest.AddQueryParameter("schedulingId", schedulingId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());

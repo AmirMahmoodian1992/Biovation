@@ -104,7 +104,8 @@
     <None Remove="Scripts\01.Tables\0091-Create ProtocolRemainAddressesCameraModel-UP.sql" />
     <None Remove="Scripts\01.Tables\0092-Create ProtocolRemainAddresses-UP.sql" />
     <None Remove="Scripts\01.Tables\0093-Alter Entrance.sql" />
-    <None Remove="Scripts\01.Tables\0094-Create EntranceDevice-UP.sql" />
+    <None Remove="Scripts\01.Tables\0094-Create EntranceDevice-UP - Copy.sql" />
+    <None Remove="Scripts\01.Tables\0095-Create RelayCamera-UP.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -450,7 +451,8 @@
     <EmbeddedResource Include="Scripts\01.Tables\0068-Alter Log-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0069-Alter LogData TableType-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
-    <EmbeddedResource Include="Scripts\01.Tables\0094-Create EntranceDevice-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0094-Create EntranceDevice-UP - Copy.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0095-Create RelayCamera-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0093-Alter Entrance.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0084-Create EntranceCamera-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0085-Create EntranceScheduling-UP.sql" />

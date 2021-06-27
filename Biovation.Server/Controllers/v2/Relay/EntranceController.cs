@@ -25,11 +25,11 @@ namespace Biovation.Server.Controllers.v2.Relay
         [Route("{id:int}")]
         [AllowAnonymous]
         public Task<ResultViewModel<PagingResult<Entrance>>> Entrances([FromRoute] int id = default, string name = null, string description = null, int pageNumber = 0,
-        int pageSize = 0, int nestingDepthLevel = 4, int deviceId = default, int schedulingId = default)
+        int pageSize = 0, int nestingDepthLevel = 4, int cameraId = default, int deviceId = default, int schedulingId = default)
         {
             var token = (string)HttpContext.Items["Token"];
             var result = Task.Run(async () => await _entranceService.GetEntrances(id, name, description, pageNumber, pageSize,
-                nestingDepthLevel, deviceId, schedulingId, token));
+                nestingDepthLevel, cameraId, deviceId, schedulingId, token));
             return result;
         }
 

@@ -28,11 +28,11 @@ namespace Biovation.Server.Controllers.v2.Relay
         [Route("{id:int}")]
         [AllowAnonymous]
         public Task<ResultViewModel<PagingResult<Domain.RelayModels.Relay>>> Relay([FromRoute] int id = 0, int adminUserId = 0,
-            string name = null, int nodeNumber = 0, int relayHubId = 0, int relayTypeId = 0, string description = null,
+            string name = null, int nodeNumber = 0, int relayHubId = 0, int relayTypeId = 0, int cameraId = 0, string description = null,
             int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4,  int schedulingId = default , int deviceId = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return Task.Run(async () => await _relayService.GetRelay(id, adminUserId, name, nodeNumber, relayHubId, relayTypeId, description, pageNumber, pageSize,
+            return Task.Run(async () => await _relayService.GetRelay(id, adminUserId, name, nodeNumber, relayHubId, relayTypeId, cameraId, description, pageNumber, pageSize,
                 nestingDepthLevel, schedulingId, deviceId, token));
         }
 

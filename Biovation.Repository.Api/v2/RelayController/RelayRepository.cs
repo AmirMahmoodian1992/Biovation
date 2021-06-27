@@ -17,7 +17,7 @@ namespace Biovation.Repository.Api.v2.RelayController
         }
 
         public async Task<ResultViewModel<PagingResult<Relay>>> GetRelay(int id = 0, int adminUserId = 0,
-           string name = null, int nodeNumber = 0, int relayHubId = 0, int relayTypeId =0, string description = null,
+           string name = null, int nodeNumber = 0, int relayHubId = 0, int relayTypeId =0, int cameraId = 0, string description = null,
            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, int schedulingId = default, int deviceId = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Relay", Method.GET);
@@ -28,6 +28,7 @@ namespace Biovation.Repository.Api.v2.RelayController
             restRequest.AddQueryParameter("nodeNumber", nodeNumber.ToString());
             restRequest.AddQueryParameter("relayTypeId", relayTypeId.ToString());
             restRequest.AddQueryParameter("relayHubId", relayHubId.ToString());
+            restRequest.AddQueryParameter("cameraId", cameraId.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());

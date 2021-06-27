@@ -20,11 +20,11 @@ namespace Biovation.Data.Queries.Controllers.v2.RelayController
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<Entrance>>> SelectEntrance(int deviceId, int schedulingId, int id = 0, int code = 0 ,
+        public Task<ResultViewModel<PagingResult<Entrance>>> SelectEntrance(int cameraId, int schedulingId, int deviceId = 0, int id = 0, int code = 0 ,
             string name = null, string description = null, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
-            return Task.Run(() => _entranceRepository.SelectEntrance(deviceId,schedulingId,id, code, name,description,pageNumber,pageSize,nestingDepthLevel));
+            return Task.Run(() => _entranceRepository.SelectEntrance(cameraId, schedulingId,deviceId, id, code, name,description,pageNumber,pageSize,nestingDepthLevel));
         }
     }
 }
