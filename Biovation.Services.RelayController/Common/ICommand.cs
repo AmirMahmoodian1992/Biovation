@@ -6,6 +6,6 @@ namespace Biovation.Services.RelayController.Common
     {
         public IRelay Relay { get; set; }
 
-        public ResultViewModel Execute();
+        public ResultViewModel Execute(Lookup priority);
     }
 }

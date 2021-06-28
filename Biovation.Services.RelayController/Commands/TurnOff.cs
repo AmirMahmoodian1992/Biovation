@@ -1,4 +1,6 @@
-﻿using Biovation.Domain;
+﻿using System;
+using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Services.RelayController.Common;
 
 namespace Biovation.Services.RelayController.Commands
@@ -12,17 +14,17 @@ namespace Biovation.Services.RelayController.Commands
             Relay = relay;
         }
 
-        public ResultViewModel Execute()
+        public ResultViewModel Execute(Lookup priority)
         {
-         //   if (!Relay.IsConnected())
-         //       if (!Relay.Connect())
-         //           throw new Exception("connection error !");
+            foreach (var scheduling in Relay.RelayInfo.Schedulings)
+            {
+                if (DateTime.Now.TimeOfDay >= scheduling.StartTime & DateTime.Now.TimeOfDay <= scheduling.EndTime & scheduling.Mode.Name == "Open")
+                    if (priority.Code != TaskPriorities.ImmediateCode)
+                        return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} Contact failed !.\nthe command conflicts with the scheduling with scheduling ID: {scheduling.Id}.", Code = 1, Id = Relay.RelayInfo.Id };
+            }
 
             if (!Relay.TurnOff())
                 return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} turn off command failed !.", Code = 1, Id = Relay.RelayInfo.Id };
-
-            //   if (!Relay.Disconnect())
-            //       throw new Exception("relay could not disconnect successfully!");
 
             return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} stopped flashing successfully !.", Code = 1, Id = Relay.RelayInfo.Id };
         }

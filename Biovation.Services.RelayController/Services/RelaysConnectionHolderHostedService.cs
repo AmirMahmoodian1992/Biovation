@@ -28,65 +28,46 @@ namespace Biovation.Services.RelayController.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            await Task.Run(async () =>
             {
-                for (var relayId = 2; relayId <= 5; relayId++)
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    if (ConnectedRelays.ContainsKey(relayId))
+                    foreach (var relayInRelays in _relayService.GetRelay().Result.Data.Data)
                     {
-                        var relay = ConnectedRelays[relayId];
-
-                        if (relay.IsConnected())
+                        if (ConnectedRelays.ContainsKey(relayInRelays.Id))
                         {
-                            Console.WriteLine($"relay number {relayId} is alive.");
+                            var relay = ConnectedRelays[relayInRelays.Id];
+
+                            if (relay.IsConnected())
+                            {
+                                Console.WriteLine($"relay number {relay.RelayInfo.Id} is alive.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"relay number {relay.RelayInfo.Id} is disconnected!");
+                                ConnectedRelays.Remove(relay.RelayInfo.Id);
+                            }
                         }
                         else
                         {
-                            Console.WriteLine($"relay number {relayId} is disconnected!");
-                            ConnectedRelays.Remove(relayId);
+                            var relayInfo = _relayService.GetRelay(id: relayInRelays.Id).Result?.Data?.Data
+                                ?.FirstOrDefault();
+                            var relay = _relayFactory.Factory(relayInfo);
+                            if (relay.Connect())
+                                ConnectedRelays.Add(relay.RelayInfo.Id, relay);
+                            else
+                            {
+                                Console.WriteLine($"relay number {relay.RelayInfo.Id} not found!");
+                                continue;
+                            }
+
                         }
-                    }
-                    else
-                    {
-                        //var relayInfo = new Relay
-                        //{
-                        //    Id = relayId,
-                        //    Name = $"relay_{relayId}",
-                        //    NodeNumber = relayId,
-                        //    RelayHub = new RelayHub
-                        //    {
-                        //        Id = 1,
-                        //        IpAddress = "192.168.3.200",
-                        //        Port = 23,
-                        //        Capacity = 4,
-                        //        RelayHubModel = new RelayHubModel() { Name = "Behsan" },
-                        //        Description = "Blah Blah Blah"
-                        //    },
-                        //    Entrance = new Entrance
-                        //    {
-                        //        Id = 1,
-                        //        Name = "MainEntrance",
-                        //        Description = "Blah Blah Blah"
-                        //    },
-                        //    Description = "Blah Blah Blah"
-                        //};
-                       
-                        
-                        var relayInfo = _relayService.GetRelay(id:relayId).Result?.Data?.Data?.FirstOrDefault();
-                        var relay = _relayFactory.Factory(relayInfo);
-                        if (relay.Connect())
-                            ConnectedRelays.Add(relayId, relay);
-                        else
-                        {
-                            Console.WriteLine($"relay number {relayId} not found!");
-                            continue;
-                        }
-                        
+
                     }
 
+                    await Task.Delay(5000, stoppingToken);
                 }
-                await Task.Delay(5000, stoppingToken);
-            }
+            }, stoppingToken);
         }
     }
 }

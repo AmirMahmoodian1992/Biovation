@@ -1,10 +1,12 @@
-﻿using System;
-using Microsoft.AspNetCore.Mvc;
+﻿using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Services.RelayController.Commands;
-using Biovation.Services.RelayController.Domain;
 using Biovation.Services.RelayController.Services;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using System;
+using System.Linq;
+using CommandType = Biovation.Services.RelayController.Domain.CommandType;
 
 namespace Biovation.Services.RelayController.Controllers
 {
@@ -12,121 +14,160 @@ namespace Biovation.Services.RelayController.Controllers
     [ApiController]
     public class RelayController : ControllerBase
     {
+        private readonly Lookups _lookups;
         private readonly CommandFactory _commandFactory;
+        private readonly ILogger _logger;
 
-        public RelayController(GetRelayService tcpClientGetter)
+        public RelayController(GetRelayService tcpClientGetter, Lookups lookups, ILogger logger)
         {
+            _lookups = lookups;
             _commandFactory = new CommandFactory(tcpClientGetter);
+
+            _logger = logger.ForContext<RelayController>();
         }
 
-        /// <summary>
-        /// it contacts the relay with passed id
-        /// </summary>
-        /// <param name="relayId"></param>
-        /// <returns></returns>
-        [Route("Contact/{relayId}")]
-        [HttpGet]
-        public string Contact(int relayId)
+        [Route("{relayId:int}/Open")]
+        [HttpPost]
+        public ResultViewModel Open([FromRoute] int relayId, string messagePriority = "13003")
         {
             try
             {
-                var command = _commandFactory.Factory(CommandType.Contact, relayId);
-                if (!command.Success) return command.Message;
-                var result = command.Data.Execute();
-                return result.Message;
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-        }
-
-        /// <summary>
-        /// it turns on the relay with passed id
-        /// </summary>
-        /// <param name="relayId"></param>
-        /// <returns></returns>
-        [Route("TurnOn/{relayId}")]
-        [HttpGet]
-        public string TurnOn(int relayId)
-        {
-            try
-            {
                 var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
-                if (!command.Success) return command.Message;
-                var result = command.Data.Execute();
-                return result.Message;
+                var result = command.Data.Execute(priority);
+                return result;
             }
             catch (Exception e)
             {
-                return e.Message;
+                return new ResultViewModel { Message = e.Message, Code = 500 };
             }
         }
 
-        /// <summary>
-        /// it turns on the relay with passed id
-        /// </summary>
-        /// <param name="relayId"></param>
-        /// <returns></returns>
-        [Route("TurnOff/{relayId}")]
-        [HttpGet]
-        public string TurnOff(int relayId)
+        [Route("{relayId:int}/Close")]
+        [HttpPost]
+        public ResultViewModel Close([FromRoute] int relayId, string messagePriority = "13003")
         {
             try
             {
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
+
                 var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
-                if (!command.Success) return command.Message;
-                var result = command.Data.Execute();
-                return result.Message;
+                var result = command.Data.Execute(priority);
+                return result;
             }
             catch (Exception e)
             {
-                return e.Message;
+                return new ResultViewModel { Message = e.Message, Code = 500 };
             }
         }
 
         /// <summary>
-        /// it turns the relay flashing on
+        /// 
         /// </summary>
         /// <param name="relayId"></param>
+        /// <param name="messagePriority"></param>
         /// <returns></returns>
-        [Route("FlashOn/{relayId}")]
-        [HttpGet]
-        public string FlashOn(int relayId)
+        [Route("Contact/{relayId:int}")]
+        [HttpPost]
+        public ResultViewModel Contact([FromRoute] int relayId, string messagePriority = "13003")
         {
             try
             {
+                _logger.Debug("Requesting relay contacting for relay {relayId} with priority {priorityCode}", relayId, messagePriority);
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
+                var command = _commandFactory.Factory(CommandType.Contact, relayId);
+                var result = command.Data.Execute(priority);
+                return result;
+            }
+            catch (Exception e)
+            {
+                return new ResultViewModel { Message = e.Message, Code = 500 };
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="relayId"></param>
+        /// <param name="messagePriority"></param>
+        /// <returns></returns>
+        [Route("TurnOn/{relayId:int}")]
+        [HttpPost]
+        public ResultViewModel TurnOn([FromRoute] int relayId, string messagePriority = "13003")
+        {
+            try
+            {
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
+
+                var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
+                var result = command.Data.Execute(priority);
+                return result;
+            }
+            catch (Exception e)
+            {
+                return new ResultViewModel { Message = e.Message, Code = 500 };
+            }
+        }
+
+        [Route("TurnOff/{relayId:int}")]
+        [HttpPost]
+        public ResultViewModel TurnOff([FromRoute] int relayId, string messagePriority = "13003")
+        {
+            try
+            {
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
+
+                var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
+                var result = command.Data.Execute(priority);
+                return result;
+            }
+            catch (Exception e)
+            {
+                return new ResultViewModel { Message = e.Message, Code = 500 };
+            }
+        }
+
+        [Route("FlashOn/{relayId:int}")]
+        [HttpPost]
+        public ResultViewModel FlashOn([FromRoute] int relayId, string messagePriority = "13003")
+        {
+            try
+            {
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
+
                 var command = _commandFactory.Factory(CommandType.FlashOn, relayId);
-                if (!command.Success) return command.Message;
-                var result = command.Data.Execute();
-                return result.Message;
+                var result = command.Data.Execute(priority);
+                return result;
             }
             catch (Exception e)
             {
-                return e.Message;
+                return new ResultViewModel { Message = e.Message, Code = 500 };
             }
         }
 
-        /// <summary>
-        /// it turns the relay flashing off
-        /// </summary>
-        /// <param name="relayId"></param>
-        /// <returns></returns>
-        [Route("FlashOff/{relayId}")]
-        [HttpGet]
-        public string FlashOff(int relayId)
+        [Route("FlashOff/{relayId:int}")]
+        [HttpPost]
+        public ResultViewModel FlashOff([FromRoute] int relayId, string messagePriority = "13003")
         {
             try
             {
+                var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
+                    string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
+
                 var command = _commandFactory.Factory(CommandType.FlashOff, relayId);
-                if (!command.Success) return command.Message;
-                var result = command.Data.Execute();
-                return result.Message;
+                var result = command.Data.Execute(priority);
+                return result;
             }
             catch (Exception e)
             {
-                return e.Message;
+                return new ResultViewModel { Message = e.Message, Code = 500 };
             }
         }
     }
