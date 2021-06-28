@@ -27,18 +27,21 @@ namespace Biovation.Repository.Sql.v2.RelayController
             {
                 new SqlParameter("@IpAddress", SqlDbType.NVarChar) {Value = relayHub.IpAddress},
                 new SqlParameter("@Port", SqlDbType.Int) {Value = relayHub.Port},
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = relayHub.Name},
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = relayHub.Name ?? string.Empty},
                 new SqlParameter("@Active", SqlDbType.Bit) {Value = relayHub.Active},
                 new SqlParameter("@Capacity", SqlDbType.Int) {Value = relayHub.Capacity},
                 new SqlParameter("@RelayHubModelId", SqlDbType.Int) {Value = relayHub.RelayHubModel.Id},
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description ?? string.Empty}
             };
 
             var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
             if (insertRelayHubRes == null || !insertRelayHubRes.Success) return insertRelayHubRes;
             foreach (var relay in relayHub.Relays)
             {
-                relay.RelayHub.Id = Convert.ToInt32(insertRelayHubRes.Id);
+                relay.RelayHub = new RelayHub
+                {
+                    Id = Convert.ToInt32(insertRelayHubRes.Id),
+                };
             }
             if (relayHub.Relays.Select(relay => _relayRepository.CreateRelay(relay)).Any(relayResult => !relayResult.Success))
             {

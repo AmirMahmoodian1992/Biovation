@@ -35,5 +35,18 @@ namespace Biovation.Data.Queries.Controllers.v2
         {
             return Task.Run(() => _plateDetectionRepository.GetPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart,thirdLicensePlatePart,fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate, minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize));
         }
+
+
+        [HttpGet]
+        [Route("ManualPlateDetectionLog")]
+        [Authorize]
+        public Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog(
+            int logId = default, long userId = default, long parentLogId = default, string licensePlate = default,
+            int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0,
+            int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+            int pageSize = default)
+        {
+            return Task.Run(() => _plateDetectionRepository.GetManualPlateDetectionLog( logId, userId,parentLogId, licensePlate, detectorId, fromDate, toDate, minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize));
+        }
     }
 }

@@ -53,6 +53,31 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog( int logId = default, long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
+           int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+           int pageSize = default, string token = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/PlateDetection", Method.GET);
+            restRequest.AddQueryParameter("logId", logId.ToString());
+            restRequest.AddQueryParameter(nameof(userId), userId.ToString());
+            restRequest.AddQueryParameter(nameof(parentLogId), parentLogId.ToString());
+            restRequest.AddQueryParameter("licensePlate", licensePlate ?? string.Empty);
+            restRequest.AddQueryParameter("detectorId", detectorId.ToString());
+            restRequest.AddQueryParameter("fromDate", fromDate.ToString(CultureInfo.InvariantCulture));
+            restRequest.AddQueryParameter("toDate", toDate.ToString(CultureInfo.InvariantCulture));
+            restRequest.AddQueryParameter("minPrecision", minPrecision.ToString());
+            restRequest.AddQueryParameter("maxPrecision", maxPrecision.ToString());
+            restRequest.AddQueryParameter("withPic", withPic.ToString());
+            restRequest.AddQueryParameter("successTransfer", successTransfer.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<ManualPlateDetectionLog>>>(restRequest);
+            return requestResult.Data;
+        }
+
+
         public async Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/PlateDetection/LicensePlate", Method.POST);

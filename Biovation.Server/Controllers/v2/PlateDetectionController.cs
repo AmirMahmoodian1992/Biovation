@@ -49,6 +49,18 @@ namespace Biovation.Server.Controllers.v2
             return await _plateDetectionService.GetPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
+        
+        [HttpGet]
+        [Authorize]
+        [Route("PlateDetectionLog")]
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog(int logId = default, long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
+            int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+            int pageSize = default)
+        {
+            var token = HttpContext.Items["Token"] as string;
+            return await _plateDetectionService.GetManualPlateDetectionLog( logId, userId, parentLogId, licensePlate, detectorId, fromDate, toDate,
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+        }
 
         [HttpGet]
         [Authorize]
