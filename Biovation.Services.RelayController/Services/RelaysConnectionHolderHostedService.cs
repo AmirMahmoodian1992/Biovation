@@ -28,41 +28,46 @@ namespace Biovation.Services.RelayController.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            await Task.Run(async () =>
             {
-                foreach (var relayInRelays in _relayService.GetRelay().Result.Data.Data)
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    if (ConnectedRelays.ContainsKey(relayInRelays.Id))
+                    foreach (var relayInRelays in _relayService.GetRelay().Result.Data.Data)
                     {
-                        var relay = ConnectedRelays[relayInRelays.Id];
-
-                        if (relay.IsConnected())
+                        if (ConnectedRelays.ContainsKey(relayInRelays.Id))
                         {
-                            Console.WriteLine($"relay number {relay.RelayInfo.Id} is alive.");
+                            var relay = ConnectedRelays[relayInRelays.Id];
+
+                            if (relay.IsConnected())
+                            {
+                                Console.WriteLine($"relay number {relay.RelayInfo.Id} is alive.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"relay number {relay.RelayInfo.Id} is disconnected!");
+                                ConnectedRelays.Remove(relay.RelayInfo.Id);
+                            }
                         }
                         else
                         {
-                            Console.WriteLine($"relay number {relay.RelayInfo.Id} is disconnected!");
-                            ConnectedRelays.Remove(relay.RelayInfo.Id);
+                            var relayInfo = _relayService.GetRelay(id: relayInRelays.Id).Result?.Data?.Data
+                                ?.FirstOrDefault();
+                            var relay = _relayFactory.Factory(relayInfo);
+                            if (relay.Connect())
+                                ConnectedRelays.Add(relay.RelayInfo.Id, relay);
+                            else
+                            {
+                                Console.WriteLine($"relay number {relay.RelayInfo.Id} not found!");
+                                continue;
+                            }
+
                         }
-                    }
-                    else
-                    {
-                        var relayInfo = _relayService.GetRelay(id:relayInRelays.Id).Result?.Data?.Data?.FirstOrDefault();
-                        var relay = _relayFactory.Factory(relayInfo);
-                        if (relay.Connect())
-                            ConnectedRelays.Add(relay.RelayInfo.Id, relay);
-                        else
-                        {
-                            Console.WriteLine($"relay number {relay.RelayInfo.Id} not found!");
-                            continue;
-                        }
-                        
+
                     }
 
+                    await Task.Delay(5000, stoppingToken);
                 }
-                await Task.Delay(5000, stoppingToken);
-            }
+            }, stoppingToken);
         }
     }
 }
