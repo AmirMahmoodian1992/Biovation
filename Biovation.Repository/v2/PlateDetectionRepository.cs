@@ -18,11 +18,15 @@ namespace Biovation.Repository.Sql.v2
         {
             _repository = repository;
         }
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default,int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
         int pageSize = default)
         {
             var parameters = new List<SqlParameter>
                 {
+                     new SqlParameter("@" + nameof(firstLicensePlatePart),SqlDbType.NVarChar){Value = firstLicensePlatePart},
+                     new SqlParameter("@" + nameof(secondLicensePlatePart),SqlDbType.NVarChar){Value = secondLicensePlatePart},
+                     new SqlParameter("@" + nameof(thirdLicensePlatePart),SqlDbType.NVarChar){Value = thirdLicensePlatePart},
+                     new SqlParameter("@" + nameof(fourthLicensePlatePart),SqlDbType.NVarChar){Value = fourthLicensePlatePart},
                      new SqlParameter("@LogId", SqlDbType.Int) {Value = logId},
                      new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
                      new SqlParameter("@DetectorId", SqlDbType.Int) {Value = detectorId},

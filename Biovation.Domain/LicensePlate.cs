@@ -10,7 +10,8 @@ namespace Biovation.Domain
         public string LicensePlateNumber { get; set; }
         public bool IsActive { get; set; }
         //public DateTime StartDate { get; set; }
-
+        
+        [OneToOne]
         public Vehicle Vehicle { get; set; }
         public DateTime StartDate { get; set; }
      
