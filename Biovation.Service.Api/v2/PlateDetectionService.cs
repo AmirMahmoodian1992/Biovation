@@ -19,14 +19,14 @@ namespace Biovation.Service.Api.v2
             return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId, token);
         }
 
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default,
+        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePLatePart = default, string secondLicensePLatePart = default, string thirdLicensePLatePart = default, string fourthLicensePLatePart = default, int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
             int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return await _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
+            return await _plateDetectionRepository.GetPlateDetectionLog(firstLicensePLatePart, secondLicensePLatePart, thirdLicensePLatePart, fourthLicensePLatePart, logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 

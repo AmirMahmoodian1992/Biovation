@@ -11,6 +11,7 @@ namespace Biovation.Domain
         public bool IsActive { get; set; }
         //public DateTime StartDate { get; set; }
 
+        public Vehicle Vehicle { get; set; }
         public DateTime StartDate { get; set; }
      
 

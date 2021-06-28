@@ -27,11 +27,15 @@ namespace Biovation.Repository.Api.v2
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<LicensePlate>>(restRequest);
             return requestResult.Data;
         }
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
+        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePLatePart = default, string secondLicensePLatePart = default, string thirdLicensePLatePart = default, string fourthLicensePLatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
             int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/PlateDetection/PlateDetectionLog", Method.GET);
+            restRequest.AddQueryParameter(nameof(firstLicensePLatePart), firstLicensePLatePart ?? string.Empty);
+            restRequest.AddQueryParameter(nameof(secondLicensePLatePart), secondLicensePLatePart ?? string.Empty);
+            restRequest.AddQueryParameter(nameof(thirdLicensePLatePart), thirdLicensePLatePart ?? string.Empty);
+            restRequest.AddQueryParameter(nameof(fourthLicensePLatePart), fourthLicensePLatePart ?? string.Empty);
             restRequest.AddQueryParameter("logId", logId.ToString());
             restRequest.AddQueryParameter("licensePlate", licensePlate ?? string.Empty);
             restRequest.AddQueryParameter("detectorId", detectorId.ToString());
