@@ -14,9 +14,9 @@ namespace Biovation.Service.Api.v2
             _plateDetectionRepository = plateDetectionRepository;
         }
 
-        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
+        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId, string token = default)
         {
-            return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
+            return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId, token);
         }
 
         public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default,

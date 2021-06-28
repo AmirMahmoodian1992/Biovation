@@ -19,7 +19,6 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("LicensePlate")]
         [Authorize]
 
         public Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)

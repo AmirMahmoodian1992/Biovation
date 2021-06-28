@@ -17,11 +17,13 @@ namespace Biovation.Repository.Api.v2
             _biovationConfigurationManager = biovationConfigurationManager;
         }
 
-        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
+        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/PlateDetection/LicensePlate", Method.GET);
             restRequest.AddQueryParameter("licensePlate", licensePlate);
             restRequest.AddQueryParameter("entityId", entityId.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<LicensePlate>>(restRequest);
             return requestResult.Data;
         }
