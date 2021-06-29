@@ -71,16 +71,17 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             if (userData == null) return false;
 
 
-            var userHdr = new BSSDK.BSUserHdrEx();
+            var userHdr = new BSSDK.BSUserHdrEx
+            {
+                checksum = new ushort[5],
+                name = new byte[33],
+                department = new byte[33],
+                password = new byte[17],
 
-            userHdr.checksum = new ushort[5];
-            userHdr.name = new byte[33];
-            userHdr.department = new byte[33];
-            userHdr.password = new byte[17];
-
-            userHdr.authLimitCount = 0;
-            userHdr.timedAntiPassback = 0;
-            userHdr.disabled = 0;
+                authLimitCount = 0,
+                timedAntiPassback = 0,
+                disabled = 0
+            };
 
             // name 
 
@@ -1199,15 +1200,15 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 var tempUser = new User
                 {
-                    Id = Convert.ToInt32(user.ID),
+                    Code = Convert.ToInt32(user.ID),
                     UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                     IsActive = !Convert.ToBoolean(user.disabled),
                     AdminLevel = user.adminLevel,
                     AuthMode = user.authMode
                 };
 
-                tempUser.SetStartDateFromTicks(Convert.ToInt32(user.startDateTime));
-                tempUser.SetEndDateFromTicks(Convert.ToInt32(user.expireDateTime));
+                tempUser.SetStartDateFromTicks(user.startDateTime);
+                tempUser.SetEndDateFromTicks(user.expireDateTime);
 
                 usersList.Add(tempUser);
 
@@ -1281,7 +1282,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             Buffer.BlockCopy(userHdr.name, 0, nameAsBytes, 0, nameAsBytes.Length);
             var tempUser = new User
             {
-                Id = Convert.ToInt32(userHdr.ID),
+                Code = Convert.ToInt32(userHdr.ID),
                 UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                 IsActive = !Convert.ToBoolean(userHdr.disabled),
                 AdminLevel = userHdr.adminLevel
@@ -1298,7 +1299,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //card
             tempUser.IdentityCard = new IdentityCard
             {
-                Id = (int)userHdr.ID,
+                //Id = (int)userHdr.ID,
                 Number = userHdr.cardID.ToString(),
                 DataCheck = 0,
                 IsActive = userHdr.cardID != 0
@@ -1317,6 +1318,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             if (numOfFinger > 0)
             {
+                tempUser.FingerTemplates = new List<FingerTemplate>();
                 for (var i = 0; i < numOfFinger; i++)
                 {
                     //user.FingerTemplates.Add(new FingerTemplate
@@ -1346,8 +1348,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         CreateAt = DateTime.Now,
                         TemplateIndex = 0
                     };
-                    tempUser.FingerTemplates.Add(fingerTemplate);
 
+                    tempUser.FingerTemplates.Add(fingerTemplate);
 
                     var secondTemplateBytes = templateData.Skip(384 * (2 * i + 1)).Take(384).ToArray();
 
@@ -1369,8 +1371,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
             }
 
-            tempUser.SetStartDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime)).Ticks);
-            tempUser.SetEndDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.expireDateTime)).Ticks);
+            tempUser.SetStartDateFromTicks(userHdr.startDateTime);
+            tempUser.SetEndDateFromTicks(userHdr.expireDateTime);
 
             return tempUser;
         }

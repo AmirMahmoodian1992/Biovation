@@ -68,9 +68,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         public override bool TransferUser(User userData)
         {
             MTemplateData = new byte[BSSDK.TEMPLATE_SIZE * 2 * 2];
-            var userHdr = new BSSDK.BEUserHdr();
-            userHdr.fingerChecksum = new ushort[2];
-            userHdr.isDuress = new byte[2];
+            var userHdr = new BSSDK.BEUserHdr
+            {
+                fingerChecksum = new ushort[2],
+                isDuress = new byte[2]
+            };
 
             if (userData == null) return false;
 
@@ -1096,16 +1098,15 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             {
                 var tempUser = new User
                 {
-                    Id = Convert.ToInt32(user.userID),
+                    Code = Convert.ToInt32(user.userID),
                     UserName = Convert.ToString(user.userID),
                     IsActive = !Convert.ToBoolean(user.disabled),
                     AdminLevel = user.adminLevel,
                     PasswordBytes = user.password
-
                 };
 
-                tempUser.SetStartDateFromTicks(Convert.ToInt32(user.startTime));
-                tempUser.SetEndDateFromTicks(Convert.ToInt32(user.expiryTime));
+                tempUser.SetStartDateFromTicks(user.startTime);
+                tempUser.SetEndDateFromTicks(user.expiryTime);
 
                 //usersList.Add(new SupremaUserModel
                 //{
@@ -1172,7 +1173,6 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //result = BSSDK.BS_GetAllUserInfoBEPlus(DeviceInfo.Handle, userInfo, ref numOfUser);
 
 
-
             var tempUser = new User
             {
                 Code = Convert.ToInt32(userHdr.userID),
@@ -1191,7 +1191,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //card
             tempUser.IdentityCard = new IdentityCard
             {
-                Id = (int)userHdr.userID,
+                //Id = (int)userHdr.userID,
                 Number = userHdr.cardID.ToString(),
                 DataCheck = 0,
                 IsActive = userHdr.cardID != 0
@@ -1210,6 +1210,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             if (numOfFinger > 0)
             {
+                tempUser.FingerTemplates = new List<FingerTemplate>();
                 for (var i = 0; i < numOfFinger; i++)
                 {
                     //user.FingerTemplates.Add(new FingerTemplate
@@ -1240,8 +1241,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         CreateAt = DateTime.Now,
                         TemplateIndex = 0
                     };
-                    tempUser.FingerTemplates.Add(fingerTemplate);
 
+                    tempUser.FingerTemplates.Add(fingerTemplate);
 
                     var secondTemplateBytes = templateData.Skip(384 * (2 * i + 1)).Take(384).ToArray();
 
@@ -1264,8 +1265,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
             }
 
-            tempUser.SetStartDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.startTime)).Ticks);
-            tempUser.SetEndDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.expiryTime)).Ticks);
+            tempUser.SetStartDateFromTicks(userHdr.startTime);
+            tempUser.SetEndDateFromTicks(userHdr.expiryTime);
 
             return tempUser;
         }

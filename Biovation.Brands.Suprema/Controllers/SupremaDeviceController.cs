@@ -134,7 +134,7 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, List<int> userIds)
+        public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
             try
             {

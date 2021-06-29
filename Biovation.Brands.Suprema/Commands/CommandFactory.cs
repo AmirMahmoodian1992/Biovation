@@ -208,7 +208,7 @@ namespace Biovation.Brands.Suprema.Commands
                 case CommandType.GetUsersOfDevice:
                     //Gets users of devices
 
-                    return new SupremaGetUsersOfDevice(Convert.ToUInt32(transferModelData.Items.FirstOrDefault()),_onlineDevices);
+                    return new SupremaGetUsersOfDevice(taskItem, _deviceService, _onlineDevices);
 
                 case CommandType.GetOnlineDevices:
                     //Gets online devices

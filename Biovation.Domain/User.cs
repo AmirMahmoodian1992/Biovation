@@ -139,7 +139,7 @@ namespace Biovation.Domain
             return Convert.ToInt32(StartDate.Ticks / 10000000 - refDate);
         }
 
-        public void SetStartDateFromTicks(int startDateTicks)
+        public void SetStartDateFromTicks(long startDateTicks)
         {
             StartDate = new DateTime(1970, 1, 1).AddTicks(startDateTicks);
         }
@@ -150,7 +150,7 @@ namespace Biovation.Domain
             return Convert.ToInt32(EndDate.Ticks / 10000000 - refDate);
         }
 
-        public void SetEndDateFromTicks(int endDateTicks)
+        public void SetEndDateFromTicks(long endDateTicks)
         {
             EndDate = new DateTime(1970, 1, 1).AddTicks(endDateTicks);
         }

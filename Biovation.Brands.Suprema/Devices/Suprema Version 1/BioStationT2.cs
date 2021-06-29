@@ -1113,14 +1113,14 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 var tempUser = new User
                 {
-                    Id = Convert.ToInt32(user.ID),
+                    Code = Convert.ToInt32(user.ID),
                     UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                     IsActive = !Convert.ToBoolean(user.disabled),
                     AdminLevel = user.adminLevel
                 };
 
-                tempUser.SetStartDateFromTicks(Convert.ToInt32(user.startDateTime));
-                tempUser.SetEndDateFromTicks(Convert.ToInt32(user.expireDateTime));
+                tempUser.SetStartDateFromTicks(user.startDateTime);
+                tempUser.SetEndDateFromTicks(user.expireDateTime);
 
                 usersList.Add(tempUser);
             }
@@ -1189,7 +1189,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             Buffer.BlockCopy(userHdr.name, 0, nameAsBytes, 0, nameAsBytes.Length);
             var tempUser = new User
             {
-                Id = Convert.ToInt32(userHdr.ID),
+                Code = Convert.ToInt32(userHdr.ID),
                 //UserName = Convert.ToString(userHdr.name),
                 UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                 IsActive = !Convert.ToBoolean(userHdr.disabled),
@@ -1199,7 +1199,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 FingerTemplates = new List<FingerTemplate>(),
                 IdentityCard = new IdentityCard
                 {
-                    Id = (int)userHdr.ID,
+                    //Id = (int)userHdr.ID,
                     Number = userHdr.cardID.ToString(),
                     DataCheck = 0,
                     IsActive = userHdr.cardID != 0
@@ -1222,6 +1222,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             if (numOfFinger > 0)
             {
+                tempUser.FingerTemplates = new List<FingerTemplate>();
                 for (var i = 0; i < numOfFinger; i++)
                 {
                     //user.FingerTemplates.Add(new FingerTemplate
@@ -1252,8 +1253,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         CreateAt = DateTime.Now,
                         TemplateIndex = 0
                     };
-                    tempUser.FingerTemplates.Add(fingerTemplate);
 
+                    tempUser.FingerTemplates.Add(fingerTemplate);
 
                     var secondTemplateBytes = templateData.Skip(384 * (2 * i + 1)).Take(384).ToArray();
 
@@ -1276,8 +1277,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
             }
 
-            tempUser.SetStartDateFromTicks(Convert.ToInt32(userHdr.startDateTime));
-            tempUser.SetEndDateFromTicks(Convert.ToInt32(userHdr.expireDateTime));
+            tempUser.SetStartDateFromTicks(userHdr.startDateTime);
+            tempUser.SetEndDateFromTicks(userHdr.expireDateTime);
 
             return tempUser;
         }
