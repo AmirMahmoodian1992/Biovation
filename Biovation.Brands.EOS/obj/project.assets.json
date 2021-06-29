@@ -11473,7 +11473,7 @@
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
-    "version": "5.0.0",
+    "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Brands.EOS\\Biovation.Brands.EOS.csproj",
       "projectName": "Biovation.Brands.EOS",

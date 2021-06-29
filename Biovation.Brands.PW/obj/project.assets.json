@@ -11295,7 +11295,7 @@
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
-    "version": "5.0.0",
+    "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Brands.PW\\Biovation.Brands.PW.csproj",
       "projectName": "Biovation.Brands.PW",

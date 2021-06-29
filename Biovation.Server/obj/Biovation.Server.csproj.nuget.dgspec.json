@@ -379,7 +379,7 @@
       }
     },
     "C:\\Projects\\BiovationCore\\Biovation.Server\\Biovation.Server.csproj": {
-      "version": "5.0.0",
+      "version": "1.0.0",
       "restore": {
         "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Server\\Biovation.Server.csproj",
         "projectName": "Biovation.Server",
