@@ -32,8 +32,9 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
             return Task.Run(() => _schedulingRepository.UpdateScheduling(scheduling));
         }
         [HttpDelete]
+        [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteScheduling(int id = default)
+        public Task<ResultViewModel> DeleteScheduling([FromRoute]int id = default)
         {
             return Task.Run(() => _schedulingRepository.DeleteScheduling(id));
         }

@@ -31,8 +31,9 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
             return Task.Run(() => _entranceRepository.UpdateEntrance(entrance));
         }
         [HttpDelete]
+        [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteEntrance(int id = default)
+        public Task<ResultViewModel> DeleteEntrance([FromRoute]int id = default)
         {
             return Task.Run(() => _entranceRepository.DeleteEntrance(id));
         }

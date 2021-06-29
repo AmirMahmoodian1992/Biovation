@@ -34,6 +34,14 @@ namespace Biovation.Server.Controllers.v2
         {
             return await _plateDetectionService.AddPlateDetectionLog(log, HttpContext.Items["Token"] as string);
         }
+        
+        [HttpPost]
+        [Authorize]
+        [Route("ManualPlateDetectionLog")]
+        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody]ManualPlateDetectionLog log)
+        {
+            return await _plateDetectionService.AddManualPlateDetectionLog(log, HttpContext.Items["Token"] as string);
+        }
 
         [HttpGet]
         [Authorize]

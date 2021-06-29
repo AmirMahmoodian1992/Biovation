@@ -129,7 +129,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@Id", SqlDbType.Int) {Value = id }
             };
 
-            return _repository.ToResultList<ResultViewModel>("DeleteRelayHub", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("DeleteRelayHubById", parameters).Data.FirstOrDefault();
         }
     }
 }

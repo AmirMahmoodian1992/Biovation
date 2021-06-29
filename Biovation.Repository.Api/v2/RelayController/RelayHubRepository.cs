@@ -60,7 +60,7 @@ namespace Biovation.Repository.Api.v2.RelayController
 
         public async Task<ResultViewModel> DeleteRelayHub(int id, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/RelayHub", Method.DELETE);
+            var restRequest = new RestRequest($"Commands/v2/RelayHub/{id}", Method.DELETE);
             restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);

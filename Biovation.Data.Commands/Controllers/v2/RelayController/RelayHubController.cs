@@ -32,8 +32,9 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
             return Task.Run(() => _relayHubRepository.UpdateRelayHubs(relayHub));
         }
         [HttpDelete]
+        [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteRelayHub(int id = default)
+        public Task<ResultViewModel> DeleteRelayHub([FromRoute]int id = default)
         {
             return Task.Run(() => _relayHubRepository.DeleteRelayHubs(id));
         }

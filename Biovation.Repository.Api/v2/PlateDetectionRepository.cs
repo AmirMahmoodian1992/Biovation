@@ -97,5 +97,14 @@ namespace Biovation.Repository.Api.v2
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
         }
+        public async Task<ResultViewModel> AddManualPlateDetectionLog(ManualPlateDetectionLog log, string token = default)
+        {
+            var restRequest = new RestRequest("Commands/v2/PlateDetection/ManualPlateDetectionLog", Method.POST);
+            restRequest.AddJsonBody(log);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
+        }
     }
 }

@@ -45,16 +45,27 @@ namespace Biovation.Repository.Sql.v2.RelayController
         {
             var sqlParameter = new List<SqlParameter>
             {
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = relay.Name},
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = relay.Name ?? string.Empty},
                 new SqlParameter("@NodeNumber", SqlDbType.Int) {Value = relay.NodeNumber},
-                //new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relay.RelayHub.Id},
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description},
-                new SqlParameter("@SchedulingsJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) },
-                new SqlParameter("@DevicesJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Devices) },
-                new SqlParameter("@CamerasJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Cameras) },
+                new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relay.RelayHub.Id},
+                new SqlParameter("@relayTypeId", SqlDbType.Int) {Value = relay.RelayType.Code},
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description ?? string.Empty},
             };
 
-            return _repository.ToResultList<ResultViewModel>("CreateRelay", sqlParameter).Data.FirstOrDefault();
+            if (!(relay.Schedulings is null))
+            {
+                sqlParameter.Add(new SqlParameter("@SchedulingsJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) });
+            }
+            if (!(relay.Devices is null))
+            {
+                sqlParameter.Add(new SqlParameter("@DevicesJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Devices) });
+            }
+            if (!(relay.Cameras is null))
+            {
+                sqlParameter.Add(new SqlParameter("@CamerasJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Cameras) });
+            }
+
+            return _repository.ToResultList<ResultViewModel>("InsertRelay", sqlParameter).Data.FirstOrDefault();
         }
 
         public ResultViewModel UpdateRelay(Relay relay)

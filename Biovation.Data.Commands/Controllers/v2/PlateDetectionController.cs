@@ -34,5 +34,14 @@ namespace Biovation.Data.Commands.Controllers.v2
         {
             return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));
         }
+        
+        [HttpPost]
+        [Route("ManualPlateDetectionLog")]
+        [Authorize]
+
+        public Task<ResultViewModel> AddManualPlateDetectionLog([FromBody]ManualPlateDetectionLog log)
+        {
+            return Task.Run(() => _plateDetectionRepository.AddManualPlateDetectionLog(log));
+        }
     }
 }

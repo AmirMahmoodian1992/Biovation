@@ -56,7 +56,7 @@ namespace Biovation.Repository.Api.v2.RelayController
         public async Task<ResultViewModel> DeleteCamera(int id = default, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/Camera", Method.DELETE);
-            restRequest.AddQueryParameter("id", id.ToString());
+            restRequest.AddUrlSegment("id", id.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);

@@ -52,7 +52,7 @@ namespace Biovation.Server.Controllers.v2.Relay
         [HttpDelete]
         [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteRelayHub([FromRoute] int id)
+        public Task<ResultViewModel> DeleteRelayHub([FromRoute] int id = default)
         {
             var token = (string)HttpContext.Items["Token"];
             return Task.Run(async () => await _relayHubService.DeleteRelayHub(id, token));

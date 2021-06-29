@@ -1,7 +1,7 @@
-﻿using Biovation.Domain;
+﻿using System.Threading.Tasks;
+using Biovation.Domain;
 using Biovation.Repository.Sql.v2.RelayController;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2.RelayController
 {
@@ -18,20 +18,21 @@ namespace Biovation.Data.Commands.Controllers.v2.RelayController
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> AddRelay([FromBody] Camera camera = default)
+        public Task<ResultViewModel> AddCamera([FromBody] Camera camera = default)
         {
             return Task.Run(() => _cameraRepository.CreateCamera(camera));
         }
 
         [HttpPut]
         [Authorize]
-        public Task<ResultViewModel> UpdateRelay([FromBody] Camera camera = default)
+        public Task<ResultViewModel> UpdateCamera([FromBody] Camera camera = default)
         {
             return Task.Run(() => _cameraRepository.UpdateCamera(camera));
         }
         [HttpDelete]
+        [Route("{id}")]
         [Authorize]
-        public Task<ResultViewModel> DeleteRelay(int id = default)
+        public Task<ResultViewModel> DeleteCamera([FromRoute]int id = default)
         {
             return Task.Run(() => _cameraRepository.DeleteCamera(id));
         }
