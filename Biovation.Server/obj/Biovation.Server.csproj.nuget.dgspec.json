@@ -58,7 +58,7 @@
             },
             "Microsoft.Extensions.Configuration.Abstractions": {
               "target": "Package",
-              "version": "[3.1.9, )"
+              "version": "[3.1.16, )"
             },
             "Microsoft.SqlServer.TransactSql.ScriptDom": {
               "target": "Package",
@@ -449,6 +449,14 @@
               "target": "Package",
               "version": "[1.1.1, )"
             },
+            "MassTransit.AspNetCore": {
+              "target": "Package",
+              "version": "[7.2.1, )"
+            },
+            "MassTransit.RabbitMQ": {
+              "target": "Package",
+              "version": "[7.2.1, )"
+            },
             "Microsoft.AspNetCore.Mvc.Versioning": {
               "target": "Package",
               "version": "[4.2.0, )"
@@ -459,7 +467,7 @@
             },
             "Microsoft.Extensions.Configuration.Abstractions": {
               "target": "Package",
-              "version": "[3.1.9, )"
+              "version": "[3.1.16, )"
             },
             "Microsoft.Extensions.Hosting.WindowsServices": {
               "target": "Package",
