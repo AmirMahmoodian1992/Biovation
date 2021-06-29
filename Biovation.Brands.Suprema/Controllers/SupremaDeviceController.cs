@@ -295,7 +295,7 @@ namespace Biovation.Brands.Suprema.Controllers
                         TaskItemType = _taskItemTypes.GetLogsInPeriod,
                         Priority = _taskPriorities.Medium,
                         DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
+                        Data = JsonConvert.SerializeObject(new { fromDate, toDate = toDate.Value.AddDays(1).Date }),
                         IsParallelRestricted = true,
                         IsScheduled = false,
                         OrderIndex = 1,

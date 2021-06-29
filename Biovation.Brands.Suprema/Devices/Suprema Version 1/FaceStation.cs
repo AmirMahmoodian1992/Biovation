@@ -188,7 +188,9 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //}
 
             //var faceTemplate = faceService.GetFaceTemplate(nUserIdn, ConnectionType);
-            var faceTemplate = (_faceTemplateService.FaceTemplates(userId:userData.Id).Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)).ToList();
+            //var faceTemplate = (_faceTemplateService.FaceTemplates(userId:userData.Id).Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)).ToList();
+            var faceTemplate = userData.FaceTemplates?.Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)?.ToList();
+            
             var rowCount = faceTemplate.Count;
 
             if (rowCount > 0) hasFaceTemplate = true;
@@ -1153,7 +1155,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         /// <En>Read all log data from device, since last disconnect, For FaceStation , D-Station, X-Station.</En>
         /// <Fa>داده های اتفاقات در طول مدت زمان مشخصی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
         /// </summary>
-        public override List<object> ReadLogOfPeriod(int startTime, int endTime)
+        public override ResultViewModel<List<Log>> ReadLogOfPeriod(int startTime, int endTime)
         {
             var objectLock = new object();
             lock (objectLock)
@@ -1167,7 +1169,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     if (Token.IsCancellationRequested)
                     {
                         Logger.Log("Thread canceled.");
-                        return new List<object>();
+                        return new ResultViewModel<List<Log>> { Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = "Thread canceled" };
                     }
                     DeviceAccessSemaphore.WaitOne();
                     BSSDK.BS_GetLogCount(DeviceInfo.Handle, ref mNumOfLog);
@@ -1190,7 +1192,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 if (mNumOfLog == 0)
-                    return new List<object>();
+                    return new ResultViewModel<List<Log>>{Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Can't get logs of device {DeviceInfo.DeviceId}"};
 
                 Logger.Log($"Getting {mNumOfLog} logs of device {DeviceInfo.Code} started.");
 
@@ -1404,12 +1406,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
                 _logService.AddLog(allLogList);
-                Logger.Log($"{logTotalCount} offline logs retrieved from device {logTotalCount}");
+                Logger.Log($"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}");
 
                 Marshal.FreeHGlobal(logRecord);
 
-                var logListOfObject = new List<object>(allLogList);
-                return logListOfObject;
+                return new ResultViewModel<List<Log>> { Success = true, Code = Convert.ToInt64(TaskStatuses.DoneCode), Data = allLogList, Message = $"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}" };
             }
         }
 

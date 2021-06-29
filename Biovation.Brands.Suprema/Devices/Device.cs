@@ -183,7 +183,7 @@ namespace Biovation.Brands.Suprema.Devices
         /// <En>Read all log data from device, since last disconnect.</En>
         /// <Fa>داده های اتفاقات در طول زمان قطعی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
         /// </summary>
-        public abstract List<object> ReadLogOfPeriod(int startTime, int endTime);
+        public abstract ResultViewModel<List<Log>> ReadLogOfPeriod(int startTime, int endTime);
 
         /// <summary>
         /// <En>Recieves all users from a device.</En>

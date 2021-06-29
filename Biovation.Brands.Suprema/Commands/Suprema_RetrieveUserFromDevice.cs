@@ -1,18 +1,16 @@
-﻿using Biovation.Brands.Suprema.Manager;
+﻿using Biovation.Brands.Suprema.Devices;
+using Biovation.Brands.Suprema.Manager;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.Brands.Suprema.Devices;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -65,7 +63,7 @@ namespace Biovation.Brands.Suprema.Commands
             if (TaskItem is null)
                 return new ResultViewModel { Id = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item.{Environment.NewLine}", Validate = 0 };
 
-            DeviceId = (uint) TaskItem.DeviceId;
+            DeviceId = (uint)TaskItem.DeviceId;
             var parseResult = uint.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["userId"]?.ToString() ?? "0", out var outUserCode);
             UserCode = outUserCode;
             if (!parseResult || UserCode == 0)
@@ -83,8 +81,8 @@ namespace Biovation.Brands.Suprema.Commands
             var userOfDevice = _onlineDevices[device.Code].GetUser(UserCode);
             if (userOfDevice is null)
                 return new ResultViewModel
-                    {Id = DeviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DoneCode)};
-            
+                { Id = DeviceId, Message = "0", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+
             try
             {
                 var userName = string.IsNullOrEmpty(userOfDevice.UserName)
@@ -116,10 +114,7 @@ namespace Biovation.Brands.Suprema.Commands
                     IsActive = true
                 };
 
-
-
-
-                var existUser = _userService.GetUsers( Convert.ToInt32(userOfDevice.Code))?.Data?.Data.FirstOrDefault();
+                var existUser = _userService.GetUsers(code: userOfDevice.Code)?.Data?.Data.FirstOrDefault();
 
                 if (existUser != null)
                 {
@@ -144,7 +139,7 @@ namespace Biovation.Brands.Suprema.Commands
                 }
 
                 _userService.ModifyUser(user);
-                user.Id = _userService.GetUsers(code:userOfDevice.Code).Data.Data.FirstOrDefault()?.Id ?? 0;
+                user.Id = _userService.GetUsers(code: userOfDevice.Code).Data.Data.FirstOrDefault()?.Id ?? 0;
 
                 if (user.Id == 0)
                     return new ResultViewModel { Id = DeviceId, Message = "Error on adding user to database", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
@@ -230,7 +225,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Data.Data.Count(
+                                    Index = _fingerTemplateService.FingerTemplates((int)existUser.Id)?.Data.Data.Count(
                                         ft =>
                                             ft.FingerIndex.Code ==
                                             userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
@@ -246,7 +241,7 @@ namespace Biovation.Brands.Suprema.Commands
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
                                     FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
-                                    Index = _fingerTemplateService.FingerTemplates((int) existUser.Id)?.Data.Data.Count(
+                                    Index = _fingerTemplateService.FingerTemplates((int)existUser.Id)?.Data.Data.Count(
                                         ft =>
                                             ft.FingerIndex.Code ==
                                             userOfDevice.FingerTemplates[i].FingerIndex.Code) ?? 0 + 1,
@@ -278,7 +273,7 @@ namespace Biovation.Brands.Suprema.Commands
 
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
-                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    FingerIndex = userOfDevice.FingerTemplates[i].FingerIndex,
                                     Index = userOfDevice.FingerTemplates[i].Index,
                                     TemplateIndex = 0,
                                     Size = userOfDevice.FingerTemplates[i].Size,
@@ -290,7 +285,7 @@ namespace Biovation.Brands.Suprema.Commands
 
                                 user.FingerTemplates.Add(new FingerTemplate
                                 {
-                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(0),
+                                    FingerIndex = userOfDevice.FingerTemplates[i].FingerIndex,
                                     Index = userOfDevice.FingerTemplates[i + 1].Index,
                                     TemplateIndex = 1,
                                     Size = userOfDevice.FingerTemplates[i + 1].Size,
@@ -326,9 +321,7 @@ namespace Biovation.Brands.Suprema.Commands
 
                         if (faceCount > 0)
                         {
-                            
-
-                            var userFaces = _faceTemplateService.FaceTemplates(userId:user.Id);
+                            //var userFaces = _faceTemplateService.FaceTemplates(userId: user.Id);
                             //existUser.FaceTemplates = new List<FaceTemplate>();
 
                             //if (existUser != null)
@@ -337,7 +330,7 @@ namespace Biovation.Brands.Suprema.Commands
                             var faceTemplate = new FaceTemplate
                             {
                                 Index = faceCount,
-                                FaceTemplateType = _faceTemplateTypes.VFACE,
+                                FaceTemplateType = _faceTemplateTypes.SFACE,
                                 UserId = user.Id,
                                 Template = userOfDevice.FaceTemplates[0].Template,
                                 CheckSum = userOfDevice.FaceTemplates[0].CheckSum,
@@ -346,7 +339,7 @@ namespace Biovation.Brands.Suprema.Commands
                             if (existUser?.FaceTemplates != null)
                             {
                                 if (!existUser.FaceTemplates.Exists(fp =>
-                                    fp.FaceTemplateType.Code == _faceTemplateTypes.VFACE.Code))
+                                    fp.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code))
                                     user.FaceTemplates.Add(faceTemplate);
                             }
                             else
@@ -366,63 +359,59 @@ namespace Biovation.Brands.Suprema.Commands
                 }
 
 
+                //if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
+                //{
+                //    Task.Run(() =>
+                //    {
+                //        try
+                //        {
+                //            //todo
+                //            //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
+                //            var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id, userGroupId: 4)?.Data?.Data;
 
-                if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
-                {
-                    Task.Run(() =>
-                    {
-                        try
-                        {
-                            //todo
-                            //  var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroupsOfUser(user.Id, 4);
-                            var accessGroupsOfUser = _commonAccessGroupService.GetAccessGroups(user.Id,userGroupId: 4)?.Data?.Data;
+                //            if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
+                //            {
+                //                var onlineDevices =
+                //                    _deviceService.GetDevices(brandId: DeviceBrands.SupremaCode)?.Data.Data;
 
-                            if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
-                            {
-                                var onlineDevices =
-                                    _deviceService.GetDevices(brandId:Convert.ToInt32(DeviceBrands.SupremaCode).ToString())?.Data.Data;
+                //                if (onlineDevices == null) return;
+                //                foreach (var deviceBasicInfo in onlineDevices)
+                //                {
+                //                    //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
+                //                    var restRequest =
+                //                        new RestRequest($"Suprema/SupremaDevice/SendUserToDevice");
+                //                    restRequest.AddQueryParameter("deviceId",
+                //                        deviceBasicInfo.DeviceId.ToString());
+                //                    //restRequest.AddQueryParameter("userId", user.Code.ToString());
+                //                    restRequest.AddQueryParameter("userId", user.Id.ToString());
+                //                }
+                //            }
 
-                                if (onlineDevices == null) return;
-                                foreach (var deviceBasicInfo in onlineDevices)
-                                {
-                                    //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
-                                    var restRequest =
-                                        new RestRequest($"Suprema/SupremaDevice/SendUserToDevice");
-                                    restRequest.AddQueryParameter("deviceId",
-                                        deviceBasicInfo.DeviceId.ToString());
-                                    //restRequest.AddQueryParameter("userId", user.Code.ToString());
-                                    restRequest.AddQueryParameter("userId", user.Id.ToString());
-                                }
-                            }
-
-                            else
-                            {
-                                foreach (var accessGroup in accessGroupsOfUser)
-                                {
-                                    foreach (var deviceGroup in accessGroup.DeviceGroup)
-                                    {
-                                        foreach (var deviceBasicInfo in deviceGroup.Devices)
-                                        {
-                                            //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
-                                            var restRequest =
-                                                new RestRequest($"Suprema/SupremaDevice/SendUserToDevice");
-                                            restRequest.AddQueryParameter("deviceId", deviceBasicInfo.DeviceId.ToString());
-                                            restRequest.AddQueryParameter("userId", user.Id.ToString());
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                            Logger.Log(exception);
-                        }
-                    });
-                }
-                    
-
-
+                //            else
+                //            {
+                //                foreach (var accessGroup in accessGroupsOfUser)
+                //                {
+                //                    foreach (var deviceGroup in accessGroup.DeviceGroup)
+                //                    {
+                //                        foreach (var deviceBasicInfo in deviceGroup.Devices)
+                //                        {
+                //                            //AddUserToDeviceFastSearch(device.Code, (int)user.Id);
+                //                            var restRequest =
+                //                                new RestRequest($"Suprema/SupremaDevice/SendUserToDevice");
+                //                            restRequest.AddQueryParameter("deviceId", deviceBasicInfo.DeviceId.ToString());
+                //                            restRequest.AddQueryParameter("userId", user.Id.ToString());
+                //                        }
+                //                    }
+                //                }
+                //            }
+                //        }
+                //        catch (Exception exception)
+                //        {
+                //            Logger.Log(exception);
+                //            Logger.Log(exception);
+                //        }
+                //    });
+                //}
             }
             catch (Exception e)
             {

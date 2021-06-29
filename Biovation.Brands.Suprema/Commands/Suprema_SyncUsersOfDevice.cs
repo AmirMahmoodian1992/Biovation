@@ -25,9 +25,9 @@ namespace Biovation.Brands.Suprema.Commands
         /// </summary>
         private Dictionary<uint, Device> Devices { get; }
 
-        public SupremaSyncUsersOfDevice(uint deviceId, Dictionary<uint, Device> devices, AccessGroupService accessGroupService, DeviceService deviceService, DeviceBrands deviceBrands, UserService userService)
+        public SupremaSyncUsersOfDevice(TaskItem taskItem, Dictionary<uint, Device> devices, AccessGroupService accessGroupService, DeviceService deviceService, DeviceBrands deviceBrands, UserService userService)
         {
-            DeviceInfo = _deviceService.GetDevices(code:deviceId, brandId:deviceBrands.Suprema.Code)?.Data?.Data.FirstOrDefault();
+            DeviceInfo = _deviceService.GetDevices(taskItem.DeviceId)?.Data?.Data.FirstOrDefault();
             Devices = devices;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;

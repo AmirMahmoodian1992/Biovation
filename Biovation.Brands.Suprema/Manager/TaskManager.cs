@@ -370,7 +370,7 @@ namespace Biovation.Brands.Suprema.Manager
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
             var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.SupremaCode, deviceId: deviceId,
-                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode });
+                excludedTaskStatusCodes: new List<string> { TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.InProgressCode });
 
             lock (_tasks)
             {

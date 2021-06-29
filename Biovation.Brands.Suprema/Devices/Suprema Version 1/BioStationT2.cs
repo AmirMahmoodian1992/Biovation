@@ -791,7 +791,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         /// <En>Read all log data from device, since last disconnect, For FaceStation , D-Station, X-Station.</En>
         /// <Fa>داده های اتفاقات در طول مدت زمان مشخصی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
         /// </summary>
-        public override List<object> ReadLogOfPeriod(int startTime, int endTime)
+        public override ResultViewModel<List<Log>> ReadLogOfPeriod(int startTime, int endTime)
         {
             var objectLock = new object();
             lock (objectLock)
@@ -805,7 +805,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     if (Token.IsCancellationRequested)
                     {
                         Logger.Log("Thread canceled.");
-                        return new List<object>();
+                        return new ResultViewModel<List<Log>> { Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = "Thread canceled" };
                     }
 
                     DeviceAccessSemaphore.WaitOne();
@@ -829,7 +829,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 if (mNumOfLog == 0)
-                    return new List<object>();
+                    return new ResultViewModel<List<Log>> { Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Can't get logs of device {DeviceInfo.DeviceId}" };
 
                 Logger.Log($"Getting {mNumOfLog} logs of device {DeviceInfo.Code} started.");
 
@@ -959,8 +959,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 Marshal.FreeHGlobal(logRecord);
 
-                var logListOfObject = new List<object>(allLogList);
-                return logListOfObject;
+                return new ResultViewModel<List<Log>> { Success = true, Code = Convert.ToInt64(TaskStatuses.DoneCode), Data = allLogList, Message = $"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}" };
             }
         }
 

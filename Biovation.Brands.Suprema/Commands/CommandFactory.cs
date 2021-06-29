@@ -151,8 +151,8 @@ namespace Biovation.Brands.Suprema.Commands
                 case CommandType.ForceUpdateForSpecificDevice:
                     //Force Update for Specific Device request
                     {
-                        var deviceId = Convert.ToUInt32(transferModelData.Items.FirstOrDefault());
-                        return new SupremaSyncUsersOfDevice(deviceId, _onlineDevices,_accessGroupService,_deviceService,_deviceBrands,_userService);
+                        //var deviceId = Convert.ToUInt32(transferModelData.Items.FirstOrDefault());
+                        return new SupremaSyncUsersOfDevice(taskItem, _onlineDevices,_accessGroupService,_deviceService,_deviceBrands,_userService);
                     }
 
                 case CommandType.SendUserToDevice:
@@ -167,22 +167,22 @@ namespace Biovation.Brands.Suprema.Commands
 
                 case CommandType.SetTime:
                     //Update time in all devices
-                    var timeToSet = Convert.ToInt32(transferModelData.Items.FirstOrDefault());
-                    return new SupremaSetTime(timeToSet, _onlineDevices);
+                    //var timeToSet = Convert.ToInt32(transferModelData.Items.FirstOrDefault());
+                    return new SupremaSetTime((int)(DateTime.Now.Ticks / 1000000), _onlineDevices);
 
                 case CommandType.GetAllLogsOfDevice:
                     //Gets and updates all logs from device
                     {
-                        var deviceId = Convert.ToUInt32(transferModelData.Items.FirstOrDefault());
+                        //var deviceId = Convert.ToUInt32(transferModelData.Items.FirstOrDefault());
                         return new SupremaGetAllLogsOfDevice(taskItem, _onlineDevices,_bioStarServer, _deviceService);
                     }
 
                 case CommandType.GetLogsOfDeviceInPeriod:
                     //Gets and updates all log in a period of time from device
                     {
-                        var deviceId = Convert.ToUInt32(transferModelData.Items[0]);
-                        var startDate = Convert.ToInt64(transferModelData.Items[1]);
-                        var endDate = Convert.ToInt64(transferModelData.Items[2]);
+                        //var deviceId = Convert.ToUInt32(transferModelData.Items[0]);
+                        //var startDate = Convert.ToInt64(transferModelData.Items[1]);
+                        //var endDate = Convert.ToInt64(transferModelData.Items[2]);
                         return new SupremaGetLogsOfDeviceInPeriod(taskItem, _onlineDevices, _deviceService);
                     }
 
