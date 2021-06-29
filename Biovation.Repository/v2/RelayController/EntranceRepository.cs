@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using System;
+using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
@@ -26,11 +27,20 @@ namespace Biovation.Repository.Sql.v2.RelayController
             {
                 new SqlParameter(nameof(entrance.Name), SqlDbType.NVarChar) {Value = entrance.Name},
                 new SqlParameter(nameof(entrance.Code), SqlDbType.Int) {Value = entrance.Code},
-                new SqlParameter(nameof(entrance.Cameras) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Cameras) },
-                new SqlParameter(nameof(entrance.Schedulings) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) },
-                new SqlParameter(nameof(entrance.Devices) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Devices) },
-                new SqlParameter(nameof(entrance.Description), SqlDbType.NVarChar) {Value = entrance.Description}
+                new SqlParameter(nameof(entrance.Description), SqlDbType.NVarChar) {Value = entrance.Description ?? string.Empty}
             };
+            if (!(entrance.Cameras is null))
+            {
+                parameters.Add(new SqlParameter(nameof(entrance.Cameras) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Cameras) });
+            }
+            if (!(entrance.Schedulings is null))
+            {
+                parameters.Add(new SqlParameter(nameof(entrance.Schedulings) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) });
+            }
+            if (!(entrance.Devices is null))
+            {
+                parameters.Add(new SqlParameter(nameof(entrance.Devices) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Devices) });
+            }
 
             return _repository.ToResultList<ResultViewModel>(MethodBase.GetCurrentMethod()?.Name, parameters).Data.FirstOrDefault();
         }
@@ -61,11 +71,20 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter(nameof(entrance.Id), SqlDbType.Int) {Value = entrance.Id},
                 new SqlParameter(nameof(entrance.Name), SqlDbType.NVarChar) {Value = entrance.Name},
                 new SqlParameter(nameof(entrance.Code), SqlDbType.BigInt) {Value = entrance.Code},
-                new SqlParameter(nameof(entrance.Cameras) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Cameras) },
-                new SqlParameter(nameof(entrance.Schedulings) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) },
-                new SqlParameter(nameof(entrance.Devices) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Devices) },
-                new SqlParameter(nameof(entrance.Description), SqlDbType.NVarChar) {Value = entrance.Description}
+                new SqlParameter(nameof(entrance.Description), SqlDbType.NVarChar) {Value = entrance.Description ?? string.Empty}
             };
+            if (!(entrance.Cameras is null))
+            {
+              parameters.Add(new SqlParameter(nameof(entrance.Cameras) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Cameras) });  
+            }
+            if (!(entrance.Schedulings is null))
+            {
+                parameters.Add(new SqlParameter(nameof(entrance.Schedulings) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Schedulings) });
+            }
+            if (!(entrance.Devices is null))
+            {
+                parameters.Add(new SqlParameter(nameof(entrance.Devices) + "Json", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(entrance.Devices) });
+            }
 
             return _repository.ToResultList<ResultViewModel>(MethodBase.GetCurrentMethod()?.Name, parameters).Data.FirstOrDefault();
         }
