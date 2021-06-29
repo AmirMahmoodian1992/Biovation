@@ -121,6 +121,8 @@ namespace Biovation.Server
             services.AddMvc();
             //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
 
+            services.ConfigureMassTransit(Configuration);
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();

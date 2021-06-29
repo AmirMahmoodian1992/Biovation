@@ -17,11 +17,14 @@ namespace Biovation.Server.Managers
                 options.Predicate = check => check.Tags.Contains("ready");
             });
 
+            var rabbitConfigurationSection = configuration.GetSection("MassTransit").GetChildren().FirstOrDefault(c => string.Equals(c.Key, "RabbitMQ", StringComparison.InvariantCultureIgnoreCase))?.GetChildren();
+            var receiveEndpoints = rabbitConfigurationSection?.FirstOrDefault(c =>
+                string.Equals(c.Key, "ReceiveEndpoints", StringComparison.InvariantCultureIgnoreCase))?.GetChildren().ToList();
+
             var consumers = typeof(MassTransitConfigurationManager).Assembly.GetTypes()
                 .Where(t => !t.IsAbstract && !t.IsGenericTypeDefinition)
                 .Where(t => typeof(IConsumer).IsAssignableFrom(t) || t.Name.EndsWith("Consumer", StringComparison.InvariantCultureIgnoreCase))
                 .ToList();
-
 
             services.AddMassTransit(config =>
             {
@@ -30,9 +33,17 @@ namespace Biovation.Server.Managers
                 {
                     foreach (var consumer in consumers)
                     {
-                        cfg.ReceiveEndpoint(configuration.GetValue<string>("MassTransit:RabbitMQ:ReceiveEndpoints:Consumer:queueName"), e =>
+                        var receiveEndpointConfig = receiveEndpoints?.FirstOrDefault(c =>
+                            c.GetChildren()?.FirstOrDefault(cc => string.Equals(cc.Key, "Consumer", StringComparison.InvariantCultureIgnoreCase))
+                                ?.GetChildren()?.FirstOrDefault(ccc =>
+                                    string.Equals(ccc.Key, "name", StringComparison.InvariantCultureIgnoreCase))?.Value == consumer.Name);
+
+                        var consumerConfig = receiveEndpointConfig?.GetChildren().FirstOrDefault(ec =>
+                            string.Equals(ec.Key, "Consumer", StringComparison.InvariantCultureIgnoreCase));
+
+                        cfg.ReceiveEndpoint(consumerConfig?["queueName"] ?? consumer.Name, e =>
                        {
-                           e.Bind(configuration.GetValue<string>("MassTransit:RabbitMQ:ReceiveEndpoints:Consumer:exchangeName"));
+                           e.Bind(consumerConfig?["exchangeName"] ?? consumer.Name);
                            e.ConfigureConsumer(context, consumer);
                        });
                     }
