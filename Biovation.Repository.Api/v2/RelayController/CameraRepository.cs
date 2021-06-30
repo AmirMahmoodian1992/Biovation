@@ -37,7 +37,7 @@ namespace Biovation.Repository.Api.v2.RelayController
         public async Task<ResultViewModel<PagingResult<CameraModel>>> GetCameraModel(long id = default,
         uint manufactureCode = default, string name = default, string brandCode = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
-            var restRequest = new RestRequest("Queries/v2/CameraModel", Method.GET);
+            var restRequest = new RestRequest("Queries/v2/Camera/CameraModel", Method.GET);
             restRequest.AddQueryParameter(nameof(id), id.ToString());
             restRequest.AddQueryParameter(nameof(brandCode), brandCode ?? string.Empty);
             restRequest.AddQueryParameter(nameof(manufactureCode), manufactureCode.ToString());

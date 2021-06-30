@@ -336,6 +336,7 @@
     <None Remove="Scripts\03.SPs\0216-Create DeleteCamera-UP.sql" />
     <None Remove="Scripts\03.SPs\0217-Create SelectManualPlateDetectionLog-UP.sql" />
     <None Remove="Scripts\03.SPs\0218-Create InsertManualPlateDetectionLog-UP.sql" />
+    <None Remove="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -355,6 +356,9 @@
     <None Remove="Scripts\05.Data\0017-Update DeviceModel.sql" />
     <None Remove="Scripts\05.Data\0018-Update LogEvent-UP.sql" />
     <None Remove="Scripts\05.Data\0019-Update MatchingType-UP .sql" />
+    <None Remove="Scripts\05.Data\0020-Insert CameraModels-UP.sql" />
+    <None Remove="Scripts\05.Data\0021-Insert ProtocolRemainAddresses-UP.sql" />
+    <None Remove="Scripts\05.Data\0022-Insert ProtocolRemainAddressesCameraModel-UP.sql" />
     <None Remove="Scripts\06.Views\0001-Select TaskOrdered.sql" />
     <None Remove="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
     <None Remove="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
@@ -687,6 +691,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0195-Create DeleteIrisTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0215-Create UpdateCamera-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0218-Create InsertManualPlateDetectionLog-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0217-Create SelectManualPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0216-Create DeleteCamera-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0213-Create InsertCamera-UP.sql" />
@@ -713,6 +718,9 @@
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
+    <EmbeddedResource Include="Scripts\05.Data\0022-Insert ProtocolRemainAddressesCameraModel-UP.sql" />
+    <EmbeddedResource Include="Scripts\05.Data\0021-Insert ProtocolRemainAddresses-UP.sql" />
+    <EmbeddedResource Include="Scripts\05.Data\0020-Insert CameraModels-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0004-Insert TimeZoneDetails-UP.sql" />
