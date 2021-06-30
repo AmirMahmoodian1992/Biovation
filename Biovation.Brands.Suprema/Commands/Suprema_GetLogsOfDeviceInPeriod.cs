@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -44,15 +45,15 @@ namespace Biovation.Brands.Suprema.Commands
                 return new ResultViewModel { Id = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item.{Environment.NewLine}", Validate = 0 };
 
             DeviceId = (uint)TaskItem.DeviceId;
-            var parseResult = uint.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["fromDate"]?.ToString() ?? "0", out var fromDate);
-            if (!parseResult || fromDate == 0)
+            var parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["fromDate"]?.ToString() ?? "1970/01/01", out var fromDate);
+            if (!parseResult || fromDate == default)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null fromDate is provided in data.{Environment.NewLine}", Validate = 0 };
-            parseResult = uint.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["toDate"]?.ToString() ?? "0", out var toDate);
-            if (!parseResult || toDate == 0)
+            parseResult = DateTime.TryParse(JsonConvert.DeserializeObject<JObject>(TaskItem.Data)?["toDate"]?.ToString() ?? "2050/12/29", out var toDate);
+            if (!parseResult || toDate == default)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null toDate is provided in data.{Environment.NewLine}", Validate = 0 };
-            StartDate = fromDate;
-            EndDate = toDate;
-            var device = _deviceService.GetDevice(DeviceId).Result?.Data;
+            StartDate = fromDate.Ticks;
+            EndDate = toDate.Ticks;
+            var device = _deviceService.GetDevice(DeviceId).GetAwaiter().GetResult()?.Data;
             if (device is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
@@ -69,8 +70,25 @@ namespace Biovation.Brands.Suprema.Commands
             //var endDateTicks = Convert.ToInt32((long)(EndDate / 10000000) - refDate);
             var startDateTicks = Convert.ToInt32((StartDate / 10000000) - refDate);
             var endDateTicks = Convert.ToInt32((EndDate / 10000000) - refDate);
-            return _onlineDevices[DeviceId].ReadLogOfPeriod(startDateTicks, endDateTicks);
+            var result = _onlineDevices[device.Code].ReadLogOfPeriod(startDateTicks, endDateTicks);
+            if (!result.Success) return new ResultViewModel{Success = result.Success, Code = result.Code, Message = result.Message};
+            
+            _ = Task.Run(() =>
+            {
+                foreach (var log in result.Data)
+                {
+                    Logger.Log($@"nReaderIdn : {device.Code}
+    EventId : {log.EventLog.Code}
+    nDateTime : {log.DateTimeTicks}
+    DateTime : {log.LogDateTime}
+    TnaEvent : {log.TnaEvent}
+    SubEvent : {log.SubEvent.Code}
+    sUserID : {log.UserId}
+    _matchingTypes:{log.MatchingType.Code}", logType: LogType.Information);
+                }
+            }).ConfigureAwait(false);
 
+            return new ResultViewModel { Success = result.Success, Code = result.Code, Message = result.Message };
         }
 
         public void Rollback()

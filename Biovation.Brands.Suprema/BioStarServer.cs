@@ -272,7 +272,10 @@ namespace Biovation.Brands.Suprema
                 Port = _mPort,
                 DeviceTypeId = deviceType,
                 Name = string.IsNullOrWhiteSpace(name) ? $"{deviceId} ({ipAddress})" : name,
-                ConnectionType = "Normal"
+                ConnectionType = "Normal",
+                Active = true,
+                RegisterDate = DateTime.Now,
+                SSL = connectionType != 0
             };
 
 
@@ -1139,8 +1142,8 @@ namespace Biovation.Brands.Suprema
 
         public int ImageLogProc(int handle, uint deviceId, int deviceType, int connectionType, IntPtr data, int dataLen)
         {
-            //return ImageLogProcMethod(handle, deviceId, deviceType, connectionType, data, dataLen);
-            return BSSDK.BS_SUCCESS;
+            return ImageLogProcMethod(handle, deviceId, deviceType, connectionType, data, dataLen);
+            //return BSSDK.BS_SUCCESS;
         }
 
         public int ImageLogProcMethod(int handle, uint deviceId, int deviceType, int connectionType, IntPtr data, int dataLen)

@@ -1,8 +1,8 @@
 ﻿using Biovation.Domain;
+using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using Biovation.Repository.Sql.v2;
 
 namespace Biovation.Data.Queries.Controllers.v2
 {
@@ -19,22 +19,30 @@ namespace Biovation.Data.Queries.Controllers.v2
         }
 
         [HttpGet]
-        [Route("LicensePlate")]
         [Authorize]
-
         public Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
         {
             return Task.Run(() => _plateDetectionRepository.GetLicensePlate(licensePlate, entityId));
         }
 
         [HttpGet]
-        [Route("PlateDetectionLog")]
         [Authorize]
-
-        public Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
-       int pageSize = default)
+        public Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+            int pageSize = default)
         {
-            return Task.Run(() => _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate, minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize));
+            return Task.Run(() => _plateDetectionRepository.GetPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate, minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize));
+        }
+
+        [HttpGet]
+        [Route("ManualPlateDetectionLog")]
+        [Authorize]
+        public Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog(
+            int logId = default, long userId = default, long parentLogId = default, string licensePlate = default,
+            int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0,
+            int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+            int pageSize = default, string whereClause = default, string orderByClause = default)
+        {
+            return Task.Run(() => _plateDetectionRepository.GetManualPlateDetectionLog(logId, userId, parentLogId, licensePlate, detectorId, fromDate, toDate, minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, whereClause, orderByClause));
         }
     }
 }

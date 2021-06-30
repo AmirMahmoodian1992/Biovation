@@ -15,7 +15,6 @@ using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
 using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
 using LogService = Biovation.Service.Api.v1.LogService;
 using TaskService = Biovation.Service.Api.v1.TaskService;
-using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
 using UserCardService = Biovation.Service.Api.v1.UserCardService;
 using UserService = Biovation.Service.Api.v1.UserService;
 
