@@ -82,11 +82,10 @@ namespace Biovation.Brands.Paliz.Command
                 _palizServer._serverManager.GetDateTimeInfoEvent += GetDateTimeCallback;
 
                 _numerOfThreadsNotYetCompleted = 3;
-                Thread.Sleep(10000);
                 _palizServer._serverManager.GetUserListAsyncTask(terminalName).Wait();
-                Thread.Sleep(10000);
+                Thread.Sleep(100);
                 _palizServer._serverManager.GetTiaraSettingsAsyncTask(terminalName).Wait();
-                Thread.Sleep(10000);
+                Thread.Sleep(100);
                 _palizServer._serverManager.GetDateTimeInfoAsyncTask(terminalName).Wait();
 
                 _palizServer._serverManager.UserListEvent -= GetUserListEventCallBack;
@@ -121,7 +120,7 @@ namespace Biovation.Brands.Paliz.Command
                 //dic.Add("ProductTime", sProductTime);
                 //return dic;
 
-                _autoResetEvent.WaitOne(20000);
+                _autoResetEvent.WaitOne(10000);
 
                 //_additionalDataDict.Add("OpLogCount", _opLogCnt.ToString());
                 //_additionalDataDict.Add("RecordCount", _recordCnt.ToString());
