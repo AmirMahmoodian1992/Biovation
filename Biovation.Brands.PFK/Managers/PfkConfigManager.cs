@@ -34,8 +34,8 @@ namespace Biovation.Brands.PFK.Managers
                 WriteTimeOut = 2000
             };
 
-            //config.CamID = cameraInfo.DeviceId;
-            config.CamID = 0;
+            //config.CamID = 0;
+            config.CamID = cameraInfo.DeviceId;
             config.CameraConfig = new IpCamerConfig
             {
                 CameraIP = cameraAddress,

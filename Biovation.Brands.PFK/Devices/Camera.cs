@@ -20,6 +20,8 @@ namespace Biovation.Brands.PFK.Devices
     public class Camera : IDevices
     {
         private readonly LogEvents _logEvents;
+        private readonly LogSubEvents _logSubEvents;
+        private readonly MatchingTypes _matchingTypes;
         private readonly DeviceBasicInfo _cameraInfo;
         private readonly Dictionary<uint, Camera> _connectedCameras;
 
@@ -30,12 +32,14 @@ namespace Biovation.Brands.PFK.Devices
         private readonly PlateDetectionService _plateDetectionService;
         private readonly RestClient _logExternalSubmissionRestClient;
 
-        public Camera(DeviceBasicInfo cameraInfo, Dictionary<uint, Camera> connectedCameras, RestClient logExternalSubmissionRestClient, PlateDetectionService plateDetectionService, LogEvents logEvents)
+        public Camera(DeviceBasicInfo cameraInfo, Dictionary<uint, Camera> connectedCameras, RestClient logExternalSubmissionRestClient, PlateDetectionService plateDetectionService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _cameraInfo = cameraInfo;
             _connectedCameras = connectedCameras;
             _logExternalSubmissionRestClient = logExternalSubmissionRestClient;
             _plateDetectionService = plateDetectionService;
+            _logSubEvents = logSubEvents;
+            _matchingTypes = matchingTypes;
             _logEvents = logEvents;
         }
 
@@ -276,18 +280,24 @@ namespace Biovation.Brands.PFK.Devices
                         var tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
                         try
                         {
-                            Logger.Log("Checking Detected Plate", logType: CommonClasses.LogType.Warning);
+                            const string correctedPattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
+                            const string basePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]-[۰-۹][۰-۹][۰-۹]";
+                            const string secondBasePattern = @"[۰-۹][۰-۹][۰-۹]-[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]";
 
-                            const string pattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
-                            var regexDetect = Regex.Match(tmpPlateNumber, pattern);
+                            var regexDetect = Regex.Match(tmpPlateNumber, correctedPattern);
                             if (regexDetect.Success)
-                                tmpPlateNumber = (tmpPlateNumber.Substring(3, 3) + "-" + tmpPlateNumber.Substring(6, 2) + tmpPlateNumber.Substring(2, 1) + tmpPlateNumber.Substring(0, 2));
+                                tmpPlateNumber = "تشخیص پلاک با قالب نادرست: " + (tmpPlateNumber.Substring(3, 3) + "-" + tmpPlateNumber.Substring(6, 2) + tmpPlateNumber.Substring(2, 1) + tmpPlateNumber.Substring(0, 2));
+
+                            else if (Regex.Match(tmpPlateNumber, basePattern).Success || Regex.Match(tmpPlateNumber, secondBasePattern).Success)
+                                tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
                             else
-                                tmpPlateNumber = "مشکل در شناسایی پلاک";
+                            {
+                                tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
+                            }
                         }
                         catch
                         {
-                            tmpPlateNumber = "مشکل در شناسایی پلاک";
+                            tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
                         }
 
                         //detectedLog.LicensePlate.LicensePlateNumber = tmpPlateNumber;
@@ -309,7 +319,20 @@ namespace Biovation.Brands.PFK.Devices
                         await _logExternalSubmissionRestClient.ExecuteAsync(restRequest);
 
                         var altRestRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
-                        altRestRequest.AddJsonBody(detectedLog);
+                        altRestRequest.AddJsonBody(new
+                        {
+                            //resultAddLog.Result.Id,
+                            DeviceId = detectedLog.DetectorId,
+                            DeviceCode = _cameraInfo.Code,
+                            UserId = tmpPlateNumber,
+                            detectedLog.LogDateTime,
+                            detectedLog.EventLog,
+                            MatchingType = _matchingTypes.Car,
+                            PicByte = detectedLog.PlateImage,
+                            SubEvent = _logSubEvents.Normal,
+                            DeviceName = _cameraInfo.Name,
+                        });
+                        //altRestRequest.AddJsonBody(detectedLog);
                         await _logExternalSubmissionRestClient.ExecuteAsync(altRestRequest);
                     }
                     catch (Exception exception)
