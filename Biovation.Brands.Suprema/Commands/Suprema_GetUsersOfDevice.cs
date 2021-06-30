@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.Suprema.Commands
 {
@@ -18,14 +19,12 @@ namespace Biovation.Brands.Suprema.Commands
         private readonly Dictionary<uint, Device> _onlineDevices;
 
 
-
         private uint DeviceId { get; }
 
-        public SupremaGetUsersOfDevice(uint deviceId, Dictionary<uint, Device> onlineDevices)
+        public SupremaGetUsersOfDevice(TaskItem taskItem, DeviceService deviceService, Dictionary<uint, Device> onlineDevices)
         {
-            DeviceId = deviceId;
+            DeviceId = deviceService.GetDevice(taskItem.DeviceId).GetAwaiter().GetResult()?.Data?.Code ?? 0;
             _onlineDevices = onlineDevices;
-  
         }
 
         /// <summary>

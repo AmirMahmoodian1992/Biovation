@@ -29,9 +29,9 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex, Lookup fingerTemplateType, int from = 0, int size = 0, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<FingerTemplate>>> FingerTemplates(int userId, int templateIndex, string fingerTemplateType, int from = 0, int size = 0, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _fingerTemplateRepository.FingerTemplates(userId, templateIndex, fingerTemplateType, from, size, pageNumber, pageSize));
+            return Task.Run(() => _fingerTemplateRepository.FingerTemplates(userId, templateIndex, new Lookup(){Code = fingerTemplateType}, from, size, pageNumber, pageSize));
         }
 
         [HttpGet]
