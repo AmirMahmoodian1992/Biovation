@@ -15,7 +15,7 @@ namespace Biovation.Brands.Shahab.Devices
         private byte _instanceId;
 
         private VideoProcessingOptions _videoProcessingOptions;
-        public readonly CameraOptions AnprSettings = new CameraOptions();
+        public readonly CameraOptions AnprSettings;
 
         private readonly Dictionary<uint, Device> _connectedCameras;
 
@@ -38,27 +38,8 @@ namespace Biovation.Brands.Shahab.Devices
         {
             DeviceInfo = info;
             _connectedCameras = onlineDevices;
+            AnprSettings = new CameraOptions();
         }
-
-        //private void UpdateFarsiResult(string LPResult)
-        //{
-        //    if (LPResult.Length > 1)
-        //        Res1.Text = LPResult.Substring(0, 2);
-        //    else
-        //        Res1.Text = "";
-        //    if (LPResult.Length > 2)
-        //        Res2.Text = LPResult.Substring(2, Math.Min(1, LPResult.Length - 2));
-        //    else
-        //        Res2.Text = "";
-        //    if (LPResult.Length > 3)
-        //        Res3.Text = LPResult.Substring(3, Math.Min(3, LPResult.Length - 3));
-        //    else
-        //        Res3.Text = "";
-        //    if (LPResult.Length > 6)
-        //        Res4.Text = LPResult.Substring(6, LPResult.Length - 6);
-        //    else
-        //        Res4.Text = "";
-        //}
 
         public bool TransferUser(User user)
         {
@@ -122,7 +103,8 @@ namespace Biovation.Brands.Shahab.Devices
             try
             {
                 vlpr_stop_process(_instanceId);
-                vlpr_stop_grabbing(_instanceId);
+                System.Threading.Thread.Sleep(1000);
+                vlpr_stop_grabbingVLC(_instanceId);
 
                 lock (_connectedCameras)
                 {
@@ -197,6 +179,7 @@ namespace Biovation.Brands.Shahab.Devices
             anpr_clear_ROIs(_instanceId); //SetROI();
         }
 
+
         private void ConnectToCamera(byte drawMethod)
         {
             FrameHeight = 0;
@@ -205,6 +188,7 @@ namespace Biovation.Brands.Shahab.Devices
             SetParams();
             var interval = (byte)(1000 / AnprSettings.FrameRate);
             //rtsp://admin:admin@192.168.55.160:554/h264
+            var str = DeviceInfo?.IpAddress;
             if (DeviceInfo != null)
             {
                 var takeShots = AnprSettings.TakeShotsFromCamera ? (byte)1 : (byte)0;
@@ -212,15 +196,14 @@ namespace Biovation.Brands.Shahab.Devices
                 Grabbing = 1;
                 try
                 {
-                    lock (DeviceInfo)
-                    {
-                        if (vlpr_start_grabbing(_instanceId, DeviceInfo.IpAddress, interval, /*picture.Handle*/IntPtr.Zero, takeShots, drawMethod) < 0)
-                            Grabbing = 0;
-                    }
+                    if (vlpr_start_grabbingVLC(_instanceId, str, interval, /*picture.Handle*/IntPtr.Zero, takeShots, drawMethod) < 0)
+                        Grabbing = 0;
+
                 }
                 catch (Exception ex)
                 {
                     Logger.Log("Failed to start grabbing" + ex, logType: LogType.Warning);
+                    return;
                 }
             }
 
@@ -231,6 +214,13 @@ namespace Biovation.Brands.Shahab.Devices
             catch (Exception ex)
             {
                 Logger.Log("Failed to start grabbing plates process" + ex, logType: LogType.Warning);
+                return;
+            }
+           
+            lock (_connectedCameras)
+            {
+                if (DeviceInfo != null && !_connectedCameras.ContainsKey(DeviceInfo.Code))
+                    _connectedCameras.Add(DeviceInfo.Code, this);
             }
             //Wait for WM_CONNECTED message
         }
@@ -254,7 +244,6 @@ namespace Biovation.Brands.Shahab.Devices
             return initialResult;
 
         }
-
 
 
 

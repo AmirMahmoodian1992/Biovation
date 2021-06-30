@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
+using Biovation.Data.Queries.Manager;
 using Biovation.Data.Queries.Middleware;
 using Biovation.Repository.Sql.v2;
 

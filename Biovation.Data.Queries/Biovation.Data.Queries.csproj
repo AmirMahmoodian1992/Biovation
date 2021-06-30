@@ -90,6 +90,8 @@
     <None Remove="Scripts\01.Tables\0078-Alter TaskItem.sql" />
     <None Remove="Scripts\01.Tables\0079-Alter User.sql" />
     <None Remove="Scripts\01.Tables\0080-Create IrisTemplate-UP.sql" />
+    <None Remove="Scripts\01.Tables\0080-Alter LicensePlateLog-UP.sql" />
+    <None Remove="Scripts\01.Tables\0081-Alter AccessGroup-UP.sql" />
     <None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -424,6 +426,8 @@
     <EmbeddedResource Include="Scripts\01.Tables\0074-Create PlateDetectionPictureLog-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0075-Alter Device-UP.sql" />
     <EmbeddedResource Include="Scripts\01.Tables\0076-Alter LicensePlate-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0080-Alter LicensePlateLog-UP.sql" />
+    <EmbeddedResource Include="Scripts\01.Tables\0081-Alter AccessGroup-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
