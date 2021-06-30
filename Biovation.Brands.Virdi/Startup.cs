@@ -169,6 +169,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<SettingService, SettingService>();
             services.AddSingleton<TaskService, TaskService>();
             services.AddSingleton<TimeZoneService, TimeZoneService>();
+            services.AddSingleton<Biovation.Service.Api.v2.TimeZoneService, Biovation.Service.Api.v2.TimeZoneService>();
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();

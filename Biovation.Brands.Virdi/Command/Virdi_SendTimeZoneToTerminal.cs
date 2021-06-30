@@ -21,14 +21,12 @@ namespace Biovation.Brands.Virdi.Command
         private TimeZone TimeZoneObj { get; }
 
         private readonly VirdiServer _virdiServer;
-        private readonly AccessGroupService _accessGroupService;
 
-        public VirdiSendTimeZoneToTerminal(uint code, int timeZoneId, VirdiServer virdiServer, TimeZoneService timeZoneService, AccessGroupService accessGroupService)
+        public VirdiSendTimeZoneToTerminal(uint code, int timeZoneId, VirdiServer virdiServer, TimeZoneService timeZoneService)
         {
             Code = code;
             TimeZoneId = timeZoneId;
             _virdiServer = virdiServer;
-            _accessGroupService = accessGroupService;
             TimeZoneObj = timeZoneService.TimeZones(timeZoneId).GetAwaiter().GetResult()?.Data;
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
