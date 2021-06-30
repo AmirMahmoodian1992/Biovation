@@ -86,6 +86,23 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 .FetchFromResultList();
         }
 
+        public ResultViewModel<PagingResult<CameraModel>> GetCameraModel(long id = default,
+            uint manufactureCode = default, string name = default, string brandCode = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 6)
+        {
+            var parameters = new List<SqlParameter>
+            {
+                new SqlParameter("@" + nameof(id), SqlDbType.BigInt) {Value = id},
+                new SqlParameter("@" + nameof(manufactureCode), SqlDbType.Int) {Value = manufactureCode},
+                new SqlParameter("@" + nameof(name), SqlDbType.NVarChar) { Value = name },
+                new SqlParameter("@" + nameof(brandCode), SqlDbType.NVarChar){Value = brandCode},
+                new SqlParameter("@" + nameof(pageNumber), SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@" + nameof(pageSize), SqlDbType.Int) {Value = pageSize},
+            };
+            return _repository.ToResultList<PagingResult<CameraModel>>("SelectCameraModel", parameters,
+                    fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel)
+                .FetchFromResultList();
+        }
+
         public ResultViewModel<PagingResult<CameraModel>> GetCameraModel(long id = default, uint manufactureCode = default, string name = default,
             string brandCode = default)
         {

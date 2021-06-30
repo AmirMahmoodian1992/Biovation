@@ -34,6 +34,22 @@ namespace Biovation.Repository.Api.v2.RelayController
             return requestResult.Data;
         }
 
+        public async Task<ResultViewModel<PagingResult<CameraModel>>> GetCameraModel(long id = default,
+        uint manufactureCode = default, string name = default, string brandCode = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/CameraModel", Method.GET);
+            restRequest.AddQueryParameter(nameof(id), id.ToString());
+            restRequest.AddQueryParameter(nameof(brandCode), brandCode ?? string.Empty);
+            restRequest.AddQueryParameter(nameof(manufactureCode), manufactureCode.ToString());
+            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
+            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
+            restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<CameraModel>>>(restRequest);
+            return requestResult.Data;
+        }
+
         public async Task<ResultViewModel> CreateCamera(Camera camera, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/Camera", Method.POST);

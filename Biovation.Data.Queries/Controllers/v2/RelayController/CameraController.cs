@@ -2,7 +2,6 @@
 using Biovation.Repository.Sql.v2.RelayController;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Biovation.Domain.RelayModels;
 
 namespace Biovation.Data.Queries.Controllers.v2.RelayController
 {
@@ -23,6 +22,15 @@ namespace Biovation.Data.Queries.Controllers.v2.RelayController
             string brandCode = default, int modelId = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             return Task.Run(() => _cameraRepository.GetCamera(adminUserId, id, code, name, ip, port, brandCode, modelId,
+                pageNumber, pageSize, nestingDepthLevel));
+        }
+        [HttpGet]
+        [Route("CameraModel")]
+        [Authorize]
+        public Task<ResultViewModel<PagingResult<CameraModel>>> CameraModel(long id = default,
+            uint manufactureCode = default, string name = default, string brandCode = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
+        {
+            return Task.Run(() => _cameraRepository.GetCameraModel(id, manufactureCode, name, brandCode,
                 pageNumber, pageSize, nestingDepthLevel));
         }
     }
