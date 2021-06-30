@@ -227,7 +227,7 @@ namespace Biovation.Brands.Virdi
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
-            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 12);
+            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 18);
 
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();

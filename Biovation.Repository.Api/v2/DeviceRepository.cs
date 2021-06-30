@@ -34,7 +34,7 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest("Queries/v2/Device", Method.GET);
             restRequest.AddQueryParameter("groupId", groupId.ToString());
             restRequest.AddQueryParameter("code", code.ToString());
-            restRequest.AddQueryParameter("brandId", brandId ?? 0.ToString());
+            restRequest.AddQueryParameter("brandId", brandId ?? string.Empty);
             restRequest.AddQueryParameter("name", name ?? string.Empty);
             restRequest.AddQueryParameter("modelId", modelId.ToString());
             restRequest.AddQueryParameter("deviceIoTypeId", deviceIoTypeId.ToString());

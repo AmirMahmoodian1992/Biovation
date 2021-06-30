@@ -9,6 +9,7 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using RestSharp;
+using Camera = Biovation.Brands.PFK.Devices.Camera;
 
 namespace Biovation.Brands.PFK
 {

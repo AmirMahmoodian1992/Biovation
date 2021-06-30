@@ -37,14 +37,14 @@ namespace Biovation.Service.Api.v1
             return result;
         }
 
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default,
+        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
             int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
+            return _plateDetectionRepository.GetPlateDetectionLog(firstLicensePlatePart,secondLicensePlatePart,thirdLicensePlatePart,fourthLicensePlatePart,logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token).Result;
         }
 

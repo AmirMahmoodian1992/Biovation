@@ -23,6 +23,11 @@ using Microsoft.OpenApi.Models;
 using Quartz;
 using RestSharp;
 using Serilog;
+using System.Reflection;
+using Biovation.Repository.Api.v2.RelayController;
+using Biovation.Service.Api.v2.RelayController;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.Reflection;
@@ -210,25 +215,31 @@ namespace Biovation.Server
             //services.AddTransient<UserGroupRepository, UserGroupRepository>();
             //services.AddTransient<UserRepository, UserRepository>();
             services.AddSingleton<UserRepository, UserRepository>();
-            services.AddTransient<DeviceRepository, DeviceRepository>();
-            services.AddTransient<PlateDetectionRepository, PlateDetectionRepository>();
-            services.AddTransient<AccessGroupRepository, AccessGroupRepository>();
-            services.AddTransient<AdminDeviceRepository, AdminDeviceRepository>();
-            services.AddTransient<BlackListRepository, BlackListRepository>();
-            services.AddTransient<DeviceGroupRepository, DeviceGroupRepository>();
-            services.AddTransient<FingerTemplateRepository, FingerTemplateRepository>();
-            //services.AddTransient<Repository.API.v2.LogRepository, Repository.API.v2.LogRepository>();
-            services.AddTransient<LookupRepository, LookupRepository>();
-            services.AddTransient<GenericCodeMappingRepository, GenericCodeMappingRepository>();
-            services.AddTransient<LogRepository, LogRepository>();
-            services.AddTransient<LookupRepository, LookupRepository>();
-            services.AddTransient<PlateDetectionRepository, PlateDetectionRepository>();
-            services.AddTransient<SettingRepository, SettingRepository>();
-            services.AddTransient<TaskRepository, TaskRepository>();
-            services.AddTransient<TimeZoneRepository, TimeZoneRepository>();
-            services.AddTransient<UserCardRepository, UserCardRepository>();
-            services.AddTransient<UserGroupRepository, UserGroupRepository>();
-            //services.AddTransient<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
+            services.AddScoped<DeviceRepository, DeviceRepository>();
+            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddScoped<AccessGroupRepository, AccessGroupRepository>();
+            services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
+            services.AddScoped<BlackListRepository, BlackListRepository>();
+            services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
+            services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
+            //services.AddScoped<Repository.API.v2.LogRepository, Repository.API.v2.LogRepository>();
+            services.AddScoped<LookupRepository, LookupRepository>();
+            services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddScoped<LogRepository, LogRepository>();
+            services.AddScoped<LookupRepository, LookupRepository>();
+            services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
+            services.AddScoped<SettingRepository, SettingRepository>();
+            services.AddScoped<TaskRepository, TaskRepository>();
+            services.AddScoped<TimeZoneRepository, TimeZoneRepository>();
+            services.AddScoped<UserCardRepository, UserCardRepository>();
+            services.AddScoped<UserGroupRepository, UserGroupRepository>();
+            services.AddScoped<SchedulingRepository, SchedulingRepository>();
+            services.AddScoped<RelayHubRepository, RelayHubRepository>();
+            services.AddScoped<EntranceRepository, EntranceRepository>();
+            services.AddScoped<RelayRepository, RelayRepository>();
+            services.AddScoped<CameraRepository, CameraRepository>();
+
+            //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
 
             //services.AddTransient<FoodService, FoodService>();
@@ -263,18 +274,23 @@ namespace Biovation.Server
             services.AddTransient<Service.Api.v2.LogService, Service.Api.v2.LogService>();
             services.AddTransient<Service.Api.v2.DeviceService, Service.Api.v2.DeviceService>();
             services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
-            services.AddTransient<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
-            services.AddTransient<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
-            services.AddTransient<Service.Api.v2.BlackListService, Service.Api.v2.BlackListService>();
-            services.AddTransient<Service.Api.v2.DeviceGroupService, Service.Api.v2.DeviceGroupService>();
-            services.AddTransient<Service.Api.v2.FingerTemplateService, Service.Api.v2.FingerTemplateService>();
-            services.AddTransient<Service.Api.v2.LookupService, Service.Api.v2.LookupService>();
-            services.AddTransient<Service.Api.v2.PlateDetectionService, Service.Api.v2.PlateDetectionService>();
-            services.AddTransient<Service.Api.v2.TaskService, Service.Api.v2.TaskService>();
-            services.AddTransient<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
-            services.AddTransient<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
-            services.AddTransient<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
-            //services.AddTransient<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
+            services.AddScoped<Service.Api.v2.AccessGroupService, Service.Api.v2.AccessGroupService>();
+            services.AddScoped<Service.Api.v2.AdminDeviceService, Service.Api.v2.AdminDeviceService>();
+            services.AddScoped<Service.Api.v2.BlackListService, Service.Api.v2.BlackListService>();
+            services.AddScoped<Service.Api.v2.DeviceGroupService, Service.Api.v2.DeviceGroupService>();
+            services.AddScoped<Service.Api.v2.FingerTemplateService, Service.Api.v2.FingerTemplateService>();
+            services.AddScoped<Service.Api.v2.LookupService, Service.Api.v2.LookupService>();
+            services.AddScoped<Service.Api.v2.PlateDetectionService, Service.Api.v2.PlateDetectionService>();
+            services.AddScoped<Service.Api.v2.TaskService, Service.Api.v2.TaskService>();
+            services.AddScoped<Service.Api.v2.TimeZoneService, Service.Api.v2.TimeZoneService>();
+            services.AddScoped<Service.Api.v2.UserCardService, Service.Api.v2.UserCardService>();
+            services.AddScoped<Service.Api.v2.UserGroupService, Service.Api.v2.UserGroupService>();
+            services.AddScoped<SchedulingService, SchedulingService>();
+            services.AddScoped<RelayHubService, RelayHubService>();
+            services.AddScoped<EntranceService, EntranceService>();
+            services.AddScoped<RelayService, RelayService>();
+            services.AddScoped<CameraService, CameraService>();
+            //services.AddScoped<Service.API.v1.DeviceService, Service.API.v1.DeviceService>();
             services.AddSingleton<TokenGenerator, TokenGenerator>();
         }
 
@@ -314,7 +330,12 @@ namespace Biovation.Server
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
-            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 12);
+            var cameraProtocol = lookupService.GetLookups(lookupCategoryId: 12);
+            var resolution = lookupService.GetLookups(lookupCategoryId: 13);
+            var cameraBrand = lookupService.GetLookups(lookupCategoryId: 14);
+            var relayType = lookupService.GetLookups(lookupCategoryId: 15);
+            var relayHubBrand = lookupService.GetLookups(lookupCategoryId: 16);
+            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 17);
 
             var lookups = new Lookups
             {
@@ -329,7 +350,12 @@ namespace Biovation.Server
                 FaceTemplateType = faceTemplateTypeQuery.Result,
                 IrisTemplateType = irisTemplateTypeQuery.Result,
                 LogEvents = logEventsQuery.Result,
-                MatchingTypes = matchingTypeQuery.Result
+                MatchingTypes = matchingTypeQuery.Result,
+                CameraProtocol = cameraProtocol.Result,
+                Resolution = resolution.Result,
+                CameraBrand = cameraBrand.Result,
+                RelayType = relayType.Result,
+                RelayHubBrand = relayHubBrand.Result,
             };
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();

@@ -18,12 +18,41 @@ namespace Biovation.Repository.Sql.v2
         {
             _repository = repository;
         }
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
-        int pageSize = default, string whereClause = "", string orderByClause = "")
+        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default,int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+        int pageSize = default, int nestingDepthLevel = 4)
+        {
+            var parameters = new List<SqlParameter>
+                {
+                     new SqlParameter("@" + nameof(firstLicensePlatePart),SqlDbType.NVarChar){Value = firstLicensePlatePart},
+                     new SqlParameter("@" + nameof(secondLicensePlatePart),SqlDbType.NVarChar){Value = secondLicensePlatePart},
+                     new SqlParameter("@" + nameof(thirdLicensePlatePart),SqlDbType.NVarChar){Value = thirdLicensePlatePart},
+                     new SqlParameter("@" + nameof(fourthLicensePlatePart),SqlDbType.NVarChar){Value = fourthLicensePlatePart},
+                     new SqlParameter("@LogId", SqlDbType.Int) {Value = logId},
+                     new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
+                     new SqlParameter("@DetectorId", SqlDbType.Int) {Value = detectorId},
+                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default? (object) null: fromDate},
+                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default? (object) null: toDate},
+                     new SqlParameter("@MinPrecision", SqlDbType.TinyInt) {Value = minPrecision},
+                     new SqlParameter("@MaxPrecision", SqlDbType.TinyInt) {Value = maxPrecision},
+                     new SqlParameter("@WithPic", SqlDbType.Bit ){Value = withPic},
+                     new SqlParameter("@SuccessTransfer", SqlDbType.Bit) {Value = successTransfer},
+                     new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                     new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
+                };
+                return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+        }
+
+        public ResultViewModel<PagingResult<ManualPlateDetectionLog>> GetManualPlateDetectionLog(int logId = default,
+            long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default,
+            DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0,
+            bool withPic = true, bool successTransfer = false, int pageNumber = default, int pageSize = default,
+            string whereClause = default, string orderByClause = default)
         {
             var parameters = new List<SqlParameter>
                 {
                      new SqlParameter("@LogId", SqlDbType.Int) {Value = logId},
+                     new SqlParameter("@" + nameof(userId), SqlDbType.BigInt) {Value = userId},
+                     new SqlParameter("@" + nameof(parentLogId), SqlDbType.BigInt) {Value = parentLogId},
                      new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
                      new SqlParameter("@DetectorId", SqlDbType.Int) {Value = detectorId},
                      new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default? (object) null: fromDate},
@@ -37,7 +66,7 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@Where", string.IsNullOrWhiteSpace(whereClause) ? "" : whereClause),
                      new SqlParameter("@Order", string.IsNullOrWhiteSpace(orderByClause) ? "" : orderByClause),
                 };
-            return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectManualPlateDetectionLog", parameters, fetchCompositions: true).FetchFromResultList();
         }
         public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, int nestingDepthLevel = 4)
         {
@@ -52,13 +81,38 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@DetectionPrecision", SqlDbType.Int) {Value = log.DetectionPrecision},
                      new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
                      new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
+                     new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
                 return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
         }
-        public ResultViewModel AddLicensePlate(LicensePlate licensePlate)
+
+        public Task<ResultViewModel> AddManualPlateDetectionLog(ManualPlateDetectionLog log, int nestingDepthLevel = 4)
         {
-            
+            return Task.Run(() =>
+            {
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value =log.LicensePlate.EntityId},
+                    new SqlParameter("@UserId",SqlDbType.BigInt){Value = log.User.Id},
+                    new SqlParameter("@ParentLogId",SqlDbType.BigInt){Value = log.ParentLog.Id},
+                    new SqlParameter("@DetectorId", SqlDbType.Int) {Value = log.DetectorId},
+                    new SqlParameter("@EventId", SqlDbType.Int) {Value = log.EventLog.Code},
+                    new SqlParameter("@LogDateTime", SqlDbType.DateTime) {Value = log.LogDateTime},
+                    new SqlParameter("@Ticks", SqlDbType.BigInt) {Value = log.DateTimeTicks},
+                    new SqlParameter("@DetectionPrecision", SqlDbType.Int) {Value = log.DetectionPrecision},
+                    new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
+                    new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
+                    new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
+                };
+
+                return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
+            });
+        }
+        public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate)
+        {
+            return Task.Run(() =>
+            {
                 var parameters = new List<SqlParameter>
                 {
                     new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate.LicensePlateNumber},
@@ -69,7 +123,9 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@EndTime", SqlDbType.Time) {Value = licensePlate.EndTime},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertLicensePlate", parameters).Data.FirstOrDefault();
+                return _repository.ToResultList<ResultViewModel>("InsertLicensePlate", parameters).Data
+                    .FirstOrDefault();
+            });
         }
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate, int entityId, int nestingDepthLevel = 4)
         {

@@ -72,6 +72,7 @@ namespace Biovation.Domain
         public string UrlImage { get; set; }
         public byte[] FullImage { get; set; }
         public byte[] PlateImage { get; set; }
+        public int InOrOut { get; set; }
         public float DetectionPrecision { get; set; }
         public bool SuccessTransfer { get; set; }
         public int Total { get; set; }
