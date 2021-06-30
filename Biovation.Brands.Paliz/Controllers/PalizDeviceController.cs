@@ -963,7 +963,7 @@ namespace Biovation.Brands.Paliz.Controllers
                 {
                     CreatedAt = DateTimeOffset.Now,
                     CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUsers,
+                    TaskType = _taskTypes.DeleteUserFromTerminal,
                     Priority = _taskPriorities.Medium,
                     DeviceBrand = _deviceBrands.Paliz,
                     TaskItems = new List<TaskItem>(),
