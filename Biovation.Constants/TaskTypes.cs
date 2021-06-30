@@ -26,6 +26,7 @@ namespace Biovation.Constants
         public const string DeleteUserFromTerminalCode = "11111";
         public const string EnrollFaceFromTerminalCode = "11112";
         private const string GetAdditionalDataCode = "11113";
+        private const string SetDeviceDateTimeCode = "11114";
 
         public const string SendBlackListCode = "11601";
 
@@ -80,6 +81,7 @@ namespace Biovation.Constants
             ClearLog = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, ClearLogCode));
             GetLogsInPeriod = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsInPeriodCode));
             GetLogs = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsCode));
+            SetDeviceDateTime = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SetDeviceDateTimeCode));
 
 
             SendBlackList = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendBlackListCode));
@@ -120,6 +122,7 @@ namespace Biovation.Constants
         public Lookup ClearLog { get; set; }
         public Lookup GetLogsInPeriod { get; set; }
         public Lookup GetLogs { get; set; }
+        public Lookup SetDeviceDateTime { get; set; }
 
         public Lookup SendBlackList { get; set; }
 

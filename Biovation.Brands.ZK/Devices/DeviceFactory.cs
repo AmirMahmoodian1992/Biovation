@@ -78,6 +78,11 @@ namespace Biovation.Brands.ZK.Devices
                         return new IFace(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
                     }
 
+                case DeviceModels.BlackWhite:
+                {
+                    return new BlackWhite(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
+                }
+
                 default:
 
                     return new Device(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);

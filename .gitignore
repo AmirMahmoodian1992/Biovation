@@ -263,3 +263,4 @@ Atency/logs/*
 /Biovation.Data.Commands/LogPic/
 /Biovation.Dashboard/libman.json
 /Biovation.Data.Queries/libman.json
+/Biovation.Brands.PFK/err.txt

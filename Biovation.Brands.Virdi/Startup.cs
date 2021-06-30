@@ -12,7 +12,6 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
-using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -28,8 +27,25 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Biovation.Service.Api.v2;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceGroupService = Biovation.Service.Api.v1.DeviceGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using GenericCodeMappingService = Biovation.Service.Api.v1.GenericCodeMappingService;
+using LogService = Biovation.Service.Api.v1.LogService;
+using LookupService = Biovation.Service.Api.v1.LookupService;
+using SettingService = Biovation.Service.Api.v1.SettingService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserGroupService = Biovation.Service.Api.v1.UserGroupService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Brands.Virdi
 {
@@ -145,6 +161,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<DeviceGroupService, DeviceGroupService>();
             services.AddSingleton<DeviceService, DeviceService>();
             services.AddSingleton<FaceTemplateService, FaceTemplateService>();
+            services.AddSingleton<IrisTemplateService, IrisTemplateService>();
             services.AddSingleton<FingerTemplateService, FingerTemplateService>();
             services.AddSingleton<GenericCodeMappingService, GenericCodeMappingService>();
             services.AddSingleton<LogService, LogService>();
@@ -152,6 +169,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<SettingService, SettingService>();
             services.AddSingleton<TaskService, TaskService>();
             services.AddSingleton<TimeZoneService, TimeZoneService>();
+            services.AddSingleton<Biovation.Service.Api.v2.TimeZoneService, Biovation.Service.Api.v2.TimeZoneService>();
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
@@ -166,6 +184,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<DeviceGroupRepository, DeviceGroupRepository>();
             services.AddSingleton<DeviceRepository, DeviceRepository>();
             services.AddSingleton<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddSingleton<IrisTemplateRepository, IrisTemplateRepository>();
             services.AddSingleton<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddSingleton<GenericCodeMappingRepository, GenericCodeMappingRepository>();
             services.AddSingleton<LogRepository, LogRepository>();
@@ -209,6 +228,7 @@ namespace Biovation.Brands.Virdi
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+            var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 18);
 
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
@@ -216,6 +236,7 @@ namespace Biovation.Brands.Virdi
             var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
             var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var faceTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(14);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
 
             var lookups = new Lookups
@@ -229,6 +250,7 @@ namespace Biovation.Brands.Virdi
                 LogSubEvents = logSubEventsQuery.Result,
                 FingerTemplateType = fingerTemplateTypeQuery.Result,
                 FaceTemplateType = faceTemplateTypeQuery.Result,
+                IrisTemplateType = irisTemplateTypeQuery.Result,
                 LogEvents = logEventsQuery.Result,
                 MatchingTypes = matchingTypeQuery.Result
             };
@@ -238,6 +260,7 @@ namespace Biovation.Brands.Virdi
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
+                FaceTemplateTypeMappings = faceTemplateTypeMappingsQuery.Result?.Data?.Data,
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 
@@ -255,6 +278,7 @@ namespace Biovation.Brands.Virdi
             services.AddSingleton<TaskPriorities, TaskPriorities>();
             services.AddSingleton<FingerIndexNames, FingerIndexNames>();
             services.AddSingleton<FaceTemplateTypes, FaceTemplateTypes>();
+            services.AddSingleton<IrisTemplateTypes, IrisTemplateTypes>();
             services.AddSingleton<FingerTemplateTypes, FingerTemplateTypes>();
         }
         private void ConfigureVirdiServices(IServiceCollection services)

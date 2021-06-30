@@ -109,14 +109,14 @@ namespace Biovation.Domain
         /// زمان گزارش
         /// </summary>
         /// <value>زمان گزارش</value>
-        protected uint nDateTime { get; set; }
+        protected ulong nDateTime { get; set; }
 
         /// <summary>
         /// زمان گزارش
         /// </summary>
         /// <value>زمان گزارش</value>
-        [DataMapper(Mapper = typeof(BigIntToUIntMapper))]
-        public virtual uint DateTimeTicks
+        [DataMapper(Mapper = typeof(BigIntToULongMapper))]
+        public virtual ulong DateTimeTicks
         {
             get => nDateTime;
             set
@@ -124,7 +124,7 @@ namespace Biovation.Domain
                 if (nDateTime != default)
                     return;
                 
-                if ((long)value / 10000000000 > 0)
+                if (value / 10000000000 > 0)
                     value /= 10000000;
 
                 nDateTime = value;
