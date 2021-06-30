@@ -27,7 +27,7 @@ namespace Biovation.Brands.Suprema.Commands
 
         public SupremaSyncUsersOfDevice(TaskItem taskItem, Dictionary<uint, Device> devices, AccessGroupService accessGroupService, DeviceService deviceService, DeviceBrands deviceBrands, UserService userService)
         {
-            DeviceInfo = _deviceService.GetDevices(taskItem.DeviceId)?.Data?.Data.FirstOrDefault();
+            DeviceInfo = _deviceService.GetDevices(taskItem.DeviceId).GetAwaiter().GetResult()?.Data?.Data.FirstOrDefault();
             Devices = devices;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
@@ -42,7 +42,7 @@ namespace Biovation.Brands.Suprema.Commands
         {
             
             //var forceUpdate = new ForceUpdateService();
-            var allUserEvents = _userService.GetUsers(getTemplatesData: false)?.Data?.Data;
+            var allUserEvents = _userService.GetUsers(getTemplatesData: false).GetAwaiter().GetResult()?.Data?.Data;
             //forceUpdate.DeleteAllEvents(ConnectionType);
 
             if (DeviceInfo == null)
@@ -89,9 +89,9 @@ namespace Biovation.Brands.Suprema.Commands
             foreach (var @event in allUserEvents)
             {
                 //todo:usercode
-                var user = _userService.GetUsers( userId:@event.Id)?.Data?.Data.FirstOrDefault();
+                var user = _userService.GetUsers( userId:@event.Id).GetAwaiter().GetResult()?.Data?.Data.FirstOrDefault();
 
-                var userAccess = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                var userAccess = _accessGroupService.GetAccessGroups(user.Id).GetAwaiter().GetResult()?.Data?.Data;
 
                 var fullAccess = userAccess.FirstOrDefault(ua => ua.Id == 254);
                 var noAccess = userAccess.FirstOrDefault(ua => ua.Id == 253);
@@ -100,7 +100,7 @@ namespace Biovation.Brands.Suprema.Commands
                 //var validDevice = _deviceService.GetUserValidDevices(user.Id, ConnectionType);
 
                 var validDevice = new List<DeviceBasicInfo>();
-                var accessGroups = _accessGroupService.GetAccessGroups(user.Id)?.Data?.Data;
+                var accessGroups = _accessGroupService.GetAccessGroups(user.Id).GetAwaiter().GetResult()?.Data?.Data;
                 if (!accessGroups.Any())
                 {
                     continue;

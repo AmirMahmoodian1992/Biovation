@@ -59,7 +59,7 @@ namespace Biovation.Brands.Suprema.Commands
             if (!parseResult || userId == 0)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, zero or null user id is provided in data.{Environment.NewLine}", Validate = 0 };
 
-            var deviceBasicInfo = _deviceService.GetDevice(deviceId)?.Data;
+            var deviceBasicInfo = _deviceService.GetDevice(deviceId).GetAwaiter().GetResult()?.Data;
             if (deviceBasicInfo is null)
                 return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}, wrong or zero device id is provided.{Environment.NewLine}", Validate = 0 };
 
@@ -70,7 +70,7 @@ namespace Biovation.Brands.Suprema.Commands
             }
 
 
-            var user = _userService.GetUsers(userId:userId,getTemplatesData:true)?.Data?.Data.FirstOrDefault();
+            var user = _userService.GetUsers(userId:userId,getTemplatesData:true).GetAwaiter().GetResult()?.Data?.Data.FirstOrDefault();
 
             if (user == null)
             {
@@ -101,12 +101,12 @@ namespace Biovation.Brands.Suprema.Commands
             }
             catch (Exception)
             {
-                return new ResultViewModel { Id = deviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) }; ;
+                return new ResultViewModel { Id = deviceId, Message = "0", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
 
             #endregion transferUserToDevices
 
-            return new ResultViewModel { Id = deviceId, Message = "1", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) }; ;
+            return new ResultViewModel { Id = deviceId, Message = "1", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
         }
 
         public void Rollback()
