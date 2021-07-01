@@ -2,6 +2,7 @@
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Services.RelayController.Common;
+using CommandType = Biovation.Services.RelayController.Domain.CommandType;
 
 namespace Biovation.Services.RelayController.Commands
 {
@@ -27,7 +28,7 @@ namespace Biovation.Services.RelayController.Commands
             if (!Relay.FlashOn())
                 return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} flash on command failed !.", Code = 1, Id = Relay.RelayInfo.Id };
 
-
+            Relay.lastExecutedCommand = Tuple.Create(CommandType.FlashOn, DateTime.Now);
             return new ResultViewModel { Validate = 0, Success = true, Message = $"Relay Id: {Relay.RelayInfo.Id} started flashing successfully.", Code = 1, Id = Relay.RelayInfo.Id };
         }
     }

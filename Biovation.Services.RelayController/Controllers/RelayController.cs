@@ -35,7 +35,11 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
+                var command = _commandFactory.Factory(CommandType.Open, relayId);
+
+                if (!command.Success)
+                    return new ResultViewModel{Success = false, Message = command.Message, Id = 1, Code = 400};
+
                 var result = command.Data.Execute(priority);
                 return result;
             }
@@ -55,6 +59,9 @@ namespace Biovation.Services.RelayController.Controllers
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
                 var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
+                if (!command.Success)
+                    return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
+
                 var result = command.Data.Execute(priority);
                 return result;
             }
@@ -70,7 +77,7 @@ namespace Biovation.Services.RelayController.Controllers
         /// <param name="relayId"></param>
         /// <param name="messagePriority"></param>
         /// <returns></returns>
-        [Route("Contact/{relayId:int}")]
+        [Route("{relayId:int}/Contact")]
         [HttpPost]
         public ResultViewModel Contact([FromRoute] int relayId, string messagePriority = "13003")
         {
@@ -80,6 +87,9 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
                 var command = _commandFactory.Factory(CommandType.Contact, relayId);
+                if (!command.Success)
+                    return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
+
                 var result = command.Data.Execute(priority);
                 return result;
             }
@@ -95,7 +105,7 @@ namespace Biovation.Services.RelayController.Controllers
         /// <param name="relayId"></param>
         /// <param name="messagePriority"></param>
         /// <returns></returns>
-        [Route("TurnOn/{relayId:int}")]
+        [Route("{relayId:int}/TurnOn")]
         [HttpPost]
         public ResultViewModel TurnOn([FromRoute] int relayId, string messagePriority = "13003")
         {
@@ -105,6 +115,9 @@ namespace Biovation.Services.RelayController.Controllers
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
                 var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
+                if (!command.Success)
+                    return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
+
                 var result = command.Data.Execute(priority);
                 return result;
             }
@@ -114,7 +127,7 @@ namespace Biovation.Services.RelayController.Controllers
             }
         }
 
-        [Route("TurnOff/{relayId:int}")]
+        [Route("{relayId:int}/TurnOff")]
         [HttpPost]
         public ResultViewModel TurnOff([FromRoute] int relayId, string messagePriority = "13003")
         {
@@ -124,6 +137,9 @@ namespace Biovation.Services.RelayController.Controllers
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
                 var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
+                if (!command.Success)
+                    return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
+
                 var result = command.Data.Execute(priority);
                 return result;
             }
@@ -133,7 +149,7 @@ namespace Biovation.Services.RelayController.Controllers
             }
         }
 
-        [Route("FlashOn/{relayId:int}")]
+        [Route("{relayId:int}/FlashOn")]
         [HttpPost]
         public ResultViewModel FlashOn([FromRoute] int relayId, string messagePriority = "13003")
         {
@@ -143,6 +159,9 @@ namespace Biovation.Services.RelayController.Controllers
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
                 var command = _commandFactory.Factory(CommandType.FlashOn, relayId);
+                if (!command.Success)
+                    return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
+
                 var result = command.Data.Execute(priority);
                 return result;
             }
@@ -152,7 +171,7 @@ namespace Biovation.Services.RelayController.Controllers
             }
         }
 
-        [Route("FlashOff/{relayId:int}")]
+        [Route("{relayId:int}/FlashOff")]
         [HttpPost]
         public ResultViewModel FlashOff([FromRoute] int relayId, string messagePriority = "13003")
         {
@@ -162,6 +181,9 @@ namespace Biovation.Services.RelayController.Controllers
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
                 var command = _commandFactory.Factory(CommandType.FlashOff, relayId);
+                if (!command.Success)
+                    return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
+
                 var result = command.Data.Execute(priority);
                 return result;
             }

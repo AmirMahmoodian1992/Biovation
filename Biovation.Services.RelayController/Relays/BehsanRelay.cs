@@ -10,6 +10,7 @@ namespace Biovation.Services.RelayController.Relays
     public class BehsanRelay : IRelay
     {
         public Relay RelayInfo { get; set; }
+        public Tuple<int, DateTime> lastExecutedCommand { get; set; }
         private TcpClient _tcpClient;
         private Stream _stream;
         private readonly ASCIIEncoding _asciiEncoding;

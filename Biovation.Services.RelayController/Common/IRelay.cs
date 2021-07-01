@@ -1,11 +1,13 @@
-﻿using Biovation.Domain.RelayModels;
+﻿using System;
+using Biovation.Domain.RelayModels;
+
 
 namespace Biovation.Services.RelayController.Common
 {
     public interface IRelay
     {
         public Relay RelayInfo { get; set; }
-
+        public Tuple<int, DateTime> lastExecutedCommand { get; set; }
         public bool Connect();
         public bool Disconnect();
         public bool IsConnected();

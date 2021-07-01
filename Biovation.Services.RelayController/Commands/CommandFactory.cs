@@ -18,9 +18,8 @@ namespace Biovation.Services.RelayController.Commands
         public ResultViewModel<ICommand> Factory(int commandId, int relayId)
         {
             var relay = _getRelayService.GetRelay(relayId);
-            
-            //if (relay.Data.RelayInfo.NodeNumber > relay.Data.RelayInfo.RelayHub.Capacity)
-            //    throw new Exception("the relay node number is out of range!");
+            if (!relay.Success)
+                return new ResultViewModel<ICommand> { Validate = 0, Success = false, Message = $"relay Id :{relayId} is not connected", Data = null, Code = 400, Id = 1 };
 
 
             return commandId switch
@@ -30,6 +29,7 @@ namespace Biovation.Services.RelayController.Commands
                 CommandType.TurnOff => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new TurnOff(relay.Data), Code = 1, Id = commandId },
                 CommandType.FlashOn => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new FlashOn(relay.Data), Code = 1, Id = commandId },
                 CommandType.FlashOff => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new FlashOff(relay.Data), Code = 1, Id = commandId },
+                CommandType.Open => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new Open(relay.Data), Code = 1, Id = commandId },
                 _ => new ResultViewModel<ICommand> { Validate = 0, Success = false, Message = $"Command Id :{commandId} not found!.", Data = null, Code = 1, Id = commandId },
             };
         }

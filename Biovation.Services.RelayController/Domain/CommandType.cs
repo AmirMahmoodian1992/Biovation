@@ -9,5 +9,6 @@
         public const int FlashOff = 5;
         public const int GetData = 6;
         public const int GetStatus = 7;
+        public const int Open = 8;
     }
 }
