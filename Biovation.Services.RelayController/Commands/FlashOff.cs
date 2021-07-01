@@ -9,18 +9,21 @@ namespace Biovation.Services.RelayController.Commands
     public class FlashOff : ICommand
     {
         public IRelay Relay { get; set; }
+        public Lookup _priority { get; set; }
+        
 
-        public FlashOff(IRelay relay)
+        public FlashOff(IRelay relay, Lookup priority)
         {
             Relay = relay;
+            _priority = priority;
         }
 
-        public ResultViewModel Execute(Lookup priority)
+        public ResultViewModel Execute()
         {
             foreach (var scheduling in Relay.RelayInfo.Schedulings)
             {
                 if (DateTime.Now.TimeOfDay >= scheduling.StartTime & DateTime.Now.TimeOfDay <= scheduling.EndTime & scheduling.Mode.Name == "Open")
-                    if (priority.Code != TaskPriorities.ImmediateCode)
+                    if (_priority.Code != TaskPriorities.ImmediateCode)
                         return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} Contact failed !.\nthe command conflicts with the scheduling with scheduling ID: {scheduling.Id}.", Code = 1, Id = Relay.RelayInfo.Id };
             }
 

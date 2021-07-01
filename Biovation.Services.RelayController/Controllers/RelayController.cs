@@ -35,12 +35,12 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.Open, relayId);
+                var command = _commandFactory.Factory(CommandType.Open, relayId, priority);
 
                 if (!command.Success)
                     return new ResultViewModel{Success = false, Message = command.Message, Id = 1, Code = 400};
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)
@@ -58,11 +58,11 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
+                var command = _commandFactory.Factory(CommandType.TurnOff, relayId, priority);
                 if (!command.Success)
                     return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)
@@ -86,11 +86,11 @@ namespace Biovation.Services.RelayController.Controllers
                 _logger.Debug("Requesting relay contacting for relay {relayId} with priority {priorityCode}", relayId, messagePriority);
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
-                var command = _commandFactory.Factory(CommandType.Contact, relayId);
+                var command = _commandFactory.Factory(CommandType.Contact, relayId,priority);
                 if (!command.Success)
                     return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)
@@ -114,11 +114,11 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.TurnOn, relayId);
+                var command = _commandFactory.Factory(CommandType.TurnOn, relayId,priority);
                 if (!command.Success)
                     return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)
@@ -136,11 +136,11 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.TurnOff, relayId);
+                var command = _commandFactory.Factory(CommandType.TurnOff, relayId, priority);
                 if (!command.Success)
                     return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)
@@ -158,11 +158,11 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.FlashOn, relayId);
+                var command = _commandFactory.Factory(CommandType.FlashOn, relayId, priority);
                 if (!command.Success)
                     return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)
@@ -180,11 +180,11 @@ namespace Biovation.Services.RelayController.Controllers
                 var priority = _lookups.TaskPriorities.FirstOrDefault(tp =>
                     string.Equals(tp.Code, messagePriority, StringComparison.InvariantCultureIgnoreCase));
 
-                var command = _commandFactory.Factory(CommandType.FlashOff, relayId);
+                var command = _commandFactory.Factory(CommandType.FlashOff, relayId, priority);
                 if (!command.Success)
                     return new ResultViewModel { Success = false, Message = command.Message, Id = 1, Code = 400 };
 
-                var result = command.Data.Execute(priority);
+                var result = command.Data.Execute();
                 return result;
             }
             catch (Exception e)

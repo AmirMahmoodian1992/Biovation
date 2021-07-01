@@ -14,16 +14,18 @@ namespace Biovation.Services.RelayController.Commands
         private const int WaitTimeInSeconds = 10;
         private readonly Timer _stopTimer;
         public IRelay Relay { get; set; }
+        public Lookup _priority { get; set; }
 
-        public TurnOn(IRelay relay)
+        public TurnOn(IRelay relay, Lookup priority)
         {
             Relay = relay;
+            _priority = priority;
         }
 
-        public ResultViewModel Execute(Lookup priority)
+        public ResultViewModel Execute( )
         {
             foreach (var scheduling in Relay.RelayInfo.Schedulings.Where(scheduling => DateTime.Now.TimeOfDay >= scheduling.StartTime & DateTime.Now.TimeOfDay <= scheduling.EndTime &
-                scheduling.Mode.Name == "Close").Where(scheduling => priority.Code != TaskPriorities.ImmediateCode))
+                scheduling.Mode.Name == "Close").Where(scheduling => _priority.Code != TaskPriorities.ImmediateCode))
                 return new ResultViewModel { Validate = 0, Success = false, Message = $"Relay Id: {Relay.RelayInfo.Id} Contact failed !.\nthe command conflicts with the scheduling with scheduling ID: {scheduling.Id}.", Code = 1, Id = Relay.RelayInfo.Id };
 
             if (!Relay.TurnOn())

@@ -15,7 +15,7 @@ namespace Biovation.Services.RelayController.Commands
             _getRelayService = getRelayService;
         }
 
-        public ResultViewModel<ICommand> Factory(int commandId, int relayId)
+        public ResultViewModel<ICommand> Factory(int commandId, int relayId, Lookup commandPriority)
         {
             var relay = _getRelayService.GetRelay(relayId);
             if (!relay.Success)
@@ -24,12 +24,12 @@ namespace Biovation.Services.RelayController.Commands
 
             return commandId switch
             {
-                CommandType.Contact => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new Contact(relay.Data), Code = 1, Id = commandId },
-                CommandType.TurnOn => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new TurnOn(relay.Data), Code = 1, Id = commandId },
-                CommandType.TurnOff => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new TurnOff(relay.Data), Code = 1, Id = commandId },
-                CommandType.FlashOn => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new FlashOn(relay.Data), Code = 1, Id = commandId },
-                CommandType.FlashOff => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new FlashOff(relay.Data), Code = 1, Id = commandId },
-                CommandType.Open => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new Open(relay.Data), Code = 1, Id = commandId },
+                CommandType.Contact => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new Contact(relay.Data, commandPriority), Code = 1, Id = commandId },
+                CommandType.TurnOn => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new TurnOn(relay.Data, commandPriority), Code = 1, Id = commandId },
+                CommandType.TurnOff => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new TurnOff(relay.Data, commandPriority), Code = 1, Id = commandId },
+                CommandType.FlashOn => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new FlashOn(relay.Data, commandPriority), Code = 1, Id = commandId },
+                CommandType.FlashOff => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new FlashOff(relay.Data, commandPriority), Code = 1, Id = commandId },
+                CommandType.Open => new ResultViewModel<ICommand> { Validate = 0, Success = true, Message = $"Command Id :{commandId} is returned.", Data = new Open(relay.Data, commandPriority), Code = 1, Id = commandId },
                 _ => new ResultViewModel<ICommand> { Validate = 0, Success = false, Message = $"Command Id :{commandId} not found!.", Data = null, Code = 1, Id = commandId },
             };
         }
