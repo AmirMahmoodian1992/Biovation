@@ -3,8 +3,8 @@
   "profiles": {
     "Biovation.Services.RelayController": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "biovation/api/relay/contact/1",
+      //"launchBrowser": true,
+      //"launchUrl": "biovation/api/relay/contact/1",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
