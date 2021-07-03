@@ -360,6 +360,7 @@
     <None Remove="Scripts\05.Data\0020-Insert CameraModels-UP.sql" />
     <None Remove="Scripts\05.Data\0021-Insert ProtocolRemainAddresses-UP.sql" />
     <None Remove="Scripts\05.Data\0022-Insert ProtocolRemainAddressesCameraModel-UP.sql" />
+    <None Remove="Scripts\05.Data\0023-Insert RelayHubModel-UP.sql" />
     <None Remove="Scripts\06.Views\0001-Select TaskOrdered.sql" />
     <None Remove="Scripts\08.Indexes\0001-Log IX_DateTime_NonClustered.sql" />
     <None Remove="Scripts\08.Indexes\0002-Log IX_Device_NonClustered.sql" />
@@ -720,6 +721,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
+    <EmbeddedResource Include="Scripts\05.Data\0023-Insert RelayHubModel-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0022-Insert ProtocolRemainAddressesCameraModel-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0021-Insert ProtocolRemainAddresses-UP.sql" />
     <EmbeddedResource Include="Scripts\05.Data\0020-Insert CameraModels-UP.sql" />
