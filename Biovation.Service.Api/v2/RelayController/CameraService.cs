@@ -19,9 +19,9 @@ namespace Biovation.Service.Api.v2.RelayController
         }
 
         public async Task<ResultViewModel<PagingResult<Camera>>> GetCamera(long id = default, uint code = default, string name = default, string ip = default, int port = default,
-            string brandCode = default, int modelId = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
+            string brandCode = default, int modelId = default, string filterText = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
-            return await _cameraRepository.GetCamera(id, code, name, ip, port, brandCode, modelId, pageNumber, pageSize, nestingDepthLevel, token);
+            return await _cameraRepository.GetCamera(id, code, name, ip, port, brandCode, modelId, filterText, pageNumber, pageSize, nestingDepthLevel, token);
         }
 
         public async Task<ResultViewModel<PagingResult<CameraModel>>> GetCameraModel(long id = default,

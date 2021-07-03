@@ -66,7 +66,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
         }
 
         public ResultViewModel<PagingResult<Camera>> GetCamera(long adminUserId = default, long id = default, uint code = default, string name = default, string ip = default, int port = default,
-            string brandCode = default, int modelId = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
+            string brandCode = default, int modelId = default, string filterText = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
             {
@@ -78,6 +78,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@" + nameof(port), SqlDbType.Int) { Value = port},
                 new SqlParameter("@" + nameof(brandCode), SqlDbType.NVarChar){Value = brandCode},
                 new SqlParameter("@" + nameof(modelId), SqlDbType.Int){Value = modelId},
+                new SqlParameter("@" + nameof(filterText), SqlDbType.NVarChar){Value = filterText},
                 new SqlParameter("@" + nameof(pageNumber), SqlDbType.Int) {Value = pageNumber},
                 new SqlParameter("@" + nameof(pageSize), SqlDbType.Int) {Value = pageSize},
             };

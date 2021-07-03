@@ -19,9 +19,9 @@ namespace Biovation.Data.Queries.Controllers.v2.RelayController
         [HttpGet]
         [Authorize]
         public Task<ResultViewModel<PagingResult<Camera>>> Camera(long adminUserId = default, long id = default, uint code = default, string name = default, string ip = default, int port = default,
-            string brandCode = default, int modelId = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
+            string brandCode = default, int modelId = default, string filterText = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
-            return Task.Run(() => _cameraRepository.GetCamera(adminUserId, id, code, name, ip, port, brandCode, modelId,
+            return Task.Run(() => _cameraRepository.GetCamera(adminUserId, id, code, name, ip, port, brandCode, modelId, filterText,
                 pageNumber, pageSize, nestingDepthLevel));
         }
         [HttpGet]

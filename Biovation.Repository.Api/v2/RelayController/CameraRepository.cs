@@ -16,7 +16,7 @@ namespace Biovation.Repository.Api.v2.RelayController
         }
 
         public async Task<ResultViewModel<PagingResult<Camera>>> GetCamera(long id = default, uint code = default, string name = default, string ip = default, int port = default,
-            string brandCode = default, int modelId = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
+            string brandCode = default, int modelId = default, string filterText = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/Camera", Method.GET);
             restRequest.AddQueryParameter("id", id.ToString());
@@ -25,6 +25,7 @@ namespace Biovation.Repository.Api.v2.RelayController
             restRequest.AddQueryParameter(nameof(port), port.ToString());
             restRequest.AddQueryParameter(nameof(brandCode), brandCode ?? string.Empty);
             restRequest.AddQueryParameter(nameof(modelId), modelId.ToString());
+            restRequest.AddQueryParameter(nameof(filterText), filterText ?? string.Empty);
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("pageSize", pageSize.ToString());
             restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());

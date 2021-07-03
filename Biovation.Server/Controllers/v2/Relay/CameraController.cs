@@ -28,10 +28,10 @@ namespace Biovation.Server.Controllers.v2.Relay
         [Route("{id:int}")]
         [Attribute.Authorize]
         public async Task<ResultViewModel<PagingResult<Camera>>> Camera(long id = default, uint code = default, string name = default, string ip = default, int port = default,
-            string brandCode = default, int modelId = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
+            string brandCode = default, int modelId = default, string filterText = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var token = (string)HttpContext.Items["Token"];
-            return await _cameraService.GetCamera(id, code, name, ip, port, brandCode, modelId, pageNumber, pageSize,
+            return await _cameraService.GetCamera(id, code, name, ip, port, brandCode, modelId,filterText, pageNumber, pageSize,
                 nestingDepthLevel, token);
         }
 

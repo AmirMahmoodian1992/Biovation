@@ -55,7 +55,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
         }
 
         public ResultViewModel<PagingResult<RelayHub>> GetRelayHubs(int adminUserId = 0, int id = 0, string ipAddress = default, int port = 0, string name = default,
-            int capacity = 0, int relayHubModelId = default, string description = null, int pageNumber = 0,
+            int capacity = 0, int relayHubModelId = default, string description = null, string filterText = default, int pageNumber = 0,
             int pageSize = 0, int nestingDepthLevel = 4)
         {
             var sqlParameter = new List<SqlParameter>
@@ -68,6 +68,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                     new SqlParameter("@Capacity", SqlDbType.Int) {Value = capacity},
                     new SqlParameter("@RelayHubModelId", SqlDbType.Int) {Value = relayHubModelId},
                     new SqlParameter("@Description", SqlDbType.NVarChar) {Value = description},
+                    new SqlParameter("@" + nameof(filterText), SqlDbType.NVarChar) {Value = filterText},
                     new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                     new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize}
                 };

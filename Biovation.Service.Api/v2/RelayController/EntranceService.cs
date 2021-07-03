@@ -20,9 +20,9 @@ namespace Biovation.Service.Api.v2.RelayController
         }
 
         public async Task<ResultViewModel<PagingResult<Entrance>>> GetEntrances(int id = 0, string name = null, string description = null, int pageNumber = 0,
-            int pageSize = 0, int nestingDepthLevel = 4, int cameraId = default, int deviceId = default, int schedulingId = default, string token = default)
+            int pageSize = 0, int nestingDepthLevel = 4, int cameraId = default, int deviceId = default, int schedulingId = default, string filterText = default, string token = default)
         {
-            return await _entranceRepository.GetEntrances(id, name, pageNumber, pageSize, nestingDepthLevel, cameraId, deviceId, schedulingId, token);
+            return await _entranceRepository.GetEntrances(id, name, pageNumber, pageSize, nestingDepthLevel, cameraId, deviceId, schedulingId, filterText, token);
         }
 
         public async Task<ResultViewModel> UpdateEntrance(Entrance entrance, string token = default)
