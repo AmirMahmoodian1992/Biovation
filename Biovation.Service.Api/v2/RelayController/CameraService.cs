@@ -23,13 +23,12 @@ namespace Biovation.Service.Api.v2.RelayController
         {
             return await _cameraRepository.GetCamera(id, code, name, ip, port, brandCode, modelId, pageNumber, pageSize, nestingDepthLevel, token);
         }
+
         public async Task<ResultViewModel<PagingResult<CameraModel>>> GetCameraModel(long id = default,
             uint manufactureCode = default, string name = default, string brandCode = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4, string token = default)
         {
-           return await  _cameraRepository.GetCameraModel(id, manufactureCode, name, brandCode, pageNumber, pageSize, nestingDepthLevel);
-            
+            return await _cameraRepository.GetCameraModel(id, manufactureCode, name, brandCode, pageNumber, pageSize, nestingDepthLevel);
         }
-
 
         public async Task<ResultViewModel> UpdateCamera(Camera camera, string token = default)
         {
