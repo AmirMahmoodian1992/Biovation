@@ -68,6 +68,18 @@ namespace Biovation.Server.Controllers.v2.Relay
             };
         }
 
+        [HttpGet]
+        [Route("CameraConnectionProtocols")]
+        [AllowAnonymous]
+        public ResultViewModel<List<Lookup>> CameraConnectionProtocols()
+        {
+            return new ResultViewModel<List<Lookup>>()
+            {
+                Data = _lookups.CameraProtocol,
+                Validate = 1
+            };
+        }
+
         [HttpPost]
         [Attribute.Authorize]
         public Task<ResultViewModel> AddCamera([FromBody]  Camera camera = default)
