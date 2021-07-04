@@ -38,5 +38,15 @@ namespace Biovation.Service.Api.v2.RelayController
         {
             return await _relayRepository.DeleteRelay(id, token);
         }
+
+        public async Task<ResultViewModel> OpenRelay(int id, string messagePriority = "13003", string token = default)
+        {
+            return await _relayRepository.OpenRelay(id, messagePriority, token);
+        }
+
+        public async Task<ResultViewModel> CloseRelay(int id, string messagePriority = "13003", string token = default)
+        {
+            return await _relayRepository.CloseRelay(id, messagePriority, token);
+        }
     }
 }

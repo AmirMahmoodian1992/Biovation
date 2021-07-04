@@ -68,5 +68,20 @@ namespace Biovation.Server.Controllers.v2.Relay
             return Task.Run(() => _lookups.RelayType);
         }
 
+        [HttpPost]
+        [Route("{id:int}/Open")]
+        public async Task<ResultViewModel> Open([FromRoute] int id, string messagePriority = "13003")
+        {
+            var token = (string)HttpContext.Items["Token"];
+            return await _relayService.OpenRelay(id, messagePriority, token);
+        }
+
+        [HttpPost]
+        [Route("{id:int}/Close")]
+        public async Task<ResultViewModel> Close([FromRoute] int id, string messagePriority = "13003")
+        {
+            var token = (string)HttpContext.Items["Token"];
+            return await _relayService.CloseRelay(id, messagePriority, token);
+        }
     }
 }

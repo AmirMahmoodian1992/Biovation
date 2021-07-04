@@ -68,5 +68,27 @@ namespace Biovation.Repository.Api.v2.RelayController
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
         }
+
+        public async Task<ResultViewModel> OpenRelay(int id, string messagePriority = "13003", string token = default)
+        {
+            var restRequest = new RestRequest("relayController/Relay/{relayId}/Open", Method.POST);
+            restRequest.AddUrlSegment("relayId", id.ToString());
+            restRequest.AddQueryParameter("messagePriority", messagePriority);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            //restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
+        }
+
+        public async Task<ResultViewModel> CloseRelay(int id, string messagePriority = "13003", string token = default)
+        {
+            var restRequest = new RestRequest("relayController/Relay/{relayId}/TurnOff", Method.POST);
+            restRequest.AddUrlSegment("relayId", id.ToString());
+            restRequest.AddQueryParameter("messagePriority", messagePriority);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            //restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
+        }
     }
 }
