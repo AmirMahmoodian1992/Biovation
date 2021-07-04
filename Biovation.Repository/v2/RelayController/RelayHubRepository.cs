@@ -110,7 +110,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relayHub.Description}
             };
 
-            var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("InsertRelayHub", parameters).Data.FirstOrDefault();
+            var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("UpdateRelayHub", parameters).Data.FirstOrDefault();
             if (insertRelayHubRes == null || !insertRelayHubRes.Success) return insertRelayHubRes;
             if (relayHub.Relays.Select(relay => _relayRepository.UpdateRelay(relay)).Any(relayResult => !relayResult.Success))
             {
