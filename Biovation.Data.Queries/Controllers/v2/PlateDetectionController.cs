@@ -36,6 +36,14 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
+        [Route("PreviousPlateDetectionLog")]
+        public Task<ResultViewModel<PlateDetectionLog>> SelectPreviousPlateDetectionLog(int id = default, string licensePlateNumber = default, DateTime? logDateTime = null)
+        {
+            return Task.Run(() => _plateDetectionRepository.SelectPreviousPlateDetectionLog(id, licensePlateNumber, logDateTime));
+        }
+
+        [HttpGet]
+        [Authorize]
         [Route("ManualPlateDetectionLog")]
         public Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog(
             int logId = default, long userId = default, long parentLogId = default, string licensePlate = default,

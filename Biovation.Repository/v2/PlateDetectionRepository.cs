@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -18,7 +19,8 @@ namespace Biovation.Repository.Sql.v2
         {
             _repository = repository;
         }
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default,int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+
+        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
         int pageSize = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
@@ -39,7 +41,7 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                      new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
                 };
-                return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel<PagingResult<ManualPlateDetectionLog>> GetManualPlateDetectionLog(int logId = default,
@@ -70,8 +72,8 @@ namespace Biovation.Repository.Sql.v2
         }
         public ResultViewModel AddPlateDetectionLog(PlateDetectionLog log, int nestingDepthLevel = 4)
         {
-           
-                var parameters = new List<SqlParameter>
+
+            var parameters = new List<SqlParameter>
                 {
                     new SqlParameter("@LicensePlateid", SqlDbType.Int) {Value =log.LicensePlate.EntityId},
                      new SqlParameter("@DetectorId", SqlDbType.Int) {Value = log.DetectorId},
@@ -84,7 +86,7 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
         }
 
         public Task<ResultViewModel> AddManualPlateDetectionLog(ManualPlateDetectionLog log, int nestingDepthLevel = 4)
@@ -152,7 +154,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@IntervalEndFinishTime", SqlDbType.Time) {Value = intervalEndFinishTime!= default ? intervalEndStartTime :new TimeSpan(23,59,59)},
                 };
 
-                return _repository.ToResultList<ResultViewModel<List<LicensePlate>>>("SelectLicensePlate", parameters).Data.FirstOrDefault();
+            return _repository.ToResultList<ResultViewModel<List<LicensePlate>>>("SelectLicensePlate", parameters).Data.FirstOrDefault();
         }
 
         public ResultViewModel DeleteLicensePlate(LicensePlate licensePlate, DateTime modifiedAt, string modifiedBy,
@@ -173,6 +175,21 @@ namespace Biovation.Repository.Sql.v2
             };
             return _repository.ToResultList<ResultViewModel>("DeleteLicensePlate",
             parameters).Data.FirstOrDefault();
+        }
+
+        public Task<ResultViewModel<PlateDetectionLog>> SelectPreviousPlateDetectionLog(int id = default, string licensePlateNumber = default, DateTime? logDateTime = null)
+        {
+            return Task.Run(() =>
+            {
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@" + nameof(id), SqlDbType.Int) {Value = id},
+                    new SqlParameter("@" + nameof(licensePlateNumber), SqlDbType.NVarChar) {Value = licensePlateNumber},
+                    new SqlParameter("@" + nameof(logDateTime), SqlDbType.DateTime) {Value = logDateTime}
+                };
+
+                return _repository.ToResultList<PlateDetectionLog>("SelectPreviousPlateDetectionLog", parameters, fetchCompositions: true, compositionDepthLevel: 4).FetchFromResultList();
+            });
         }
     }
 }
