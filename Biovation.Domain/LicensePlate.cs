@@ -61,5 +61,25 @@ namespace Biovation.Domain
                 Console.WriteLine(e);
             }
         }
+
+        public void FillLicensePlateNumber(int firstPart, string secondPart, int thirdPart, int fourthPart)
+        {
+            var licensePlateNumber = fourthPart + secondPart + thirdPart + firstPart;
+            for (var i = 48; i < 58; i++)
+                licensePlateNumber = licensePlateNumber.Replace(Convert.ToChar(i), Convert.ToChar(1728 + i));
+
+            FirstPart = firstPart;
+            SecondPart = secondPart;
+            ThirdPart = thirdPart;
+            FourthPart = fourthPart;
+
+            LicensePlateNumber = licensePlateNumber;
+        }
+
+        public bool ValidateLicensePlateFormat()
+        {
+            var regexDetect = Regex.Match(LicensePlateNumber, PlatePattern);
+            return regexDetect.Success;
+        }
     }
 }
