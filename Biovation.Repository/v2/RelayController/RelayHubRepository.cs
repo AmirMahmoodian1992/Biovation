@@ -112,6 +112,15 @@ namespace Biovation.Repository.Sql.v2.RelayController
 
             var insertRelayHubRes =  _repository.ToResultList<ResultViewModel>("UpdateRelayHub", parameters).Data.FirstOrDefault();
             if (insertRelayHubRes == null || !insertRelayHubRes.Success) return insertRelayHubRes;
+
+            foreach (var relay in relayHub.Relays)
+            {
+                relay.RelayHub = new RelayHub
+                {
+                    Id = relayHub.Id
+                };
+            }
+
             if (relayHub.Relays.Select(relay => _relayRepository.UpdateRelay(relay)).Any(relayResult => !relayResult.Success))
             {
                 return new ResultViewModel()

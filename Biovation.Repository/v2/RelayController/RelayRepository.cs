@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Domain.RelayModels;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
 
 namespace Biovation.Repository.Sql.v2.RelayController
 {
@@ -20,7 +20,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
         }
 
         public ResultViewModel<PagingResult<Relay>> GetRelay(int adminUserId = 0, int id = 0,
-           string name = null, int nodeNumber = 0, int relayHubId =0, int relayTypeId = 0, int cameraId = 0, string description = null, int schedulingId = default, int deviceId = default,
+           string name = null, int nodeNumber = 0, int relayHubId = 0, int relayTypeId = 0, int cameraId = 0, string description = null, int schedulingId = default, int deviceId = default,
            int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 6)
         {
             var sqlParameter = new List<SqlParameter>
@@ -49,7 +49,7 @@ namespace Biovation.Repository.Sql.v2.RelayController
                 new SqlParameter("@NodeNumber", SqlDbType.Int) {Value = relay.NodeNumber},
                 new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relay.RelayHub.Id},
                 new SqlParameter("@relayTypeId", SqlDbType.Int) {Value = relay.RelayType.Code},
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description ?? string.Empty},
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description ?? string.Empty}
             };
 
             if (!(relay.Schedulings is null))
@@ -73,14 +73,25 @@ namespace Biovation.Repository.Sql.v2.RelayController
             var sqlParameter = new List<SqlParameter>
             {
                 new SqlParameter("@Id", SqlDbType.NVarChar) {Value = relay.Id},
-                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = relay.Name},
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = relay.Name ?? string.Empty},
                 new SqlParameter("@NodeNumber", SqlDbType.Int) {Value = relay.NodeNumber},
                 new SqlParameter("@relayHubId", SqlDbType.Int) {Value = relay.RelayHub.Id},
-                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description},
-                new SqlParameter("@SchedulingsJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) },
-                new SqlParameter("@DevicesJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Devices) },
-                new SqlParameter("@CamerasJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Cameras) },
+                new SqlParameter("@relayTypeId", SqlDbType.Int) {Value = relay.RelayType.Code},
+                new SqlParameter("@Description", SqlDbType.NVarChar) {Value = relay.Description ?? string.Empty}
             };
+
+            if (!(relay.Schedulings is null))
+            {
+                sqlParameter.Add(new SqlParameter("@SchedulingsJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Schedulings) });
+            }
+            if (!(relay.Devices is null))
+            {
+                sqlParameter.Add(new SqlParameter("@DevicesJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Devices) });
+            }
+            if (!(relay.Cameras is null))
+            {
+                sqlParameter.Add(new SqlParameter("@CamerasJson", SqlDbType.NVarChar) { Value = JsonConvert.SerializeObject(relay.Cameras) });
+            }
 
             return _repository.ToResultList<ResultViewModel>("UpdateRelay", sqlParameter).Data.FirstOrDefault();
         }
