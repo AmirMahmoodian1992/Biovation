@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -22,7 +22,7 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> AddLicensePlate([FromBody]LicensePlate licensePlate)
+        public async Task<ResultViewModel> AddLicensePlate([FromBody] LicensePlate licensePlate)
         {
             return await _plateDetectionService.AddLicensePlate(licensePlate, HttpContext.Items["Token"] as string);
         }
@@ -30,15 +30,15 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("PlateDetectionLog")]
-        public async Task<ResultViewModel> AddPlateDetectionLog([FromBody]PlateDetectionLog log)
+        public async Task<ResultViewModel> AddPlateDetectionLog([FromBody] PlateDetectionLog log)
         {
             return await _plateDetectionService.AddPlateDetectionLog(log, HttpContext.Items["Token"] as string);
         }
-        
+
         [HttpPost]
         [Authorize]
         [Route("ManualPlateDetectionLog")]
-        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody]ManualPlateDetectionLog log)
+        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] ManualPlateDetectionLog log)
         {
             return await _plateDetectionService.AddManualPlateDetectionLog(log, HttpContext.Items["Token"] as string);
         }
@@ -46,7 +46,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Authorize]
         [Route("PlateDetectionLog")]
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default,  int logId = default,
+        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
@@ -57,7 +57,7 @@ namespace Biovation.Server.Controllers.v2
             return await _plateDetectionService.GetPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
-        
+
         [HttpGet]
         [Authorize]
         [Route("ManualPlateDetectionLog")]
@@ -66,7 +66,7 @@ namespace Biovation.Server.Controllers.v2
             int pageSize = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            return await _plateDetectionService.GetManualPlateDetectionLog( logId, userId, parentLogId, licensePlate, detectorId, fromDate, toDate,
+            return await _plateDetectionService.GetManualPlateDetectionLog(logId, userId, parentLogId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 
@@ -78,5 +78,13 @@ namespace Biovation.Server.Controllers.v2
             return await _plateDetectionService.GetLicensePlate(licensePlate, entityId, token);
         }
 
+        [HttpGet]
+        [Authorize]
+        [Route("PreviousPlateDetectionLog")]
+        public async Task<ResultViewModel<PlateDetectionLog>> SelectPreviousPlateDetectionLog(int id = default, string licensePlateNumber = default, DateTime? logDateTime = null)
+        {
+            var token = HttpContext.Items["Token"] as string;
+            return await _plateDetectionService.SelectPreviousPlateDetectionLog(id, licensePlateNumber, logDateTime, token);
+        }
     }
 }

@@ -320,6 +320,7 @@
     <None Remove="Scripts\03.SPs\0198-Create InsertEntrance-UP.sql" />
     <None Remove="Scripts\03.SPs\0199-Create InsertRelayHub-UP.sql" />
     <None Remove="Scripts\03.SPs\0200-Create InsertRelay-UP.sql" />
+    <None Remove="Scripts\03.SPs\0200-Create SelectPreviousPlateDetectionLog-UP.sql" />
     <None Remove="Scripts\03.SPs\0201-Create InsertSheduling-UP.sql" />
     <None Remove="Scripts\03.SPs\0202-Create SelectEntrance-UP.sql" />
     <None Remove="Scripts\03.SPs\0203-Create SelectRelayHub-UP.sql" />
@@ -694,6 +695,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0194-Create SelectIrisTemplatesByFilter-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0196-Create ModifyIrisTemplates-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0195-Create DeleteIrisTemplates-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0200-Create SelectPreviousPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0215-Create UpdateCamera-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0218-Create InsertManualPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />

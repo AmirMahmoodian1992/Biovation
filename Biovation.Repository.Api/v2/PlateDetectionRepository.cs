@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Biovation.CommonClasses.Manager;
+using Biovation.Domain;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
-using Biovation.Domain;
-using RestSharp;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -61,7 +61,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog( int logId = default, long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog(int logId = default, long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
            int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
            int pageSize = default, string token = default)
         {
@@ -156,6 +156,20 @@ namespace Biovation.Repository.Api.v2
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
+        }
+
+        public async Task<ResultViewModel<PlateDetectionLog>> SelectPreviousPlateDetectionLog(int id = default, string licensePlateNumber = default, DateTime? logDateTime = null, string token = default)
+        {
+            var restRequest = new RestRequest("Queries/v2/PlateDetection/PreviousPlateDetectionLog", Method.GET);
+            restRequest.AddQueryParameter(nameof(id), id.ToString());
+            if (licensePlateNumber != null)
+                restRequest.AddQueryParameter(nameof(licensePlateNumber), licensePlateNumber);
+            if (logDateTime.HasValue)
+                restRequest.AddQueryParameter(nameof(logDateTime), logDateTime.Value.ToString(CultureInfo.CurrentCulture));
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PlateDetectionLog>>(restRequest);
             return requestResult.Data;
         }
     }
