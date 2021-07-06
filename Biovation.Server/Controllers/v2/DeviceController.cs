@@ -359,20 +359,24 @@ namespace Biovation.Server.Controllers.v2
                //    lock (onlineDevices)
                //        onlineDevices.AddRange(result.Data);
                //});
-                Parallel.ForEach(deviceBrands, async deviceBrand =>
+
+               var permissibleDevicesAwaiter = _deviceService.GetDevices(token: token);
+               //made synchronous because of the latency of the onlineDevices list getting full filled
+               Parallel.ForEach(deviceBrands, /*async*/ deviceBrand =>
                 {
                     var restRequest =
                         new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
 
-                    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+                    //var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+                    var result = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest).GetAwaiter().GetResult();
 
                     if (result.StatusCode != HttpStatusCode.OK) return;
                     lock (onlineDevices)
                         onlineDevices.AddRange(result.Data);
                 });
 
-               var permissibleDevices = (await _deviceService.GetDevices(token: token))?.Data?.Data;
 
+               var permissibleDevices = (await permissibleDevicesAwaiter)?.Data?.Data;
                if (permissibleDevices == null) return new List<DeviceBasicInfo>();
                permissibleDevices = onlineDevices.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
                return permissibleDevices;
