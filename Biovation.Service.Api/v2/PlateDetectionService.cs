@@ -47,9 +47,15 @@ namespace Biovation.Service.Api.v2
         {
             return await _plateDetectionRepository.AddPlateDetectionLog(log, token);
         }
-        public async Task<ResultViewModel> AddManualPlateDetectionLog(ManualPlateDetectionLog log, string token = default)
+
+        public async Task<ResultViewModel> AddManualPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
             return await _plateDetectionRepository.AddManualPlateDetectionLog(log, token);
+        }
+
+        public async Task<ResultViewModel> AddManualPlateDetectionLogOfExistLog(ManualPlateDetectionLog log, string token = default)
+        {
+            return await _plateDetectionRepository.AddManualPlateDetectionLogOfExistLog(log, token);
         }
 
         public async Task<ResultViewModel<PlateDetectionLog>> SelectPreviousPlateDetectionLog(int id = default, string licensePlateNumber = default, DateTime? logDateTime = null, string token = default)

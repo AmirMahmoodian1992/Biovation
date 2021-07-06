@@ -3,6 +3,7 @@ using Biovation.Server.Attribute;
 using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Biovation.Server.Controllers.v2
@@ -38,9 +39,26 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("ManualPlateDetectionLog")]
-        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] ManualPlateDetectionLog log)
+        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] PlateDetectionLog plateDetectionLogData)
         {
-            return await _plateDetectionService.AddManualPlateDetectionLog(log, HttpContext.Items["Token"] as string);
+            return await _plateDetectionService.AddManualPlateDetectionLog(plateDetectionLogData, HttpContext.Items["Token"] as string);
+        }
+
+        [HttpPut]
+        [Authorize]
+        [Route("{parentLogId:int}/ManualPlateDetectionLog")]
+        public async Task<ResultViewModel> AddManualPlateDetectionLogOfExistLog([FromRoute] int parentLogId, [FromBody] PlateDetectionLog manualLogData)
+        {
+            var parentLogData = await _plateDetectionService.GetPlateDetectionLog(logId: parentLogId);
+            if (parentLogData?.Data?.Data?.FirstOrDefault() is null || !parentLogData.Success)
+                return new ResultViewModel { Success = false, Code = 400, Message = "Wrong parent log id provided" };
+
+            var plateDetectionLogData = new ManualPlateDetectionLog(manualLogData)
+            {
+                ParentLog = parentLogData.Data.Data.FirstOrDefault()
+            };
+
+            return await _plateDetectionService.AddManualPlateDetectionLog(plateDetectionLogData, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]

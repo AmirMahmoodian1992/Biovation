@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Biovation.Repository.Sql.v2
@@ -95,9 +94,9 @@ namespace Biovation.Repository.Sql.v2
             {
                 var parameters = new List<SqlParameter>
                 {
-                    new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value =log.LicensePlate.EntityId},
+                    new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value =log.LicensePlate.LicensePlateNumber},
                     new SqlParameter("@UserId",SqlDbType.BigInt){Value = log.User.Id},
-                    new SqlParameter("@ParentLogId",SqlDbType.BigInt){Value = log.ParentLog.Id},
+                    new SqlParameter("@ParentLogId",SqlDbType.BigInt){Value = log.ParentLog?.Id ?? 0},
                     new SqlParameter("@DetectorId", SqlDbType.Int) {Value = log.DetectorId},
                     new SqlParameter("@EventId", SqlDbType.Int) {Value = log.EventLog.Code},
                     new SqlParameter("@LogDateTime", SqlDbType.DateTime) {Value = log.LogDateTime},
