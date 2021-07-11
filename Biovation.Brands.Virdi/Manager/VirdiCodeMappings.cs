@@ -19,6 +19,9 @@ namespace Biovation.Brands.Virdi.Manager
             _virdiFingerTemplateTypeMappings = genericCodeMappings.FingerTemplateTypeMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
 
+            _virdiFaceTemplateTypeMappings = genericCodeMappings.FaceTemplateTypeMappings.Where(
+                genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
+
             _virdiMatchingTypeMappings = genericCodeMappings.MatchingTypeMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.VirdiCode).ToList();
         }
@@ -26,6 +29,7 @@ namespace Biovation.Brands.Virdi.Manager
         private readonly List<GenericCodeMapping> _virdiLogSubEventMappings;
 
         private readonly List<GenericCodeMapping> _virdiFingerTemplateTypeMappings;
+        private readonly List<GenericCodeMapping> _virdiFaceTemplateTypeMappings;
 
         private readonly List<GenericCodeMapping> _virdiMatchingTypeMappings;
 
@@ -41,6 +45,15 @@ namespace Biovation.Brands.Virdi.Manager
         public Lookup GetMatchingTypeGenericLookup(int virdiCode)
         {
             return _virdiMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, virdiCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
+        }
+        public Lookup GetFaceTemplateTypeLookup(string faceCode)
+        {
+            return _virdiFaceTemplateTypeMappings.FirstOrDefault(faceTemplateType => string.Equals(faceTemplateType.ManufactureCode, faceCode, StringComparison.InvariantCultureIgnoreCase))?.GenericValue;
+        }
+
+        public string GetFaceTemplateManufactureCode(string faceCode)
+        {
+            return _virdiFaceTemplateTypeMappings.FirstOrDefault(faceTemplateType => string.Equals(faceTemplateType.GenericValue.Code, faceCode, StringComparison.InvariantCultureIgnoreCase))?.ManufactureCode;
         }
     }
 }

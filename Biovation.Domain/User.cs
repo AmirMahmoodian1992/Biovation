@@ -130,6 +130,9 @@ namespace Biovation.Domain
         public List<FingerTemplate> FingerTemplates { get; set; }
         [OneToMany]
         public List<FaceTemplate> FaceTemplates { get; set; }
+
+        [OneToMany]
+        public List<IrisTemplate> IrisTemplates { get; set; }
         [OneToOne]
         public IdentityCard IdentityCard { get; set; }
 
@@ -139,7 +142,7 @@ namespace Biovation.Domain
             return Convert.ToInt32(StartDate.Ticks / 10000000 - refDate);
         }
 
-        public void SetStartDateFromTicks(int startDateTicks)
+        public void SetStartDateFromTicks(long startDateTicks)
         {
             StartDate = new DateTime(1970, 1, 1).AddTicks(startDateTicks);
         }
@@ -150,7 +153,7 @@ namespace Biovation.Domain
             return Convert.ToInt32(EndDate.Ticks / 10000000 - refDate);
         }
 
-        public void SetEndDateFromTicks(int endDateTicks)
+        public void SetEndDateFromTicks(long endDateTicks)
         {
             EndDate = new DateTime(1970, 1, 1).AddTicks(endDateTicks);
         }

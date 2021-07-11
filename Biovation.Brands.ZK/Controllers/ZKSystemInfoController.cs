@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Biovation.Domain;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
 using System.Reflection;
-using Biovation.Domain;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Biovation.Brands.ZK.Controllers
 {
@@ -25,6 +25,6 @@ namespace Biovation.Brands.ZK.Controllers
         public void StopService()
         {
             Environment.Exit(0);
-        }   
+        }
     }
 }

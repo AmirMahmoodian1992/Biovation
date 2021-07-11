@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Biovation.Domain;
+﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
 {
@@ -15,10 +15,11 @@ namespace Biovation.Service.Api.v2
         }
 
         public async Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroups(long userId = default,
-            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5, string token = default)
+            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int timeZoneId = 0,
+            int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
             return await _accessGroupRepository.GetAccessGroups(userId, userGroupId, id, deviceId, deviceGroupId,
-                pageNumber, pageSize, nestingDepthLevel, token);
+                timeZoneId, pageNumber, pageSize, nestingDepthLevel, token);
         }
 
         public async Task<ResultViewModel<AccessGroup>> GetAccessGroup(int id = default, int nestingDepthLevel = 4, string token = default)

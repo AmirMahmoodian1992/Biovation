@@ -46,7 +46,7 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPost]
         [Route("/DeleteUsers")]
         [Authorize]
-        public Task<ResultViewModel> DeleteUsers([FromBody]List<int> ids = default)
+        public Task<ResultViewModel> DeleteUsers([FromBody]List<long> ids = default)
         {
             return Task.Run(() => _userRepository.DeleteUsers(ids));
         }

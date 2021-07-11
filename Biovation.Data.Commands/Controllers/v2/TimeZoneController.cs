@@ -17,28 +17,27 @@ namespace Biovation.Data.Commands.Controllers.v2
             _timeZoneRepository = timeZoneRepository;
         }
 
-        [HttpPut]
+        [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> AddTimeZone([FromBody] TimeZone timeZone)
+        public async Task<ResultViewModel> AddTimeZone([FromBody] TimeZone timeZone)
         {
-            return Task.Run(() => _timeZoneRepository.AddTimeZone(timeZone));
+            return await Task.Run(() => _timeZoneRepository.AddTimeZone(timeZone));
         }
 
         [HttpPut]
         [Authorize]
-        public Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone)
+        [Route("{id}")]
+        public async Task<ResultViewModel> ModifyTimeZone([FromBody] TimeZone timeZone)
         {
-            return Task.Run(() => _timeZoneRepository.ModifyTimeZone(timeZone));
+            return await Task.Run(() => _timeZoneRepository.ModifyTimeZone(timeZone));
         }
 
         [HttpDelete]
-        [Route("{id}")]
         [Authorize]
-
-        public Task<ResultViewModel> DeleteTimeZone([FromRoute] int id)
+        [Route("{id}")]
+        public async Task<ResultViewModel> DeleteTimeZone([FromRoute] int id)
         {
-            return Task.Run(() => _timeZoneRepository.DeleteTimeZone(id));
+            return await Task.Run(() => _timeZoneRepository.DeleteTimeZone(id));
         }
-
     }
 }

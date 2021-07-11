@@ -15,11 +15,11 @@ namespace Biovation.Service.Api.v2
         }
 
         public async Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default,
-            int size = default, bool getTemplatesData = default, long userId = default, long code = default, string filterText = default,
+            int size = default, bool getTemplatesData = default, long userId = default, long userGroupId = default, long code = default, string filterText = default,
             int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return await _userRepository.GetUsers(from, size, getTemplatesData, userId, code, filterText, type,
+            return await _userRepository.GetUsers(from, size, getTemplatesData, userId, userGroupId, code, filterText, type,
                 withPicture, isAdmin, pageNumber, pageSize, token);
         }
 
@@ -43,7 +43,7 @@ namespace Biovation.Service.Api.v2
             return await _userRepository.DeleteUser(id, token);
         }
 
-        public async Task<ResultViewModel> DeleteUsers(List<int> ids = default, string token = default)
+        public async Task<ResultViewModel> DeleteUsers(List<long> ids = default, string token = default)
         {
             return await _userRepository.DeleteUsers(ids, token);
         }

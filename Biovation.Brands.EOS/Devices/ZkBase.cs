@@ -24,7 +24,6 @@ namespace Biovation.Brands.EOS.Devices
 {
     public class ZkBaseDevice : Device, IDisposable
     {
-        protected readonly DeviceBasicInfo DeviceInfo;
         private readonly TaskService _taskService;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -64,7 +63,6 @@ namespace Biovation.Brands.EOS.Devices
             FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes)
             : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
-            DeviceInfo = deviceInfo;
             _logService = logService;
             _taskService = taskService;
             UserService = userService;
@@ -88,6 +86,12 @@ namespace Biovation.Brands.EOS.Devices
 
         public override bool Connect()
         {
+            if (_onlineDevices.ContainsKey(base.DeviceInfo.Code))
+            {
+                _onlineDevices[base.DeviceInfo.Code].Disconnect();
+                _onlineDevices.Remove(base.DeviceInfo.Code);
+            }
+
             lock (ZkTecoSdk)
             {
                 if (!string.IsNullOrEmpty(DeviceInfo.DeviceLockPassword))
@@ -1291,7 +1295,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
         }
-        public Dictionary<string, string> GetAdditionalData(int code)
+        public override Dictionary<string, string> GetAdditionalData(int code)
         {
             lock (ZkTecoSdk)
             {
@@ -1303,6 +1307,12 @@ namespace Biovation.Brands.EOS.Devices
                 var pwdCnt = 0;
                 var opLogCnt = 0;
                 var faceCnt = 0;
+                var dwYear = 0;
+                var dwMonth = 0;
+                var dwDay = 0;
+                var dwHour = 0;
+                var dwMinute = 0;
+                var dwSecond = 0;
                 ZkTecoSdk.EnableDevice(code, false); //disable the device
 
                 ZkTecoSdk.GetDeviceStatus(code, 2, ref userCount);
@@ -1312,6 +1322,8 @@ namespace Biovation.Brands.EOS.Devices
                 ZkTecoSdk.GetDeviceStatus(code, 5, ref opLogCnt);
                 ZkTecoSdk.GetDeviceStatus(code, 6, ref recordCnt);
                 ZkTecoSdk.GetDeviceStatus(code, 21, ref faceCnt);
+                ZkTecoSdk.GetDeviceTime(code, ref dwYear, ref dwMonth, ref dwDay, ref dwHour, ref dwMinute, ref dwSecond);
+                var deviceDateTime = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
                 dic.Add("UserCount", userCount.ToString());
                 dic.Add("AdminCount", adminCnt.ToString());
                 dic.Add("FPCount", fpCnt.ToString());
@@ -1319,6 +1331,8 @@ namespace Biovation.Brands.EOS.Devices
                 dic.Add("OpLogCount", opLogCnt.ToString());
                 dic.Add("RecordCount", recordCnt.ToString());
                 dic.Add("FaceCount", faceCnt.ToString());
+                dic.Add("Date", deviceDateTime.Date.ToString(CultureInfo.InvariantCulture));
+                dic.Add("Time", deviceDateTime.TimeOfDay.ToString());
 
                 var sFirmwareVersion = "";
                 var sMac = "";

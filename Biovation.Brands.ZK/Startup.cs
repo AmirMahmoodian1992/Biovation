@@ -23,19 +23,22 @@ using RestSharp;
 using Serilog;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Biovation.Domain;
 using Log = Serilog.Log;
+using TimeSpanToStringConverter = Biovation.Brands.ZK.Manager.TimeSpanToStringConverter;
 
 namespace Biovation.Brands.ZK
 {
     public class Startup
     {
-        //private readonly ZkTecoServer _zkTecoServer;
+        private readonly IHostEnvironment _environment;
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
+            _environment = environment;
             Configuration = configuration;
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -72,6 +75,8 @@ namespace Biovation.Brands.ZK
             //services.AddMvcCore().AddMetricsCore();
             services.AddHealthChecks();
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -85,39 +90,44 @@ namespace Biovation.Brands.ZK
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-            #region checkLock
-
-            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            try
+            if (!_environment.IsDevelopment())
             {
-                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-                if (!requestResult.Result.Data.Success)
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
                 {
-                    Logger.Log("The Lock is not active", logType: LogType.Warning);
-                    try
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
                     {
-                        if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
                         {
-                            Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}",
+                                    logType: LogType.Warning);
+                            }
                         }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
                     }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
                     Environment.Exit(0);
                 }
-            }
-            catch (Exception)
-            {
-                Logger.Log("The connection with Lock service has a problem");
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-                Environment.Exit(0);
-            }
 
 
-            #endregion
+                #endregion
+            }
 
             services.AddSingleton(restClient);
 

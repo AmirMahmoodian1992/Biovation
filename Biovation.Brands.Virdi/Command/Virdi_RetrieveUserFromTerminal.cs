@@ -3,7 +3,6 @@ using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
-using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -11,8 +10,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v2;
 using UCBioBSPCOMLib;
 using UCSAPICOMLib;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserService = Biovation.Service.Api.v1.UserService;
+
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -38,13 +46,15 @@ namespace Biovation.Brands.Virdi.Command
         private readonly DeviceService _deviceService;
         private readonly UserCardService _userCardService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
+        private readonly IrisTemplateTypes _irisTemplateTypes;
         private readonly AccessGroupService _accessGroupService;
         private readonly FaceTemplateService _faceTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FingerTemplateService _fingerTemplateService;
+        private readonly IrisTemplateService _irisTemplateService;
         private readonly BiometricTemplateManager _biometricTemplateManager;
 
-        public VirdiRetrieveUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager)
+        public VirdiRetrieveUserFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, UCSAPI ucsApi, TaskService taskService, UserService userService, DeviceService deviceService, UserCardService userCardService, FaceTemplateTypes faceTemplateTypes, AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, FingerTemplateTypes fingerTemplateTypes, FingerTemplateService fingerTemplateService, BiometricTemplateManager biometricTemplateManager, IrisTemplateService irisTemplateService, IrisTemplateTypes irisTemplateTypes)
         {
             _virdiServer = virdiServer;
             _ucsApi = ucsApi;
@@ -57,6 +67,8 @@ namespace Biovation.Brands.Virdi.Command
             _fingerTemplateTypes = fingerTemplateTypes;
             _fingerTemplateService = fingerTemplateService;
             _biometricTemplateManager = biometricTemplateManager;
+            _irisTemplateService = irisTemplateService;
+            _irisTemplateTypes = irisTemplateTypes;
 
             var ucBioBsp = new UCBioBSPClass();
             _fpData = ucBioBsp.FPData as IFPData;
@@ -66,7 +78,7 @@ namespace Biovation.Brands.Virdi.Command
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
-            
+
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             UserId = (int)data["userId"];
@@ -74,8 +86,7 @@ namespace Biovation.Brands.Virdi.Command
         }
 
         public object Execute()
-        {
-            if (OnlineDevices.All(device => device.Key != Code))
+        { if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"RetriveUser,The device: {Code} is not connected.");
                 return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 1 };
@@ -84,7 +95,7 @@ namespace Biovation.Brands.Virdi.Command
             try
             {
                 //Callbacks.ModifyUserData = true;
-                _ucsApi.EventGetUserData += GetUserDataCallback;
+                //_ucsApi.EventGetUserData += GetUserDataCallback;
                 _virdiServer.TerminalUserData.GetUserDataFromTerminal(TaskItemId, (int)Code, UserId);
 
                 Logger.Log(GetDescription());
@@ -239,7 +250,7 @@ namespace Biovation.Brands.Virdi.Command
 
                             for (var i = 0; i < nFpDataCount; i++)
                             {
-                                var sameTemplateExists = false;
+                                //var sameTemplateExists = false;
                                 var fingerIndex = _terminalUserData.FingerID[i];
                                 if (existUser != null)
                                 {
@@ -264,34 +275,34 @@ namespace Biovation.Brands.Virdi.Command
                                         if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
                                         if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
 
-                                        if (_fpData == null) continue;
-                                        _fpData.ClearFPData();
-                                        _fpData.Import(1, _terminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
+                                        //if (_fpData == null) continue;
+                                        //_fpData.ClearFPData();
+                                        //_fpData.Import(1, _terminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
 
-                                        var deviceTemplate = _fpData.TextFIR;
+                                        //var deviceTemplate = _fpData.TextFIR;
                                         var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id)).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
 
                                         if (fingerTemplates.Exists(ft => ft.CheckSum == firstSampleCheckSum) || fingerTemplates.Exists(ft => ft.CheckSum == secondSampleCheckSum))
                                             continue;
 
-                                        for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
-                                        {
-                                            if (_fpData == null) continue;
-                                            _fpData.ClearFPData();
-                                            _fpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
-                                                fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
-                                            var firTemplate = _fpData.TextFIR;
-                                            lock (_matching)
-                                            {
-                                                _matching.VerifyMatch(deviceTemplate, firTemplate);
-                                                if (_matching.MatchingResult == 0) continue;
-                                            }
+                                        //for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
+                                        //{
+                                        //    if (_fpData == null) continue;
+                                        //    _fpData.ClearFPData();
+                                        //    _fpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
+                                        //        fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
+                                        //    var firTemplate = _fpData.TextFIR;
+                                        //    lock (_matching)
+                                        //    {
+                                        //        _matching.VerifyMatch(deviceTemplate, firTemplate);
+                                        //        if (_matching.MatchingResult == 0) continue;
+                                        //    }
 
-                                            sameTemplateExists = true;
-                                            break;
-                                        }
+                                        //    sameTemplateExists = true;
+                                        //    break;
+                                        //}
 
-                                        if (sameTemplateExists) continue;
+                                        //if (sameTemplateExists) continue;
 
                                         user.FingerTemplates.Add(new FingerTemplate
                                         {
@@ -380,6 +391,8 @@ namespace Biovation.Brands.Virdi.Command
                             Logger.Log(e);
                         }
 
+
+
                         //Face
                         try
                         {
@@ -407,6 +420,8 @@ namespace Biovation.Brands.Virdi.Command
                                     CheckSum = faceData.Sum(x => x),
                                     Size = faceData.Length
                                 };
+
+
                                 if (existUser != null)
                                 {
                                     if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
@@ -427,6 +442,101 @@ namespace Biovation.Brands.Virdi.Command
                             Logger.Log(e);
                         }
                         //}
+
+                        //WalkThroughFace
+                        try
+                        {
+                            var walkThroughLenght = _terminalUserData.WalkThroughLength;
+                            if (walkThroughLenght > 0)
+                            {
+                                var faceWalkData = _terminalUserData.WalkThroughData;
+
+                                if (user.FaceTemplates is null)
+                                    user.FaceTemplates = new List<FaceTemplate>();
+
+                                var userFaces = _faceTemplateService.FaceTemplates(userId: user.Id);
+                                //existUser.FaceTemplates = new List<FaceTemplate>();
+
+                                if (existUser != null)
+                                    existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
+
+                                
+                                var faceData = (byte[])faceWalkData;
+                                var faceTemplate = new FaceTemplate
+                                {
+                                    Index = 1,
+                                    FaceTemplateType = _faceTemplateTypes.VWTFACE,
+                                    UserId = user.Id,
+                                    Template = faceData,
+                                    CheckSum = faceData.Sum(x => x),
+                                    Size = walkThroughLenght
+                                };
+
+                                if (existUser != null)
+                                {
+                                    if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VWTFACECode))
+                                        user.FaceTemplates.Add(faceTemplate);
+                                }
+                                else
+                                    user.FaceTemplates.Add(faceTemplate);
+
+                                if (user.FaceTemplates.Any())
+                                    foreach (var faceTemplates in user.FaceTemplates)
+                                    {
+                                        _faceTemplateService.ModifyFaceTemplate(faceTemplates);
+                                    }
+
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
+
+
+                        //Iris
+                        try
+                        {
+                            var irisDataLength = _terminalUserData.IrisDataLength;
+                            if (irisDataLength > 0)
+                            {
+                                var irisData = _terminalUserData.IrisData;
+                                if (user.IrisTemplates is null)
+                                    user.IrisTemplates = new List<IrisTemplate>();
+                                var userIrises = _irisTemplateService.IrisTemplates(userId: user.Id);
+                                if (existUser != null)
+                                    existUser.IrisTemplates = (userIrises.Any() ? userIrises : new List<IrisTemplate>());
+                                var irisTemplateData = (byte[]) irisData;
+                                var irisTemplate = new IrisTemplate
+                                {
+                                    Index = 1,
+                                    IrisTemplateType = _irisTemplateTypes.VIris,
+                                    UserId = user.Id,
+                                    Template = irisTemplateData,
+                                    CheckSum = irisTemplateData.Sum(x => x),
+                                    Size = irisDataLength
+                                };
+
+                                if (existUser != null)
+                                {
+                                    if (!existUser.IrisTemplates.Exists(fp => fp.IrisTemplateType.Code == IrisTemplateTypes.VIrisCode))
+                                        user.IrisTemplates.Add(irisTemplate);
+                                }
+                                else
+                                    user.IrisTemplates.Add(irisTemplate);
+
+                                if (user.IrisTemplates.Any())
+                                    foreach (var irisTemplates in user.IrisTemplates)
+                                    {
+                                        _irisTemplateService.ModifyIrisTemplate(irisTemplates);
+                                    }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
+
 
                         if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
                         {
@@ -491,7 +601,7 @@ namespace Biovation.Brands.Virdi.Command
                 Logger.Log($"--> Error On GetUserDataCallback Error: {e.Message} ");
             }
 
-            _ucsApi.EventGetUserData -= GetUserDataCallback;
+            //_ucsApi.EventGetUserData -= GetUserDataCallback;
         }
 
         public void Rollback()

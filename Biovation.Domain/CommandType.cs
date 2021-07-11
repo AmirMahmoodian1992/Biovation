@@ -24,6 +24,7 @@ namespace Biovation.Domain
         public const int RetrieveUserFromDevice = 19;
         public const int RetrieveUsersListFromDevice = 20;
         public const int EnrollFaceFromDevice = 21;
+        public const int SetDeviceDateTime = 22;
         public const int GetUsersOfDevice = 101;
         public const int GetOnlineDevices = 102;
         public const int OpenDoor = 103;

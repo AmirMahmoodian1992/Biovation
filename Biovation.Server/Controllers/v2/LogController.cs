@@ -22,11 +22,11 @@ namespace Biovation.Server.Controllers.v2
         }
 
         [HttpGet]
-        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default,
+        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default,int deviceGroupId = default, int deviceId = default,
                         int userId = default, bool? successTransfer = null, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
                         int pageSize = default, string where = default, string order = default)
         {
-            return await _logService.Logs(id, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize, where, order, HttpContext.Items["Token"] as string);
+            return await _logService.Logs(id, deviceGroupId, deviceId, userId, successTransfer, fromDate, toDate, pageNumber, pageSize, where, order, HttpContext.Items["Token"] as string);
         }
 
         [HttpGet]
@@ -56,7 +56,7 @@ namespace Biovation.Server.Controllers.v2
             try
             {
                 var token = HttpContext.Items["Token"] as string;
-                var logs = (await _logService.Logs(default, deviceId, userId, resendLogs ? (bool?)null : false,
+                var logs = (await _logService.Logs(default,default, deviceId, userId, resendLogs ? (bool?)null : false,
                     fromDate, toDate, default, default, where, default, token))?.Data?.Data;
                 await _logService.TransferLogBulk(logs, token);
                 return new ResultViewModel { Validate = 1, Code = logs?.Count ?? 0, Message = logs?.Count.ToString() };
