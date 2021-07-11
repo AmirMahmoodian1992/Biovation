@@ -174,7 +174,7 @@ namespace Biovation.Server.Controllers.v1
 
                     var result = _userService.ModifyUser(user, _kasraAdminToken);
 
-                    if (result.Success)
+                    if (result != null && result.Success)
                     {
 #pragma warning disable 4014
                         Task.Run(async () =>

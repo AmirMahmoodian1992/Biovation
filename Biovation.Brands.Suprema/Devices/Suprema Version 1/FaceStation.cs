@@ -188,7 +188,9 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //}
 
             //var faceTemplate = faceService.GetFaceTemplate(nUserIdn, ConnectionType);
-            var faceTemplate = (_faceTemplateService.FaceTemplates(userId:userData.Id).Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)).ToList();
+            //var faceTemplate = (_faceTemplateService.FaceTemplates(userId:userData.Id).Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)).ToList();
+            var faceTemplate = userData.FaceTemplates?.Where(x => x.FaceTemplateType.Code == _faceTemplateTypes.SFACE.Code)?.ToList();
+            
             var rowCount = faceTemplate.Count;
 
             if (rowCount > 0) hasFaceTemplate = true;
@@ -868,7 +870,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var receivedLog = new SupremaLog
                     {
-                        DateTimeTicks = (uint)record.eventTime,
+                        DateTimeTicks = (ulong)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         DeviceCode = DeviceInfo.Code,
                         InOutMode = DeviceInfo.DeviceTypeId,
@@ -1004,7 +1006,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         {
             foreach (var log in logList)
             {
-                if (log.EventLog.Code == _logEvents.Authorized.Code || log.EventLog.Code == _logEvents.IdentifySuccessFace.Code)
+                if (log.EventLog.Code == _logEvents.Authorized.Code || log.EventLog.Code == _logEvents.IdentifySuccessFace?.Code)
                 {
                     GetImageOfFaceLog(log);
                 }
@@ -1153,7 +1155,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         /// <En>Read all log data from device, since last disconnect, For FaceStation , D-Station, X-Station.</En>
         /// <Fa>داده های اتفاقات در طول مدت زمان مشخصی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
         /// </summary>
-        public override List<object> ReadLogOfPeriod(int startTime, int endTime)
+        public override ResultViewModel<List<Log>> ReadLogOfPeriod(int startTime, int endTime)
         {
             var objectLock = new object();
             lock (objectLock)
@@ -1167,7 +1169,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     if (Token.IsCancellationRequested)
                     {
                         Logger.Log("Thread canceled.");
-                        return new List<object>();
+                        return new ResultViewModel<List<Log>> { Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = "Thread canceled" };
                     }
                     DeviceAccessSemaphore.WaitOne();
                     BSSDK.BS_GetLogCount(DeviceInfo.Handle, ref mNumOfLog);
@@ -1190,7 +1192,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 if (mNumOfLog == 0)
-                    return new List<object>();
+                    return new ResultViewModel<List<Log>>{Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Can't get logs of device {DeviceInfo.DeviceId}"};
 
                 Logger.Log($"Getting {mNumOfLog} logs of device {DeviceInfo.Code} started.");
 
@@ -1298,7 +1300,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var receivedLog = new SupremaLog
                     {
-                        DateTimeTicks = (uint)record.eventTime,
+                        DateTimeTicks = (ulong)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         DeviceCode = DeviceInfo.Code,
                         InOutMode = DeviceInfo.DeviceTypeId,
@@ -1404,12 +1406,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 //logService.BulkInsertLog(allLogList, ConnectionType);
                 _logService.AddLog(allLogList);
-                Logger.Log($"{logTotalCount} offline logs retrieved from device {logTotalCount}");
+                Logger.Log($"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}");
 
                 Marshal.FreeHGlobal(logRecord);
 
-                var logListOfObject = new List<object>(allLogList);
-                return logListOfObject;
+                return new ResultViewModel<List<Log>> { Success = true, Code = Convert.ToInt64(TaskStatuses.DoneCode), Data = allLogList, Message = $"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}" };
             }
         }
 
@@ -1565,15 +1566,14 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 var tempUser = new User
                 {
-                    Id = Convert.ToInt32(user.ID),
+                    Code = Convert.ToInt32(user.ID),
                     UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                     IsActive = !Convert.ToBoolean(user.disabled),
                     AdminLevel = user.adminLevel
-
                 };
 
-                tempUser.SetStartDateFromTicks(Convert.ToInt32(user.startDateTime));
-                tempUser.SetEndDateFromTicks(Convert.ToInt32(user.expireDateTime));
+                tempUser.SetStartDateFromTicks(user.startDateTime);
+                tempUser.SetEndDateFromTicks(user.expireDateTime);
 
                 usersList.Add(tempUser);
 
@@ -1650,7 +1650,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             Buffer.BlockCopy(userHdr.name, 0, nameAsBytes, 0, nameAsBytes.Length);
             var tempUser = new User
             {
-                Id = Convert.ToInt32(userHdr.ID),
+                Code = Convert.ToInt32(userHdr.ID),
                 UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                 IsActive = !Convert.ToBoolean(userHdr.disabled),
                 AdminLevel = userHdr.adminLevel
@@ -1662,13 +1662,13 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 tempUser.Password = userHdr.password.ToString();
             }
 
-            tempUser.SetStartDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime)).Ticks);
-            tempUser.SetEndDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.expireDateTime)).Ticks);
+            tempUser.SetStartDateFromTicks(userHdr.startDateTime);
+            tempUser.SetEndDateFromTicks(userHdr.expireDateTime);
 
             //card
             tempUser.IdentityCard = new IdentityCard
             {
-                Id = (int)userHdr.ID,
+                //Id = (int)userHdr.ID,
                 Number = userHdr.cardID.ToString(),
                 DataCheck = 0,
                 IsActive = userHdr.cardID != 0
@@ -1679,7 +1679,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             {
                 var imagePos = 0;
                 var templatePos = 0;
-                for (var i = 0; i < userHdr.numOfFaceType; i++)
+                tempUser.FaceTemplates = new List<FaceTemplate>();
+                for(var i = 0; i < userHdr.numOfFaceType; i++)
                 {
                     Buffer.BlockCopy(imageData, imagePos, mStillCutData, i * bsMaxImageSize,
                         userHdr.faceStillcutLen[i]);
@@ -1698,20 +1699,21 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var tempFaceTemplate = new FaceTemplate
                     {
-                        Id = i,
+                        //Id = i,
                         UserId = userHdr.ID,
                         Index = userHdr.numOfFaceType,
                         FaceTemplateType = _faceTemplateTypes.SFACE,
                         Template = mFaceTemplate,
                         CheckSum = mFaceTemplate.Sum(x => x),
-                        Size = mFaceTemplate.Length
+                        Size = mFaceTemplate.ToList().LastIndexOf(mFaceTemplate.LastOrDefault(b => b != 0)),
                         //CreateAt = new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime) in mitoone dorost nabashe chon momkene baadan behesh face ezafe shode bashe
-
+                        CreateAt = DateTime.Now
                     };
                     tempUser.FaceTemplates.Add(tempFaceTemplate);
                 }
             }
-            Marshal.FreeHGlobal(userInfo);
+
+            //Marshal.FreeHGlobal(userInfo);
             return tempUser;
         }
 
@@ -1759,7 +1761,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             var deleteLog = new SupremaLog
             {
-                DateTimeTicks = (uint)(DateTime.Now.Ticks / 100000),
+                DateTimeTicks = (ulong)(DateTime.Now.Ticks / 100000),
                 DeviceId = DeviceInfo.DeviceId,
                 DeviceCode = DeviceInfo.Code,
                 EventLog = _logEvents.RemoveUserFromDevice,

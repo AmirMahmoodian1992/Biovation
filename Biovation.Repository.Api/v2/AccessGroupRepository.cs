@@ -20,18 +20,19 @@ namespace Biovation.Repository.Api.v2
         }
 
         public async Task<ResultViewModel<PagingResult<AccessGroup>>> GetAccessGroups(long userId = default,
-            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int pageNumber = default,
-            int pageSize = default, int nestingDepthLevel = 5, string token = default)
+            int userGroupId = default, int id = default, int deviceId = default, int deviceGroupId = default, int timeZoneId = 0,
+            int pageNumber = default, int pageSize = default, int nestingDepthLevel = 5, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/AccessGroup", Method.GET);
-            restRequest.AddQueryParameter("userId", userId.ToString());
-            restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
-            restRequest.AddQueryParameter("id", id.ToString());
-            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-            restRequest.AddQueryParameter("deviceGroupId", deviceGroupId.ToString());
-            restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
-            restRequest.AddQueryParameter("pageSize", pageSize.ToString());
-            restRequest.AddQueryParameter("nestingDepthLevel", nestingDepthLevel.ToString());
+            restRequest.AddQueryParameter(nameof(userId), userId.ToString());
+            restRequest.AddQueryParameter(nameof(userGroupId), userGroupId.ToString());
+            restRequest.AddQueryParameter(nameof(id), id.ToString());
+            restRequest.AddQueryParameter(nameof(deviceId), deviceId.ToString());
+            restRequest.AddQueryParameter(nameof(deviceGroupId), deviceGroupId.ToString());
+            restRequest.AddQueryParameter(nameof(timeZoneId), timeZoneId.ToString());
+            restRequest.AddQueryParameter(nameof(pageNumber), pageNumber.ToString());
+            restRequest.AddQueryParameter(nameof(pageSize), pageSize.ToString());
+            restRequest.AddQueryParameter(nameof(nestingDepthLevel), nestingDepthLevel.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<AccessGroup>>>(restRequest);

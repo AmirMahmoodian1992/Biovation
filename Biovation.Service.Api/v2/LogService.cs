@@ -18,11 +18,11 @@ namespace Biovation.Service.Api.v2
             _logRepository = logRepository;
         }
 
-        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default, int deviceId = default,
+        public async Task<ResultViewModel<PagingResult<Log>>> Logs(int id = default,int deviceGroupId = default, int deviceId = default,
             int userId = default, bool? successTransfer = null, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default,
             int pageSize = default, string where = default, string order = default, string token = default)
         {
-            return await _logRepository.Logs(id, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, successTransfer, token);
+            return await _logRepository.Logs(id, deviceGroupId, deviceId, userId, fromDate, toDate, pageNumber, pageSize, where, order, successTransfer, token);
         }
 
         public async Task<ResultViewModel> AddLog(Log log, string token = default)
@@ -65,12 +65,12 @@ namespace Biovation.Service.Api.v2
 
         public async Task<List<Log>> SelectSearchedOfflineLogs(DeviceTraffic logFilter, string token = default)
         {
-            return (await _logRepository.Logs(logFilter.Id, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.State, token))?.Data?.Data ?? new List<Log>();
+            return (await _logRepository.Logs(logFilter.Id, logFilter.deviceGroupId, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.State, token))?.Data?.Data ?? new List<Log>();
         }
 
         public async Task<List<Log>> SelectSearchedOfflineLogsWithPaging(DeviceTraffic logFilter, string token = default)
         {
-            return (await _logRepository.Logs(logFilter.Id, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.State, token))?.Data?.Data ?? new List<Log>();
+            return (await _logRepository.Logs(logFilter.Id, logFilter.deviceGroupId, (int)logFilter.DeviceId, logFilter.UserId, logFilter.FromDate, logFilter.ToDate, logFilter.PageNumber, logFilter.PageSize, logFilter.Where, logFilter.Order, logFilter.State, token))?.Data?.Data ?? new List<Log>();
         }
 
         public async Task<ResultViewModel> TransferLogBulk(List<Log> logs, string token = default)

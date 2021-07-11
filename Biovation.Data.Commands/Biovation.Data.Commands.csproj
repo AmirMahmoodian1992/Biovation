@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>e781a026-3041-42bc-aaf0-177286dd7834</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
     <ProjectReference Include="..\Biovation.Domain\Biovation.Domain.csproj" />
     <ProjectReference Include="..\Biovation.Repository.MessageBus\Biovation.Repository.MessageBus.csproj" />
     <ProjectReference Include="..\Biovation.Repository\Biovation.Repository.Sql.csproj" />
+    <ProjectReference Include="..\Biovation.Service.Api\Biovation.Service.Api.csproj" />
     <ProjectReference Include="..\DataAccessLayerCore\DataAccessLayerCore.csproj" />
   </ItemGroup>
 

@@ -312,6 +312,25 @@ namespace Biovation.Brands.Virdi.Manager
 
                             break;
                         }
+
+                    case TaskItemTypes.SendTimeZoneToTerminalCode:
+                    {
+                        try
+                        {
+                            executeTask = Task.Run(() =>
+                            {
+                                result = (ResultViewModel)_commandFactory.Factory(CommandType.SendTimeZoneToDevice,
+                                    new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                            });
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception);
+
+                        }
+
+                        break;
+                    }
                 }
 
                 executeTask?.ContinueWith(task =>

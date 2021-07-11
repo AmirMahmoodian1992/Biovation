@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text.Json;
 using Biovation.Domain;
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
+using Newtonsoft.Json;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -42,7 +42,7 @@ namespace Biovation.Repository.Sql.v2
         }
 
         public ResultViewModel<PagingResult<DeviceBasicInfo>> GetDevices(long adminUserId = 0, int groupId = 0, uint code = 0,
-            int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
+            string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
 
             var sqlParameter = new List<SqlParameter>
@@ -142,7 +142,7 @@ namespace Biovation.Repository.Sql.v2
         public ResultViewModel DeleteDevices(List<uint> deviceIds)
         {
 
-            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = JsonSerializer.Serialize(deviceIds) } };
+            var parameters = new List<SqlParameter> { new SqlParameter("@json", SqlDbType.VarChar) { Value = JsonConvert.SerializeObject(deviceIds) } };
 
             return _repository.ToResultList<ResultViewModel>("DeleteDevices", parameters).Data.FirstOrDefault();
 

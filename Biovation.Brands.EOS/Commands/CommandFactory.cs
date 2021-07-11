@@ -1,4 +1,5 @@
-﻿using Biovation.Brands.Eos.Commands;
+﻿using System;
+using Biovation.Brands.Eos.Commands;
 using Biovation.Brands.EOS.Devices;
 using Biovation.Brands.EOS.Manager;
 using Biovation.CommonClasses.Interface;
@@ -166,6 +167,10 @@ namespace Biovation.Brands.EOS.Commands
                     {
                         return new EosGetLogsOfDeviceInPeriod(taskItem, _onlineDevices, _deviceService);
                     }
+                case CommandType.GetDeviceAdditionalData:
+                {
+                    return new EOSGetAdditionalData(_onlineDevices, taskItem, _deviceService);
+                }
 
                 #endregion
 

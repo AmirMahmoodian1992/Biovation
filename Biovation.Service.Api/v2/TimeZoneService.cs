@@ -20,14 +20,19 @@ namespace Biovation.Service.Api.v2
             return await _timeZoneRepository.TimeZones(id, token);
         }
 
-        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(string token = default)
+        public async Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(int id = default, int accessGroupId = default, string name = default, int pageNumber = default, int pageSize = default, string token = default)
         {
-            return await _timeZoneRepository.GetTimeZones(token);
+            return await _timeZoneRepository.GetTimeZones(id, accessGroupId, name, pageNumber, pageSize, token);
         }
 
-        public async Task<ResultViewModel> ModifyTimeZone(TimeZone timeZone, string token = default)
+        public async Task<ResultViewModel> AddTimeZone(TimeZone timeZone, string token = default)
         {
-            return await _timeZoneRepository.ModifyTimeZone(timeZone, token);
+            return await _timeZoneRepository.AddTimeZone(timeZone, token);
+        }
+
+        public async Task<ResultViewModel> ModifyTimeZone(int id, TimeZone timeZone, string token = default)
+        {
+            return await _timeZoneRepository.ModifyTimeZone(id, timeZone, token);
         }
 
         public async Task<ResultViewModel> DeleteTimeZone(int id, string token = default)

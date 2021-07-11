@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
+using System.Globalization;
 
 namespace Biovation.Server
 {
@@ -26,6 +27,7 @@ namespace Biovation.Server
             //        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}, {ThreadId}] {Message}{NewLine}{Exception}"
             //        /*,restrictedToMinimumLevel: minimumConsoleLogLevel*/)
             //    .CreateLogger();
+            CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("en-US");
             CreateHostBuilder(args).Build().Run();
         }
 

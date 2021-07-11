@@ -463,12 +463,20 @@ namespace Biovation.Server.Controllers.v1
 
                 Parallel.ForEach(deviceBrands, deviceBrand =>
                 {
-                    var restRequest = new RestRequest(
-                        $"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
-                    var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
+                    try
+                    {
+                        var restRequest = new RestRequest(
+                            $"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+                        var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
 
-                    if (result.StatusCode == HttpStatusCode.OK)
-                        resultList.AddRange(result.Data);
+                        if (result.StatusCode != HttpStatusCode.OK) return;
+                        lock (resultList)
+                            resultList.AddRange(result.Data);
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
                 });
 
                 return resultList;

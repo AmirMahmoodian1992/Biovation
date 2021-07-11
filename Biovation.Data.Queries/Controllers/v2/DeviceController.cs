@@ -23,7 +23,7 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Authorize]
         public Task<ResultViewModel<PagingResult<DeviceBasicInfo>>> Devices( int groupId = 0,
-            uint code = 0, int brandId = 0, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default,
+            uint code = 0, string brandId = default, string name = null, int modelId = 0, int deviceIoTypeId = 0, int pageNumber = default,
             int pageSize = default)
         {
             return Task.Run(() => _deviceRepository.GetDevices(HttpContext.GetUser().Id, groupId, code, brandId, name, modelId,

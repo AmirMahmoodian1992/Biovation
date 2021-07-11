@@ -11,9 +11,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System.Reflection;
+using Biovation.Data.Commands.Manager;
 using Biovation.Data.Commands.Middleware;
 using Biovation.Data.Commands.Sinks;
 using Biovation.Repository.MessageBus;
+using Biovation.Repository.Sql.v2.RelayController;
+using Biovation.Service.Api.v2.RelayController;
+using RestSharp;
 
 namespace Biovation.Data.Commands
 {
@@ -75,6 +79,8 @@ namespace Biovation.Data.Commands
             services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
             services.AddSingleton<GenericRepository, GenericRepository>();
 
+            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
+            services.AddSingleton(restClient);
 
             services.AddScoped<LogRepository, LogRepository>();
             services.AddScoped<UserRepository, UserRepository>();
@@ -90,13 +96,26 @@ namespace Biovation.Data.Commands
             services.AddScoped<AdminDeviceRepository, AdminDeviceRepository>();
             services.AddScoped<DeviceGroupRepository, DeviceGroupRepository>();
             services.AddScoped<FaceTemplateRepository, FaceTemplateRepository>();
+            services.AddScoped<IrisTemplateRepository, IrisTemplateRepository>();
             services.AddScoped<PlateDetectionRepository, PlateDetectionRepository>();
             services.AddScoped<FingerTemplateRepository, FingerTemplateRepository>();
             services.AddScoped<GenericCodeMappingRepository, GenericCodeMappingRepository>();
+            services.AddScoped<SchedulingRepository, SchedulingRepository>();
+            services.AddScoped<RelayHubRepository, RelayHubRepository>();
+            services.AddScoped<EntranceRepository, EntranceRepository>();
+            services.AddScoped<RelayRepository, RelayRepository>();
+            services.AddScoped<CameraRepository, CameraRepository>();
+
+            services.AddScoped<RelayService, RelayService>();
+
+            services.AddScoped<Repository.Api.v2.RelayController.RelayRepository, Repository.Api.v2.RelayController.RelayRepository>();
+            
             services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
 
             //integration
             services.AddScoped<LogApiSink, LogApiSink>();
+            services.AddScoped<TaskApiSink, TaskApiSink>();
+            services.AddScoped<RelayApiSink, RelayApiSink>();
             services.AddScoped<LogMessageBusRepository, LogMessageBusRepository>();
             services.AddScoped<TaskMessageBusRepository, TaskMessageBusRepository>();
         }

@@ -215,7 +215,7 @@ namespace Biovation.Repository.Sql.v2
             });
         }
 
-        public Task<List<Log>> Logs(int id = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default, string order = default, long onlineUserId = default, bool? successTransfer = default)
+        public Task<List<Log>> Logs(int id = default,int deviceGroupId = default, int deviceId = default, int userId = default, DateTime? fromDate = null, DateTime? toDate = null, int pageNumber = default, int pageSize = default, string where = default, string order = default, long onlineUserId = default, bool? successTransfer = default)
         {
             return Task.Run(() =>
             {
@@ -224,6 +224,7 @@ namespace Biovation.Repository.Sql.v2
                     var parameters = new List<SqlParameter>
                     {
                         new SqlParameter("@UserId", userId),
+                        new SqlParameter("@DeviceGroupId", deviceGroupId),
                         new SqlParameter("@DeviceId", SqlDbType.BigInt) {Value = deviceId},
                         new SqlParameter("@FromDate",fromDate),
                         new SqlParameter("@ToDate",toDate),

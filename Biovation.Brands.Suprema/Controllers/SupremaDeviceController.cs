@@ -8,12 +8,12 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace Biovation.Brands.Suprema.Controllers
@@ -83,9 +83,9 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
+        public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
         {
-            return Task.Run(() =>
+            return await Task.Run(() =>
             {
                 try
                 {
@@ -135,9 +135,9 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpPost]
         [Authorize]
-        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, List<int> userIds)
+        public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
-            return Task.Run(() => { 
+            return await Task.Run(() => { 
                 try
                 {
                     return new List<ResultViewModel>
@@ -237,12 +237,9 @@ namespace Biovation.Brands.Suprema.Controllers
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-            return Task.Run(() =>
-            {
-                return new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"};
-            });
+            return await Task.Run(() => new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"});
         }
 
         [HttpGet]

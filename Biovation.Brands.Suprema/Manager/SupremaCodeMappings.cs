@@ -9,13 +9,13 @@ namespace Biovation.Brands.Suprema.Manager
 {
     public class SupremaCodeMappings
     {
-        private readonly MatchingTypes _matchingTypes;
+        private readonly Lookups _lookups;
         private readonly DeviceService _deviceService;
 
-        public SupremaCodeMappings(DeviceService deviceService, GenericCodeMappings genericCodeMapping, MatchingTypes matchingTypes)
+        public SupremaCodeMappings(DeviceService deviceService, GenericCodeMappings genericCodeMapping, Lookups lookups)
         {
             _deviceService = deviceService;
-            _matchingTypes = matchingTypes;
+            _lookups = lookups;
 
             _supremaLogSubEventMappings = genericCodeMapping.LogSubEventMappings.Where(
                 genericCode => genericCode.Brand.Code == DeviceBrands.SupremaCode).ToList();
@@ -49,7 +49,7 @@ namespace Biovation.Brands.Suprema.Manager
 
         public Lookup GetMatchingTypeGenericLookup(int supremaCode)
         {
-            return _supremaMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, supremaCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _matchingTypes.Unknown;
+            return _supremaMatchingTypeMappings.FirstOrDefault(matchingType => string.Equals(matchingType.ManufactureCode, supremaCode.ToString(), StringComparison.InvariantCultureIgnoreCase))?.GenericValue ?? _lookups.MatchingTypes.FirstOrDefault(matchingType => matchingType.Code == MatchingTypes.UnknownCode);
         }
     }
 }

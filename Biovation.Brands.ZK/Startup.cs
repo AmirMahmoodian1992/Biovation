@@ -24,36 +24,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Biovation.Domain;
-using Biovation.Service.Api.v2;
-using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
-using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
-using BlackListService = Biovation.Service.Api.v1.BlackListService;
-using DeviceGroupService = Biovation.Service.Api.v1.DeviceGroupService;
-using DeviceService = Biovation.Service.Api.v1.DeviceService;
-using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
-using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
-using GenericCodeMappingService = Biovation.Service.Api.v1.GenericCodeMappingService;
 using Log = Serilog.Log;
-using LogService = Biovation.Service.Api.v1.LogService;
-using LookupService = Biovation.Service.Api.v1.LookupService;
-using SettingService = Biovation.Service.Api.v1.SettingService;
-using TaskService = Biovation.Service.Api.v1.TaskService;
-using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
-using UserCardService = Biovation.Service.Api.v1.UserCardService;
-using UserGroupService = Biovation.Service.Api.v1.UserGroupService;
-using UserService = Biovation.Service.Api.v1.UserService;
+using TimeSpanToStringConverter = Biovation.Brands.ZK.Manager.TimeSpanToStringConverter;
 
 namespace Biovation.Brands.ZK
 {
     public class Startup
     {
-        //private readonly ZkTecoServer _zkTecoServer;
+        private readonly IHostEnvironment _environment;
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
+            _environment = environment;
             Configuration = configuration;
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -90,6 +76,8 @@ namespace Biovation.Brands.ZK
             //services.AddMvcCore().AddMetricsCore();
             services.AddHealthChecks();
 
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             services.AddSingleton(Log.Logger);
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
@@ -103,7 +91,9 @@ namespace Biovation.Brands.ZK
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-            #region checkLock
+            if (!_environment.IsDevelopment())
+            {
+                #region checkLock
 
             string lockEndTime = "";
             var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);

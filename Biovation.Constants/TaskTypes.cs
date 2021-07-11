@@ -25,6 +25,8 @@ namespace Biovation.Constants
         public const string EnrollFromTerminalCode = "11110";
         public const string DeleteUserFromTerminalCode = "11111";
         public const string EnrollFaceFromTerminalCode = "11112";
+        private const string GetAdditionalDataCode = "11113";
+        private const string SetDeviceDateTimeCode = "11114";
 
         public const string SendBlackListCode = "11601";
 
@@ -74,10 +76,12 @@ namespace Biovation.Constants
             EnrollFromTerminal = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollFromTerminalCode));
             DeleteUserFromTerminal = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, DeleteUserFromTerminalCode));
             EnrollFaceFromTerminal = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, EnrollFaceFromTerminalCode));
+            GetAdditionalData = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetAdditionalDataCode));
 
             ClearLog = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, ClearLogCode));
             GetLogsInPeriod = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsInPeriodCode));
             GetLogs = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, GetLogsCode));
+            SetDeviceDateTime = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SetDeviceDateTimeCode));
 
 
             SendBlackList = lookups.TaskTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, SendBlackListCode));
@@ -114,10 +118,11 @@ namespace Biovation.Constants
         public Lookup EnrollFromTerminal { get; set; }
         public Lookup DeleteUserFromTerminal { get; set; }
         public Lookup EnrollFaceFromTerminal { get; set; }
-
+        public Lookup GetAdditionalData { get; set; }
         public Lookup ClearLog { get; set; }
         public Lookup GetLogsInPeriod { get; set; }
         public Lookup GetLogs { get; set; }
+        public Lookup SetDeviceDateTime { get; set; }
 
         public Lookup SendBlackList { get; set; }
 

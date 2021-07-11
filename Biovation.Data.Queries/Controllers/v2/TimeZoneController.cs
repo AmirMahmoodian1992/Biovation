@@ -27,9 +27,9 @@ namespace Biovation.Data.Queries.Controllers.v2
 
         [HttpGet]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones()
+        public Task<ResultViewModel<PagingResult<TimeZone>>> GetTimeZones(int id = default, int accessGroupId = default, string name = default, int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _timeZoneRepository.GetTimeZones());
+            return Task.Run(() => _timeZoneRepository.GetTimeZones(id, accessGroupId, name, pageNumber, pageSize));
         }
     }
 }

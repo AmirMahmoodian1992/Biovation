@@ -10,6 +10,7 @@ namespace Biovation.Domain
         [Id]
         public long Id { get; set; }
         public int DetectorId { get; set; }
+        public string DeviceName { get; set; }
         [OneToOne]
         public Lookup EventLog { get; set; }
         [OneToOne]
@@ -30,8 +31,6 @@ namespace Biovation.Domain
                     }
                     catch (Exception)
                     {
-                        //Todo fix log
-                        //Logger.Log("Date time value of log is too big.");
                         NDateTime = 0;
                     }
                 }
@@ -48,14 +47,14 @@ namespace Biovation.Domain
         /// زمان گزارش
         /// </summary>
         /// <value>زمان گزارش</value>
-        protected uint NDateTime { get; set; }
+        protected ulong NDateTime { get; set; }
 
         /// <summary>
         /// زمان گزارش
         /// </summary>
         /// <value>زمان گزارش</value>
-        [DataMapper(Mapper = typeof(BigIntToUIntMapper))]
-        public virtual uint DateTimeTicks
+        [DataMapper(Mapper = typeof(BigIntToULongMapper))]
+        public virtual ulong DateTimeTicks
         {
             get => NDateTime;
             set
@@ -64,7 +63,7 @@ namespace Biovation.Domain
                     value /= 10000000;
 
                 NDateTime = value;
-                if (LogDateTime == default || LogDateTime < new DateTime(1970, 1, 1) || LogDateTime > DateTime.Now.AddYears(5))
+                if (LogDateTime == default || LogDateTime == DateTime.MinValue || LogDateTime == DateTime.MaxValue)
                 {
                     LogDateTime = new DateTime(1970, 1, 1, new GregorianCalendar()).AddTicks((long)value * 10000000);
                 }
@@ -73,7 +72,9 @@ namespace Biovation.Domain
         public string UrlImage { get; set; }
         public byte[] FullImage { get; set; }
         public byte[] PlateImage { get; set; }
+        public int InOrOut { get; set; }
         public float DetectionPrecision { get; set; }
         public bool SuccessTransfer { get; set; }
+        public int Total { get; set; }
     }
 }

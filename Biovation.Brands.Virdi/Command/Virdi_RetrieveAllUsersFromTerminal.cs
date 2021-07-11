@@ -150,7 +150,7 @@ namespace Biovation.Brands.Virdi.Command
                     //int currentIndex = _terminalUserData.CurrentIndex;
                     if (_terminalUserData.CurrentIndex != _terminalUserData.TotalNumber) return;
                     _doneEvent.Set();
-                    _ucsApi.EventGetUserInfoList += GetUserListCallback;
+                    _ucsApi.EventGetUserInfoList -= GetUserListCallback;
                 }
             }
             /*Task.Run(async () =>

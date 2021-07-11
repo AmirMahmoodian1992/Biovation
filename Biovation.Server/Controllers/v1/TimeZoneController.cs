@@ -48,28 +48,28 @@ namespace Biovation.Server.Controllers.v1
         [Route("TimeZones")]
         public List<TimeZone> TimeZones()
         {
-            return _timeZoneService.GetTimeZones(token: _kasraAdminToken);
+            return _timeZoneService.GetTimeZones(_kasraAdminToken);
         }
 
         [HttpGet]
         [Route("TimeZone")]
         public TimeZone TimeZone(int id)
         {
-            return _timeZoneService.TimeZones(id, token: _kasraAdminToken);
+            return _timeZoneService.TimeZones(id, _kasraAdminToken);
         }
 
         [HttpPost]
         [Route("DeleteTimeZone")]
         public ResultViewModel DeleteTimeZone(int id)
         {
-            return _timeZoneService.DeleteTimeZone(id, token: _kasraAdminToken);
+            return _timeZoneService.DeleteTimeZone(id, _kasraAdminToken);
         }
 
         [HttpPost]
         [Route("ModifyTimeZone")]
         public ResultViewModel ModifyTimeZone([FromBody] TimeZone timeZone)
         {
-            return _timeZoneService.ModifyTimeZone(timeZone, token: _kasraAdminToken);
+            return _timeZoneService.ModifyTimeZone(timeZone.Id, timeZone, _kasraAdminToken);
         }
 
         [HttpPost]

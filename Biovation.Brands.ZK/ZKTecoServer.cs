@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using RestSharp;
 
 namespace Biovation.Brands.ZK
 {
@@ -21,7 +20,6 @@ namespace Biovation.Brands.ZK
 
         private readonly DeviceFactory _deviceFactory;
         private readonly List<DeviceBasicInfo> _zkDevices;
-        private readonly RestClient _restClient;
 
         private CancellationToken _cancellationToken;
         /// <summary>
