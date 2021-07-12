@@ -12,6 +12,8 @@ using Biovation.Brands.PFK.Devices;
 using Biovation.Brands.PFK.Managers;
 using System.Web.Mvc;
 using Biovation.CommonClasses;
+using Biovation.Repository.Api.v2.RelayController;
+using Biovation.Service.Api.v2.RelayController;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using RimDev.AspNet.Diagnostics.HealthChecks;
 using Serilog;
@@ -197,6 +199,7 @@ namespace Biovation.Brands.PFK
             services.AddSingleton<UserCardService, UserCardService>();
             services.AddSingleton<UserGroupService, UserGroupService>();
             services.AddSingleton<UserService, UserService>();
+            services.AddSingleton<CameraService, CameraService>();
 
             services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
             services.AddSingleton<AdminDeviceRepository, AdminDeviceRepository>();
@@ -215,6 +218,7 @@ namespace Biovation.Brands.PFK
             services.AddSingleton<UserCardRepository, UserCardRepository>();
             services.AddSingleton<UserGroupRepository, UserGroupRepository>();
             services.AddSingleton<UserRepository, UserRepository>();
+            services.AddSingleton<CameraRepository, CameraRepository>();
 
             services.AddSingleton<Lookups, Lookups>();
             services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();

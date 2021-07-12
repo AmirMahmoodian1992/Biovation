@@ -31,7 +31,7 @@ namespace Biovation.Brands.PFK.Devices
         /// </summary>
         /// <param name="cameraInfo">اطلاعات کامل دستگاه</param>
         /// <returns>Device object</returns>
-        public Camera Factory(DeviceBasicInfo cameraInfo)
+        public Camera Factory(Domain.Camera cameraInfo)
         {
             switch (cameraInfo.Model.Id)
             {

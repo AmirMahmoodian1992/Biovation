@@ -9,7 +9,7 @@ namespace Biovation.Domain
     {
         [Id]
         public long Id { get; set; }
-        public int DetectorId { get; set; }
+        public long DetectorId { get; set; }
         public string DeviceName { get; set; }
         [OneToOne]
         public Lookup EventLog { get; set; }

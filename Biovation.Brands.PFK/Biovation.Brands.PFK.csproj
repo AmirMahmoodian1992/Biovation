@@ -4,6 +4,7 @@
     <TargetFramework>net472</TargetFramework>
     <UserSecretsId>29b5686b-9c77-4698-a1d2-b5209046c3b0</UserSecretsId>
     <LangVersion>latest</LangVersion>
+    <SignAssembly>false</SignAssembly>
     <!--<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>-->
   </PropertyGroup>
 

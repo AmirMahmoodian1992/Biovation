@@ -22,7 +22,7 @@ namespace Biovation.Brands.PFK.Devices
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
         private readonly MatchingTypes _matchingTypes;
-        private readonly DeviceBasicInfo _cameraInfo;
+        private readonly Domain.Camera _cameraInfo;
         private readonly Dictionary<uint, Camera> _connectedCameras;
 
         private readonly Config _pfkConfig = new Config();
@@ -32,7 +32,7 @@ namespace Biovation.Brands.PFK.Devices
         private readonly PlateDetectionService _plateDetectionService;
         private readonly RestClient _logExternalSubmissionRestClient;
 
-        public Camera(DeviceBasicInfo cameraInfo, Dictionary<uint, Camera> connectedCameras, RestClient logExternalSubmissionRestClient, PlateDetectionService plateDetectionService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public Camera(Domain.Camera cameraInfo, Dictionary<uint, Camera> connectedCameras, RestClient logExternalSubmissionRestClient, PlateDetectionService plateDetectionService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
         {
             _cameraInfo = cameraInfo;
             _connectedCameras = connectedCameras;
@@ -44,7 +44,7 @@ namespace Biovation.Brands.PFK.Devices
         }
 
 
-        public DeviceBasicInfo GetCameraInfo()
+        public Domain.Camera GetCameraInfo()
         {
             lock (_cameraInfo)
             {
@@ -260,7 +260,7 @@ namespace Biovation.Brands.PFK.Devices
 
                 var detectedLog = new PlateDetectionLog
                 {
-                    DetectorId = _cameraInfo.DeviceId,
+                    DetectorId = _cameraInfo.Id,
                     EventLog = permission ? _logEvents.Authorized : _logEvents.UnAuthorized,
                     LicensePlate = licensePlate,
                     DetectionPrecision = ((float)plate.Accuracy) / 10,
