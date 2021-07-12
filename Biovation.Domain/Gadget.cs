@@ -12,8 +12,8 @@ namespace Biovation.Domain
         [DataMapper(Mapper = typeof(ToUIntMapper))]
         public uint Code { get; set; }
         public string Name { get; set; }
+        [OneToOne]
         public Connection ConnectionInfo { get; set; }
-
         [OneToOne]
         public Lookup Brand { get; set; }
         public string Description { get; set; }

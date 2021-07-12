@@ -1,8 +1,12 @@
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Security.Principal;
 using Microsoft.Extensions.Configuration;
 #if NET472
-using Biovation.CommonClasses;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Microsoft.Owin.Hosting;
 #elif NETCORE31
@@ -18,11 +22,86 @@ namespace Biovation.Brands.PFK
     {
         public static void Main(string[] args)
         {
+            if (!RunningAsAdmin())
+            {
+                ProcessStartInfo proc = new ProcessStartInfo();
+                proc.UseShellExecute = true;
+                proc.WorkingDirectory = Environment.CurrentDirectory;
+                proc.FileName = Assembly.GetEntryAssembly()?.CodeBase!;
+                proc.Verb = "runas";
+                try
+                {
+                    Process.Start(proc);
+                    Environment.Exit(0);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("This program must be run as an administrator! \n\n" + ex.ToString());
+                    Environment.Exit(0);
+                }
+            }
+
 #if NET472
             var builder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("appsettings.development.json", true, true);
+
+            AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+            {
+                try
+                {
+                    //Process.GetProcesses()
+                    //    .Where(pr => string.Equals(pr.ProcessName, "generalRawFixCamLPR.exe",StringComparison.InvariantCultureIgnoreCase)
+                    //    || string.Equals(pr.ProcessName, "generalRawFixCamLPR", StringComparison.InvariantCultureIgnoreCase))
+                    //    .ToList().ForEach(p => p.Kill());
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "taskkill",
+                        Arguments = "/F /T /IM generalRawFixCamLPR.exe",
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    })
+                        ?.WaitForExit();
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+            };
+
+            Thread.GetDomain().ProcessExit += (sender, args) =>
+            {
+                try
+                {
+                    Process.GetProcesses()
+                        .Where(pr => string.Equals(pr.ProcessName, "generalRawFixCamLPR.exe", StringComparison.InvariantCultureIgnoreCase)
+                        || string.Equals(pr.ProcessName, "generalRawFixCamLPR", StringComparison.InvariantCultureIgnoreCase))
+                        .ToList().ForEach(p => p.Kill());
+
+                    Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "taskkill",
+                            Arguments = "/F /T /IM generalRawFixCamLPR.exe",
+                            WindowStyle = ProcessWindowStyle.Hidden,
+                            CreateNoWindow = true,
+                            UseShellExecute = false,
+                            WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true
+                        })
+                        ?.WaitForExit();
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+            };
 
             var configuration = builder.Build();
             var localIps = NetworkManager.GetLocalIpAddresses();
@@ -49,10 +128,35 @@ namespace Biovation.Brands.PFK
                 Console.ReadLine();
             }
 
+            try
+            {
+                Process.GetProcesses()
+                    .Where(pr => string.Equals(pr.ProcessName, "generalRawFixCamLPR.exe", StringComparison.InvariantCultureIgnoreCase)
+                                 || string.Equals(pr.ProcessName, "generalRawFixCamLPR", StringComparison.InvariantCultureIgnoreCase))
+                    .ToList().ForEach(p => p.Kill());
+
+                Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "taskkill",
+                        Arguments = "/F /T /IM generalRawFixCamLPR.exe",
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    })
+                    ?.WaitForExit();
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
 #elif NETCORE31
             CreateHostBuilder(args).Build().Run();
 #endif
         }
+
 
 #if NETCORE31
 
@@ -77,5 +181,13 @@ namespace Biovation.Brands.PFK
                     webBuilder.UseStartup<Startup>();
                 });
 #endif
+
+        private static bool RunningAsAdmin()
+        {
+            WindowsIdentity id = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(id);
+
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
     }
 }

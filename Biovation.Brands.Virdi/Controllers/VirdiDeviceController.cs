@@ -38,7 +38,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
         private readonly ILogger _logger;
 
-        public DeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
+        public DeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices, TaskService taskService)
         {
             _virdiServer = virdiServer;
             _deviceService = deviceService;

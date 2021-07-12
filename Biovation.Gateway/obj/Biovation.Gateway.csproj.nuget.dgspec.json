@@ -1,40 +1,43 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj": {}
+    "D:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj": {}
   },
   "projects": {
-    "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
+    "D:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
+        "projectUniqueName": "D:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
         "projectName": "Biovation.CommonClasses",
-        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
-        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\obj\\",
+        "projectPath": "D:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj",
+        "packagesPath": "C:\\Users\\omid_\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\BiovationCore\\Biovation.CommonClasses\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\omid_\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "netstandard2.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "D:\\Projects\\Maticy\\Nuget": {},
+          "D:\\Projects\\Nuget": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
+          "netstandard2.0": {
+            "targetAlias": "netstandard2.0",
             "projectReferences": {
-              "C:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj": {
-                "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj"
+              "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj": {
+                "projectPath": "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj"
               },
-              "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
-                "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
+              "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+                "projectPath": "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
               }
             }
           }
@@ -46,7 +49,8 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
+        "netstandard2.0": {
+          "targetAlias": "netstandard2.0",
           "dependencies": {
             "Microsoft.AspNetCore.Http": {
               "target": "Package",
@@ -63,6 +67,12 @@
             "Microsoft.SqlServer.TransactSql.ScriptDom": {
               "target": "Package",
               "version": "[150.4573.2, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -95,43 +105,41 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.301\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj": {
+    "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj",
+        "projectUniqueName": "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj",
         "projectName": "Biovation.Domain",
-        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj",
-        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Domain\\obj\\",
+        "projectPath": "D:\\Projects\\BiovationCore\\Biovation.Domain\\Biovation.Domain.csproj",
+        "packagesPath": "C:\\Users\\omid_\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\BiovationCore\\Biovation.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\omid_\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "netstandard2.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "D:\\Projects\\Maticy\\Nuget": {},
+          "D:\\Projects\\Nuget": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
+          "netstandard2.0": {
+            "targetAlias": "netstandard2.0",
             "projectReferences": {
-              "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
-                "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
+              "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+                "projectPath": "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
               }
             }
           }
@@ -143,11 +151,18 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
+        "netstandard2.0": {
+          "targetAlias": "netstandard2.0",
           "dependencies": {
             "Kasra.MessageBus.Infrastructure": {
               "target": "Package",
               "version": "[1.1.1.7, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
             },
             "Newtonsoft.Json": {
               "target": "Package",
@@ -164,29 +179,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.301\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj": {
+    "D:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+        "projectUniqueName": "D:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
         "projectName": "Biovation.Gateway",
-        "projectPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
-        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\BiovationCore\\Biovation.Gateway\\obj\\",
+        "projectPath": "D:\\Projects\\BiovationCore\\Biovation.Gateway\\Biovation.Gateway.csproj",
+        "packagesPath": "C:\\Users\\omid_\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\BiovationCore\\Biovation.Gateway\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\omid_\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -194,16 +204,19 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "D:\\Projects\\Maticy\\Nuget": {},
+          "D:\\Projects\\Nuget": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "netcoreapp3.1": {
+            "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
-                "projectPath": "C:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj"
+              "D:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj": {
+                "projectPath": "D:\\Projects\\BiovationCore\\Biovation.CommonClasses\\Biovation.CommonClasses.csproj"
               },
-              "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
-                "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
+              "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+                "projectPath": "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj"
               }
             }
           }
@@ -216,6 +229,7 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
           "dependencies": {
             "Microsoft.Extensions.Hosting.WindowsServices": {
               "target": "Package",
@@ -260,35 +274,38 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.301\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
+    "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj": {
       "version": "1.1.1",
       "restore": {
-        "projectUniqueName": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
+        "projectUniqueName": "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
         "projectName": "DataAccessLayerCore",
-        "projectPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
-        "packagesPath": "C:\\Users\\Yazdizadeh\\.nuget\\packages\\",
-        "outputPath": "C:\\Projects\\BiovationCore\\DataAccessLayerCore\\obj\\",
+        "projectPath": "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\DataAccessLayerCore.csproj",
+        "packagesPath": "C:\\Users\\omid_\\.nuget\\packages\\",
+        "outputPath": "D:\\Projects\\BiovationCore\\DataAccessLayerCore\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
         ],
         "configFilePaths": [
-          "C:\\Users\\Yazdizadeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\omid_\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "netcoreapp3.1"
+          "netstandard2.0"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "D:\\Projects\\Maticy\\Nuget": {},
+          "D:\\Projects\\Nuget": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "netcoreapp3.1": {
+          "netstandard2.0": {
+            "targetAlias": "netstandard2.0",
             "projectReferences": {}
           }
         },
@@ -299,11 +316,18 @@
         }
       },
       "frameworks": {
-        "netcoreapp3.1": {
+        "netstandard2.0": {
+          "targetAlias": "netstandard2.0",
           "dependencies": {
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
               "version": "[3.1.9, )"
+            },
+            "NETStandard.Library": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.3, )",
+              "autoReferenced": true
             },
             "System.Configuration.ConfigurationManager": {
               "target": "Package",
@@ -328,12 +352,7 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.401\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.301\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -28,11 +28,10 @@ namespace Biovation.Brands.ZK
         /// </summary>
         /// <returns></returns>
 
-        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory, RestClient restClient,SystemInfo systemInfo)
+        public ZkTecoServer(Dictionary<uint, Device> onlineDevices, DeviceService deviceService, DeviceFactory deviceFactory, SystemInfo systemInfo)
         {
             _onlineDevices = onlineDevices;
             _deviceFactory = deviceFactory;
-            _restClient = restClient;
             _zkDevices = deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).Where(x => x.Active && x.ServiceInstance.Id == systemInfo.Services.FirstOrDefault()?.Id ).ToList();
         }
 

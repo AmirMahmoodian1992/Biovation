@@ -9,19 +9,21 @@ namespace Biovation.Brands.Shahab.Controllers
     [Route("Biovation/Api/[controller]/[action]")]
     public class ShahabSystemInfoController : ControllerBase
     {
+        private readonly ServiceInstance _serviceInstance;
+
+        public ShahabSystemInfoController(ServiceInstance serviceInstance)
+        {
+            _serviceInstance = serviceInstance;
+        }
 
         [HttpGet]
-        public ResultViewModel<ServiceInfo> GetInfo()
+        public ResultViewModel<ServiceInstance> GetInfo()
         {
-            var brandInfo = new ServiceInfo();
-            var result = new ResultViewModel<ServiceInfo>();
-            var name = Assembly.GetExecutingAssembly().GetName().Name;
-            if (name != null)
-                brandInfo.Name = name.Split('.').LastOrDefault();
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            if (version is { })
-                brandInfo.Version = version.ToString();
-            result.Data = brandInfo;
+            var result = new ResultViewModel<ServiceInstance>()
+            {
+                Success = true,
+                Data = _serviceInstance
+            };
             return result;
         }
     }

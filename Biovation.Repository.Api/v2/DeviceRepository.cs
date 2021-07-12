@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Text.Json;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -320,7 +320,7 @@ namespace Biovation.Repository.Api.v2
                     $"/{device.ServiceInstance.Id}/User/SendUserToDevice",
                     Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
-            restRequest.AddQueryParameter("userId", JsonSerializer.Serialize(userIds));
+            restRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(userIds));
             restRequest.AddHeader("Authorization", token!);
             return _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
         }

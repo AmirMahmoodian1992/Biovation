@@ -60,7 +60,7 @@ namespace Biovation.Server.HostedServices
             if (!_biovationConfigurationManager.UseHealthCheck)
                 return;
 
-            _systemInformation.Services ??= new List<ServiceInfo>();
+            _systemInformation.Services ??= new List<ServiceInstance>();
             var instances =  _serviceInstanceService.GetServiceInstance()?.Result?.Data;
             if (instances != null)
             {

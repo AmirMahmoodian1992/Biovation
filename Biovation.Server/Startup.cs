@@ -31,8 +31,26 @@ using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.Reflection;
+using Biovation.Service.Api.v2;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
+using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
+using BlackListService = Biovation.Service.Api.v1.BlackListService;
+using DeviceGroupService = Biovation.Service.Api.v1.DeviceGroupService;
+using DeviceService = Biovation.Service.Api.v1.DeviceService;
+using FaceTemplateService = Biovation.Service.Api.v1.FaceTemplateService;
+using FingerTemplateService = Biovation.Service.Api.v1.FingerTemplateService;
+using GenericCodeMappingService = Biovation.Service.Api.v1.GenericCodeMappingService;
 using Log = Serilog.Log;
+using LogService = Biovation.Service.Api.v1.LogService;
+using LookupService = Biovation.Service.Api.v1.LookupService;
+using PlateDetectionService = Biovation.Service.Api.v1.PlateDetectionService;
+using SettingService = Biovation.Service.Api.v1.SettingService;
+using TaskService = Biovation.Service.Api.v1.TaskService;
+using TimeZoneService = Biovation.Service.Api.v1.TimeZoneService;
+using UserCardService = Biovation.Service.Api.v1.UserCardService;
+using UserGroupService = Biovation.Service.Api.v1.UserGroupService;
+using UserService = Biovation.Service.Api.v1.UserService;
 
 namespace Biovation.Server
 {

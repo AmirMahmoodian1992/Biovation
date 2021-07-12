@@ -8,6 +8,7 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Biovation.Service.Api.v2.RelayController;
 using RestSharp;
 using Camera = Biovation.Brands.PFK.Devices.Camera;
 
@@ -18,7 +19,7 @@ namespace Biovation.Brands.PFK
         private readonly Dictionary<uint, Camera> _onlineCameras;
         private readonly PFKParkingLibrary.Data.Logger _pfkLogger = new PFKParkingLibrary.Data.Logger();
 
-        private readonly List<DeviceBasicInfo> _cameras;
+        private readonly List<Domain.Camera> _cameras;
         private readonly PlateDetectionService _plateDetectionService;
 
         private readonly LogEvents _logEvents;
@@ -30,7 +31,7 @@ namespace Biovation.Brands.PFK
 
 
 
-        public PfkServer(DeviceService deviceService, PlateDetectionService plateDetectionService, RestClient logExternalSubmissionRestClient, Dictionary<uint, Camera> onlineCameras, LogEvents logEvents, MatchingTypes matchingTypes, LogSubEvents logSubEvents, DeviceFactory deviceFactory)
+        public PfkServer(CameraService cameraService, PlateDetectionService plateDetectionService, RestClient logExternalSubmissionRestClient, Dictionary<uint, Camera> onlineCameras, LogEvents logEvents, MatchingTypes matchingTypes, LogSubEvents logSubEvents, DeviceFactory deviceFactory)
         {
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
@@ -40,7 +41,7 @@ namespace Biovation.Brands.PFK
             _plateDetectionService = plateDetectionService;
             _logExternalSubmissionRestClient = logExternalSubmissionRestClient;
 
-            _cameras = deviceService.GetDevices(brandId: DeviceBrands.ShahabCode).Where(x => x.Active).ToList();
+            _cameras = cameraService.GetCamera().GetAwaiter().GetResult()?.Data?.Data?.Where(x => x.Active).ToList();
             _pfkLogger.LogArose += OnLogHappened;
         }
 
@@ -76,7 +77,7 @@ namespace Biovation.Brands.PFK
             }
         }
 
-        public async void ConnectToDevice(DeviceBasicInfo deviceInfo)
+        public async void ConnectToDevice(Domain.Camera deviceInfo)
         {
             await Task.Run(() =>
             {
@@ -111,16 +112,16 @@ namespace Biovation.Brands.PFK
             });
         }
 
-        public async void DisconnectDevice(DeviceBasicInfo deviceInfo)
+        public async void DisconnectDevice(Domain.Camera cameraInfo)
         {
             await Task.Run(() =>
             {
                 lock (_onlineCameras)
                 {
-                    if (!_onlineCameras.ContainsKey(deviceInfo.Code)) return;
+                    if (!_onlineCameras.ContainsKey(cameraInfo.Code)) return;
                     try
                     {
-                        _onlineCameras[deviceInfo.Code].Disconnect();
+                        _onlineCameras[cameraInfo.Code].Disconnect();
                     }
                     catch (Exception exception)
                     {

@@ -1,11 +1,10 @@
-﻿using System;
+﻿using Biovation.Domain;
+using Biovation.Service.Api.v2.RelayController;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Biovation.Constants;
-using Biovation.Domain;
-using Biovation.Service.Api.v2;
 
 namespace Biovation.Brands.PFK.Controllers
 {
@@ -18,12 +17,12 @@ namespace Biovation.Brands.PFK.Controllers
 #endif    
     {
         private readonly PfkServer _pfkServer;
-        private readonly DeviceService _deviceService;
+        private readonly CameraService _cameraService;
 
-        public PfkDeviceController(DeviceService deviceService, PfkServer pfkServer)
+        public PfkDeviceController(CameraService cameraService, PfkServer pfkServer)
         {
             _pfkServer = pfkServer;
-            _deviceService = deviceService;
+            _cameraService = cameraService;
         }
 
         [HttpGet]
@@ -36,8 +35,29 @@ namespace Biovation.Brands.PFK.Controllers
             {
                 if (string.IsNullOrEmpty(onlineDevice.Value.GetCameraInfo().Name))
                 {
-                    onlineDevice.Value.GetCameraInfo().Name = _deviceService.GetDevices(code: onlineDevice.Key, brandId: DeviceBrands.ShahabCode).Result?.Data?.Data?.FirstOrDefault()?.Name;
+                    onlineDevice.Value.GetCameraInfo().Name = _cameraService.GetCamera(code: onlineDevice.Key).Result?.Data?.Data?.FirstOrDefault()?.Name;
                 }
+
+                var cameraInfo = onlineDevice.Value.GetCameraInfo();
+                onlineDevices.Add(new DeviceBasicInfo { DeviceId = (int)cameraInfo.Id });
+            }
+
+            return onlineDevices;
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public List<Camera> GetOnlineCameras()
+        {
+            var onlineDevices = new List<Camera>();
+
+            foreach (var onlineDevice in _pfkServer.GetOnlineDevices())
+            {
+                if (string.IsNullOrEmpty(onlineDevice.Value.GetCameraInfo().Name))
+                {
+                    onlineDevice.Value.GetCameraInfo().Name = _cameraService.GetCamera(code: onlineDevice.Key).Result?.Data?.Data?.FirstOrDefault()?.Name;
+                }
+
                 onlineDevices.Add(onlineDevice.Value.GetCameraInfo());
             }
 
@@ -47,19 +67,39 @@ namespace Biovation.Brands.PFK.Controllers
         [HttpPost]
         public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
-            var dbDevice = (await _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.ShahabCode))?.Data?.Data?.FirstOrDefault();
-            device.DeviceId = dbDevice.DeviceId;
-            device.TimeSync = dbDevice.TimeSync;
-            device.DeviceLockPassword = dbDevice.DeviceLockPassword;
+            var camera = (await _cameraService.GetCamera(code: device.Code))?.Data?.Data?.FirstOrDefault();
 
             return await Task.Run(() =>
             {
                 try
                 {
                     if (device.Active && !_pfkServer.GetOnlineDevices().ContainsKey(device.Code))
-                        _pfkServer.ConnectToDevice(device);
+                        _pfkServer.ConnectToDevice(camera);
                     else if (!device.Active && _pfkServer.GetOnlineDevices().ContainsKey(device.Code))
-                        _pfkServer.DisconnectDevice(device);
+                        _pfkServer.DisconnectDevice(camera);
+
+                    return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
+                }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+                }
+            });
+        }
+
+        [HttpPost]
+        public async Task<ResultViewModel> ModifyCamera([FromBody] Camera modifiedCamera)
+        {
+            //var camera = (await _cameraService.GetCamera(id: modifiedCamera.Id))?.Data?.Data?.FirstOrDefault();
+
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (modifiedCamera.Active && !_pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code))
+                        _pfkServer.ConnectToDevice(modifiedCamera);
+                    else if (!modifiedCamera.Active && _pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code))
+                        _pfkServer.DisconnectDevice(modifiedCamera);
 
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
