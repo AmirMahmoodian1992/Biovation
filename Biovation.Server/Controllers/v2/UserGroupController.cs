@@ -200,7 +200,7 @@ namespace Biovation.Server.Controllers.v2
 
                 existingUserGroup.Users = members;
                 var result = await _userGroupService.ModifyUserGroupMember(id, members, token);
-                if (result.Validate != 1) return result;
+                if (result?.Validate != 1) return result;
 
                 _ = Task.Run(async () =>
                 {
