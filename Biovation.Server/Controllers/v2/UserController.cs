@@ -245,6 +245,9 @@ namespace Biovation.Server.Controllers.v2
             return await _userService.ModifyPassword(id, password, HttpContext.Items["Token"] as string);
         }
 
+
+        //Todo: Change add user group usage
+        /*
         ///// <param name="updateUsers">لیست افرادی که تغییر کرده و در گروه بایویی هم حضور دارند و باید به دستگاههای جدید ارسال شوند</param>
         ///// <param name="changeUsers">لیست افرادی که تغییر کرده اند و باید از روی دستگاهها پاک شوند</param>
         /// <summary>
@@ -271,8 +274,6 @@ namespace Biovation.Server.Controllers.v2
                 return result;
             });
         }
-
-
         private async Task<ResultViewModel> Sync(long[] usersToSync = default, string updateUsers = default)
         {
             var token = HttpContext.Items["Token"] as string;
@@ -370,7 +371,7 @@ namespace Biovation.Server.Controllers.v2
                 Logger.Log(exception, "Add User To Devices");
                 return new ResultViewModel { Success = false };
             }
-        }
+        }*/
 
         //[HttpPost]
         //private bool Sync(long[] usersList)
@@ -483,7 +484,8 @@ namespace Biovation.Server.Controllers.v2
             return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
         }
 
-        [HttpPatch]
+        //Todo: Change add user group usage
+        /*[HttpPatch]
         [Route("UserGroupsOfUsers")]
         public async Task<List<ResultViewModel>> UpdateUserGroupsOfUser([FromBody] string usersGroupIds = default, bool sendUsersToDevice = default)
         {
@@ -739,7 +741,7 @@ namespace Biovation.Server.Controllers.v2
                 Logger.Log(exception, "Error on Get User Group Member");
                 return new ResultViewModel { Success = true };
             }
-        }
+        }*/
 
         [HttpDelete]
         [Authorize]

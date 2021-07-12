@@ -432,7 +432,7 @@ namespace Biovation.Server.Controllers.v1
                 //var xDocument = JsonConvert.DeserializeXmlNode(wrappedDocument, "Root");
                 //var node = xDocument.OuterXml;
 
-                var result = _userGroupService.ModifyUserGroupMember(member, member[0].GroupId, token: _kasraAdminToken);
+                var result = _userGroupService.ModifyUserGroupMember(member, member[0].GroupId, token: _kasraAdminToken).Result;
 
                 Task.Run(() =>
                 {
