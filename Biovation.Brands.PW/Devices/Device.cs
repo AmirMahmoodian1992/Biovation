@@ -316,6 +316,8 @@ namespace Biovation.Brands.PW.Devices
                         {
                             if (newRecordsCount == _lastLogReadCount && _offlineLogReadCount > 3)
                             {
+                                if (_offlineLogReadCount % 5 == 1 && _clearLogAfterRetrieving)
+                                    _lastLogReadCount = 0;
                                 Thread.Sleep(120000);
                                 continue;
                             }
