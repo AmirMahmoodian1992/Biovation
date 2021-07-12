@@ -47,10 +47,10 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel> AddUserGroup(UserGroupMember userGroupMember, string token = default)
+        public async Task<ResultViewModel> AddUserGroup(UserGroup userGroup, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/UserGroup", Method.POST);
-            restRequest.AddJsonBody(userGroupMember);
+            restRequest.AddJsonBody(userGroup);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
@@ -77,15 +77,15 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
+        public async Task<ResultViewModel> ModifyUserGroupMember(int id, List<UserGroupMember> members, string token = default)
         {
-            var restRequest = new RestRequest("Commands/v2/UserGroup/UserGroupMember", Method.PUT);
-            restRequest.AddQueryParameter("userGroupId", userGroupId.ToString());
-            restRequest.AddJsonBody(member);
+            var restRequest = new RestRequest("Commands/v2/UserGroup/{id}/Users", Method.PATCH);
+            restRequest.AddUrlSegment("id", id.ToString());
+            restRequest.AddJsonBody(members);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
     }
 }
