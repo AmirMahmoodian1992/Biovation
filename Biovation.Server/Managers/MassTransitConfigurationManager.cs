@@ -47,7 +47,7 @@ namespace Biovation.Server.Managers
                         //var consumerConfig = receiveEndpointConfig?.GetChildren().FirstOrDefault(ec =>
                         //    string.Equals(ec.Key, "Consumer", StringComparison.InvariantCultureIgnoreCase));
 
-                        var consumerConfig = massTransitConfiguration.ReceiveEndpoints.FirstOrDefault(re =>
+                        var consumerConfig = massTransitConfiguration.ReceiveEndpoints?.FirstOrDefault(re =>
                                 string.Equals(re.Consumer.Name, consumer.Name,
                                     StringComparison.InvariantCultureIgnoreCase))
                             ?.Consumer;

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Biovation.CommonClasses.Extension;
+using Microsoft.Extensions.Logging;
 
 namespace Biovation.Server.Controllers.v1
 {

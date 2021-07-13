@@ -111,11 +111,10 @@ namespace Biovation.Brands.ZK
             var restClient =
                 (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() =>
                    new RestRequestJsonSerializer());
+            string lockEndTime = string.Empty;
             if (!_environment.IsDevelopment())
             {
                 #region checkLock
-
-                string lockEndTime = "";
                 var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
                 try
                 {
@@ -149,13 +148,11 @@ namespace Biovation.Brands.ZK
                     Environment.Exit(0);
                 }
 
-                services.AddSingleton(restClient);
-
                 #endregion
+            }
 
-
-
-                var serviceInstanceId =
+            services.AddSingleton(restClient);
+            var serviceInstanceId =
                     FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
                 var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
                 var url = (FileActions.JsonReader("appsettings.json", "Urls")).Data;
@@ -225,7 +222,7 @@ namespace Biovation.Brands.ZK
                 services.AddSingleton<UserGroupService, UserGroupService>();
                 services.AddSingleton<UserService, UserService>();
                 services.AddSingleton<Service.Api.v2.UserService, Service.Api.v2.UserService>();
-                services.AddSingleton<Service.Api.v2.LogService, Service.Api.v2.LogService>();
+                services.AddSingleton<LogService, LogService>();
                 services.AddSingleton<ServiceInstanceService, ServiceInstanceService>();
 
                 services.AddSingleton<AccessGroupRepository, AccessGroupRepository>();
@@ -248,7 +245,7 @@ namespace Biovation.Brands.ZK
 
                 services.AddSingleton<Lookups, Lookups>();
                 services.AddSingleton<GenericCodeMappings, GenericCodeMappings>();
-            }
+            
         }
 
         public void ConfigureConstantValues(IServiceCollection services)

@@ -19,12 +19,11 @@ namespace Biovation.Service.Api.v2
         private readonly TaskPriorities _taskPriorities;
         private readonly TaskStatuses _taskStatuses;
         private readonly TaskItemTypes _taskItemTypes;
-        private readonly UserGroupService _userGroupService;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
         private readonly SystemInfo _systemInfo;
         
-        public UserGroupService(UserService userService, DeviceService deviceService, UserGroupRepository userGroupRepository, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, UserGroupService userGroupService, SystemInfo systemInfo)
+        public UserGroupService(UserService userService, DeviceService deviceService, UserGroupRepository userGroupRepository, TaskService taskService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, SystemInfo systemInfo)
         {
             _userService = userService;
             _deviceService = deviceService;
@@ -34,7 +33,6 @@ namespace Biovation.Service.Api.v2
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
             _taskItemTypes = taskItemTypes;
-            _userGroupService = userGroupService;
             _systemInfo = systemInfo;
         }
 
@@ -70,12 +68,12 @@ namespace Biovation.Service.Api.v2
 
         public async Task<ResultViewModel> ModifyUserGroupMember(int id, List<UserGroupMember> members, string token = default)
         {
-            return await _userGroupRepository.ModifyUserGroupMember(id, members, token);
+            return await _userGroupRepository.ModifyUserGroupMember( id, members, token);
         }
 
         public Task<ResultViewModel<PagingResult<UserGroup>>> GetUsersGroupBase(string token, int id)
         {
-            return Task.Run(() => _userGroupService.UserGroups(id, token));
+            return Task.Run(() => _userGroupRepository.UserGroups(id, token));
         }
 
         public async Task<ResultViewModel> ModifyUserGroupBase(string token, User creatorUser, UserGroup userGroup)
@@ -88,7 +86,7 @@ namespace Biovation.Service.Api.v2
                     return new ResultViewModel
                     { Success = false, Validate = 0, Code = 404, Message = "Null user group is provided!" };
 
-                var existingUserGroup = userGroup.Id == 0 ? null : (await _userGroupService.UserGroups(userGroup.Id, token: token))?.Data?.Data.FirstOrDefault();
+                var existingUserGroup = userGroup.Id == 0 ? null : (await _userGroupRepository.UserGroups(userGroup.Id, token: token))?.Data?.Data.FirstOrDefault();
                 if (existingUserGroup is null && userGroup.Id != 0)
                 {
                     return new ResultViewModel
@@ -146,7 +144,7 @@ namespace Biovation.Service.Api.v2
 
                 Task.WaitAll(computeExistingAddition, computeExistingDeletion);
 
-                var result = await _userGroupService.ModifyUserGroup(userGroup, token);
+                var result = await _userGroupRepository.ModifyUserGroup(userGroup, token);
                 if (result.Validate != 1) return result;
 
                 var computeNewDeletion = Task.Run(() => Parallel.ForEach(usersToDelete, user =>
@@ -270,7 +268,7 @@ namespace Biovation.Service.Api.v2
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.DeleteUsers,
                             Priority = _taskPriorities.Medium,
-                            DeviceBrand = device.Brand,
+                            DeviceBrand = device?.Brand,
                             TaskItems = new List<TaskItem>()
                         };
 
@@ -291,7 +289,7 @@ namespace Biovation.Service.Api.v2
                         }
 
                         await _taskService.InsertTask(task);
-                        if (!allChangedDevices.Exists(deviceTemp => deviceTemp.Brand.Code == device.Brand.Code)) allChangedDevices.Add(device);
+                        if (!allChangedDevices.Exists(deviceTemp => deviceTemp.Brand.Code == device?.Brand.Code)) allChangedDevices.Add(device);
 
                     });
                 }
@@ -313,7 +311,7 @@ namespace Biovation.Service.Api.v2
                             CreatedBy = creatorUser,
                             TaskType = _taskTypes.SendUsers,
                             Priority = _taskPriorities.Medium,
-                            DeviceBrand = device.Brand,
+                            DeviceBrand = device?.Brand,
                             TaskItems = new List<TaskItem>()
                         };
 
