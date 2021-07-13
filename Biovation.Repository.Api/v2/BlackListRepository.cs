@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System;
+using System.Collections.Generic;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -10,15 +10,17 @@ namespace Biovation.Repository.Api.v2
     {
         private readonly RestClient _restClient;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
-        public BlackListRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager)
+        private readonly SystemInfo _systemInfo;
+        public BlackListRepository(RestClient restClient, BiovationConfigurationManager biovationConfigurationManager, SystemInfo systemInfo)
         {
             _restClient = restClient;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _systemInfo = systemInfo;
         }
 
         public ResultViewModel<PagingResult<BlackList>> GetBlacklist(int id = default, int userId = default,
             int deviceId = 0, DateTime? startDate = null, DateTime? endDate = null, bool isDeleted = default,
-            int pageNumber = default, int pageSize = default, string token =default)
+            int pageNumber = default, int pageSize = default, string token = default)
         {
             var restRequest = new RestRequest("Queries/v2/BlackList/{id}", Method.GET);
             restRequest.AddUrlSegment("id", id.ToString());
@@ -35,7 +37,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Result.Data;
         }
 
-        public ResultViewModel CreateBlackList( BlackList blackList, string token = default)
+        public ResultViewModel CreateBlackList(BlackList blackList, string token = default)
         {
             var restRequest = new RestRequest("Commands/v2/BlackList", Method.POST);
             restRequest.AddJsonBody(blackList);
@@ -66,6 +68,23 @@ namespace Biovation.Repository.Api.v2
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             return _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result.Data;
+        }
+
+        // TODO - Verify the method.
+        public async void SendBlackListDevice(string brandName, List<BlackList> successBlackList, string token = default)
+        {
+            var serviceInstances = _systemInfo.Services;
+
+            foreach (var serviceInstance in serviceInstances)
+            {
+                var restRequest =
+                    new RestRequest($"/{brandName}/{serviceInstance.Id}/{brandName}BlackList/SendBlackLisDevice",
+                        Method.POST);
+
+                restRequest.AddJsonBody(successBlackList);
+                restRequest.AddHeader("Authorization", token!);
+                await _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+            }
         }
     }
 }

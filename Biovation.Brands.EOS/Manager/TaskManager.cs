@@ -18,16 +18,18 @@ namespace Biovation.Brands.EOS.Manager
     {
         private readonly TaskService _taskService;
         private readonly TaskStatuses _taskStatuses;
+        private readonly ServiceInstance _instanceData;
         private readonly CommandFactory _commandFactory;
 
         private readonly ILogger<TaskManager> _logger;
         private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
-        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, ILogger<TaskManager> logger)
+        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, ILogger<TaskManager> logger, ServiceInstance instanceData)
         {
             _logger = logger;
             _taskService = taskService;
+            _instanceData = instanceData;
             _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
         }
@@ -336,7 +338,8 @@ namespace Biovation.Brands.EOS.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.EosCode, deviceId: deviceId,
+            var allTasks = await _taskService.GetTasks(instanceId: _instanceData?.Id,
+                brandCode: _instanceData is null ? DeviceBrands.EosCode : default, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string>
                 {
                     TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,

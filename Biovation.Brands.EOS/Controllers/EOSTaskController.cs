@@ -9,11 +9,11 @@ namespace Biovation.Brands.EOS.Controllers
 {
     [ApiController]
     [Route("biovation/api/[controller]")]
-    public class EosTaskController : ControllerBase
+    public class TaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public EosTaskController(TaskManager taskManager)
+        public TaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

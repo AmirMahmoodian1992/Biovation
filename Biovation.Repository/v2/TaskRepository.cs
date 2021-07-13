@@ -1,12 +1,12 @@
-﻿using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using Newtonsoft.Json;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -19,7 +19,7 @@ namespace Biovation.Repository.Sql.v2
             _repository = repository;
         }
 
-        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int taskItemId = default, int pageNumber = default, int pageSize = default)
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, string instanceId = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int taskItemId = default, int pageNumber = default, int pageSize = default)
         {
             return await Task.Run(() =>
             {
@@ -28,6 +28,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@taskId", taskId),
                     new SqlParameter("@taskItemId", taskItemId),
                     new SqlParameter("@brandId", brandCode),
+                    new SqlParameter("@instanceId", instanceId),
                     new SqlParameter("@deviceId", deviceId),
                     new SqlParameter("@pageNumber", pageNumber),
                     new SqlParameter("@pageSize", pageSize),

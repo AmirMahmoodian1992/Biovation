@@ -28,9 +28,9 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         /*[Route("GetTasks")]*/
         [Authorize]
-        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
+        public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default, string instanceId = default, int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default, string excludedTaskStatusCodes = default, int pageNumber = default, int pageSize = default, int taskItemId = default)
         {
-            return await _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes, taskItemId, pageNumber, pageSize);
+            return await _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodes, excludedTaskStatusCodes, taskItemId, pageNumber, pageSize);
         }
     }
 }

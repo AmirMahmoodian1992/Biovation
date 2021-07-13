@@ -14,19 +14,19 @@ namespace Biovation.Brands.Shahab.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class ShahabDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly ShahabServer _shahabServer;
         private readonly DeviceService _deviceService;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly ILogger _logger;
 
-        public ShahabDeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, ShahabServer shahabServer, ILogger logger)
+        public DeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, ShahabServer shahabServer, ILogger logger)
         {
             _shahabServer = shahabServer;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
-            _logger = logger.ForContext<ShahabDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
         [HttpGet]

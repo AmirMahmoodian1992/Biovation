@@ -74,7 +74,8 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@MacAddress", SqlDbType.NVarChar) { Value = device.MacAddress },
                 new SqlParameter("@SSL", SqlDbType.Bit) { Value = device.SSL },
                 new SqlParameter("@TimeSync", SqlDbType.Bit) { Value = device.TimeSync },
-                new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId }
+                new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId },
+                new SqlParameter("@ServiceInstanceId", SqlDbType.NVarChar) { Value = device.ServiceInstance?.Id}
             };
 
             if (device.HardwareVersion != null)
@@ -178,7 +179,8 @@ namespace Biovation.Repository.Sql.v2
                 //new SqlParameter("@RegisterDate", SqlDbType.SmallDateTime) { Value = device.RegisterDate },
                 new SqlParameter("@SSL", SqlDbType.Bit) { Value = device.SSL },
                 new SqlParameter("@TimeSync", SqlDbType.Bit) { Value = device.TimeSync },
-                new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId }
+                new SqlParameter("@DeviceTypeId", SqlDbType.Int) { Value = device.DeviceTypeId },
+                new SqlParameter("@ServiceInstanceId", SqlDbType.NVarChar) { Value = device.ServiceInstance?.Id}
             };
 
             if (device.HardwareVersion != null)

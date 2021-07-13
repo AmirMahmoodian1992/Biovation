@@ -9,11 +9,11 @@ namespace Biovation.Brands.PW.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[Controller]")]
-    public class PwTaskController : ControllerBase
+    public class TaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public PwTaskController(TaskManager taskManager)
+        public TaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

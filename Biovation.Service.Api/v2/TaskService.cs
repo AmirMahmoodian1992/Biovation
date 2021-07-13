@@ -16,7 +16,7 @@ namespace Biovation.Service.Api.v2
         }
 
         public async Task<ResultViewModel<PagingResult<TaskInfo>>> GetTasks(int taskId = default, string brandCode = default,
-            int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = default,
+            string instanceId = default, int deviceId = default, string taskTypeCode = default, List<string> taskStatusCodes = default,
             List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default, string token = default)
         {
@@ -46,7 +46,7 @@ namespace Biovation.Service.Api.v2
                 excludedTaskStatusCodesString += ')';
             }
 
-            return await _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodesString,
+            return await _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodesString,
                 excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token);
         }
 
@@ -85,7 +85,7 @@ namespace Biovation.Service.Api.v2
 
         public async Task<ResultViewModel> InsertTask(TaskInfo task, string token = default)
         {
-            return await _taskRepository.InsertTask(task,token);
+            return await _taskRepository.InsertTask(task, token);
         }
         public async Task<ResultViewModel> UpdateTaskStatus(TaskItem taskItem)
         {

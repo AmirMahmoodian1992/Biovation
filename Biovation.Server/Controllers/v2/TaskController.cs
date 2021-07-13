@@ -27,11 +27,11 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpGet]
         public async Task<ResultViewModel<PagingResult<TaskInfo>>> Tasks(int id = default, string brandCode = default,
-            int deviceId = default, string taskTypeCode = default, [FromQuery] List<string> taskStatusCodes = default,
+            string instanceId = default, int deviceId = default, string taskTypeCode = default, [FromQuery] List<string> taskStatusCodes = default,
             [FromQuery] List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default)
         {
-            return await _taskService.GetTasks(id, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+            return await _taskService.GetTasks(id, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodes,
                 excludedTaskStatusCodes, pageNumber, pageSize, taskItemId);
         }
 

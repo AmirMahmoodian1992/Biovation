@@ -110,6 +110,8 @@ namespace Biovation.Data.Commands
 
             services.AddScoped<Repository.Api.v2.RelayController.RelayRepository, Repository.Api.v2.RelayController.RelayRepository>();
             
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
+
             //integration
             services.AddScoped<LogApiSink, LogApiSink>();
             services.AddScoped<TaskApiSink, TaskApiSink>();

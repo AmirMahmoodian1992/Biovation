@@ -8,13 +8,13 @@ namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class SupremaSystemInfoController : ControllerBase
+    public class SystemInfoController : ControllerBase
     {
         [HttpGet]
-        public ResultViewModel<ServiceInfo> GetInfo()
+        public ResultViewModel<ServiceInstance> GetInfo()
         {
-            var brandInfo = new ServiceInfo();
-            var result = new ResultViewModel<ServiceInfo>();
+            var brandInfo = new ServiceInstance();
+            var result = new ResultViewModel<ServiceInstance>();
             var name = Assembly.GetExecutingAssembly().GetName().Name;
             if (name != null)
                 brandInfo.Name = name.Split('.').LastOrDefault();

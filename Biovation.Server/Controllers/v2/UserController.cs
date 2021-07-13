@@ -14,6 +14,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -30,9 +32,15 @@ namespace Biovation.Server.Controllers.v2
         private readonly AccessGroupService _accessGroupService;
         private readonly FingerTemplateService _fingerTemplateService;
 
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+        private readonly TaskService _taskService;
+
         private readonly RestClient _restClient;
 
-        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, RestClient restClient, FingerTemplateService fingerTemplateService, UserCardService userCardService)
+        public UserController(UserService userService, DeviceService deviceService, UserGroupService userGroupService, AccessGroupService accessGroupService, RestClient restClient, FingerTemplateService fingerTemplateService, UserCardService userCardService, TaskStatuses taskStatuses, TaskTypes taskTypes, TaskItemTypes taskItemTypes,TaskPriorities taskPriorities,TaskService taskService)
         {
             _userService = userService;
             _deviceService = deviceService;
@@ -41,6 +49,12 @@ namespace Biovation.Server.Controllers.v2
             _fingerTemplateService = fingerTemplateService;
             _userCardService = userCardService;
             _accessGroupService = accessGroupService;
+           
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -63,6 +77,7 @@ namespace Biovation.Server.Controllers.v2
             return await _userService.GetUsers(userId: id, token: HttpContext.Items["Token"] as string);
         }
 
+        // TODO - Verify method.
         [HttpPost]
         public async Task<ResultViewModel> AddUser([FromBody] User user)
         {
@@ -103,13 +118,13 @@ namespace Biovation.Server.Controllers.v2
                     var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                     if (deviceBrands is null)
                         return;
-
-                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
-                    {
-                        restRequest.AddJsonBody(user);
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
+                    _userService.AddUser(deviceBrands, user, token);
+                    //foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
+                    //{
+                    //    restRequest.AddJsonBody(user);
+                    //    restRequest.AddHeader("Authorization", token!);
+                    //    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //}
                 }).ConfigureAwait(false);
 
                 return result;
@@ -121,6 +136,7 @@ namespace Biovation.Server.Controllers.v2
             }
         }
 
+        // TODO - Verify method.
         [HttpPut]
         public async Task<ResultViewModel> ModifyUser([FromBody] User user)
         {
@@ -162,12 +178,13 @@ namespace Biovation.Server.Controllers.v2
                     if (deviceBrands is null)
                         return;
 
-                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
-                    {
-                        restRequest.AddJsonBody(user);
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
+                    _userService.ModifyUser(deviceBrands, user, token);
+                    //foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/ModifyUser", Method.POST)))
+                    //{
+                    //    restRequest.AddJsonBody(user);
+                    //    restRequest.AddHeader("Authorization", token!);
+                    //    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                    //}
                 }).ConfigureAwait(false);
 
                 return result;
@@ -274,8 +291,11 @@ namespace Biovation.Server.Controllers.v2
                 return result;
             });
         }
+
+        // TODO - Verify method.
         private async Task<ResultViewModel> Sync(long[] usersToSync = default, string updateUsers = default)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
             if (deviceBrands is null)
@@ -283,11 +303,45 @@ namespace Biovation.Server.Controllers.v2
 
             try
             {
-                foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/DeleteUserFromAllTerminal", Method.POST)))
+                foreach (var deviceBrand in deviceBrands)
                 {
-                    restRequest.AddJsonBody(usersToSync ?? Array.Empty<long>());
-                    restRequest.AddHeader("Authorization", token!);
-                    await _restClient.ExecuteAsync(restRequest);
+
+                    var task = new TaskInfo
+                    {
+                        Status = _taskStatuses.Queued,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUserFromTerminal,
+                        Priority = _taskPriorities.Medium,
+                        DeviceBrand = deviceBrand,
+                        TaskItems = new List<TaskItem>()
+                    };
+
+                    var devices = (await _deviceService.GetDevices(brandId: deviceBrand.Code))?.Data?.Data ?? new List<DeviceBasicInfo>();
+                    foreach (var device in devices)
+                    {
+                        if (usersToSync != null)
+                            foreach (var userCode in usersToSync)
+                            {
+                                if (device != null)
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new {userCode}),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1
+                                    });
+                            }
+                    }
+
+                    await _taskService.InsertTask(task);
+                    _ = _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
+
+                    _userService.DeleteUserFromAllTerminal(deviceBrands, usersToSync ?? Array.Empty<long>());
                 }
             }
             catch (Exception exception)
@@ -353,11 +407,43 @@ namespace Biovation.Server.Controllers.v2
                                 foreach (var device in deviceGroup.Devices)
                                 {
                                     var deviceBrand = deviceBrands.First(devBrand => devBrand.Code == device.Brand.Code);
-                                    var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
-                                    restRequest.AddQueryParameter("code", device.Code.ToString());
-                                    restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
-                                    restRequest.AddHeader("Authorization", token!);
-                                    await _restClient.ExecuteAsync(restRequest);
+
+                                    var task = new TaskInfo
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        CreatedAt = DateTimeOffset.Now,
+                                        CreatedBy = creatorUser,
+                                        TaskType = _taskTypes.SendUsers,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceBrand = device.Brand,
+                                        TaskItems = new List<TaskItem>(),
+                                        DueDate = DateTime.Today
+                                    };
+
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendUser,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId = lstUserGroupMember[i].UserId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+
+                                    await _taskService.InsertTask(task);
+                                    _ = _taskService.ProcessQueue(device.Brand, device.DeviceId);
+
+                                    _userService.Sync(deviceBrand, device, lstUserGroupMember[i], token);
+
+                                    //var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                                    //restRequest.AddQueryParameter("code", device.Code.ToString());
+                                    //restRequest.AddQueryParameter("userId", $"[{lstUserGroupMember[i].UserId}]");
+                                    //restRequest.AddHeader("Authorization", token!);
+                                    //await _restClient.ExecuteAsync(restRequest);
                                 }
                             }
                         }
@@ -463,10 +549,12 @@ namespace Biovation.Server.Controllers.v2
         //    }
         //}
 
+        // TODO - Verify method.
         [HttpPost]
         [Route("{id}/EnrollFaceTemplate")]
         public async Task<ResultViewModel> EnrollFaceTemplate([FromRoute] int id = default, int deviceId = default)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             var user = await _userService.GetUsers(userId: id, token: token);
             if (user is null)
@@ -476,11 +564,42 @@ namespace Biovation.Server.Controllers.v2
             if (device is null)
                 return new ResultViewModel { Validate = 0, Id = deviceId, Message = "Wrong device id is provided." };
 
-            var restRequest = new RestRequest($@"{device.Brand.Name}/{device.Brand.Name}User/EnrollFaceTemplate", Method.POST);
-            restRequest.AddQueryParameter("userId", id.ToString());
-            restRequest.AddQueryParameter("deviceId", deviceId.ToString());
-            restRequest.AddHeader("Authorization", token!);
-            var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var task = new TaskInfo
+            {
+                Status = _taskStatuses.Queued,
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.EnrollFaceFromTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.EnrollFaceFromTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceId = deviceId,
+                Data = JsonConvert.SerializeObject(new { UserId = user.Id }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                TotalCount = 1,
+                CurrentIndex = 0
+            });
+
+            await _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand, deviceId).ConfigureAwait(false);
+
+            var result = await _userService.EnrollFaceTemplate(device, id, deviceId, token);
+
+            //var restRequest = new RestRequest($@"{device.ServiceInstance.Id}/User/EnrollFaceTemplate", Method.POST);
+            //restRequest.AddQueryParameter("userId", id.ToString());
+            //restRequest.AddQueryParameter("deviceId", deviceId.ToString());
+            //restRequest.AddHeader("Authorization", token!);
+            //var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return result.StatusCode == HttpStatusCode.OK ? result.Data : new ResultViewModel { Validate = 0, Id = (long)result.StatusCode, Message = result.ErrorMessage };
         }
 
@@ -491,6 +610,7 @@ namespace Biovation.Server.Controllers.v2
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var resultList = new List<ResultViewModel>();
                 //var userIdList = JsonConvert.DeserializeObject<List<int>>(userIds);
@@ -620,14 +740,47 @@ namespace Biovation.Server.Controllers.v2
 
                                     var deviceBrand = deviceBrands.First(devBrand =>
                                         devBrand.Code == device.Brand.Code);
-                                    var restRequest = new RestRequest(
-                                        $"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
-                                    restRequest.AddQueryParameter("code", device.Code.ToString());
-                                    restRequest.AddQueryParameter("userId", $"[{userId}]");
-                                    restRequest.AddQueryParameter("updateServerSideIdentification",
-                                        bool.TrueString);
-                                    restRequest.AddHeader("Authorization", token!);
-                                    var restResult = await _restClient.ExecuteAsync(restRequest);
+
+                                    var task = new TaskInfo
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        CreatedAt = DateTimeOffset.Now,
+                                        CreatedBy = creatorUser,
+                                        TaskType = _taskTypes.SendUsers,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceBrand = device.Brand,
+                                        TaskItems = new List<TaskItem>(),
+                                        DueDate = DateTime.Today
+                                    };
+
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendUser,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+
+                                    await _taskService.InsertTask(task);
+                                    await _taskService.ProcessQueue(device.Brand, device.DeviceId);
+
+                                    var restResult =
+                                        await _userService.UpdateUserGroupsOfUser(deviceBrand, device, userId, token);
+
+                                    //var restRequest = new RestRequest(
+                                    //    $"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToDevice", Method.GET);
+                                    //restRequest.AddQueryParameter("code", device.Code.ToString());
+                                    //restRequest.AddQueryParameter("userId", $"[{userId}]");
+                                    //restRequest.AddQueryParameter("updateServerSideIdentification",
+                                    //    bool.TrueString);
+                                    //restRequest.AddHeader("Authorization", token!);
+                                    //var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -643,19 +796,50 @@ namespace Biovation.Server.Controllers.v2
                                 {
                                     if (deviceBrands is null)
                                         continue;
-
                                     var deviceBrand = deviceBrands.First(devBrand =>
                                         devBrand.Code == deviceToDelete.Brand.Code);
                                     var listOfUserId = new List<int> { userId };
-                                    var restRequest = new RestRequest(
-                                        $"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice",
-                                        Method.POST);
-                                    restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
-                                    restRequest.AddQueryParameter("updateServerSideIdentification",
-                                        bool.TrueString);
-                                    restRequest.AddJsonBody(listOfUserId);
-                                    restRequest.AddHeader("Authorization", token!);
-                                    var restResult = await _restClient.ExecuteAsync(restRequest);
+
+                                    var task = new TaskInfo
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        CreatedAt = DateTimeOffset.Now,
+                                        CreatedBy = creatorUser,
+                                        TaskType = _taskTypes.DeleteUsers,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceBrand = deviceToDelete.Brand,
+                                        TaskItems = new List<TaskItem>(),
+                                        DueDate = DateTime.Today
+                                    };
+
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = deviceToDelete.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+
+                                    await _taskService.InsertTask(task);
+                                    await _taskService.ProcessQueue(deviceToDelete.Brand).ConfigureAwait(false);
+
+                                    var restResult = await _userService.DeleteUserFromDevice(deviceBrand, deviceToDelete, listOfUserId, token);
+
+                                    //var restRequest = new RestRequest(
+                                    //    $"/{deviceBrand.Name}/{deviceBrand.Name}Device/DeleteUserFromDevice",
+                                    //    Method.POST);
+                                    //restRequest.AddQueryParameter("code", deviceToDelete.Code.ToString());
+                                    //restRequest.AddQueryParameter("updateServerSideIdentification",
+                                    //    bool.TrueString);
+                                    //restRequest.AddJsonBody(listOfUserId);
+                                    //restRequest.AddHeader("Authorization", token!);
+                                    //var restResult = await _restClient.ExecuteAsync(restRequest);
 
                                     if (restResult.IsSuccessful && restResult.StatusCode == HttpStatusCode.OK)
                                         resultList.Add(new ResultViewModel
@@ -703,7 +887,8 @@ namespace Biovation.Server.Controllers.v2
                 for (var i = 0; i < count; i++)
                 {
                     var group = (await _userGroupService.UserGroups(token: token))?.Data?.Data;
-                    groupIds.AddRange(group.Select(s => s.Id));
+                    if (group !=null)
+                        groupIds.AddRange(group.Select(s => s.Id));
                 }
 
                 //TODO !important
@@ -809,6 +994,7 @@ namespace Biovation.Server.Controllers.v2
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
 
+        // TODO - Verify method.
         [HttpPost]
         [Authorize]
         [Route("UserToAllDevice")]
@@ -817,6 +1003,7 @@ namespace Biovation.Server.Controllers.v2
             try
             {
                 var token = HttpContext.Items["Token"] as string;
+                var creatorUser = HttpContext.GetUser();
                 var userIds = JsonConvert.DeserializeObject<int[]>(ids);
                 var deviceBrands = (await _deviceService.GetDeviceBrands(token: token))?.Data?.Data;
                 var length = userIds.Length;
@@ -835,16 +1022,62 @@ namespace Biovation.Server.Controllers.v2
                     if (deviceBrands == null) continue;
                     foreach (var deviceBrand in deviceBrands)
                     {
-                        var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", Method.POST);
-                        restRequest.AddJsonBody(user);
+                        var accessGroups = (await _accessGroupService.GetAccessGroups(user.Id))?.Data?.Data ?? new List<AccessGroup>();
+                        var userId = user.Code;
 
-                        var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                        result.Add(new ResultViewModel
+                        var task = new TaskInfo
                         {
-                            Validate = restResult.Data?.Validate ?? 0,
-                            Id = userIds[i],
-                            Message = deviceBrand.Name
-                        });
+                            Status = _taskStatuses.Queued,
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.SendUsers,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = deviceBrand,
+                            TaskItems = new List<TaskItem>()
+                        };
+
+                        if (!accessGroups.Any())
+                        {
+                            return new List<ResultViewModel>{ new ResultViewModel { Id = user.Id, Validate = 0 } };
+                        }
+                        foreach (var accessGroup in accessGroups)
+                        {
+                            foreach (var deviceGroup in accessGroup.DeviceGroup)
+                            {
+                                foreach (var deviceGroupMember in deviceGroup.Devices)
+                                {
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendUser,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = deviceGroupMember.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { UserId = userId }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1
+                                    });
+
+                                }
+                            }
+                        }
+                        await _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(deviceBrand).ConfigureAwait(false);
+
+                        var resultList = _userService.SendUserToAllDevices(deviceBrand, userId, user);
+
+                        //var restRequest = new RestRequest($"/{deviceBrand.Name}/{deviceBrand.Name}User/SendUserToAllDevices", Method.POST);
+                        //restRequest.AddJsonBody(user);
+                        //var restResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+
+                        //result.Add(new ResultViewModel
+                        //{
+                        //    Validate = restResult.Data?.Validate ?? 0,
+                        //    Id = userIds[i],
+                        //    Message = deviceBrand.Name
+                        //});
+
+                        result.AddRange(resultList);
                     }
                 }
 

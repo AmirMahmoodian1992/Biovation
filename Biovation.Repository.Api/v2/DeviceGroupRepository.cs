@@ -1,7 +1,10 @@
 ﻿using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Newtonsoft.Json;
 using RestSharp;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -82,6 +85,33 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
+        }
+
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDelete, string token = default)
+        {
+            var deleteUserRestRequest =
+                new RestRequest(
+                    $"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
+                    Method.POST);
+
+            deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
+            deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Code));
+            token ??= _biovationConfigurationManager.DefaultToken;
+            deleteUserRestRequest.AddHeader("Authorization", token);
+            return _restClient.ExecuteAsync<ResultViewModel>(deleteUserRestRequest).GetAwaiter().GetResult().Data;
+        }
+
+        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToAdd, string token = default)
+        {
+            var sendUserRestRequest =
+                new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice",
+                    Method.GET);
+
+            sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
+            sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAdd.Select(user => user.Code)));
+            token ??= _biovationConfigurationManager.DefaultToken;
+            sendUserRestRequest.AddHeader("Authorization", token);
+            return _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest).GetAwaiter().GetResult().Data;
         }
     }
 }

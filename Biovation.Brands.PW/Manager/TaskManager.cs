@@ -3,29 +3,31 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using MoreLinq.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MoreLinq.Extensions;
 
 namespace Biovation.Brands.PW.Manager
 {
     public class TaskManager
     {
         private readonly TaskService _taskService;
-        private readonly CommandFactory _commandFactory;
         private readonly TaskStatuses _taskStatuses;
+        private readonly ServiceInstance _instanceData;
+        private readonly CommandFactory _commandFactory;
 
         private readonly List<TaskInfo> _tasks = new List<TaskInfo>();
         private bool _processingQueueInProgress;
 
-        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses)
+        public TaskManager(TaskService taskService, CommandFactory commandFactory, TaskStatuses taskStatuses, ServiceInstance instanceData)
         {
             _taskService = taskService;
             _taskStatuses = taskStatuses;
+            _instanceData = instanceData;
             _commandFactory = commandFactory;
         }
 
@@ -103,7 +105,8 @@ namespace Biovation.Brands.PW.Manager
 
         public async Task ProcessQueue(int deviceId = default, CancellationToken cancellationToken = default)
         {
-            var allTasks = await _taskService.GetTasks(brandCode: DeviceBrands.ProcessingWorldCode, deviceId: deviceId,
+            var allTasks = await _taskService.GetTasks(instanceId: _instanceData?.Id,
+                brandCode: _instanceData is null ? DeviceBrands.ProcessingWorldCode : default, deviceId: deviceId,
                 excludedTaskStatusCodes: new List<string>
                 {
                     TaskStatuses.DoneCode, TaskStatuses.FailedCode, TaskStatuses.RecurringCode,

@@ -9,11 +9,11 @@ namespace Biovation.Brands.Suprema.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[Controller]")]
-    public class SupremaTaskController : ControllerBase
+    public class TaskController : ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public SupremaTaskController(TaskManager taskManager)
+        public TaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

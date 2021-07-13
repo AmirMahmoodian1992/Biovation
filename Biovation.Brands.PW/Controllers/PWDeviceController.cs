@@ -1,49 +1,32 @@
 ﻿using Biovation.Brands.PW.Devices;
-using Biovation.CommonClasses.Extension;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using System;
+using System.Linq;
 using Serilog;
 
 namespace Biovation.Brands.PW.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PwDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly ILogger _logger;
         private readonly PwServer _pwServer;
-        private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-
-        private readonly TaskTypes _taskTypes;
-        private readonly DeviceBrands _deviceBrands;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskPriorities _taskPriorities;
-
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public PwDeviceController(TaskService taskService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, TaskTypes taskTypes, DeviceBrands deviceBrands, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, ILogger logger)
+        public DeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices, PwServer pwServer, ILogger logger)
         {
-            _taskService = taskService;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _pwServer = pwServer;
-            _taskTypes = taskTypes;
-            _deviceBrands = deviceBrands;
-            _taskStatuses = taskStatuses;
-            _taskItemTypes = taskItemTypes;
-            _taskPriorities = taskPriorities;
-
-            _logger = logger.ForContext<PwDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
 
@@ -99,83 +82,13 @@ namespace Biovation.Brands.PW.Controllers
 
         [HttpGet]
         [Authorize]
-        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
         {
-
-            try
+            return Task.Run(() =>
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ProcessingWorldCode)?.FirstOrDefault();
-                if (device != null)
-                {
-                    var deviceId = device.DeviceId;
-                    //var creatorUser = _userService.GetUsers(123456789)?.FirstOrDefault();
-                    var creatorUser = HttpContext.GetUser();
-
-                    if (fromDate.HasValue || toDate.HasValue)
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.ProcessingWorld,
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                        });
-
-                        _taskService.InsertTask(task);
-                    }
-
-                    else
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetServeLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceBrand = _deviceBrands.ProcessingWorld,
-                            TaskItems = new List<TaskItem>(),
-                            DueDate = DateTime.Today
-                        };
-                        task.TaskItems.Add(new TaskItem
-                        {
-
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetServeLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = device.DeviceId,
-                            Data = JsonConvert.SerializeObject(new { deviceId }),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-
-                        _taskService.InsertTask(task);
-                    }
-                }
-
-                await _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, device?.DeviceId ?? 0).ConfigureAwait(false);
-
-                var result = new ResultViewModel { Validate = 1, Message = $"Reading logs of device {code} queued" };
+                var result = new ResultViewModel {Validate = 1, Message = $"Reading logs of device {code} queued"};
                 return result;
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 1, Message = $"Error ,Reading logs of device {code} queued!{exception}" };
-            }
+            });
         }
 
         [HttpPost]

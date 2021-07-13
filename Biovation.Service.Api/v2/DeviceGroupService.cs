@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using System.Collections.Generic;
 
 namespace Biovation.Service.Api.v2
 {
@@ -45,6 +46,14 @@ namespace Biovation.Service.Api.v2
             return await _deviceGroupRepository.DeleteDeviceGroupMember(id,token);
         }
 
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, IEnumerable<User> usersToDelete, string token = default)
+        {
+            return _deviceGroupRepository.DeleteUserFromDevice(device, usersToDelete, token);
+        }
 
+        public List<ResultViewModel> SendUserToDevice(DeviceBasicInfo device, IEnumerable<User> usersToAdd, string token = default)
+        {
+            return _deviceGroupRepository.SendUserToDevice(device, usersToAdd, token);
+        }
     }
 }

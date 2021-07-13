@@ -89,7 +89,7 @@ namespace Biovation.Brands.EOS.Commands
             var creatorUser = _userService.GetUsers(userId: CreatorUserId).Result?.Data?.Data?.FirstOrDefault();
             var onlineDevice = OnlineDevices.FirstOrDefault(dev => dev.Key == device.Code).Value;
 
-            var restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Device/RetrieveUsersListFromDevice", Method.GET);
+            var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveUsersListFromDevice", Method.GET);
             restRequest.AddQueryParameter("code", device.Code.ToString());
             restRequest.ReadWriteTimeout = 3600000;
             restRequest.Timeout = 3600000;
@@ -179,7 +179,7 @@ namespace Biovation.Brands.EOS.Commands
                 }
             }
 
-            restRequest = new RestRequest($"{device.Brand.Name}/{device.Brand.Name}Task/RunProcessQueue", Method.POST);
+            restRequest = new RestRequest($"{device.ServiceInstance.Id}/Task/RunProcessQueue", Method.POST);
             _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
             return new ResultViewModel

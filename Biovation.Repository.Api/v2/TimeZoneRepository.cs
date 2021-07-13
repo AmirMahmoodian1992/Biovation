@@ -1,6 +1,7 @@
 ﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
 using RestSharp;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
@@ -68,6 +69,21 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
             return requestResult.Data;
+        }
+
+        public List<ResultViewModel> SendTimeZoneDevice(int id, DeviceBasicInfo device, string token = default)
+        {
+            var restRequest =
+                new RestRequest(
+                    $"/biovation/api/{device.ServiceInstance.Id}/TimeZone/SendTimeZoneToDevice",
+                    Method.GET);
+            restRequest.AddParameter("code", device.Code);
+            restRequest.AddParameter("timeZoneId", id);
+            token ??= _biovationConfigurationManager.DefaultToken;
+            restRequest.AddHeader("Authorization", token);
+            var requestResult = _restClient.ExecuteAsync<List<ResultViewModel>>(restRequest);
+
+            return new List<ResultViewModel>(requestResult.Result.Data);
         }
     }
 }

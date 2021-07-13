@@ -32,6 +32,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using System.Reflection;
 using Biovation.Service.Api.v2;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
 using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
 using BlackListService = Biovation.Service.Api.v1.BlackListService;
@@ -142,6 +143,8 @@ namespace Biovation.Server
             services.AddMvc();
             //services.AddSingleton<IAuthorizationHandler,  OverrideTestAuthorizationHandler>();
 
+            services.ConfigureMassTransit(Configuration);
+
             services.AddSingleton(BiovationConfiguration);
             services.AddSingleton(BiovationConfiguration.Configuration);
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
@@ -239,6 +242,7 @@ namespace Biovation.Server
             services.AddScoped<RelayRepository, RelayRepository>();
             services.AddScoped<CameraRepository, CameraRepository>();
 
+            services.AddSingleton<ServiceInstanceRepository, ServiceInstanceRepository>();
             //services.AddScoped<Repository.API.v1.DeviceRepository, Repository.API.v1.DeviceRepository>();
 
 
@@ -266,6 +270,7 @@ namespace Biovation.Server
             services.AddTransient<SettingService, SettingService>();
             services.AddTransient<LogService, LogService>();
             services.AddTransient<DeviceService, DeviceService>();
+            services.AddSingleton<ServiceInstanceService, ServiceInstanceService>();
 
             services.AddTransient<FaceTemplateService, FaceTemplateService>();
             services.AddTransient<IrisTemplateService, IrisTemplateService>();
@@ -414,6 +419,12 @@ namespace Biovation.Server
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health/ready", new HealthCheckOptions()
+                {
+                    Predicate = check => check.Tags.Contains("ready"),
+                });
+
+                endpoints.MapHealthChecks("/health/live", new HealthCheckOptions());
             });
 
             loggerFactory.AddSerilog();

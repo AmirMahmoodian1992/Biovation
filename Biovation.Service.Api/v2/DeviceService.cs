@@ -1,7 +1,9 @@
 ﻿using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Biovation.Service.Api.v2
@@ -59,6 +61,74 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.GetDeviceBrands(code, name, pageNumber, pageSize, token);
         }
 
+        // TODO - Verify the method
+        public ResultViewModel<List<User>> RetrieveUsersOfDevice(DeviceBasicInfo device, List<User> users, string token = default)
+        {
+            var usersResult = _deviceRepository.RetrieveUsersOfDevice(device, token);
+
+            var joinResult = (from r in usersResult?.Data
+                              join u in users on r.Code equals u.Code
+                                  into ps
+                              from u in ps.DefaultIfEmpty()
+                              select new User
+                              {
+                                  Type = u == null ? 0 : 1,
+                                  IsActive = r.IsActive,
+                                  Id = r.Id,
+                                  Code = r.Code,
+                                  FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
+                                  StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
+                                  EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                              }).ToList();
+
+            var lastResult = new ResultViewModel<List<User>>
+            {
+                Data = joinResult
+            };
+            return lastResult;
+        }
+
+        // TODO - Verify method.
+        public IRestResponse<ResultViewModel> ReadOfflineOfDevice(DeviceBasicInfo device, DateTime? fromDate, DateTime? toDate, string token = default)
+        {
+            return _deviceRepository.ReadOfflineOfDevice(device, fromDate, toDate, token);
+        }
+
+        public ResultViewModel RemoveUserFromDevice(DeviceBasicInfo device, string token = default)
+        {
+            return _deviceRepository.RemoveUserFromDevice(device, token);
+        }
+
+        // TODO - Verify the method.
+        public ResultViewModel DeleteUserFromDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
+        {
+            return _deviceRepository.DeleteUserFromDevice(device, userIds, token);
+        }
+
+        // TODO - Verify method.
+        public ResultViewModel RemoveUserFromDeviceById(DeviceBasicInfo device, long userId, string token = default)
+        {
+            return _deviceRepository.RemoveUserFromDeviceById(device, userId, token);
+        }
+
+        // TODO - Verify the method.
+        public async Task<List<DeviceBasicInfo>> GetOnlineDevices(string token = default)
+        {
+            return await _deviceRepository.GetOnlineDevices(token);
+        }
+
+        // TODO - Verify the method.
+        public IRestResponse<ResultViewModel> ClearLogOfDevice(DeviceBasicInfo device, DateTime? fromDate, DateTime? toDate, string token)
+        {
+            return _deviceRepository.ClearLogsOfDevice(device, fromDate, toDate, token);
+        }
+
+        // TODO - Verify the method.
+        public IRestResponse<List<ResultViewModel>> RetrieveUsers(DeviceBasicInfo device, List<uint> userId = default, string token = default)
+        {
+            return _deviceRepository.RetrieveUsers(device, userId, token);
+        }
+
         public async Task<ResultViewModel> AddDevice(DeviceBasicInfo device = default, string token = default)
         {
             return await _deviceRepository.AddDevice(device, token);
@@ -84,6 +154,12 @@ namespace Biovation.Service.Api.v2
             return await _deviceRepository.ModifyDevice(device, token);
         }
 
+        // TODO - Verify method.
+        public void ModifyDeviceInfo(DeviceBasicInfo device, string token = default)
+        { 
+            _deviceRepository.ModifyDeviceInfo(device, token);
+        }
+
         public async Task<ResultViewModel> AddNetworkConnectionLog(DeviceBasicInfo device, string token = default)
         {
             return await _deviceRepository.AddNetworkConnectionLog(device, token);
@@ -92,6 +168,24 @@ namespace Biovation.Service.Api.v2
         public async Task<ResultViewModel<PagingResult<User>>> GetAuthorizedUsersOfDevice(int id, string token = default)
         {
             return await _deviceRepository.GetAuthorizedUsersOfDevice(id, token);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<List<ResultViewModel>>> SendUserToDevice(DeviceBasicInfo device, List<long> userIds, string token = default)
+        {
+            return _deviceRepository.SendUserToDevice(device, userIds, token);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<ResultViewModel>> SendUsersOfDevice(DeviceBasicInfo device, string token = default)
+        {
+            return _deviceRepository.SendUsersOfDevice(device, token);
+        }
+
+        // TODO - Verify the method.
+        public Task<IRestResponse<Dictionary<string, string>>> GetAdditionalData(DeviceBasicInfo device, string token = default)
+        {
+            return _deviceRepository.GetAdditionalData(device, token);
         }
     }
 }

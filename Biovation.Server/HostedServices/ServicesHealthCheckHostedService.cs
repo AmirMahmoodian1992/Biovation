@@ -13,6 +13,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Biovation.Service.Api.v2;
 
 namespace Biovation.Server.HostedServices
 {
@@ -26,8 +27,9 @@ namespace Biovation.Server.HostedServices
         private readonly IHostEnvironment _environment;
         private readonly ILogger<ServicesHealthCheckHostedService> _logger;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
+        private readonly ServiceInstanceService _serviceInstanceService;
 
-        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager, IHostEnvironment environment)
+        public ServicesHealthCheckHostedService(RestClient restClient, SystemInfo systemInformation, Lookups lookups, ILogger<ServicesHealthCheckHostedService> logger, BiovationConfigurationManager biovationConfigurationManager, IHostEnvironment environment, ServiceInstanceService serviceInstanceService)
         {
             _logger = logger;
             _lookups = lookups;
@@ -35,12 +37,14 @@ namespace Biovation.Server.HostedServices
             _environment = environment;
             _systemInformation = systemInformation;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _serviceInstanceService = serviceInstanceService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Services Health Check Hosted Service running.");
 
+            _systemInformation.Services = new List<ServiceInstance>();
             _timer = new Timer(CheckServicesStatus, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
             if (!_environment.IsDevelopment())
@@ -56,34 +60,51 @@ namespace Biovation.Server.HostedServices
             if (!_biovationConfigurationManager.UseHealthCheck)
                 return;
 
-            _systemInformation.Services ??= new List<ServiceInfo>();
-
-            var deviceBrands = _lookups.DeviceBrands;
-            Parallel.ForEach(deviceBrands, deviceBrand =>
+            _systemInformation.Services ??= new List<ServiceInstance>();
+            var instances =  _serviceInstanceService.GetServiceInstance()?.Result?.Data;
+            if (instances != null)
             {
-                try
+                Parallel.ForEach(instances, instance =>
                 {
-                    var restRequest = new RestRequest(
-                        $"{deviceBrand.Name}/health");
-                    var result = _restClient.Execute(restRequest);
+                    try
+                    {
+                        var restRequest = new RestRequest(
+                            $"{instance.Id}/health");
+                        var result = _restClient.Execute(restRequest);
 
-                    if (result.StatusCode == HttpStatusCode.OK && result.Content.ToLowerInvariant().Contains("Healthy".ToLowerInvariant()))
-                    {
-                        if (!_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                            _systemInformation.Services.Add(new ServiceInfo { Name = deviceBrand.Name });
+                        if (result.StatusCode == HttpStatusCode.OK && string.Equals(result.Content, "Healthy",
+                            StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            lock (_systemInformation)
+                            {
+                                if (!_systemInformation.Services.Any(service => service.Id.Contains(instance.Id)))
+                                {
+                                    _systemInformation.Services.Add(instance);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            lock (_systemInformation)
+                            {
+                                //if (_systemInformation.Services.Any(service => (service.Id.Contains(service.Id))))
+                                if (_systemInformation.Services.Any(service => service.Id == instance.Id))
+                                {
+                                    _systemInformation.Services.Remove(
+                                        _systemInformation.Services.Find(service => service.Id.Contains(service.Id)));
+                                }
+                            }
+                        }
                     }
-                    else
+                    catch (Exception exception)
                     {
-                        if (_systemInformation.Services.Any(service => service.Name.Contains(deviceBrand.Name)))
-                            _systemInformation.Services.Remove(
-                                _systemInformation.Services.Find(service => service.Name.Contains(deviceBrand.Name)));
+                        _logger.LogWarning(exception, exception.Message);
                     }
-                }
-                catch (Exception exception)
-                {
-                    _logger.LogWarning(exception, exception.Message);
-                }
-            });
+                });
+            }
+
+            //_logger.LogInformation(
+            //    "Timed Hosted Service is working. Count: {Count}", count);
         }
 
         private void CheckLockStatus(object state)

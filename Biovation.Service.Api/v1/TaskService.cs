@@ -14,16 +14,16 @@ namespace Biovation.Service.Api.v1
             _taskRepository = taskRepository;
         }
 
-        public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
+        public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, string instanceId = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             string excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default, string token = default)
         {
-            return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+            return Task.Run(() => _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodes,
                                       excludedTaskStatusCodes, pageNumber, pageSize, taskItemId, token).Result?.Data?.Data ?? new List<TaskInfo>());
         }
 
-        public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default,
+        public Task<List<TaskInfo>> GetTasks(int taskId = default, string brandCode = default, string instanceId = default,
             int deviceId = default, string taskTypeCode = default, string taskStatusCodes = default,
             List<string> excludedTaskStatusCodes = default, int pageNumber = default,
             int pageSize = default, int taskItemId = default, string token = default)
@@ -43,7 +43,7 @@ namespace Biovation.Service.Api.v1
                     excludedTaskStatusCodesString += ')';
                 }
 
-                return _taskRepository.GetTasks(taskId, brandCode, deviceId, taskTypeCode, taskStatusCodes,
+                return _taskRepository.GetTasks(taskId, brandCode, instanceId, deviceId, taskTypeCode, taskStatusCodes,
                            excludedTaskStatusCodesString, pageNumber, pageSize, taskItemId, token).Result?.Data?.Data ?? new List<TaskInfo>();
             });
         }

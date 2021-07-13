@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v1
 {
@@ -26,7 +28,13 @@ namespace Biovation.Server.Controllers.v1
         private readonly UserService _userService;
         private readonly RestClient _restClient;
 
-        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public DeviceGroupController(DeviceService deviceService, DeviceGroupService deviceGroupService, BiovationConfigurationManager biovationConfigurationManager, RestClient restClient, TokenGenerator tokenGenerator, UserService userService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _deviceService = deviceService;
             _deviceGroupService = deviceGroupService;
@@ -35,6 +43,12 @@ namespace Biovation.Server.Controllers.v1
             _restClient = restClient;
             _tokenGenerator = tokenGenerator;
             _userService = userService;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -53,6 +67,7 @@ namespace Biovation.Server.Controllers.v1
             {
                 try
                 {
+                    var creatorUser = HttpContext.GetUser();
                     var existingDeviceGroup = deviceGroup.Id == 0 ? null : _deviceGroupService.GetDeviceGroups(deviceGroup.Id, token: _kasraAdminToken).FirstOrDefault();
                     if (existingDeviceGroup is null && deviceGroup.Id != 0)
                         return new ResultViewModel
@@ -132,9 +147,41 @@ namespace Biovation.Server.Controllers.v1
                                         user => user.Id)
                                     : existingAuthorizedUsersOfDeletedDevice[deviceId];
 
+                                var task = new TaskInfo
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    CreatedAt = DateTimeOffset.Now,
+                                    CreatedBy = creatorUser,
+                                    TaskType = _taskTypes.DeleteUsers,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceBrand = device.Brand,
+                                    TaskItems = new List<TaskItem>(),
+                                    DueDate = DateTime.Today
+                                };
+
+                                foreach (var userCode in usersToDelete.Select(user => user.Code))
+                                {
+
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userCode }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+                                }
+                                _taskService.InsertTask(task);
+                                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
                                 var deleteUserRestRequest =
                                     new RestRequest(
-                                        $"{device.Brand.Name}/{device.Brand.Name}Device/DeleteUserFromDevice",
+                                        $"{device.ServiceInstance.Id}/Device/DeleteUserFromDevice",
                                         Method.POST);
                                 deleteUserRestRequest.AddQueryParameter("code", device.Code.ToString());
                                 deleteUserRestRequest.AddJsonBody(usersToDelete.Select(user => user.Id));
@@ -160,13 +207,44 @@ namespace Biovation.Server.Controllers.v1
                                         ? newAuthorizedUsersOfDevice.ExceptBy(
                                             existingAuthorizedUsersOfAddedDevice[deviceId], user => user.Id)
                                         : newAuthorizedUsersOfDevice;
+                                
+                                var task = new TaskInfo
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    CreatedAt = DateTimeOffset.Now,
+                                    CreatedBy = creatorUser,
+                                    TaskType = _taskTypes.SendUsers,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceBrand = device.Brand,
+                                    TaskItems = new List<TaskItem>(),
+                                    DueDate = DateTime.Today
+                                };
+
+                                foreach (var id in usersToAdd.Select(user=> user.Code))
+                                {
+                                    task.TaskItems.Add(new TaskItem
+                                    {
+                                        Status = _taskStatuses.Queued,
+                                        TaskItemType = _taskItemTypes.SendUser,
+                                        Priority = _taskPriorities.Medium,
+                                        DeviceId = device.DeviceId,
+                                        Data = JsonConvert.SerializeObject(new { userId = id }),
+                                        IsParallelRestricted = true,
+                                        IsScheduled = false,
+                                        OrderIndex = 1,
+                                        CurrentIndex = 0,
+                                        TotalCount = 1
+                                    });
+                                }
+
+                                _taskService.InsertTask(task);
+                                await _taskService.ProcessQueue(device.Brand, device.DeviceId);
 
                                 var sendUserRestRequest =
-                                        new RestRequest($"{device.Brand.Name}/{device.Brand.Name}User/SendUserToDevice",
+                                        new RestRequest($"{device.ServiceInstance.Id}/User/SendUserToDevice",
                                             Method.GET);
                                 sendUserRestRequest.AddQueryParameter("code", device.Code.ToString());
-                                sendUserRestRequest.AddQueryParameter("userId",
-                                    JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
+                                sendUserRestRequest.AddQueryParameter("userId", JsonConvert.SerializeObject(usersToAdd.Select(user => user.Id)));
                                 /*var additionResult =*/
                                 sendUserRestRequest.AddHeader("Authorization", _biovationConfigurationManager.KasraAdminToken);
                                 await _restClient.ExecuteAsync<List<ResultViewModel>>(sendUserRestRequest);

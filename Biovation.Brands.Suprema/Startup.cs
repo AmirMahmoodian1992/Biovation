@@ -26,6 +26,8 @@ using RestSharp;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading;
 using Log = Serilog.Log;
@@ -92,26 +94,14 @@ namespace Biovation.Brands.Suprema
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var connectionInfo = new DatabaseConnectionInfo
-            {
-                ProviderName = BiovationConfiguration.ConnectionStringProviderName(),
-                WorkstationId = BiovationConfiguration.ConnectionStringWorkstationId(),
-                InitialCatalog = BiovationConfiguration.ConnectionStringInitialCatalog(),
-                DataSource = BiovationConfiguration.ConnectionStringDataSource(),
-                Parameters = BiovationConfiguration.ConnectionStringParameters(),
-                UserId = BiovationConfiguration.ConnectionStringUsername(),
-                Password = BiovationConfiguration.ConnectionStringPassword()
-            };
 
-            services.AddSingleton(connectionInfo);
-            services.AddSingleton<IConnectionFactory, DbConnectionFactory>();
-
-            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-
+            var restClient =
+                (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() =>
+                   new RestRequestJsonSerializer());
+            string lockEndTime = string.Empty;
             if (!_environment.IsDevelopment())
             {
                 #region checkLock
-
                 var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
                 try
                 {
@@ -123,16 +113,20 @@ namespace Biovation.Brands.Suprema
                         {
                             if (!(requestResult.Result.Data.Data.LockEndTime is null))
                             {
-                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}",
+                                    logType: LogType.Warning);
                             }
                         }
                         catch (Exception)
                         {
                             //ignore
                         }
+
                         Thread.Sleep(TimeSpan.FromSeconds(10));
                         Environment.Exit(0);
                     }
+
+                    lockEndTime = requestResult.Result.Data.Data.LockEndTime;
                 }
                 catch (Exception)
                 {
@@ -141,11 +135,59 @@ namespace Biovation.Brands.Suprema
                     Environment.Exit(0);
                 }
 
-
                 #endregion
             }
 
             services.AddSingleton(restClient);
+            var serviceInstanceId =
+                    FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
+            var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
+            var url = (FileActions.JsonReader("appsettings.json", "Urls")).Data;
+            if (serviceInstance.ChangeId)
+            {
+                var setServiceInstanceId =
+                    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "ServiceInstanceId",
+                        serviceInstance.Id);
+                if (!setServiceInstanceId.Success)
+                {
+                    Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
+                }
+
+                serviceInstance.IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                    .FirstOrDefault(x => x.ToString().Split('.').Length == 4)?.ToString();
+
+                var splitUrl = url.Split(':');
+                serviceInstance.Port = int.Parse(splitUrl.LastOrDefault() ?? string.Empty);
+            }
+            else
+            {
+                serviceInstance.IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                    .FirstOrDefault(x => x.ToString().Split('.').Length == 4)?.ToString();
+                var splitUrl = url.Split(':');
+                serviceInstance.Port = int.Parse(splitUrl.LastOrDefault() ?? string.Empty);
+            }
+
+            var serviceInstanceRequest = new RestRequest($"Commands/v2/serviceInstance", Method.POST);
+            serviceInstanceRequest.AddJsonBody(serviceInstance);
+            //restRequest.AddHeader("Authorization");
+            var serviceInstanceResult = restClient.Execute<ResultViewModel>(serviceInstanceRequest);
+            if (!serviceInstanceResult.Data.Success)
+            {
+                Logger.Log(LogType.Warning, "Failed to insert Instance");
+            }
+
+            services.AddSingleton(serviceInstance);
+            var systemInfo = new SystemInfo
+            {
+                Services = new List<ServiceInstance>()
+                    {
+                        serviceInstance
+                    },
+                LockEndTime = lockEndTime
+
+            };
+            services.AddSingleton(systemInfo);
+
 
             services.AddSingleton<GenericRepository, GenericRepository>();
             services.AddSingleton<AccessGroupService, AccessGroupService>();

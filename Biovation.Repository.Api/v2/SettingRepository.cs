@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
-using Biovation.CommonClasses.Manager;
+﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
 using RestSharp;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {

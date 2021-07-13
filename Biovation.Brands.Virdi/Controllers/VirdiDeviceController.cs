@@ -20,14 +20,13 @@ namespace Biovation.Brands.Virdi.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class VirdiDeviceController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly VirdiServer _virdiServer;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
-        private readonly AccessGroupService _accessGroupService;
 
         private readonly TaskTypes _taskTypes;
         private readonly TaskStatuses _taskStatuses;
@@ -39,10 +38,9 @@ namespace Biovation.Brands.Virdi.Controllers
 
         private readonly ILogger _logger;
 
-        public VirdiDeviceController(TaskService taskService, DeviceService deviceService, VirdiServer virdiServer, AccessGroupService accessGroupService, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
+        public DeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices, TaskService taskService)
         {
             _virdiServer = virdiServer;
-            _taskService = taskService;
             _deviceService = deviceService;
             _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
@@ -50,11 +48,11 @@ namespace Biovation.Brands.Virdi.Controllers
             _taskItemTypes = taskItemTypes;
             _taskPriorities = taskPriorities;
             _taskStatuses = taskStatuses;
-            _accessGroupService = accessGroupService;
             _configurationManager = configurationManager;
             _onlineDevices = onlineDevices;
+            _taskService = taskService;
 
-            _logger = logger.ForContext<VirdiDeviceController>();
+            _logger = logger.ForContext<DeviceController>();
         }
 
         [HttpGet]
@@ -102,202 +100,91 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> RetrieveLogs([FromBody] uint code)
+        public Task<ResultViewModel> RetrieveLogs([FromBody] uint code)
         {
-            var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-            if (device is null)
-                return new ResultViewModel { Success = false, Message = "Wrong device code is provided" };
-
-            try
-            {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetLogs,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DeviceBrand = _deviceBrands.Virdi,
-                    DueDate = DateTime.Today
-                };
-
-                if (code != default)
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.GetLogs,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(device.DeviceId),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-
-                    });
-
-                else
-                {
-                    var virdiDevices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                    foreach (var virdiDevice in virdiDevices)
-                    {
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = virdiDevice.DeviceId,
-                            Data = JsonConvert.SerializeObject(device.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                    }
-                }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
-
-                return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-            }
-        }
-
-
-        [HttpGet]
-        [Authorize]
-        public async Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
-        {
-
-            try
-            {
-                var creatorUser = HttpContext.GetUser();
+            return Task.Run(() => { 
                 var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
                 if (device is null)
                     return new ResultViewModel { Success = false, Message = "Wrong device code is provided" };
 
                 try
                 {
-                    if (fromDate.HasValue && toDate.HasValue)
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Virdi,
-                            DueDate = DateTimeOffset.Now
-                        };
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = HttpContext.GetUser();
 
-                        if (code != default)
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.GetLogs,
+                    //    Priority = _taskPriorities.Medium,
+                    //    TaskItems = new List<TaskItem>(),
+                    //    DeviceBrand = _deviceBrands.Virdi,
+                    //    DueDate = DateTime.Today
+                    //};
 
-                            });
+                    //if (code != default)
+                    //    task.TaskItems.Add(new TaskItem
+                    //    {
+                    //        Status = _taskStatuses.Queued,
+                    //        TaskItemType = _taskItemTypes.GetLogs,
+                    //        Priority = _taskPriorities.Medium,
+                    //        DeviceId = device.DeviceId,
+                    //        Data = JsonConvert.SerializeObject(device.DeviceId),
+                    //        IsParallelRestricted = true,
+                    //        IsScheduled = false,
+                    //        OrderIndex = 1,
 
-                        else
-                        {
-                            var virdiDevices =
-                                         _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                            foreach (var virdiDevice in virdiDevices)
-                            {
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = virdiDevice.DeviceId,
-                                    Data = JsonConvert.SerializeObject(new { fromDate, toDate }),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-                            }
-                        }
+                    //    });
 
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+                    //else
+                    //{
+                    //    var virdiDevices = _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+                    //    foreach (var virdiDevice in virdiDevices)
+                    //    {
+                    //        task.TaskItems.Add(new TaskItem
+                    //        {
+                    //            Status = _taskStatuses.Queued,
+                    //            TaskItemType = _taskItemTypes.GetLogs,
+                    //            Priority = _taskPriorities.Medium,
+                    //            DeviceId = virdiDevice.DeviceId,
+                    //            Data = JsonConvert.SerializeObject(device.DeviceId),
+                    //            IsParallelRestricted = true,
+                    //            IsScheduled = false,
+                    //            OrderIndex = 1
+                    //        });
+                    //    }
+                    //}
 
-                    }
-                    else
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogs,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Virdi,
-                            DueDate = DateTime.Today
-                        };
-
-                        if (code != default)
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetLogs,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(device.DeviceId),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-                            });
-
-                        else
-                        {
-                            var virdiDevices =
-                                 _deviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
-                            foreach (var virdiDevice in virdiDevices)
-                            {
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetLogs,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = virdiDevice.DeviceId,
-                                    Data = JsonConvert.SerializeObject(virdiDevice.DeviceId),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-                            }
-                        }
-
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
-                    }
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
 
                     return new ResultViewModel { Validate = 1, Message = "Retrieving Log queued" };
                 }
-                catch (Exception)
+                catch (Exception exception)
                 {
-                    return new ResultViewModel { Validate = 0, Id = code, Message = "Retrieving Log not queued" };
+                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                 }
-                //int deviceId = devices.FirstOrDefault(dev => dev.Code == code).DeviceId;
-            }
+            });
+        }
 
-            catch (Exception exception)
+
+        [HttpGet]
+        [Authorize]
+        public Task<ResultViewModel> ReadOfflineOfDevice(uint code, DateTime? fromDate, DateTime? toDate)
+        {
+            return Task.Run(() =>
             {
-                Logger.Log(exception);
-                return new ResultViewModel { Validate = 0, Id = code, Message = "Retrieving Log not queued" };
-            }
+                try
+                {
+                    return new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"};
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return new ResultViewModel {Validate = 0, Id = code, Message = "Retrieving Log not queued"};
+                }
+            });
         }
         /*
         [HttpGet]
@@ -331,135 +218,112 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> LockDevice([FromBody] uint code)
+        public Task<ResultViewModel> LockDevice([FromBody] uint code)
         {
-            try
+            return Task.Run(() =>
             {
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.LockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                    //var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                task.TaskItems.Add(new TaskItem
+                    ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = HttpContext.GetUser();
+
+
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.LockDevice,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceBrand = _deviceBrands.Virdi,
+                    //    TaskItems = new List<TaskItem>(),
+                    //    DueDate = DateTime.Today
+                    //};
+
+                    //task.TaskItems.Add(new TaskItem
+                    //{
+                    //    Status = _taskStatuses.Queued,
+                    //    TaskItemType = _taskItemTypes.LockDevice,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceId = devices.DeviceId,
+                    //    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                    //    IsParallelRestricted = true,
+                    //    IsScheduled = false,
+                    //    OrderIndex = 1
+                    //});
+
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
+
+                    return new ResultViewModel {Validate = 1, Message = "locking Device queued"};
+                }
+                catch (Exception exception)
                 {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.LockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1
-                });
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
-
-                return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-            }
+                    return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                }
+            });
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> UnlockDevice([FromBody] uint code)
+        public Task<ResultViewModel> UnlockDevice([FromBody] uint code)
         {
-            try
+            return Task.Run(() =>
             {
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.UnlockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                    //var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                task.TaskItems.Add(new TaskItem
+                    ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = HttpContext.GetUser();
+
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.UnlockDevice,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceBrand = _deviceBrands.Virdi,
+                    //    TaskItems = new List<TaskItem>(),
+                    //    DueDate = DateTime.Today
+                    //};
+
+                    //task.TaskItems.Add(new TaskItem
+                    //{
+                    //    Status = _taskStatuses.Queued,
+                    //    TaskItemType = _taskItemTypes.UnlockDevice,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceId = devices.DeviceId,
+                    //    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                    //    IsParallelRestricted = true,
+                    //    IsScheduled = false,
+                    //    OrderIndex = 1,
+                    //    TotalCount = 1,
+                    //    CurrentIndex = 0
+                    //});
+
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
+                    return new ResultViewModel {Validate = 1, Message = "Unlocking Device queued"};
+                }
+                catch (Exception exception)
                 {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.UnlockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    TotalCount = 1,
-                    CurrentIndex = 0
-                });
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
-                return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-            }
+                    return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                }
+            });
         }
 
         [HttpPost]
         [Authorize]
         public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
-            var creatorUser = HttpContext.GetUser();
-            var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
             if (device.Active)
             {
-                return await Task.Run(async () =>
+                return await Task.Run( () =>
                 {
                     try
                     {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            DeviceBrand = _deviceBrands.Virdi,
-                            TaskType = _taskTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DueDate = DateTime.Today
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = devices.DeviceId,
-                            Data = JsonConvert.SerializeObject(devices.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                            TotalCount = 1,
-                            CurrentIndex = 0
-                        });
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
                         return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                     }
                     catch (Exception exception)
@@ -471,42 +335,17 @@ namespace Biovation.Brands.Virdi.Controllers
 
             if (_configurationManager.LockDevice)
             {
-                return await Task.Run(async () =>
-            {
-                try
+                return await Task.Run( () =>
                 {
-                    var task = new TaskInfo
+                    try
                     {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.LockDevice,
-                        Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>(),
-                        DeviceBrand = _deviceBrands.Virdi,
-                        DueDate = DateTime.Today
-                    };
-
-                    task.TaskItems.Add(new TaskItem
+                        return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
+                    }
+                    catch (Exception exception)
                     {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.LockDevice,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = devices.DeviceId,
-                        Data = JsonConvert.SerializeObject(devices.DeviceId),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                    });
-
-                    _taskService.InsertTask(task);
-                    await _taskService.ProcessQueue(_deviceBrands.Virdi, devices.DeviceId).ConfigureAwait(false);
-                    return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
-                }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-                }
-            });
+                        return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+                    }
+                });
             }
 
             return new ResultViewModel { Validate = 0, Message = "The LockDevice option is False" };
@@ -544,111 +383,41 @@ namespace Biovation.Brands.Virdi.Controllers
         */
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
+        public Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
-            try
+            return Task.Run(() =>
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskType = _taskTypes.SendUsers,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-                var accessGroups = _accessGroupService.GetAccessGroups(deviceId: device.DeviceId);
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 
-                foreach (var accessGroup in accessGroups)
-                {
-                    foreach (var userGroup in accessGroup.UserGroup)
-                    {
-                        foreach (var userGroupMember in userGroup.Users)
-                        {
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.SendUser,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new { userId = userGroupMember.UserCode }),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-                                TotalCount = 1,
-                                CurrentIndex = 0
-                            });
-                        }
-                    }
+                    return new ResultViewModel {Validate = 1, Message = "Sending users queued"};
                 }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
-
-                return new ResultViewModel { Validate = 1, Message = "Sending users queued" };
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 0, Message = exception.ToString() };
-            }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                }
+            });
         }
 
         [HttpPost]
         [Authorize]
-        public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
+        public Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
-            try
+            return Task.Run(() =>
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskType = _taskTypes.RetrieveUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-                //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                //int[] userIds =new[] {Convert.ToInt32(userId)};
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-                var deviceId = devices.DeviceId;
-                foreach (var id in userIds)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = deviceId,
-                        Data = JsonConvert.SerializeObject(new { userId = id }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = userIds.Count
-                    });
+                    return new List<ResultViewModel>
+                        {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
                 }
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
-
-                return new List<ResultViewModel>
-                        {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
-            }
-
-            catch (Exception exception)
-            {
-                return new List<ResultViewModel>
-                    {new ResultViewModel { Validate = 0, Message = exception.ToString() }};
-            }
+                catch (Exception exception)
+                {
+                    return new List<ResultViewModel>
+                        {new ResultViewModel {Validate = 0, Message = exception.ToString()}};
+                }
+            });
         }
 
         /*
@@ -697,7 +466,7 @@ namespace Biovation.Brands.Virdi.Controllers
 
                     var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode)
                         .FirstOrDefault();
-                    var deviceId = devices.DeviceId;
+                    var deviceId = devices?.DeviceId ?? 0;
                     task.TaskItems.Add(new TaskItem
                     {
                         Status = _taskStatuses.Queued,
@@ -729,57 +498,60 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<bool> OpenDoorTerminal(uint code)
+        public Task<bool> OpenDoorTerminal(uint code)
         {
-            try
+            return Task.Run(() =>
             {
-                var creatorUser = HttpContext.GetUser();
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.OpenDoor,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DeviceBrand = _deviceBrands.Virdi,
-                    DueDate = DateTime.Today
-                };
+                    //var creatorUser = HttpContext.GetUser();
+                    //var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.OpenDoor,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    TotalCount = 1,
-                    CurrentIndex = 0
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.OpenDoor,
+                    //    Priority = _taskPriorities.Medium,
+                    //    TaskItems = new List<TaskItem>(),
+                    //    DeviceBrand = _deviceBrands.Virdi,
+                    //    DueDate = DateTime.Today
+                    //};
 
-                });
+                    //task.TaskItems.Add(new TaskItem
+                    //{
+                    //    Status = _taskStatuses.Queued,
+                    //    TaskItemType = _taskItemTypes.OpenDoor,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceId = devices.DeviceId,
+                    //    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                    //    IsParallelRestricted = true,
+                    //    IsScheduled = false,
+                    //    OrderIndex = 1,
+                    //    TotalCount = 1,
+                    //    CurrentIndex = 0
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+                    //});
 
-                var result = new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
-                if (result.Validate == 1)
-                {
-                    return true;
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+
+                    var result = new ResultViewModel {Validate = 1, Message = "Unlocking Device queued"};
+                    if (result.Validate == 1)
+                    {
+                        return true;
+                    }
+
+                    return false;
+
                 }
-                return false;
-
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+                catch (Exception)
+                {
+                    return false;
+                }
 
 
-
+            });
 
             /*  var openDoorToTerminalCommand = CommandFactory.Factory(CommandType.OpenDoor,
                   new List<object> { code });
@@ -930,73 +702,77 @@ namespace Biovation.Brands.Virdi.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes, bool updateServerSideIdentification = false)
+        public Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes,
+            bool updateServerSideIdentification = false)
         {
-            try
+            return Task.Run(() =>
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                /*var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>()
-                };*/
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUsers,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                    //var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                foreach (var userCode in userCodes)
-                {
+                    ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = HttpContext.GetUser();
 
-                    task.TaskItems.Add(new TaskItem
+                    /*var task = new TaskInfo
                     {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { userCode }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
-                }
+                        TaskItems = new List<TaskItem>()
+                    };*/
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.DeleteUsers,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceBrand = _deviceBrands.Virdi,
+                    //    TaskItems = new List<TaskItem>(),
+                    //    DueDate = DateTime.Today
+                    //};
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+                    ////var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    //foreach (var userCode in userCodes)
+                    //{
+
+                    //    task.TaskItems.Add(new TaskItem
+                    //    {
+                    //        Status = _taskStatuses.Queued,
+                    //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                    //        Priority = _taskPriorities.Medium,
+                    //        DeviceId = device.DeviceId,
+                    //        Data = JsonConvert.SerializeObject(new { userCode }),
+                    //        IsParallelRestricted = true,
+                    //        IsScheduled = false,
+                    //        OrderIndex = 1,
+                    //        CurrentIndex = 0,
+                    //        TotalCount = 1
+                    //    });
+                    //}
+
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
 
 
-                if (updateServerSideIdentification)
-                {
-                    foreach (var id in userCodes)
+                    if (updateServerSideIdentification)
                     {
-                        _virdiServer.DeleteUserFromDeviceFastSearch(code, id);
+                        foreach (var id in userCodes)
+                        {
+                            _virdiServer.DeleteUserFromDeviceFastSearch(code, id);
+                        }
                     }
+
+                    var result = new ResultViewModel {Validate = 1, Message = "Removing User queued"};
+                    return result;
+
                 }
-
-                var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
-                return result;
-
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel { Validate = 1, Message = $"Error ,Removing User not queued!{exception}" };
-            }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel {Validate = 1, Message = $"Error ,Removing User not queued!{exception}"};
+                }
+            });
         }
 
         [HttpGet]

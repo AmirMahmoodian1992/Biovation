@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
 
 namespace Biovation.Server.Controllers.v2
 {
@@ -24,13 +26,25 @@ namespace Biovation.Server.Controllers.v2
         private readonly UserGroupService _userGroupService;
         private readonly DeviceGroupService _deviceGroupService;
 
-        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, UserGroupService userGroupService, DeviceGroupService deviceGroupService)
+        private readonly TaskTypes _taskTypes;
+        private readonly TaskService _taskService;
+        private readonly TaskStatuses _taskStatuses;
+        private readonly TaskItemTypes _taskItemTypes;
+        private readonly TaskPriorities _taskPriorities;
+
+        public AccessGroupController(RestClient restClient, AccessGroupService accessGroupService, DeviceService deviceService, UserGroupService userGroupService, DeviceGroupService deviceGroupService, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService)
         {
             _restClient = restClient;
             _accessGroupService = accessGroupService;
             _deviceService = deviceService;
             _userGroupService = userGroupService;
             _deviceGroupService = deviceGroupService;
+
+            _taskTypes = taskTypes;
+            _taskStatuses = taskStatuses;
+            _taskItemTypes = taskItemTypes;
+            _taskPriorities = taskPriorities;
+            _taskService = taskService;
         }
 
         [HttpGet]
@@ -53,6 +67,8 @@ namespace Biovation.Server.Controllers.v2
             return await _accessGroupService.AddAccessGroup(accessGroup, HttpContext.Items["Token"] as string);
         }
 
+
+        // TODO - Verify the method.
         [HttpPatch]
         public async Task<ResultViewModel> ModifyAccessGroup(string accessGroup = default, string deviceGroup = default, string userGroup = default, string adminUserIds = default)
         {
@@ -107,16 +123,22 @@ namespace Biovation.Server.Controllers.v2
                 //restRequest.AddHeader("Authorization", token!);
 
                 //var deviceBrands = (_restClient.ExecuteAsync<PagingResult<Lookup>>(restRequest)).Result.Data.Data;
-                var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
 
-                if (deviceBrands != null)
-                    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
-                        $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
-                        Method.POST)))
-                    {
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                    }
+                _accessGroupService.ModifyAccessGroup(token);
+
+                //var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
+
+                //if (deviceBrands != null)
+                //{
+                //    foreach (var restRequest in deviceBrands.Select(deviceBrand => new RestRequest(
+                //        $"{deviceBrand.Name}/{deviceBrand.Name}AccessGroup/ModifyAccessGroup",
+                //        Method.POST)))
+                //    {
+                //        restRequest.AddHeader("Authorization", token!);
+                //        await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                //    }
+                //}
+
             }).ConfigureAwait(false);
 
             return result;
@@ -150,12 +172,14 @@ namespace Biovation.Server.Controllers.v2
             return await _accessGroupService.DeleteAccessGroup(id, HttpContext.Items["Token"] as string);
         }
 
+        // TODO - Verify the method.
         [HttpPost]
         [Route("{id}/SendAllUsersToAllDevicesInAccessGroup")]
         public async Task<ResultViewModel> SendAllUsersToAllDevicesInAccessGroup([FromRoute] int id = default)
         {
             try
             {
+                var creatorUser = HttpContext.GetUser();
                 var token = HttpContext.Items["Token"] as string;
                 var deviceBrands = (await _deviceService.GetDeviceBrands())?.Data?.Data;
                 var accessGroup = (await _accessGroupService.GetAccessGroup(id, token: token)).Data;
@@ -186,14 +210,45 @@ namespace Biovation.Server.Controllers.v2
                         //var parameters = new List<object> { $"accessGroupId={accessGroupId}", $"code={device.Code}" };
                         //_communicationManager.CallRest(
                         //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice", "Get", parameters, null);
-                        var restRequest =
-                            new RestRequest(
-                                $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
-                                Method.GET);
-                        restRequest.AddParameter("code", device.Code);
-                        restRequest.AddParameter("accessGroupId", id);
-                        restRequest.AddHeader("Authorization", token!);
-                        await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
+                        var task = new TaskInfo
+                        {
+                            Status = _taskStatuses.Queued,
+                            CreatedAt = DateTimeOffset.Now,
+                            CreatedBy = creatorUser,
+                            TaskType = _taskTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
+                            DeviceBrand = device.Brand,
+                            TaskItems = new List<TaskItem>()
+                        };
+
+                        task.TaskItems.Add(new TaskItem
+                        {
+                            Status = _taskStatuses.Queued,
+                            TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                            Priority = _taskPriorities.Medium,
+
+                            DeviceId = device.DeviceId,
+                            Data = JsonConvert.SerializeObject(new { id }),
+                            IsParallelRestricted = true,
+                            IsScheduled = false,
+
+                            OrderIndex = 1
+                        });
+                        await _taskService.InsertTask(task);
+                        await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+
+                        _accessGroupService.SendAccessGroupToDevice(device, id, token);
+
+                        //var restRequest =
+                        //    new RestRequest(
+                        //        $"{deviceBrand?.Name}/{deviceBrand?.Name}AccessGroup/SendAccessGroupToDevice",
+                        //        Method.GET);
+
+                        //restRequest.AddParameter("code", device.Code);
+                        //restRequest.AddParameter("accessGroupId", id);
+                        //restRequest.AddHeader("Authorization", token!);
+                        //await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
 
                         foreach (var userGroup in accessGroup.UserGroup)
                         {
@@ -211,14 +266,49 @@ namespace Biovation.Server.Controllers.v2
                             //parameters = new List<object> { $"code={device.Code}", $"userId={userids}", };
                             //_communicationManager.CallRest(
                             //    $"/biovation/api/{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice", "Get", parameters, null);
-                            restRequest =
-                                new RestRequest(
-                                    $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",
-                                    Method.GET);
-                            restRequest.AddParameter("code", device.Code);
-                            restRequest.AddParameter("userId", userids);
-                            restRequest.AddHeader("Authorization", token!);
-                            await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
+
+                            task = new TaskInfo
+                            {
+                                Status = _taskStatuses.Queued,
+                                CreatedAt = DateTimeOffset.Now,
+                                CreatedBy = creatorUser,
+                                TaskType = _taskTypes.SendUsers,
+                                Priority = _taskPriorities.Medium,
+                                DeviceBrand = device.Brand,
+                                TaskItems = new List<TaskItem>(),
+                                DueDate = DateTime.Today
+                            };
+
+                            foreach (var userId in userids)
+                            {
+                                task.TaskItems.Add(new TaskItem
+                                {
+                                    Status = _taskStatuses.Queued,
+                                    TaskItemType = _taskItemTypes.SendUser,
+                                    Priority = _taskPriorities.Medium,
+                                    DeviceId = device.DeviceId,
+                                    Data = JsonConvert.SerializeObject(new { userId }),
+                                    IsParallelRestricted = true,
+                                    IsScheduled = false,
+                                    OrderIndex = 1,
+                                    CurrentIndex = 0,
+                                    TotalCount = 1
+                                });
+                            }
+
+                            await _taskService.InsertTask(task);
+                            await _taskService.ProcessQueue(device.Brand, device.DeviceId);
+
+                            _accessGroupService.SendUserToDevice(deviceBrand, device, userids, token);
+
+                            //restRequest =
+                            //    new RestRequest(
+                            //        $"{deviceBrand?.Name}/{deviceBrand?.Name}User/SendUserToDevice",
+                            //        Method.GET);
+                            //restRequest.AddParameter("code", device.Code);
+                            //restRequest.AddParameter("userId", userids);
+                            //restRequest.AddHeader("Authorization", token!);
+                            //await _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
                             //}
                         }
                     }
@@ -233,32 +323,55 @@ namespace Biovation.Server.Controllers.v2
             }
         }
 
-
+        // TODO - Verify method.
         [HttpPost]
         [Route("{id}/SendAccessGroupToDevices")]
         public async Task<ResultViewModel> SendAccessGroupToDevices([FromRoute] int id)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
             var devices = (await _accessGroupService.GetDeviceOfAccessGroup(id, token: token)).Data.Data;
 
             foreach (var device in devices)
             {
-                var restRequest =
-                    new RestRequest(
-                        $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-                        Method.GET);
-                restRequest.AddParameter("code", device.Code);
-                restRequest.AddParameter("accessGroupId", id);
-                restRequest.AddHeader("Authorization", token!);
-                await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            }
+                var task = new TaskInfo
+                {
+                    Status = _taskStatuses.Queued,
+                    CreatedAt = DateTimeOffset.Now,
+                    CreatedBy = creatorUser,
+                    TaskType = _taskTypes.SendAccessGroupToTerminal,
+                    Priority = _taskPriorities.Medium,
+                    DeviceBrand = device.Brand,
+                    TaskItems = new List<TaskItem>()
+                };
+                task.TaskItems.Add(new TaskItem
+                {
+                    Status = _taskStatuses.Queued,
+                    TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                    Priority = _taskPriorities.Medium,
+
+                    DeviceId = device.DeviceId,
+                    Data = JsonConvert.SerializeObject(new { id }),
+                    IsParallelRestricted = true,
+                    IsScheduled = false,
+
+                    OrderIndex = 1
+                });
+                await _taskService.InsertTask(task);
+                await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+
+                _accessGroupService.SendAccessGroupToDevice(device, id, token);
+                }
             return new ResultViewModel { Validate = 1 };
         }
 
+
+        // TODO - Verify method.
         [HttpPost]
         [Route("{id}/SendAccessGroupToDevice/{deviceId}")]
         public async Task<ResultViewModel> SendAccessGroupToDevice([FromRoute] int id, [FromRoute] int deviceId)
         {
+            var creatorUser = HttpContext.GetUser();
             var token = HttpContext.Items["Token"] as string;
 
             var device = (await _deviceService.GetDevice(deviceId, token))?.Data;
@@ -274,14 +387,32 @@ namespace Biovation.Server.Controllers.v2
                 };
             }
 
-            var restRequest =
-                new RestRequest(
-                    $"{device.Brand.Name}/{device.Brand.Name}AccessGroup/SendAccessGroupToDevice",
-                    Method.GET);
-            restRequest.AddParameter("code", device.Code);
-            restRequest.AddParameter("accessGroupId", id);
-            restRequest.AddHeader("Authorization", token!);
-            await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            var task = new TaskInfo
+            {
+                Status = _taskStatuses.Queued,
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.SendAccessGroupToTerminal,
+                Priority = _taskPriorities.Medium,
+                DeviceBrand = device.Brand,
+                TaskItems = new List<TaskItem>()
+            };
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Queued,
+                TaskItemType = _taskItemTypes.SendAccessGroupToTerminal,
+                Priority = _taskPriorities.Medium,
+
+                DeviceId = device.DeviceId,
+                Data = JsonConvert.SerializeObject(new { id }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+
+                OrderIndex = 1
+            });
+            await _taskService.InsertTask(task);
+            await _taskService.ProcessQueue(device.Brand).ConfigureAwait(false);
+            _accessGroupService.SendAccessGroupToDevice(device, id, token);
             return new ResultViewModel { Validate = 1 };
         }
     }

@@ -7,10 +7,12 @@ namespace Biovation.Service.Api.v2
 {
     public class AccessGroupService
     {
+        private readonly DeviceService _deviceService;
         private readonly AccessGroupRepository _accessGroupRepository;
 
-        public AccessGroupService(AccessGroupRepository accessGroupRepository)
+        public AccessGroupService(AccessGroupRepository accessGroupRepository, DeviceService deviceService)
         {
+            _deviceService = deviceService;
             _accessGroupRepository = accessGroupRepository;
         }
 
@@ -73,6 +75,28 @@ namespace Biovation.Service.Api.v2
         public async Task<ResultViewModel> DeleteAccessGroup(int id = default, string token = default)
         {
             return await _accessGroupRepository.DeleteAccessGroup(id, token);
+        }
+
+        // TODO - Verify the method.
+        public void SendAccessGroupToDevice(DeviceBasicInfo device, int id, string token = default)
+        {
+            _accessGroupRepository.SendAccessGroupToDevice(device, id, token);
+        }
+
+        // TODO - Verify the method.
+        public void SendUserToDevice(Lookup deviceBrand, DeviceBasicInfo device, string userIds, string token = default)
+        {
+            _accessGroupRepository.SendUserToDevice(deviceBrand, device, userIds, token);
+        }
+
+        // TODO - Verify the method.
+        public void ModifyAccessGroup(string token = default)
+        {
+            var deviceBrands =  _deviceService.GetDeviceBrands().GetAwaiter().GetResult()?.Data?.Data;
+            if (deviceBrands != null)
+            {
+                _accessGroupRepository.ModifyAccessGroup(deviceBrands, token);
+            }
         }
     }
 }
