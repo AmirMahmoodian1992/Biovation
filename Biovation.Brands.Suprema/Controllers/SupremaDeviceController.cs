@@ -330,5 +330,52 @@ namespace Biovation.Brands.Suprema.Controllers
 
             return res;
         }
+
+
+        [HttpGet]
+        [Authorize]
+        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        {
+            var creatorUser = HttpContext.GetUser();
+
+            var task = new TaskInfo
+            {
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.GetLogsInPeriod,
+                Priority = _taskPriorities.Immediate,
+                DeviceBrand = _deviceBrands.Eos,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+            var device = ( _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))
+                ?.FirstOrDefault();
+
+            if (device is null)
+            {
+                return null;
+            }
+
+            var deviceId = device.DeviceId;
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Done,
+                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                Priority = _taskPriorities.Immediate,
+                DeviceId = deviceId,
+                Data = JsonConvert.SerializeObject(new { deviceId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                CurrentIndex = 0
+            });
+
+            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                new List<object> { task.TaskItems.FirstOrDefault() });
+
+            var result = getAdditionalData.Execute();
+
+            return (Dictionary<string, string>)result;
+        }
     }
 }

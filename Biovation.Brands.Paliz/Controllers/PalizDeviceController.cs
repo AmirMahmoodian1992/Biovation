@@ -88,15 +88,45 @@ namespace Biovation.Brands.Paliz.Controllers
         [Authorize]
         public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
         {
-            return await Task.Run(() =>
+            var creatorUser = HttpContext.GetUser();
+
+            var task = new TaskInfo
             {
-                var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-                    new List<object> { code });
+                CreatedAt = DateTimeOffset.Now,
+                CreatedBy = creatorUser,
+                TaskType = _taskTypes.GetLogsInPeriod,
+                Priority = _taskPriorities.Immediate,
+                DeviceBrand = _deviceBrands.ZkTeco,
+                TaskItems = new List<TaskItem>(),
+                DueDate = DateTime.Today
+            };
+            var device = (_deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.FirstOrDefault();
 
-                var result = getAdditionalData.Execute();
+            if (device is null)
+            {
+                return null;
+            }
 
-                return (Dictionary<string, string>)result;
+            var deviceId = device.DeviceId;
+            task.TaskItems.Add(new TaskItem
+            {
+                Status = _taskStatuses.Done,
+                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                Priority = _taskPriorities.Immediate,
+                DeviceId = deviceId,
+                Data = JsonConvert.SerializeObject(new { deviceId }),
+                IsParallelRestricted = true,
+                IsScheduled = false,
+                OrderIndex = 1,
+                CurrentIndex = 0
             });
+
+            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
+                new List<object> { task.TaskItems.FirstOrDefault() });
+
+            var result = getAdditionalData.Execute();
+
+            return (Dictionary<string, string>)result;
         }
 
         [HttpPost]
