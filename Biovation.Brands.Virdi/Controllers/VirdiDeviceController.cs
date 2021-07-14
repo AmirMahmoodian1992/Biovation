@@ -445,7 +445,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 return result;
 
             }
-            catch (Exception)
+            catch (Exception exception)
             {
                 return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
             }
