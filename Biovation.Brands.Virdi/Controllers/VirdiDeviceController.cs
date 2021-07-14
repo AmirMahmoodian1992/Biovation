@@ -23,34 +23,23 @@ namespace Biovation.Brands.Virdi.Controllers
     public class DeviceController : ControllerBase
     {
         private readonly VirdiServer _virdiServer;
-        private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
         private readonly CommandFactory _commandFactory;
-
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
 
         private readonly Dictionary<uint, DeviceBasicInfo> _onlineDevices;
 
         private readonly ILogger _logger;
 
-        public DeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices, TaskService taskService)
+        public DeviceController( DeviceService deviceService, VirdiServer virdiServer, CommandFactory commandFactory, DeviceBrands deviceBrands, BiovationConfigurationManager configurationManager, ILogger logger, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             _virdiServer = virdiServer;
             _deviceService = deviceService;
             _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
-            _taskTypes = taskTypes;
-            _taskItemTypes = taskItemTypes;
-            _taskPriorities = taskPriorities;
-            _taskStatuses = taskStatuses;
             _configurationManager = configurationManager;
             _onlineDevices = onlineDevices;
-            _taskService = taskService;
 
             _logger = logger.ForContext<DeviceController>();
         }
@@ -441,58 +430,26 @@ namespace Biovation.Brands.Virdi.Controllers
         }
 
         */
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice([FromBody] TaskInfo task)
         {
-            return await Task.Run(() =>
+            try
             {
-                //this action return list of user so for task based this we need to syncron web and change return type for task manager statustask update
+                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
+                        CommandType.RetrieveUsersListFromDevice,
+                        new List<object>
+                            {task.TaskItems?.FirstOrDefault()})
+                    .Execute();
 
-                try
-                {
-                    var creatorUser = HttpContext.GetUser();
+                return result;
 
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Virdi,
-                        TaskItems = new List<TaskItem>(),
-                        DueDate = DateTime.Today
-                    };
+            }
+            catch (Exception)
+            {
+                return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
+            }
 
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode)
-                        .FirstOrDefault();
-                    var deviceId = devices?.DeviceId ?? 0;
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = deviceId,
-                        Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0
-                    });
-
-                    var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
-                            CommandType.RetrieveUsersListFromDevice,
-                            new List<object>
-                                {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
-                        .Execute();
-
-                    return result;
-                }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
-                }
-            });
         }
 
 
@@ -775,64 +732,27 @@ namespace Biovation.Brands.Virdi.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        public async Task<Dictionary<string, string>> GetAdditionalData([FromBody] TaskInfo task)
         {
             return await Task.Run(() =>
             {
-
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetAdditionalData,
-                    Priority = _taskPriorities.Immediate,
-                    DeviceBrand = _deviceBrands.Virdi,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                    var result = (Dictionary<string, string>)_commandFactory.Factory(
+                            CommandType.RetrieveUsersListFromDevice,
+                            new List<object>
+                                {task.TaskItems?.FirstOrDefault()})
+                        .Execute();
 
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.GetAdditionalData,
-                    Priority = _taskPriorities.Immediate,
-                    DeviceId = device.DeviceId,
-                    Data = JsonConvert.SerializeObject(device.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1
-                });
+                    return result;
 
-                var resultTask = _taskService.InsertTask(task);
-                //_taskManager.ProcessQueue();
-                var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-                    new List<object> { device.DeviceId, resultTask.Id });
-
-                var result = getAdditionalData.Execute();
-
-                task.TaskItems.FirstOrDefault().ExecutionAt = DateTimeOffset.Now;
-                task.TaskItems.FirstOrDefault().Result = JsonConvert.SerializeObject(result);
-                if (result != null)
-                {
-                    task.TaskItems.FirstOrDefault().Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.DoneCode);
-                    _taskService.UpdateTaskStatus(task.TaskItems.FirstOrDefault());
                 }
-                else
+                catch (Exception exception)
                 {
-                    task.TaskItems.FirstOrDefault().Status = _taskStatuses.GetTaskStatusByCode(TaskStatuses.FailedCode);
-                    _taskService.UpdateTaskStatus(task.TaskItems.FirstOrDefault());
+                    return new Dictionary<string, string>();
                 }
-
-
-                return (Dictionary<string, string>)result;
             });
         }
     }

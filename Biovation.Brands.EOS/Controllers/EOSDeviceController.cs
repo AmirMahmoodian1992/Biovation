@@ -20,33 +20,20 @@ namespace Biovation.Brands.EOS.Controllers
     public class DeviceController : ControllerBase
     {
         private readonly EosServer _eosServer;
-        private readonly TaskService _taskService;
         private readonly DeviceService _deviceService;
-
-        private readonly TaskTypes _taskTypes;
         private readonly DeviceBrands _deviceBrands;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskPriorities _taskPriorities;
         private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
         private readonly ILogger _logger;
 
         public DeviceController(DeviceService deviceService, Dictionary<uint, Device> onlineDevices,
-            EosServer eosServer, CommandFactory commandFactory, DeviceBrands deviceBrands, TaskTypes taskTypes,
-            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskService taskService, ILogger logger)
+            EosServer eosServer, CommandFactory commandFactory, DeviceBrands deviceBrands, ILogger logger)
         {
             _eosServer = eosServer;
             _deviceService = deviceService;
             _onlineDevices = onlineDevices;
             _commandFactory = commandFactory;
-            _taskService = taskService;
-
-            _taskTypes = taskTypes;
-            _taskStatuses = taskStatuses;
-            _taskItemTypes = taskItemTypes;
-            _taskPriorities = taskPriorities;
             _deviceBrands = deviceBrands;
 
             _logger = logger.ForContext<DeviceController>();
@@ -216,49 +203,12 @@ namespace Biovation.Brands.EOS.Controllers
             }
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice([FromBody]TaskInfo task)
         {
             try
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Eos,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                var devices = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
-                    ?.FirstOrDefault();
-                if (devices is null)
-                    return new ResultViewModel<List<User>>
-                    { Validate = 0, Message = $"Wrong device code is provided : {code}." };
-
-                var deviceId = devices.DeviceId;
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = deviceId,
-                    Data = JsonConvert.SerializeObject(new { deviceId, embedTemplate }),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    CurrentIndex = 0
-                });
-
-                //_taskService.InsertTask(task);
-                //_taskManager.ProcessQueue();
-
                 var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
                         CommandType.RetrieveUsersListFromDevice,
                         new List<object>
@@ -272,6 +222,7 @@ namespace Biovation.Brands.EOS.Controllers
             {
                 return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
             }
+
         }
 
         [HttpGet]
@@ -281,50 +232,28 @@ namespace Biovation.Brands.EOS.Controllers
             return new ResultViewModel { Validate = 1 };
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        public async Task<Dictionary<string, string>> GetAdditionalData([FromBody] TaskInfo task)
         {
-            var creatorUser = HttpContext.GetUser();
-
-            var task = new TaskInfo
+            return await Task.Run(() =>
             {
-                CreatedAt = DateTimeOffset.Now,
-                CreatedBy = creatorUser,
-                TaskType = _taskTypes.GetLogsInPeriod,
-                Priority = _taskPriorities.Immediate,
-                DeviceBrand = _deviceBrands.Eos,
-                TaskItems = new List<TaskItem>(),
-                DueDate = DateTime.Today
-            };
-            var device = (await _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.Data?.Data
-                ?.FirstOrDefault();
+                try
+                {
+                    var result = (Dictionary<string, string>)_commandFactory.Factory(
+                            CommandType.RetrieveUsersListFromDevice,
+                            new List<object>
+                                {task.TaskItems?.FirstOrDefault()})
+                        .Execute();
 
-            if (device is null)
-            {
-                return null;
-            }
+                    return result;
 
-            var deviceId = device.DeviceId;
-            task.TaskItems.Add(new TaskItem
-            {
-                Status = _taskStatuses.Done,
-                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                Priority = _taskPriorities.Immediate,
-                DeviceId = deviceId,
-                Data = JsonConvert.SerializeObject(new { deviceId }),
-                IsParallelRestricted = true,
-                IsScheduled = false,
-                OrderIndex = 1,
-                CurrentIndex = 0
+                }
+                catch (Exception)
+                {
+                    return new Dictionary<string, string>();
+                }
             });
-
-            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-                new List<object> { task.TaskItems.FirstOrDefault() });
-
-            var result = getAdditionalData.Execute();
-
-            return (Dictionary<string, string>)result;
         }
     }
 }

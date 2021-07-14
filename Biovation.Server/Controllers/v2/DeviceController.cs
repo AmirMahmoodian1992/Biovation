@@ -588,42 +588,20 @@ namespace Biovation.Server.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("{id}/FetchUsersList")]
-        public async Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default)
+        public async Task<List<User>> RetrieveUsersOfDevice([FromRoute] int id = default, bool embedTemplate = false)
         {
             var token = HttpContext.Items["Token"] as string;
+            var currentUser = HttpContext.GetUser();
             var device = (await _deviceService.GetDevice(id, token)).Data;
             var userAwaiter = _userService.GetUsers(token: token);
 
-            //var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/RetrieveUsersListFromDevice");
-            //restRequest.AddQueryParameter("code", device.Code.ToString());
-            //if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
-            //{
-            //    restRequest.AddHeader("Authorization", HttpContext.Request.Headers["Authorization"].FirstOrDefault());
-            //}
-            //var restAwaiter = _restClient.ExecuteAsync<ResultViewModel<List<User>>>(restRequest);
-
-            //var result = await restAwaiter;
-
             var users = await userAwaiter;
 
-            var lastResult = _deviceService.RetrieveUsersOfDevice(device, users?.Data?.Data, token);
-
-            //var lstResult = (from r in usersResult?.Data
-            //                 join u in users on r.Code equals u.Code
-            //                     into ps
-            //                 from u in ps.DefaultIfEmpty()
-            //                 select new User
-            //                 {
-            //                     Type = u == null ? 0 : 1,
-            //                     IsActive = r.IsActive,
-            //                     Id = r.Id,
-            //                     Code = r.Code,
-            //                     FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
-            //                     StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
-            //                     EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
-            //                 }).ToList();
+            var lastResult = _deviceService.RetrieveUsersOfDevice(device, users?.Data?.Data, currentUser, embedTemplate, token);
 
             return lastResult?.Data;
+
+
         }
 
 
@@ -896,9 +874,10 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel<Dictionary<string, string>>> DeviceInfo([FromRoute] int id = default)
         {
             var token = HttpContext.Items["Token"] as string;
+            var currentUser = HttpContext.GetUser();
             var device = (await _deviceService.GetDevice(id, token)).Data;
 
-            var result = await _deviceService.GetAdditionalData(device, token);
+            var result = await _deviceService.GetAdditionalData(device, currentUser, token);
 
             //var restRequest = new RestRequest($"{device.ServiceInstance.Id}/Device/GetAdditionalData");
             //restRequest.AddQueryParameter("code", device.Code.ToString());

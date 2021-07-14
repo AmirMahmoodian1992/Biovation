@@ -21,10 +21,6 @@ namespace Biovation.Brands.ZK.Controllers
     public class DeviceController : ControllerBase
     {
         private readonly DeviceService _deviceService;
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskPriorities _taskPriorities;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
         private readonly DeviceBrands _deviceBrands;
         private readonly Dictionary<uint, Device> _onlineDevices;
         private readonly CommandFactory _commandFactory;
@@ -34,12 +30,9 @@ namespace Biovation.Brands.ZK.Controllers
         public DeviceController(DeviceService deviceService, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, Dictionary<uint, Device> onlineDevices , TaskStatuses taskStatuses, CommandFactory commandFactory, ZkTecoServer zkTecoServer, ILogger logger)
         {
             _deviceService = deviceService;
-            _taskTypes = taskTypes;
-            _taskPriorities = taskPriorities;
-            _taskItemTypes = taskItemTypes;
+           
             _deviceBrands = deviceBrands;
             _onlineDevices = onlineDevices;
-            _taskStatuses = taskStatuses;
             _commandFactory = commandFactory;
             _zkTecoServer = zkTecoServer;
             _logger = logger.ForContext<DeviceController>();
@@ -248,103 +241,51 @@ namespace Biovation.Brands.ZK.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code, bool embedTemplate = false)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice([FromBody] TaskInfo task)
+        {
+            try
+            {
+                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
+                        CommandType.RetrieveUsersListFromDevice,
+                        new List<object>
+                            {task.TaskItems?.FirstOrDefault()})
+                    .Execute();
+
+                return result;
+
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
+            }
+
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        public async Task<Dictionary<string, string>> GetAdditionalData([FromBody] TaskInfo task)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.ZkTecoCode)
-                        .FirstOrDefault();
-                    if (device is null)
-                        return new ResultViewModel<List<User>>
-                        { Success = false, Message = $"Device {code} does not exists." };
+                    var result = (Dictionary<string, string>)_commandFactory.Factory(
+                            CommandType.RetrieveUsersListFromDevice,
+                            new List<object>
+                                {task.TaskItems?.FirstOrDefault()})
+                        .Execute();
 
-                    var creatorUser = HttpContext.GetUser();
-
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        DeviceBrand = _deviceBrands.ZkTeco,
-                        TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        TaskItems = new List<TaskItem>()
-                    };
-
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new { device.DeviceId, embedTemplate }),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-
-                    });
-
-                    //_taskService.InsertTask(task);
-                    // ZKTecoServer.ProcessQueue();
-                    var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
-                        CommandType.RetrieveUsersListFromDevice,
-                        new List<object> { task.TaskItems.FirstOrDefault() }).Execute();
                     return result;
+
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
-                    return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
+                    return new Dictionary<string, string>();
                 }
             });
-        }
-
-
-        [HttpGet]
-        [Authorize]
-        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
-        {
-            var creatorUser = HttpContext.GetUser();
-
-            var task = new TaskInfo
-            {
-                CreatedAt = DateTimeOffset.Now,
-                CreatedBy = creatorUser,
-                TaskType = _taskTypes.GetLogsInPeriod,
-                Priority = _taskPriorities.Immediate,
-                DeviceBrand = _deviceBrands.ZkTeco,
-                TaskItems = new List<TaskItem>(),
-                DueDate = DateTime.Today
-            };
-            var device = ( _deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.FirstOrDefault();
-
-            if (device is null)
-            {
-                return null;
-            }
-
-            var deviceId = device.DeviceId;
-            task.TaskItems.Add(new TaskItem
-            {
-                Status = _taskStatuses.Done,
-                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                Priority = _taskPriorities.Immediate,
-                DeviceId = deviceId,
-                Data = JsonConvert.SerializeObject(new { deviceId }),
-                IsParallelRestricted = true,
-                IsScheduled = false,
-                OrderIndex = 1,
-                CurrentIndex = 0
-            });
-
-            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-                new List<object> { task.TaskItems.FirstOrDefault() });
-
-            var result = getAdditionalData.Execute();
-
-            return (Dictionary<string, string>)result;
         }
 
         [HttpPost]
