@@ -18,7 +18,7 @@ namespace Biovation.Brands.Paliz.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PalizAccessGroupController : ControllerBase
+    public class AccessGroupController : ControllerBase
     {
         ////private readonly PalizServer _palizServer;
         private readonly TaskService _taskService;
@@ -33,7 +33,7 @@ namespace Biovation.Brands.Paliz.Controllers
         private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
         
-        public PalizAccessGroupController(TaskService taskService, DeviceService deviceService,
+        public AccessGroupController(TaskService taskService, DeviceService deviceService,
             AccessGroupService accessGroupService, DeviceBrands deviceBrands, TaskTypes taskTypes,
             TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
             BiovationConfigurationManager configurationManager)

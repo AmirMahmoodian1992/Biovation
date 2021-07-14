@@ -8,11 +8,11 @@ namespace Biovation.Brands.Paliz.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PalizUserGroupController : ControllerBase
+    public class UserGroupController : ControllerBase
     {
         //private readonly PalizServer _palizServer;
 
-        public PalizUserGroupController(/*PalizServer palizServer*/)
+        public UserGroupController(/*PalizServer palizServer*/)
         {
            // _palizServer = palizServer;
         }

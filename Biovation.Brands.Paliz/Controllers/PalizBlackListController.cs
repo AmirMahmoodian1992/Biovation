@@ -13,7 +13,7 @@ namespace Biovation.Brands.Paliz.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PalizBlackListController : ControllerBase
+    public class BlackListController : ControllerBase
     {
         private readonly DeviceBrands _deviceBrands;
         private readonly TaskService _taskService;
@@ -24,7 +24,7 @@ namespace Biovation.Brands.Paliz.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public PalizBlackListController(TaskService taskService, DeviceService deviceService, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
+        public BlackListController(TaskService taskService, DeviceService deviceService, DeviceBrands deviceBrands, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities)
         {
             _taskService = taskService;
             _deviceService = deviceService;

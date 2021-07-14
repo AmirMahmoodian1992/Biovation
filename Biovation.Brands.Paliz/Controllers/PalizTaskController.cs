@@ -10,11 +10,11 @@ namespace Biovation.Brands.Paliz.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[Controller]")]
-    public class PalizTaskController :  ControllerBase
+    public class TaskController :  ControllerBase
     {
         private readonly TaskManager _taskManager;
 
-        public PalizTaskController(TaskManager taskManager)
+        public TaskController(TaskManager taskManager)
         {
             _taskManager = taskManager;
         }

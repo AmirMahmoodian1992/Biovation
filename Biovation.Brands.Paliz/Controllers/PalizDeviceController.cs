@@ -23,34 +23,21 @@ namespace Biovation.Brands.Paliz.Controllers
     public class PalizDeviceController : ControllerBase
     {
         //private readonly PalizServer _palizServer;
-        private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly DeviceService _deviceService;
-        //private readonly CommandFactory _commandFactory;
         private readonly AccessGroupService _accessGroupService;
-
-        private readonly TaskTypes _taskTypes;
-        private readonly TaskStatuses _taskStatuses;
-        private readonly TaskItemTypes _taskItemTypes;
-        private readonly TaskPriorities _taskPriorities;
         private readonly BiovationConfigurationManager _configurationManager;
         private readonly CommandFactory _commandFactory;
         private readonly Dictionary<uint, DeviceBasicInfo> _onlineDevices;
 
-        public PalizDeviceController(TaskService taskService, DeviceService deviceService,
+        public PalizDeviceController( DeviceService deviceService,
             AccessGroupService accessGroupService, DeviceBrands deviceBrands,
-            TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
             BiovationConfigurationManager configurationManager, CommandFactory commandFactory, Dictionary<uint, DeviceBasicInfo> onlineDevices)
         {
             //_palizServer = palizServer;
-            _taskService = taskService;
             _deviceService = deviceService;
             _commandFactory = commandFactory;
             _deviceBrands = deviceBrands;
-            _taskTypes = taskTypes;
-            _taskItemTypes = taskItemTypes;
-            _taskPriorities = taskPriorities;
-            _taskStatuses = taskStatuses;
             _accessGroupService = accessGroupService;
             _configurationManager = configurationManager;
             _onlineDevices = onlineDevices;
@@ -84,49 +71,28 @@ namespace Biovation.Brands.Paliz.Controllers
             });
         }
 
-        [HttpGet]
+        [HttpPost]
         [Authorize]
-        public async Task<Dictionary<string, string>> GetAdditionalData(uint code)
+        public async Task<Dictionary<string, string>> GetAdditionalData([FromBody] TaskInfo task)
         {
-            var creatorUser = HttpContext.GetUser();
-
-            var task = new TaskInfo
+            return await Task.Run(() =>
             {
-                CreatedAt = DateTimeOffset.Now,
-                CreatedBy = creatorUser,
-                TaskType = _taskTypes.GetLogsInPeriod,
-                Priority = _taskPriorities.Immediate,
-                DeviceBrand = _deviceBrands.ZkTeco,
-                TaskItems = new List<TaskItem>(),
-                DueDate = DateTime.Today
-            };
-            var device = (_deviceService.GetDevices(code: code, brandId: DeviceBrands.EosCode))?.FirstOrDefault();
+                try
+                {
+                    var result = (Dictionary<string, string>)_commandFactory.Factory(
+                            CommandType.RetrieveUsersListFromDevice,
+                            new List<object>
+                                {task.TaskItems?.FirstOrDefault()})
+                        .Execute();
 
-            if (device is null)
-            {
-                return null;
-            }
+                    return result;
 
-            var deviceId = device.DeviceId;
-            task.TaskItems.Add(new TaskItem
-            {
-                Status = _taskStatuses.Done,
-                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                Priority = _taskPriorities.Immediate,
-                DeviceId = deviceId,
-                Data = JsonConvert.SerializeObject(new { deviceId }),
-                IsParallelRestricted = true,
-                IsScheduled = false,
-                OrderIndex = 1,
-                CurrentIndex = 0
+                }
+                catch (Exception)
+                {
+                    return new Dictionary<string, string>();
+                }
             });
-
-            var getAdditionalData = _commandFactory.Factory(CommandType.GetDeviceAdditionalData,
-                new List<object> { task.TaskItems.FirstOrDefault() });
-
-            var result = getAdditionalData.Execute();
-
-            return (Dictionary<string, string>)result;
         }
 
         [HttpPost]
@@ -140,54 +106,54 @@ namespace Biovation.Brands.Paliz.Controllers
             try
             {
                 //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
+                //var creatorUser = HttpContext.GetUser();
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.GetLogs,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DeviceBrand = _deviceBrands.Paliz,
-                    DueDate = DateTime.Today
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.GetLogs,
+                //    Priority = _taskPriorities.Medium,
+                //    TaskItems = new List<TaskItem>(),
+                //    DeviceBrand = _deviceBrands.Paliz,
+                //    DueDate = DateTime.Today
+                //};
 
-                if (code != default)
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.GetLogs,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(device.DeviceId),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
+                //if (code != default)
+                //    task.TaskItems.Add(new TaskItem
+                //    {
+                //        Status = _taskStatuses.Queued,
+                //        TaskItemType = _taskItemTypes.GetLogs,
+                //        Priority = _taskPriorities.Medium,
+                //        DeviceId = device.DeviceId,
+                //        Data = JsonConvert.SerializeObject(device.DeviceId),
+                //        IsParallelRestricted = true,
+                //        IsScheduled = false,
+                //        OrderIndex = 1,
 
-                    });
+                //    });
 
-                else
-                {
-                    var palizDevices = _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
-                    foreach (var palizDevice in palizDevices)
-                    {
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.GetLogs,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = palizDevice.DeviceId,
-                            Data = JsonConvert.SerializeObject(device.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1
-                        });
-                    }
-                }
+                //else
+                //{
+                //    var palizDevices = _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                //    foreach (var palizDevice in palizDevices)
+                //    {
+                //        task.TaskItems.Add(new TaskItem
+                //        {
+                //            Status = _taskStatuses.Queued,
+                //            TaskItemType = _taskItemTypes.GetLogs,
+                //            Priority = _taskPriorities.Medium,
+                //            DeviceId = palizDevice.DeviceId,
+                //            Data = JsonConvert.SerializeObject(device.DeviceId),
+                //            IsParallelRestricted = true,
+                //            IsScheduled = false,
+                //            OrderIndex = 1
+                //        });
+                //    }
+                //}
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
 
                 return new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"};
             }
@@ -212,104 +178,104 @@ namespace Biovation.Brands.Paliz.Controllers
 
                 try
                 {
-                    if (fromDate.HasValue && toDate.HasValue)
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogsInPeriod,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Paliz,
-                            DueDate = DateTimeOffset.Now
-                        };
+                    //if (fromDate.HasValue && toDate.HasValue)
+                    //{
+                    //    var task = new TaskInfo
+                    //    {
+                    //        CreatedAt = DateTimeOffset.Now,
+                    //        CreatedBy = creatorUser,
+                    //        TaskType = _taskTypes.GetLogsInPeriod,
+                    //        Priority = _taskPriorities.Medium,
+                    //        TaskItems = new List<TaskItem>(),
+                    //        DeviceBrand = _deviceBrands.Paliz,
+                    //        DueDate = DateTimeOffset.Now
+                    //    };
 
-                        if (code != default)
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-                            });
+                    //    if (code != default)
+                    //        task.TaskItems.Add(new TaskItem
+                    //        {
+                    //            Status = _taskStatuses.Queued,
+                    //            TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                    //            Priority = _taskPriorities.Medium,
+                    //            DeviceId = device.DeviceId,
+                    //            Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
+                    //            IsParallelRestricted = true,
+                    //            IsScheduled = false,
+                    //            OrderIndex = 1,
+                    //        });
 
-                        else
-                        {
-                            var palizDevices = _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
-                            foreach (var palizDevice in palizDevices)
-                            {
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetLogsInPeriod,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = palizDevice.DeviceId,
-                                    Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-                            }
-                        }
+                    //    else
+                    //    {
+                    //        var palizDevices = _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                    //        foreach (var palizDevice in palizDevices)
+                    //        {
+                    //            task.TaskItems.Add(new TaskItem
+                    //            {
+                    //                Status = _taskStatuses.Queued,
+                    //                TaskItemType = _taskItemTypes.GetLogsInPeriod,
+                    //                Priority = _taskPriorities.Medium,
+                    //                DeviceId = palizDevice.DeviceId,
+                    //                Data = JsonConvert.SerializeObject(new {fromDate, toDate}),
+                    //                IsParallelRestricted = true,
+                    //                IsScheduled = false,
+                    //                OrderIndex = 1
+                    //            });
+                    //        }
+                    //    }
 
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
+                    //    _taskService.InsertTask(task);
+                    //    await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
 
-                    }
-                    else
-                    {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.GetLogs,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Paliz,
-                            DueDate = DateTime.Today
-                        };
+                    //}
+                    //else
+                    //{
+                    //    var task = new TaskInfo
+                    //    {
+                    //        CreatedAt = DateTimeOffset.Now,
+                    //        CreatedBy = creatorUser,
+                    //        TaskType = _taskTypes.GetLogs,
+                    //        Priority = _taskPriorities.Medium,
+                    //        TaskItems = new List<TaskItem>(),
+                    //        DeviceBrand = _deviceBrands.Paliz,
+                    //        DueDate = DateTime.Today
+                    //    };
 
-                        if (code != default)
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.GetLogs,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(device.DeviceId),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-                            });
+                    //    if (code != default)
+                    //        task.TaskItems.Add(new TaskItem
+                    //        {
+                    //            Status = _taskStatuses.Queued,
+                    //            TaskItemType = _taskItemTypes.GetLogs,
+                    //            Priority = _taskPriorities.Medium,
+                    //            DeviceId = device.DeviceId,
+                    //            Data = JsonConvert.SerializeObject(device.DeviceId),
+                    //            IsParallelRestricted = true,
+                    //            IsScheduled = false,
+                    //            OrderIndex = 1,
+                    //        });
 
-                        else
-                        {
-                            var palizDevices =
-                                _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
-                            foreach (var palizDevice in palizDevices)
-                            {
-                                task.TaskItems.Add(new TaskItem
-                                {
-                                    Status = _taskStatuses.Queued,
-                                    TaskItemType = _taskItemTypes.GetLogs,
-                                    Priority = _taskPriorities.Medium,
-                                    DeviceId = palizDevice.DeviceId,
-                                    Data = JsonConvert.SerializeObject(palizDevice.DeviceId),
-                                    IsParallelRestricted = true,
-                                    IsScheduled = false,
-                                    OrderIndex = 1
-                                });
-                            }
-                        }
+                    //    else
+                    //    {
+                    //        var palizDevices =
+                    //            _deviceService.GetDevices(brandId: DeviceBrands.PalizCode);
+                    //        foreach (var palizDevice in palizDevices)
+                    //        {
+                    //            task.TaskItems.Add(new TaskItem
+                    //            {
+                    //                Status = _taskStatuses.Queued,
+                    //                TaskItemType = _taskItemTypes.GetLogs,
+                    //                Priority = _taskPriorities.Medium,
+                    //                DeviceId = palizDevice.DeviceId,
+                    //                Data = JsonConvert.SerializeObject(palizDevice.DeviceId),
+                    //                IsParallelRestricted = true,
+                    //                IsScheduled = false,
+                    //                OrderIndex = 1
+                    //            });
+                    //        }
+                    //    }
 
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
-                    }
+                    //    _taskService.InsertTask(task);
+                    //    await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
+                    //}
 
                     return new ResultViewModel {Validate = 1, Message = "Retrieving Log queued"};
                 }
@@ -363,37 +329,37 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
+                //var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
+                ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                //var creatorUser = HttpContext.GetUser();
 
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.LockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Paliz,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.LockDevice,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceBrand = _deviceBrands.Paliz,
+                //    TaskItems = new List<TaskItem>(),
+                //    DueDate = DateTime.Today
+                //};
 
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.LockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1
-                });
+                //task.TaskItems.Add(new TaskItem
+                //{
+                //    Status = _taskStatuses.Queued,
+                //    TaskItemType = _taskItemTypes.LockDevice,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceId = devices.DeviceId,
+                //    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                //    IsParallelRestricted = true,
+                //    IsScheduled = false,
+                //    OrderIndex = 1
+                //});
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz, devices.DeviceId).ConfigureAwait(false);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Paliz, devices.DeviceId).ConfigureAwait(false);
 
                 return new ResultViewModel {Validate = 1, Message = "locking Device queued"};
             }
@@ -409,38 +375,38 @@ namespace Biovation.Brands.Paliz.Controllers
         {
             try
             {
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
+                //var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
+                ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                //var creatorUser = HttpContext.GetUser();
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.UnlockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Paliz,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.UnlockDevice,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceBrand = _deviceBrands.Paliz,
+                //    TaskItems = new List<TaskItem>(),
+                //    DueDate = DateTime.Today
+                //};
 
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.UnlockDevice,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    TotalCount = 1,
-                    CurrentIndex = 0
-                });
+                //task.TaskItems.Add(new TaskItem
+                //{
+                //    Status = _taskStatuses.Queued,
+                //    TaskItemType = _taskItemTypes.UnlockDevice,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceId = devices.DeviceId,
+                //    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                //    IsParallelRestricted = true,
+                //    IsScheduled = false,
+                //    OrderIndex = 1,
+                //    TotalCount = 1,
+                //    CurrentIndex = 0
+                //});
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz, devices.DeviceId).ConfigureAwait(false);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Paliz, devices.DeviceId).ConfigureAwait(false);
                 return new ResultViewModel {Validate = 1, Message = "Unlocking Device queued"};
             }
             catch (Exception exception)
@@ -453,92 +419,37 @@ namespace Biovation.Brands.Paliz.Controllers
         [Authorize]
         public async Task<ResultViewModel> ModifyDevice([FromBody] DeviceBasicInfo device)
         {
-            var creatorUser = HttpContext.GetUser();
-            var devices = _deviceService.GetDevices(code: device.Code, brandId: DeviceBrands.PalizCode)
-                .FirstOrDefault();
-
             if (device.Active)
             {
-                return await Task.Run(async () =>
+                return await Task.Run(() =>
                 {
                     try
                     {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            DeviceBrand = _deviceBrands.Paliz,
-                            TaskType = _taskTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DueDate = DateTime.Today
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.UnlockDevice,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = devices.DeviceId,
-                            Data = JsonConvert.SerializeObject(devices.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                            TotalCount = 1,
-                            CurrentIndex = 0
-                        });
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Paliz, devices.DeviceId).ConfigureAwait(false);
-                        return new ResultViewModel {Validate = 1, Message = "Unlocking Device queued"};
+                        return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                     }
                     catch (Exception exception)
                     {
-                        return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                        return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                     }
                 });
             }
 
             if (_configurationManager.LockDevice)
             {
-                return await Task.Run(async () =>
+                return await Task.Run(() =>
                 {
                     try
                     {
-                        var task = new TaskInfo
-                        {
-                            CreatedAt = DateTimeOffset.Now,
-                            CreatedBy = creatorUser,
-                            TaskType = _taskTypes.LockDevice,
-                            Priority = _taskPriorities.Medium,
-                            TaskItems = new List<TaskItem>(),
-                            DeviceBrand = _deviceBrands.Paliz,
-                            DueDate = DateTime.Today
-                        };
-
-                        task.TaskItems.Add(new TaskItem
-                        {
-                            Status = _taskStatuses.Queued,
-                            TaskItemType = _taskItemTypes.LockDevice,
-                            Priority = _taskPriorities.Medium,
-                            DeviceId = devices.DeviceId,
-                            Data = JsonConvert.SerializeObject(devices.DeviceId),
-                            IsParallelRestricted = true,
-                            IsScheduled = false,
-                            OrderIndex = 1,
-                        });
-
-                        _taskService.InsertTask(task);
-                        await _taskService.ProcessQueue(_deviceBrands.Paliz, devices.DeviceId).ConfigureAwait(false);
-                        return new ResultViewModel {Validate = 1, Message = "locking Device queued"};
+                        return new ResultViewModel { Validate = 1, Message = "locking Device queued" };
                     }
                     catch (Exception exception)
                     {
-                        return new ResultViewModel {Validate = 0, Message = exception.ToString()};
+                        return new ResultViewModel { Validate = 0, Message = exception.ToString() };
                     }
                 });
             }
 
-            return new ResultViewModel {Validate = 0, Message = "The LockDevice option is False"};
+            return new ResultViewModel { Validate = 0, Message = "The LockDevice option is False" };
         }
 
         /*
@@ -575,114 +486,40 @@ namespace Biovation.Brands.Paliz.Controllers
         [Authorize]
         public async Task<ResultViewModel> SendUsersOfDevice([FromBody] DeviceBasicInfo device)
         {
-            try
+            return await Task.Run(() =>
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.Paliz,
-                    TaskType = _taskTypes.SendUsers,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-                var accessGroups = _accessGroupService.GetAccessGroups(deviceId: device.DeviceId);
+                    //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
 
-                foreach (var accessGroup in accessGroups)
-                {
-                    foreach (var userGroup in accessGroup.UserGroup)
-                    {
-                        foreach (var userGroupMember in userGroup.Users)
-                        {
-                            task.TaskItems.Add(new TaskItem
-                            {
-                                Status = _taskStatuses.Queued,
-                                TaskItemType = _taskItemTypes.SendUser,
-                                Priority = _taskPriorities.Medium,
-                                DeviceId = device.DeviceId,
-                                Data = JsonConvert.SerializeObject(new {userId = userGroupMember.UserCode}),
-                                IsParallelRestricted = true,
-                                IsScheduled = false,
-                                OrderIndex = 1,
-                                TotalCount = 1,
-                                CurrentIndex = 0
-                            });
-                        }
-                    }
+                    return new ResultViewModel { Validate = 1, Message = "Sending users queued" };
                 }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
-
-                return new ResultViewModel {Validate = 1, Message = "Sending users queued"};
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel {Validate = 0, Message = exception.ToString()};
-            }
+                catch (Exception exception)
+                {
+                    return new ResultViewModel { Validate = 0, Message = exception.ToString() };
+                }
+            });
         }
 
         [HttpPost]
         [Authorize]
         public async Task<List<ResultViewModel>> RetrieveUserFromDevice(uint code, [FromBody] List<int> userIds)
         {
-            try
+            return await Task.Run(() =>
             {
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
-                if (device is null)
-                    return new List<ResultViewModel> { new ResultViewModel { Success = false, Message = $"Device {code} does not exists." } };
-
-                var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    DeviceBrand = _deviceBrands.Paliz,
-                    TaskType = _taskTypes.RetrieveUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
-
-                //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                //int[] userIds =new[] {Convert.ToInt32(userId)};
-
-                var deviceId = device.DeviceId;
-                foreach (var id in userIds)
-                {
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.RetrieveUserFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = deviceId,
-                        Data = JsonConvert.SerializeObject(new {userId = id}),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = userIds.Count
-                    });
+                    return new List<ResultViewModel>
+                        {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
                 }
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
-
-                return new List<ResultViewModel>
-                    {new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
-            }
-
-            catch (Exception exception)
-            {
-                return new List<ResultViewModel>
-                    {new ResultViewModel {Validate = 0, Message = exception.ToString()}};
-            }
-        }
+                catch (Exception exception)
+                {
+                    return new List<ResultViewModel>
+                        {new ResultViewModel {Validate = 0, Message = exception.ToString()}};
+                }
+            });
+       }
 
         /*
         [HttpGet]
@@ -705,66 +542,28 @@ namespace Biovation.Brands.Paliz.Controllers
         }
 
         */
-        [HttpGet]
+           [HttpGet]
         [Authorize]
-        // TODO - Should get refactored to distinguish instances
-        public async Task<ResultViewModel<List<User>>> RetrieveUsersListFromDevice(uint code,
-            bool embedTemplate = false)
+        public ResultViewModel<List<User>> RetrieveUsersListFromDevice([FromBody]TaskInfo task)
         {
-            return await Task.Run(() =>
+            try
             {
-                //this action return list of user so for task based this we need to syncron web and change return type for task manager statustask update
+                var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
+                        CommandType.RetrieveUsersListFromDevice,
+                        new List<object>
+                            {task.TaskItems?.FirstOrDefault()})
+                    .Execute();
 
-                try
-                {
-                    var creatorUser = HttpContext.GetUser();
+                return result;
 
-                    var task = new TaskInfo
-                    {
-                        CreatedAt = DateTimeOffset.Now,
-                        CreatedBy = creatorUser,
-                        TaskType = _taskTypes.RetrieveAllUsersFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceBrand = _deviceBrands.Paliz,
-                        TaskItems = new List<TaskItem>(),
-                        DueDate = DateTime.Today
-                    };
+            }
+            catch (Exception exception)
+            {
+                return new ResultViewModel<List<User>> { Validate = 0, Message = exception.ToString() };
+            }
 
-                    var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode)
-                        .FirstOrDefault();
-                    var deviceId = devices.DeviceId;
-                    task.TaskItems.Add(new TaskItem
-                    {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.RetrieveAllUsersFromTerminal,
-                        Priority = _taskPriorities.Medium,
-                        DeviceId = deviceId,
-                        Data = JsonConvert.SerializeObject(new {deviceId, embedTemplate}),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0
-                    });
-
-                    //_taskService.InsertTask(task);
-                    //await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
-
-                    //return new List<ResultViewModel>
-                    //{new ResultViewModel {Validate = 1, Message = "Retrieving users queued"}};
-                    var result = (ResultViewModel<List<User>>)_commandFactory.Factory(
-                            CommandType.RetrieveUsersListFromDevice,
-                            new List<object>
-                                {task.TaskItems?.FirstOrDefault()?.DeviceId, task.TaskItems?.FirstOrDefault()?.Id})
-                        .Execute();
-
-                    return result; 
-                }
-                catch (Exception exception)
-                {
-                    return new ResultViewModel<List<User>> {Validate = 0, Message = exception.ToString()};
-                }
-            });
         }
+
 
 
         [HttpPost]
@@ -772,38 +571,38 @@ namespace Biovation.Brands.Paliz.Controllers
         public async Task<bool> OpenDoorTerminal(uint code)
         {
             try
-            {
-                var creatorUser = HttpContext.GetUser();
-                var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
+            {  //TODO Should be task on BiovationServer
+                //var creatorUser = HttpContext.GetUser();
+                //var devices = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
 
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.OpenDoor,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>(),
-                    DeviceBrand = _deviceBrands.Paliz,
-                    DueDate = DateTime.Today
-                };
+                //var task = new TaskInfo
+                //{
+                //    CreatedAt = DateTimeOffset.Now,
+                //    CreatedBy = creatorUser,
+                //    TaskType = _taskTypes.OpenDoor,
+                //    Priority = _taskPriorities.Medium,
+                //    TaskItems = new List<TaskItem>(),
+                //    DeviceBrand = _deviceBrands.Paliz,
+                //    DueDate = DateTime.Today
+                //};
 
-                task.TaskItems.Add(new TaskItem
-                {
-                    Status = _taskStatuses.Queued,
-                    TaskItemType = _taskItemTypes.OpenDoor,
-                    Priority = _taskPriorities.Medium,
-                    DeviceId = devices.DeviceId,
-                    Data = JsonConvert.SerializeObject(devices.DeviceId),
-                    IsParallelRestricted = true,
-                    IsScheduled = false,
-                    OrderIndex = 1,
-                    TotalCount = 1,
-                    CurrentIndex = 0
+                //task.TaskItems.Add(new TaskItem
+                //{
+                //    Status = _taskStatuses.Queued,
+                //    TaskItemType = _taskItemTypes.OpenDoor,
+                //    Priority = _taskPriorities.Medium,
+                //    DeviceId = devices.DeviceId,
+                //    Data = JsonConvert.SerializeObject(devices.DeviceId),
+                //    IsParallelRestricted = true,
+                //    IsScheduled = false,
+                //    OrderIndex = 1,
+                //    TotalCount = 1,
+                //    CurrentIndex = 0
 
-                });
+                //});
 
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
+                //_taskService.InsertTask(task);
+                //await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
 
                 var result = new ResultViewModel {Validate = 1, Message = "Unlocking Device queued"};
                 if (result.Validate == 1)
@@ -974,71 +773,74 @@ namespace Biovation.Brands.Paliz.Controllers
         public async Task<ResultViewModel> DeleteUserFromDevice(uint code, [FromBody] List<int> userCodes,
             bool updateServerSideIdentification = false)
         {
-            try
+            return await Task.Run(() =>
             {
-                var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.PalizCode).FirstOrDefault();
-
-                //var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
-                var creatorUser = HttpContext.GetUser();
-
-                /*var task = new TaskInfo
+                try
                 {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    TaskItems = new List<TaskItem>()
-                };*/
-                var task = new TaskInfo
-                {
-                    CreatedAt = DateTimeOffset.Now,
-                    CreatedBy = creatorUser,
-                    TaskType = _taskTypes.DeleteUserFromTerminal,
-                    Priority = _taskPriorities.Medium,
-                    DeviceBrand = _deviceBrands.Paliz,
-                    TaskItems = new List<TaskItem>(),
-                    DueDate = DateTime.Today
-                };
+                    //var device = _deviceService.GetDevices(code: code, brandId: DeviceBrands.VirdiCode).FirstOrDefault();
 
-                //var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
-                foreach (var userCode in userCodes)
-                {
+                    ////var creatorUser = _userService.GetUsers(123456789).FirstOrDefault();
+                    //var creatorUser = HttpContext.GetUser();
 
-                    task.TaskItems.Add(new TaskItem
+                    /*var task = new TaskInfo
                     {
-                        Status = _taskStatuses.Queued,
-                        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                        CreatedAt = DateTimeOffset.Now,
+                        CreatedBy = creatorUser,
+                        TaskType = _taskTypes.DeleteUserFromTerminal,
                         Priority = _taskPriorities.Medium,
-                        DeviceId = device.DeviceId,
-                        Data = JsonConvert.SerializeObject(new {userCode}),
-                        IsParallelRestricted = true,
-                        IsScheduled = false,
-                        OrderIndex = 1,
-                        CurrentIndex = 0,
-                        TotalCount = 1
-                    });
+                        TaskItems = new List<TaskItem>()
+                    };*/
+                    //var task = new TaskInfo
+                    //{
+                    //    CreatedAt = DateTimeOffset.Now,
+                    //    CreatedBy = creatorUser,
+                    //    TaskType = _taskTypes.DeleteUsers,
+                    //    Priority = _taskPriorities.Medium,
+                    //    DeviceBrand = _deviceBrands.Virdi,
+                    //    TaskItems = new List<TaskItem>(),
+                    //    DueDate = DateTime.Today
+                    //};
+
+                    ////var userIds = JsonConvert.DeserializeObject<int[]>(userId.ToString());
+                    //foreach (var userCode in userCodes)
+                    //{
+
+                    //    task.TaskItems.Add(new TaskItem
+                    //    {
+                    //        Status = _taskStatuses.Queued,
+                    //        TaskItemType = _taskItemTypes.DeleteUserFromTerminal,
+                    //        Priority = _taskPriorities.Medium,
+                    //        DeviceId = device.DeviceId,
+                    //        Data = JsonConvert.SerializeObject(new { userCode }),
+                    //        IsParallelRestricted = true,
+                    //        IsScheduled = false,
+                    //        OrderIndex = 1,
+                    //        CurrentIndex = 0,
+                    //        TotalCount = 1
+                    //    });
+                    //}
+
+                    //_taskService.InsertTask(task);
+                    //await _taskService.ProcessQueue(_deviceBrands.Virdi).ConfigureAwait(false);
+
+
+                    //if (updateServerSideIdentification)
+                    //{
+                    //    foreach (var id in userCodes)
+                    //    {
+                    //        _palizeServer.DeleteUserFromDeviceFastSearch(code, id);
+                    //    }
+                    //}
+
+                    var result = new ResultViewModel { Validate = 1, Message = "Removing User queued" };
+                    return result;
+
                 }
-
-                _taskService.InsertTask(task);
-                await _taskService.ProcessQueue(_deviceBrands.Paliz).ConfigureAwait(false);
-
-
-                if (updateServerSideIdentification)
+                catch (Exception exception)
                 {
-                    foreach (var id in userCodes)
-                    {
-                        //_palizServer.DeleteUserFromDeviceFastSearch(code, id);
-                    }
+                    return new ResultViewModel { Validate = 1, Message = $"Error ,Removing User not queued!{exception}" };
                 }
-
-                var result = new ResultViewModel {Validate = 1, Message = "Removing User queued"};
-                return result;
-
-            }
-            catch (Exception exception)
-            {
-                return new ResultViewModel {Validate = 1, Message = $"Error ,Removing User not queued!{exception}"};
-            }
+            });
         }
     }
 }

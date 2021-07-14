@@ -21,7 +21,7 @@ namespace Biovation.Brands.Paliz.Controllers
 {
     [ApiController]
     [Route("Biovation/Api/[controller]/[action]")]
-    public class PalizTimeZoneController : ControllerBase
+    public class TimeZoneController : ControllerBase
     {
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
@@ -31,7 +31,7 @@ namespace Biovation.Brands.Paliz.Controllers
         private readonly TaskItemTypes _taskItemTypes;
         private readonly TaskPriorities _taskPriorities;
 
-        public PalizTimeZoneController(TaskService taskService, DeviceService deviceService,
+        public TimeZoneController(TaskService taskService, DeviceService deviceService,
             AccessGroupService accessGroupService, DeviceBrands deviceBrands,
             TaskTypes taskTypes, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses,
             BiovationConfigurationManager configurationManager, CommandFactory commandFactory, Dictionary<uint, DeviceBasicInfo> onlineDevices)
