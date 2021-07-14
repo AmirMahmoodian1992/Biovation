@@ -741,7 +741,7 @@ namespace Biovation.Brands.Virdi.Controllers
                 try
                 {
                     var result = (Dictionary<string, string>)_commandFactory.Factory(
-                            CommandType.RetrieveUsersListFromDevice,
+                            CommandType.GetDeviceAdditionalData,
                             new List<object>
                                 {task.TaskItems?.FirstOrDefault()})
                         .Execute();
@@ -749,7 +749,7 @@ namespace Biovation.Brands.Virdi.Controllers
                     return result;
 
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
                     return new Dictionary<string, string>();
                 }

@@ -273,7 +273,7 @@ namespace Biovation.Brands.ZK.Controllers
                 try
                 {
                     var result = (Dictionary<string, string>)_commandFactory.Factory(
-                            CommandType.RetrieveUsersListFromDevice,
+                            CommandType.GetDeviceAdditionalData,
                             new List<object>
                                 {task.TaskItems?.FirstOrDefault()})
                         .Execute();

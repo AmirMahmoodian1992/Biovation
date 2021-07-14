@@ -56,6 +56,8 @@ namespace Biovation.Brands.Virdi.Command
             {
                 //Callbacks.GetUserTaskFinished = true;
                 //Callbacks.RetrieveUsers = new List<User>();
+                InfoDictionary.Add("Name", deviceBasicInfo.Name.ToString());
+                InfoDictionary.Add("Code", deviceBasicInfo.Code.ToString());
                 lock (_ucsApi)
                     _ucsApi.EventGetUserCount += GetUserCount;
                 lock (_terminalUserData)
