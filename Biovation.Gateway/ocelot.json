@@ -51,6 +51,18 @@
     {
       "DownstreamPathTemplate": "/biovation/api/{url}",
       "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/0d227a1c-7a64-4cdd-a897-dd247d6da4bb/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 55200
+        }
+      ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
       "UpstreamPathTemplate": "/biovation/api/zk/{url}",
       "UpstreamHttpMethod": [ "Get", "Post" ],
       "DownstreamHostAndPorts": [
