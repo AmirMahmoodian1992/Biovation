@@ -24,19 +24,19 @@ namespace Biovation.Brands.Virdi.Command
         private Dictionary<string, string> InfoDictionary { get; set; }
         private int UserCount { get; set; }
         private int AdminCount { get; set; }
-        private DeviceBasicInfo deviceBasicInfo;
 
-        public VirdiGetAdditionalData(IReadOnlyList<object> items, UCSAPI ucsApi, VirdiServer virdiServer, DeviceService deviceService)
+        public VirdiGetAdditionalData(IReadOnlyList<object> items, UCSAPI ucsApi, VirdiServer virdiServer, DeviceService deviceService, ITerminalUserData terminalUserData)
         {
             _ucsApi = ucsApi;
-            _terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;
+            _terminalUserData = terminalUserData;
+            //_terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;
 
             _doneEventUserCount = new ManualResetEventSlim(false);
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            deviceBasicInfo = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId);
-            Code = deviceBasicInfo?.Code ?? 0;
+            var deviceBasicInfo = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId);
+            Code = deviceBasicInfo?.Code ?? uint.MaxValue;
             OnlineDevices = virdiServer.GetOnlineDevices();
 
             InfoDictionary = new Dictionary<string, string>();

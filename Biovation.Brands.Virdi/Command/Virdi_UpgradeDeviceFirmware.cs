@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -20,17 +21,19 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
 
         private readonly VirdiServer _virdiServer;
+        private readonly UCSAPI _ucsApi;
 
-        public VirdiUpgradeDeviceFirmware(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService)
+        public VirdiUpgradeDeviceFirmware(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService, UCSAPI ucsApi)
         {
             _virdiServer = virdiServer;
+            _ucsApi = ucsApi;
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             DeviceCode = (int)(deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
-            if (data.HasValues)
+            if (data != null && data.HasValues)
                 FirmwareFilePath = data["LocalFileName"]?.ToString();
         }
 
@@ -58,50 +61,53 @@ namespace Biovation.Brands.Virdi.Command
                     //ignore
                 }
 
-                _virdiServer.UcsApi.UpgradeFirmwareToTerminal(TaskItemId, DeviceCode, FirmwareFilePath);
-                Thread.Sleep(1000);
-
-                Logger.Log(GetDescription());
-
-                while (!VirdiServer.UploadFirmwareFileTaskFinished)
-                    Thread.Sleep(2000);
-
-                for (var i = 0; i < 4; i++)
+                lock (_ucsApi)
                 {
+
+                    _ucsApi.UpgradeFirmwareToTerminal(TaskItemId, DeviceCode, FirmwareFilePath);
+                    Thread.Sleep(1000);
+
+                    Logger.Log(GetDescription());
+
+                    while (!VirdiServer.UploadFirmwareFileTaskFinished)
+                        Thread.Sleep(2000);
+
+                    for (var i = 0; i < 4; i++)
+                    {
+                        if (VirdiServer.UpgradeFirmwareTaskFinished)
+                            break;
+                        Thread.Sleep(500);
+                    }
+
                     if (VirdiServer.UpgradeFirmwareTaskFinished)
-                        break;
-                    Thread.Sleep(500);
-                }
+                    {
+                        return new ResultViewModel
+                        {
 
-                if (VirdiServer.UpgradeFirmwareTaskFinished)
-                {
+                            Id = DeviceId,
+                            Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                            Validate = VirdiServer.UpgradeFirmwareTaskFinished ? 1 : 0,
+                            Message = VirdiServer.UpgradeFirmwareTaskFinished
+                                ? $"Firmware upgraded successfully on device {DeviceCode}"
+                                : $"Uploaded firmware file was not compatible with the device: Device code: {DeviceCode}, Device Model: {deviceInfo?.Model?.Name}"
+                        };
+                    }
                     return new ResultViewModel
                     {
 
                         Id = DeviceId,
-                        Code = Convert.ToInt64(TaskStatuses.DoneCode),
+                        Code = Convert.ToInt64(TaskStatuses.FailedCode),
                         Validate = VirdiServer.UpgradeFirmwareTaskFinished ? 1 : 0,
                         Message = VirdiServer.UpgradeFirmwareTaskFinished
                             ? $"Firmware upgraded successfully on device {DeviceCode}"
                             : $"Uploaded firmware file was not compatible with the device: Device code: {DeviceCode}, Device Model: {deviceInfo?.Model?.Name}"
                     };
                 }
-                return new ResultViewModel
-                {
-
-                    Id = DeviceId,
-                    Code = Convert.ToInt64(TaskStatuses.FailedCode),
-                    Validate = VirdiServer.UpgradeFirmwareTaskFinished ? 1 : 0,
-                    Message = VirdiServer.UpgradeFirmwareTaskFinished
-                        ? $"Firmware upgraded successfully on device {DeviceCode}"
-                        : $"Uploaded firmware file was not compatible with the device: Device code: {DeviceCode}, Device Model: {deviceInfo?.Model?.Name}"
-                };
-
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new ResultViewModel { Id = DeviceId, Message = "An error occured", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+                return new ResultViewModel { Id = DeviceId, Message = "An error occurred", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
             finally
             {

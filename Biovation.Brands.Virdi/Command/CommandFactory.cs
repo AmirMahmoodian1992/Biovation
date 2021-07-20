@@ -2,10 +2,11 @@
 using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
+using Biovation.Service.Api.v2;
 using RestSharp;
 using System;
 using System.Collections.Generic;
-using Biovation.Service.Api.v2;
+using UCBioBSPCOMLib;
 using UCSAPICOMLib;
 using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
 using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
@@ -27,6 +28,25 @@ namespace Biovation.Brands.Virdi.Command
     {
         private readonly VirdiServer _virdiServer;
         private readonly UCSAPI _ucsApi;
+        private readonly IServerUserData _serverUserData;
+        private readonly ITerminalUserData _terminalUserData;
+        //private readonly IServerAuthentication _serverAuthentication;
+        private readonly IAccessLogData _accessLogData;
+        //private readonly ITerminalOption _terminalOption;
+        private readonly IAccessControlData _accessControlData;
+        //internal readonly ISmartCardLayout SmartCardLayout;
+
+        // UCBioBSP
+        //private readonly UCBioBSPClass _ucBioBsp;
+        private readonly IFPData _fpData;
+        //internal ITemplateInfo TemplateInfo;
+        //private readonly IDevice _device;
+        //private readonly IExtraction _extraction;
+        //private readonly IFastSearch _fastSearch;
+        private readonly IMatching _matching;
+        //private readonly ITemplateInfo _templateInfo;
+
+        //private readonly ISmartCard _smartCard;
 
         private readonly LogEvents _logEvents;
         private readonly TaskTypes _taskTypes;
@@ -59,7 +79,7 @@ namespace Biovation.Brands.Virdi.Command
         public CommandFactory(VirdiServer virdiServer, LogService logService,
             UserService userService, TaskService taskService, DeviceService deviceService,
             UserCardService userCardService, BlackListService blackListService, AdminDeviceService adminDeviceService,
-            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi, FingerTemplateService fingerTemplateService, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient, VirdiCodeMappings virdiCodeMappings, IrisTemplateTypes irisTemplateTypes, IrisTemplateService rIrisTemplateService)
+            AccessGroupService accessGroupService, FaceTemplateService faceTemplateService, TimeZoneService timeZoneService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes, UCSAPI ucsApi, FingerTemplateService fingerTemplateService, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, TaskTypes taskTypes, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, RestClient restClient, VirdiCodeMappings virdiCodeMappings, IrisTemplateTypes irisTemplateTypes, IrisTemplateService rIrisTemplateService, ITerminalUserData terminalUserData, IAccessControlData accessControlData, IFPData fpData, IServerUserData serverUserData, IAccessLogData accessLogData, IMatching matching)
         {
             _virdiServer = virdiServer;
             _logService = logService;
@@ -88,6 +108,12 @@ namespace Biovation.Brands.Virdi.Command
             _virdiCodeMappings = virdiCodeMappings;
             _irisTemplateTypes = irisTemplateTypes;
             _rIrisTemplateService = rIrisTemplateService;
+            _terminalUserData = terminalUserData;
+            _accessControlData = accessControlData;
+            _fpData = fpData;
+            _serverUserData = serverUserData;
+            _accessLogData = accessLogData;
+            _matching = matching;
         }
         //private EventDispatcher _eventDispatcherObj;
 
@@ -135,7 +161,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var accessGroupId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiSendAccessGroupToTerminal(transferModelData.Items, _virdiServer, _taskService, _deviceService, _accessGroupService);
+                        return new VirdiSendAccessGroupToTerminal(transferModelData.Items, _virdiServer, _taskService, _deviceService, _accessGroupService, _accessControlData);
                     }
 
                 case CommandType.SendTimeZoneToDevice:
@@ -143,7 +169,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         var code = Convert.ToUInt32(transferModelData.Items[0]);
                         var timeZoneId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiSendTimeZoneToTerminal(code, timeZoneId, _virdiServer, _timeZoneService);
+                        return new VirdiSendTimeZoneToTerminal(code, timeZoneId, _virdiServer, _timeZoneService, _accessControlData);
                     }
 
                 case CommandType.ForceUpdateForSpecificDevice:
@@ -155,7 +181,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes,_virdiCodeMappings,_rIrisTemplateService);
+                        return new VirdiSendUserToDevice(transferModelData.Items, _virdiServer, _logService, _userService, _taskService, _deviceService, _userCardService, _blackListService, _adminDeviceService, _accessGroupService, _faceTemplateService, _logEvents, _logSubEvents, _matchingTypes, _virdiCodeMappings, _rIrisTemplateService, _serverUserData);
                     }
 
                 case CommandType.SendBlackList:
@@ -180,7 +206,7 @@ namespace Biovation.Brands.Virdi.Command
                     //Gets and updates all logs from device
                     {
 
-                        return new VirdiRetrieveAllLogsOfDevice(transferModelData.Items, _virdiServer, _deviceService);
+                        return new VirdiRetrieveAllLogsOfDevice(transferModelData.Items, _virdiServer, _deviceService, _accessLogData);
 
                     }
 
@@ -190,20 +216,20 @@ namespace Biovation.Brands.Virdi.Command
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var startDate = Convert.ToDateTime(transferModelData.Items[1]);
                         //var endDate = Convert.ToDateTime(transferModelData.Items[2]);
-                        return new VirdiRetrieveAllLogsOfDeviceInPeriod(transferModelData.Items, _virdiServer, _taskService, _deviceService);
+                        return new VirdiRetrieveAllLogsOfDeviceInPeriod(transferModelData.Items, _virdiServer, _taskService, _deviceService, _accessLogData);
                     }
 
                 case CommandType.LockDevice:
                     //Locks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new VirdiLockDevice(transferModelData.Items, _virdiServer, _deviceService);
+                        return new VirdiLockDevice(transferModelData.Items, _virdiServer, _deviceService, _ucsApi);
                     }
 
                 case CommandType.UnlockDevice:
                     //Unlocks the device
                     {
-                        return new VirdiUnlockDevice(transferModelData.Items, _virdiServer, _deviceService);
+                        return new VirdiUnlockDevice(transferModelData.Items, _virdiServer, _deviceService, _ucsApi);
                     }
 
                 case CommandType.EnrollFromTerminal:
@@ -218,7 +244,7 @@ namespace Biovation.Brands.Virdi.Command
                     //Unlocks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new VirdiEnrollFaceFromTerminal(transferModelData.Items, _virdiServer, _deviceService);
+                        return new VirdiEnrollFaceFromTerminal(transferModelData.Items, _virdiServer, _deviceService, _terminalUserData);
                     }
 
                 //case CommandType.AddUserToTerminal:
@@ -234,7 +260,7 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiDeleteUserFromTerminal(transferModelData.Items, _virdiServer, _taskService, _logService, _deviceService, _logEvents, _logSubEvents, _matchingTypes);
+                        return new VirdiDeleteUserFromTerminal(transferModelData.Items, _virdiServer, _taskService, _logService, _deviceService, _logEvents, _logSubEvents, _matchingTypes, _terminalUserData);
                     }
 
                 case CommandType.RetrieveUserFromDevice:
@@ -242,31 +268,31 @@ namespace Biovation.Brands.Virdi.Command
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
                         //var userId = Convert.ToInt32(transferModelData.Items[1]);
-                        return new VirdiRetrieveUserFromTerminal(transferModelData.Items, _virdiServer, _ucsApi, _taskService, _userService, _deviceService, _userCardService, _faceTemplateTypes, _accessGroupService, _faceTemplateService, _fingerTemplateTypes, _fingerTemplateService, _biometricTemplateManager, _rIrisTemplateService, _irisTemplateTypes);
+                        return new VirdiRetrieveUserFromTerminal(transferModelData.Items, _virdiServer, _ucsApi, _taskService, _userService, _deviceService, _userCardService, _faceTemplateTypes, _faceTemplateService, _fingerTemplateTypes, _fingerTemplateService, _biometricTemplateManager, _rIrisTemplateService, _irisTemplateTypes, _fpData, _terminalUserData, _matching, _accessGroupService);
                     }
 
                 case CommandType.RetrieveUsersListFromDevice:
                     //Unlocks the device
                     {
                         //var code = Convert.ToUInt32(transferModelData.Items[0]);
-                        return new VirdiRetrieveUsersListFromTerminal(transferModelData.Items, _virdiServer, _ucsApi, _deviceService);
+                        return new VirdiRetrieveUsersListFromTerminal(transferModelData.Items, _virdiServer, _ucsApi, _deviceService, _terminalUserData);
                     }
                 case CommandType.OpenDoor:
                     //Unlocks the device
                     {
-                        return new VirdiOpenDoor(transferModelData.Items, _virdiServer, _deviceService);
+                        return new VirdiOpenDoor(transferModelData.Items, _virdiServer, _deviceService, _ucsApi);
                     }
                 case CommandType.UpgradeFirmware:
                     //Unlocks the device
                     {
                         //var deviceCode = Convert.ToInt32(transferModelData.Items[0]);
                         //var filePath = Convert.ToString(transferModelData.Items[1]);
-                        return new VirdiUpgradeDeviceFirmware(transferModelData.Items, _virdiServer, _taskService, _deviceService);
+                        return new VirdiUpgradeDeviceFirmware(transferModelData.Items, _virdiServer, _taskService, _deviceService, _ucsApi);
                     }
 
                 #region Tools
                 case CommandType.UserAdaptation:
-                    return new VirdiUserAdaptation(transferModelData.Items, _virdiServer.GetOnlineDevices(), _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient, _faceTemplateTypes, _fingerTemplateTypes, _biometricTemplateManager, _ucsApi);
+                    return new VirdiUserAdaptation(transferModelData.Items, _virdiServer.GetOnlineDevices(), _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient, _faceTemplateTypes, _fingerTemplateTypes, _biometricTemplateManager, _ucsApi, _terminalUserData);
                 #endregion
 
                 #endregion

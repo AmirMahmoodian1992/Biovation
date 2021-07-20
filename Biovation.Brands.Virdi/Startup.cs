@@ -28,6 +28,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using Biovation.Service.Api.v2;
+using UCBioBSPCOMLib;
 using UCSAPICOMLib;
 using UNIONCOMM.SDK.UCBioBSP;
 using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
@@ -287,9 +288,38 @@ namespace Biovation.Brands.Virdi
             UcBioApi = new UCBioAPI();
             UcBioApiExport = new UCBioAPI.Export(UcBioApi);
 
+            var serverUserData = UcsApi.ServerUserData as IServerUserData;
+            var terminalUserData = UcsApi.TerminalUserData as ITerminalUserData;
+            var accessLogData = UcsApi.AccessLogData as IAccessLogData;
+            var serverAuthentication = UcsApi.ServerAuthentication as IServerAuthentication;
+            var terminalOption = UcsApi.TerminalOption as ITerminalOption;
+            var smartCardLayout = UcsApi.SmartCardLayout as ISmartCardLayout;
+            var accessControlData = UcsApi.AccessControlData as IAccessControlData;
+
+            // create UCBioBSP Instance
+            var ucBioBsp = new UCBioBSPClass();
+            var fpData = ucBioBsp.FPData as IFPData;
+            var device = ucBioBsp.Device as IDevice;
+            var extraction = ucBioBsp.Extraction as IExtraction;
+            //_fastSearch = _ucBioBsp.FastSearch as IFastSearch;
+            var matching = ucBioBsp.Matching as IMatching;
+            //_smartCard = _ucBioBsp.SmartCard as ISmartCard;
+
             services.AddSingleton(UcsApi);
             services.AddSingleton(UcBioApi);
             services.AddSingleton(UcBioApiExport);
+            services.AddSingleton(serverUserData);
+            services.AddSingleton(terminalUserData);
+            services.AddSingleton(accessLogData);
+            services.AddSingleton(serverAuthentication);
+            services.AddSingleton(terminalOption);
+            services.AddSingleton(smartCardLayout);
+            services.AddSingleton(accessControlData);
+            services.AddSingleton(ucBioBsp);
+            services.AddSingleton(fpData);
+            services.AddSingleton(device);
+            services.AddSingleton(extraction);
+            services.AddSingleton(matching);
             services.AddSingleton(OnlineDevices);
 
             var kernel = new StandardKernel();
