@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -26,10 +27,12 @@ namespace Biovation.Brands.Virdi.Command
         private DateTime ToDate { get; }
 
         private readonly VirdiServer _virdiServer;
+        private readonly IAccessLogData _accessLogData;
 
-        public VirdiRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService)
+        public VirdiRetrieveAllLogsOfDeviceInPeriod(IReadOnlyList<object> items, VirdiServer virdiServer, TaskService taskService, DeviceService deviceService, IAccessLogData accessLogData)
         {
             _virdiServer = virdiServer;
+            _accessLogData = accessLogData;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Device = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId);
@@ -38,8 +41,8 @@ namespace Biovation.Brands.Virdi.Command
             var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
 
-            FromDate = Convert.ToDateTime(data["fromDate"]);
-            ToDate = Convert.ToDateTime(data["toDate"]);
+            FromDate = Convert.ToDateTime(data?["fromDate"] ?? "1970/01/01");
+            ToDate = Convert.ToDateTime(data?["toDate"] ?? "2050/01/01");
             OnlineDevices = virdiServer.GetOnlineDevices();
         }
 
@@ -71,13 +74,13 @@ namespace Biovation.Brands.Virdi.Command
                 if (FromDate == default || ToDate == default || FromDate == new DateTime(1970, 1, 1))
                 {
                     _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.All;
-                    _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.All);
+                    _accessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.All);
                 }
                 else
                 {
                     _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.Period;
-                    _virdiServer.AccessLogData.SetPeriod(FromDate.Year, FromDate.Month, FromDate.Day, ToDate.Year, ToDate.Month, ToDate.Day);
-                    _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.Period);
+                    _accessLogData.SetPeriod(FromDate.Year, FromDate.Month, FromDate.Day, ToDate.Year, ToDate.Month, ToDate.Day);
+                    _accessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)(Device?.Code ?? 0), (int)VirdiDeviceLogType.Period);
                 }
                 //_callbacks.AccessLogData.GetAccessLogFromTerminal(0, (int)Code, (int)VirdiDeviceLogType.Period);
                 //System.Threading.Thread.Sleep(1000);

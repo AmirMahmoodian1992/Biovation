@@ -42,7 +42,7 @@ namespace Biovation.Brands.Virdi.Command
         private TaskItem TaskItem { get; }
 
         public VirdiUserAdaptation(IReadOnlyList<object> items, Dictionary<uint, DeviceBasicInfo> devices, DeviceService deviceService, TaskTypes taskTypes, TaskService taskService,
-            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, UserService userService, RestClient restClient, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, UCSAPI ucsApi)
+            TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, TaskPriorities taskPriorities, UserService userService, RestClient restClient, FaceTemplateTypes faceTemplateTypes, FingerTemplateTypes fingerTemplateTypes, BiometricTemplateManager biometricTemplateManager, UCSAPI ucsApi, ITerminalUserData terminalUserData)
         {
             var taskItem = (TaskItem)items[0];
             TaskItem = taskItem;
@@ -54,6 +54,7 @@ namespace Biovation.Brands.Virdi.Command
             _fingerTemplateTypes = fingerTemplateTypes;
             _biometricTemplateManager = biometricTemplateManager;
             _ucsApi = ucsApi;
+            _terminalUserData = terminalUserData;
             _taskService = taskService;
             _userService = userService;
             _taskStatuses = taskStatuses;
@@ -61,13 +62,13 @@ namespace Biovation.Brands.Virdi.Command
             _deviceService = deviceService;
             _taskPriorities = taskPriorities;
 
-            _terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;
+            //_terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;
         }
 
         public object Execute()
         {
             if (TaskItem is null)
-                return new ResultViewModel { Id = TaskItem.Id, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item {TaskItem.Id}.{Environment.NewLine}", Validate = 0 };
+                return new ResultViewModel { Id = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Error in processing task item.{Environment.NewLine}", Validate = 0 };
 
             var deviceId = TaskItem.DeviceId;
             DeviceInfo = _deviceService.GetDevice(deviceId);

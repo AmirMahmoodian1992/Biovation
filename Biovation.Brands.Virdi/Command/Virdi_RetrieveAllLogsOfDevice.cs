@@ -7,6 +7,7 @@ using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -33,10 +34,12 @@ namespace Biovation.Brands.Virdi.Command
         }
         */
         private readonly VirdiServer _virdiServer;
+        private readonly IAccessLogData _accessLogData;
 
-        public VirdiRetrieveAllLogsOfDevice(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
+        public VirdiRetrieveAllLogsOfDevice(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService, IAccessLogData accessLogData)
         {
             _virdiServer = virdiServer;
+            _accessLogData = accessLogData;
             if (items.Count == 1)
             { DeviceId = Convert.ToInt32(items[0]); }
             else
@@ -66,7 +69,7 @@ namespace Biovation.Brands.Virdi.Command
 
 
                 _virdiServer.GetAccessLogType = (int)VirdiDeviceLogType.All;
-                _virdiServer.AccessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.All);
+                _accessLogData.GetAccessLogCountFromTerminal(TaskItemId, (int)Code, (int)VirdiDeviceLogType.All);
                 //System.Threading.Thread.Sleep(1000);
                 Logger.Log(GetDescription());
 

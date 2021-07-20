@@ -19,7 +19,6 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using UCBioBSPCOMLib;
@@ -34,7 +33,6 @@ namespace Biovation.Brands.Virdi
         private readonly UserService _commonUserService;
         private readonly DeviceService _commonDeviceService;
         private readonly UserCardService _commonUserCardService;
-        private readonly AccessGroupService _commonAccessGroupService;
         private readonly FingerTemplateService _fingerTemplateService;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly VirdiLogService _virdiLogService;
@@ -46,7 +44,6 @@ namespace Biovation.Brands.Virdi
         private readonly BlackListService _blackListService;
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly FaceTemplateService _faceTemplateService;
-        private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly RestClient _monitoringRestClient;//= new RestClient(_configurationManager.LogMonitoringApiUrl);
         public static bool ModifyUserData = false;
         public static bool GetUserTaskFinished = true;
@@ -75,21 +72,23 @@ namespace Biovation.Brands.Virdi
         //public static readonly Semaphore SetLogPeriodSemaphore = new Semaphore(1, 1);
 
         // UCSAPI
-        internal readonly UCSAPICOMLib.UCSAPI UcsApi;
-        internal IServerUserData ServerUserData;
-        internal readonly ITerminalUserData TerminalUserData;
-        internal readonly IServerAuthentication ServerAuthentication;
-        internal readonly IAccessLogData AccessLogData;
-        internal readonly ITerminalOption TerminalOption;
-        internal IAccessControlData AccessControlData;
-        internal ISmartCardLayout SmartCardLayout;
+        private readonly UCSAPICOMLib.UCSAPI _ucsApi;
+        //private readonly IServerUserData _serverUserData;
+        //private readonly ITerminalUserData _terminalUserData;
+        private readonly IServerAuthentication _serverAuthentication;
+        private readonly IAccessLogData _accessLogData;
+        private readonly ITerminalOption _terminalOption;
+
+        //private readonly IAccessControlData _accessControlData;
+        //internal readonly ISmartCardLayout SmartCardLayout;
 
         // UCBioBSP
         private readonly UCBioBSPClass _ucBioBsp;
-        internal readonly IFPData FpData;
+
+        private readonly IFPData _fpData;
         //internal ITemplateInfo TemplateInfo;
-        internal IDevice Device;
-        internal IExtraction Extraction;
+        //private readonly IDevice _device;
+        //private readonly IExtraction _extraction;
         //private readonly IFastSearch _fastSearch;
         private readonly IMatching _matching;
         //private readonly ITemplateInfo _templateInfo;
@@ -205,17 +204,15 @@ namespace Biovation.Brands.Virdi
         }
 
         public VirdiServer(UCSAPICOMLib.UCSAPI ucsapi, UserService commonUserService, DeviceService commonDeviceService
-            , UserCardService commonUserCardService, AccessGroupService commonAccessGroupService, FingerTemplateService fingerTemplateService
+            , UserCardService commonUserCardService, FingerTemplateService fingerTemplateService
             , LogService logService, BlackListService blackListService, FaceTemplateService faceTemplateService, TaskService taskService
             , AccessGroupService accessGroupService, BiovationConfigurationManager biovationConfiguration, VirdiLogService virdiLogService
             , FingerTemplateTypes fingerTemplateTypes, VirdiCodeMappings virdiCodeMappings, DeviceBrands deviceBrands
-            , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager
-            , ILogger<VirdiServer> logger, TaskStatuses taskStatuses, Dictionary<uint, DeviceBasicInfo> onlineDevices)
+            , LogEvents logEvents, FaceTemplateTypes faceTemplateTypes, ILogger<VirdiServer> logger, TaskStatuses taskStatuses, Dictionary<uint, DeviceBasicInfo> onlineDevices, IServerAuthentication serverAuthentication, IAccessLogData accessLogData, ITerminalOption terminalOption, UCBioBSPClass ucBioBsp, IFPData fpData, IMatching matching)
         {
             _commonUserService = commonUserService;
             _commonDeviceService = commonDeviceService;
             _commonUserCardService = commonUserCardService;
-            _commonAccessGroupService = commonAccessGroupService;
             _fingerTemplateService = fingerTemplateService;
             _logService = logService;
             _blackListService = blackListService;
@@ -228,36 +225,40 @@ namespace Biovation.Brands.Virdi
             _fingerTemplateTypes = fingerTemplateTypes;
             _virdiCodeMappings = virdiCodeMappings;
             _onlineDevices = onlineDevices;
+            _serverAuthentication = serverAuthentication;
+            _accessLogData = accessLogData;
+            _terminalOption = terminalOption;
+            _ucBioBsp = ucBioBsp;
+            _fpData = fpData;
+            _matching = matching;
 
             _deviceBrands = deviceBrands;
             _logEvents = logEvents;
             _faceTemplateTypes = faceTemplateTypes;
-            _biometricTemplateManager = biometricTemplateManager;
             _monitoringRestClient = (RestClient)new RestClient(biovationConfiguration.LogMonitoringApiUrl).UseSerializer(() => new RestRequestJsonSerializer());
 
             _logger = logger;
-            // create UCSAPI Instance
-            UcsApi = ucsapi;
+            _ucsApi = ucsapi;
 
             //_ucBioApi = new UCBioAPI();
             //_ucBioApiExport = new UCBioAPI.Export(_ucBioApi);
 
-            ServerUserData = UcsApi.ServerUserData as IServerUserData;
-            TerminalUserData = UcsApi.TerminalUserData as ITerminalUserData;
-            AccessLogData = UcsApi.AccessLogData as IAccessLogData;
-            ServerAuthentication = UcsApi.ServerAuthentication as IServerAuthentication;
-            TerminalOption = UcsApi.TerminalOption as ITerminalOption;
-            SmartCardLayout = UcsApi.SmartCardLayout as ISmartCardLayout;
-            AccessControlData = UcsApi.AccessControlData as IAccessControlData;
+            //ServerUserData = UcsApi.ServerUserData as IServerUserData;
+            //TerminalUserData = UcsApi.TerminalUserData as ITerminalUserData;
+            //AccessLogData = UcsApi.AccessLogData as IAccessLogData;
+            //ServerAuthentication = UcsApi.ServerAuthentication as IServerAuthentication;
+            //TerminalOption = UcsApi.TerminalOption as ITerminalOption;
+            //SmartCardLayout = UcsApi.SmartCardLayout as ISmartCardLayout;
+            //AccessControlData = UcsApi.AccessControlData as IAccessControlData;
 
-            // create UCBioBSP Instance
-            _ucBioBsp = new UCBioBSPClass();
-            FpData = _ucBioBsp.FPData as IFPData;
-            Device = _ucBioBsp.Device as IDevice;
-            Extraction = _ucBioBsp.Extraction as IExtraction;
-            //_fastSearch = _ucBioBsp.FastSearch as IFastSearch;
-            _matching = _ucBioBsp.Matching as IMatching;
-            //_smartCard = _ucBioBsp.SmartCard as ISmartCard;
+            //// create UCBioBSP Instance
+            //_ucBioBsp = new UCBioBSPClass();
+            //FpData = _ucBioBsp.FPData as IFPData;
+            //Device = _ucBioBsp.Device as IDevice;
+            //Extraction = _ucBioBsp.Extraction as IExtraction;
+            ////_fastSearch = _ucBioBsp.FastSearch as IFastSearch;
+            //_matching = _ucBioBsp.Matching as IMatching;
+            ////_smartCard = _ucBioBsp.SmartCard as ISmartCard;
 
             LoadFingerTemplates().Wait();
 
@@ -269,40 +270,40 @@ namespace Biovation.Brands.Virdi
             //}
 
             // create event handle
-            UcsApi.EventTerminalConnected += TerminalConnectedCallback;
-            UcsApi.EventTerminalDisconnected += TerminalDisconnectedCallback;
-            UcsApi.EventGetTerminalTime += GetTerminalTimeCallback;
+            _ucsApi.EventTerminalConnected += TerminalConnectedCallback;
+            _ucsApi.EventTerminalDisconnected += TerminalDisconnectedCallback;
+            _ucsApi.EventGetTerminalTime += GetTerminalTimeCallback;
             //ucsAPI.EventAddUser += new AddUserEventHandler(ucsAPI_EventAddUser);
-            UcsApi.EventAntipassback += GetAntiPassBack;
-            UcsApi.EventAuthTypeWithUniqueID += AuthTypeWithUniqueId;
-            UcsApi.EventAuthTypeWithUserID += AuthTypeWithUserId;
+            _ucsApi.EventAntipassback += GetAntiPassBack;
+            _ucsApi.EventAuthTypeWithUniqueID += AuthTypeWithUniqueId;
+            _ucsApi.EventAuthTypeWithUserID += AuthTypeWithUserId;
             //ucsAPI.EventControlPeripheralDevice += new ControlPeripheralDeviceEventHandler(ucsAPI_EventControlPeripheralDevice);
             //ucsAPI.EventDeleteAllUser += new DeleteAllUserEventHandler(ucsAPI_EventDeleteAllUser);
             //ucsAPI.EventDeleteUser += new DeleteUserEventHandler(ucsAPI_EventDeleteUser);
             //ucsAPI.EventFingerImageData += new FingerImageDataEventHandler(ucsAPI_EventFingerImageData);
-            UcsApi.EventFirmwareUpgraded += FirmwareUpgraded;
-            UcsApi.EventFirmwareUpgrading += FirmwareUpgrading;
-            UcsApi.EventFirmwareVersion += FirmwareVersionCallback;
-            UcsApi.EventGetAccessLog += GetAccessLogCallback;
-            UcsApi.EventGetAccessLogCount += GetAccessLogCount;
+            _ucsApi.EventFirmwareUpgraded += FirmwareUpgraded;
+            _ucsApi.EventFirmwareUpgrading += FirmwareUpgrading;
+            _ucsApi.EventFirmwareVersion += FirmwareVersionCallback;
+            _ucsApi.EventGetAccessLog += GetAccessLogCallback;
+            _ucsApi.EventGetAccessLogCount += GetAccessLogCount;
             //ucsAPI.EventGetTAFunction += new GetTAFunctionEventHandler(ucsAPI_EventGetTAFunction);
             //ucsAPI.EventGetUserCount += new GetUserCountEventHandler(ucsAPI_EventGetUserCount);
-            UcsApi.EventGetUserData += GetUserDataCallback;
+            //UcsApi.EventGetUserData += GetUserDataCallback;
             //UcsApi.EventGetUserInfoList += GetUserListCallback;
             //ucsAPI.EventOpenDoor += new OpenDoorEventHandler(ucsAPI_EventOpenDoor);
-            UcsApi.EventPictureLog += PictureLog;
-            UcsApi.EventRealTimeAccessLog += RealTimeAccessLogCallback;
+            _ucsApi.EventPictureLog += PictureLog;
+            _ucsApi.EventRealTimeAccessLog += RealTimeAccessLogCallback;
             //ucsAPI.EventSetAccessControlData += new SetAccessControlDataEventHandler(ucsAPI_EventSetAccessControlData);
             //ucsAPI.EventSetTAFunction += new SetTAFunctionEventHandler(ucsAPI_EventSetTAFunction);
             //ucsAPI.EventSetTATime += new SetTATimeEventHandler(ucsAPI_EventSetTATime);
-            UcsApi.EventTerminalStatus += TerminalStatus;
+            _ucsApi.EventTerminalStatus += TerminalStatus;
 
-            UcsApi.EventVerifyCard += VerifyCardCallback;
-            UcsApi.EventVerifyFinger1to1 += VerifyFinger1To1Callback;
-            UcsApi.EventVerifyFinger1toN += VerifyFinger1ToNCallback;
-            UcsApi.EventVerifyPassword += VerifyPassword;
-            UcsApi.EventVerifyFace1to1 += VerifyFace1To1;
-            UcsApi.EventVerifyFace1toN += VerifyFace1ToN;
+            _ucsApi.EventVerifyCard += VerifyCardCallback;
+            _ucsApi.EventVerifyFinger1to1 += VerifyFinger1To1Callback;
+            _ucsApi.EventVerifyFinger1toN += VerifyFinger1ToNCallback;
+            _ucsApi.EventVerifyPassword += VerifyPassword;
+            _ucsApi.EventVerifyFace1to1 += VerifyFace1To1;
+            _ucsApi.EventVerifyFace1toN += VerifyFace1ToN;
 
             //ucsAPI.EventPrivateMessage += new PrivateMessageEventHandler(ucsAPI_EventPrivateMessage);
             //ucsAPI.EventPublicMessage += new PublicMessageEventHandler(ucsAPI_EventPublicMessage);
@@ -312,10 +313,10 @@ namespace Biovation.Brands.Virdi
             //ucsAPI.EventSetEmergency += new SetEmergencyEventHandler(ucsAPI_EventSetEmergency);
             //
             //ucsAPI.EventTerminalControl += new TerminalControlEventHandler(ucsAPI_EventTerminalControl);
-            UcsApi.EventRegistFace += RegisterFace;
+            _ucsApi.EventRegistFace += RegisterFace;
             //ucsAPI.EventACUStatus += new ACUStatusEventHandler(ucsAPI_EventACUStatus);
             //ucsAPI.EventGetOptionFromACU += new GetOptionFromACUEventHandler(ucsAPI_EventGetOptionFromACU);
-            UcsApi.EventGetTerminalOption += GetTerminalOptionCallback;
+            _ucsApi.EventGetTerminalOption += GetTerminalOptionCallback;
             //ucsAPI.EventSetOptionToACU += new SetOptionToACUEventHandler(ucsAPI_EventSetOptionToACU);
             //ucsAPI.EventGetLockScheduleFromACU += new GetLockScheduleFromACUEventHandler(ucsAPI_EventGetLockScheduleFromACU);
             //ucsAPI.EventSetLockScheduleToACU += new SetLockScheduleToACUEventHandler(ucsAPI_EventSetLockScheduleToACU);
@@ -356,12 +357,12 @@ namespace Biovation.Brands.Virdi
             var deviceConnectionStateConnectorNode = new ConnectorNode<DataChangeMessage<ConnectionStatus>>(_deviceConnectionStateInternalSource, deviceConnectionStateKafkaTarget);
             deviceConnectionStateConnectorNode.StartProcess();
 
-            UcsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
+            _ucsApi.ServerStart(150, BiovationConfiguration.VirdiDevicesConnectionPort);
 
-            Logger.Log(UcsApi.ErrorCode != 0
-                    ? $"Error on starting service.\n   +ErrorCode:{UcsApi.ErrorCode} {UcsApi.EventError}"
+            Logger.Log(_ucsApi.ErrorCode != 0
+                    ? $"Error on starting service.\n   +ErrorCode:{_ucsApi.ErrorCode} {_ucsApi.EventError}"
                     : $"Service started on port: {BiovationConfiguration.VirdiDevicesConnectionPort}"
-                , logType: UcsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
+                , logType: _ucsApi.ErrorCode != 0 ? LogType.Error : LogType.Information);
 
 
             try
@@ -382,7 +383,7 @@ namespace Biovation.Brands.Virdi
 
         public void StopServer()
         {
-            UcsApi.ServerStop();
+            _ucsApi.ServerStop();
         }
 
         public Dictionary<uint, DeviceBasicInfo> GetOnlineDevices()
@@ -397,390 +398,388 @@ namespace Biovation.Brands.Virdi
             StartServer();
         }
 
-        
-        private void GetUserDataCallback(int clientId, int terminalId)
-        {
-            //if (clientId != TaskItemId)
-            //    return;
 
-            try
-            {
-                lock (UcsApi)
-                {
-                    lock (TerminalUserData)
-                    {
+        //    public void GetUserDataCallback(int clientId, int terminalId)
+        //    {
+        //        //if (clientId != TaskItemId)
+        //        //    return;
 
-
-                        var isoEncoding = Encoding.GetEncoding(28591);
-                        var windowsEncoding = Encoding.GetEncoding(1256);
+        //        try
+        //        {
+        //            lock (UcsApi)
+        //            {
+        //                lock (TerminalUserData)
+        //                {
+        //                    var isoEncoding = Encoding.GetEncoding(28591);
+        //                    var windowsEncoding = Encoding.GetEncoding(1256);
 
 
-                        var deviceUserName = TerminalUserData.UserName;
-                        var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
-                        var userName = replacements.Aggregate(deviceUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+        //                    var deviceUserName = TerminalUserData.UserName;
+        //                    var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+        //                    var userName = replacements.Aggregate(deviceUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
 
-                        userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+        //                    userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
 
-                        var indexOfSpace = userName?.IndexOf(' ') ?? 0;
-                        var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace).Trim() : null;
-                        var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim() : userName;
+        //                    var indexOfSpace = userName?.IndexOf(' ') ?? 0;
+        //                    var firstName = indexOfSpace > 0 ? userName?.Substring(0, indexOfSpace).Trim() : null;
+        //                    var surName = indexOfSpace > 0 ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim() : userName;
 
-                        byte[] picture = null;
+        //                    byte[] picture = null;
 
-                        try
-                        {
-                            if (TerminalUserData.PictureDataLength > 0)
-                                picture = TerminalUserData.PictureData as byte[];
-                        }
-                        catch (Exception exception)
-                        {
-                            Logger.Log(exception);
-                        }
+        //                    try
+        //                    {
+        //                        if (TerminalUserData.PictureDataLength > 0)
+        //                            picture = TerminalUserData.PictureData as byte[];
+        //                    }
+        //                    catch (Exception exception)
+        //                    {
+        //                        Logger.Log(exception);
+        //                    }
 
-                        var user = new User
-                        {
-                            Code = TerminalUserData.UserID,
-                            AdminLevel = TerminalUserData.IsAdmin,
-                            StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
-                                   ? DateTime.Parse("1970/01/01")
-                                   : DateTime.Parse(TerminalUserData.StartAccessDate),
-                            EndDate = TerminalUserData.EndAccessDate == "0000-00-00"
-                                   ? DateTime.Parse("2050/01/01")
-                                   : DateTime.Parse(TerminalUserData.EndAccessDate),
-                            AuthMode = TerminalUserData.AuthType,
-                            Password = TerminalUserData.Password,
-                            UserName = userName,
-                            FirstName = firstName,
-                            SurName = surName,
-                            IsActive = true,
-                            ImageBytes = picture
-                        };
-                        //user.Id = _userService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
-                        //   ? 0
-                        //   : _userService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
+        //                    var user = new User
+        //                    {
+        //                        Code = TerminalUserData.UserID,
+        //                        AdminLevel = TerminalUserData.IsAdmin,
+        //                        StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
+        //                               ? DateTime.Parse("1970/01/01")
+        //                               : DateTime.Parse(TerminalUserData.StartAccessDate),
+        //                        EndDate = TerminalUserData.EndAccessDate == "0000-00-00"
+        //                               ? DateTime.Parse("2050/01/01")
+        //                               : DateTime.Parse(TerminalUserData.EndAccessDate),
+        //                        AuthMode = TerminalUserData.AuthType,
+        //                        Password = TerminalUserData.Password,
+        //                        UserName = userName,
+        //                        FirstName = firstName,
+        //                        SurName = surName,
+        //                        IsActive = true,
+        //                        ImageBytes = picture
+        //                    };
+        //                    //user.Id = _userService.GetUsers(code: TerminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
+        //                    //   ? 0
+        //                    //   : _userService.GetUsers(code: TerminalUserData.UserID, withPicture: false).FirstOrDefault().Id;
 
-                        //if (RetrieveUsers.All(retrievedUser => retrievedUser.Id != user.Id))
-                        //{
-                        //    RetrieveUsers.Add(user);
-                        //}
+        //                    //if (RetrieveUsers.All(retrievedUser => retrievedUser.Id != user.Id))
+        //                    //{
+        //                    //    RetrieveUsers.Add(user);
+        //                    //}
 
-                        //if (ModifyUserData)
-                        //{
-                        var existUser = _commonUserService.GetUsers(code: TerminalUserData.UserID).FirstOrDefault();
-                        if (existUser != null)
-                        {
-                            user = new User
-                            {
-                                Id = existUser.Id,
-                                Code = existUser.Code,
-                                AdminLevel = TerminalUserData.IsAdmin,
-                                StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
-                                    ? existUser.StartDate
-                                    : DateTime.Parse(TerminalUserData.StartAccessDate),
-                                EndDate = TerminalUserData.EndAccessDate == "0000-00-00"
-                                    ? existUser.EndDate
-                                    : DateTime.Parse(TerminalUserData.EndAccessDate),
-                                AuthMode = TerminalUserData.AuthType,
-                                Password = TerminalUserData.Password,
-                                UserName = string.IsNullOrEmpty(userName) ? existUser.UserName : userName,
-                                FirstName = firstName ?? existUser.FirstName,
-                                SurName = string.Equals(surName, userName) ? existUser.SurName ?? surName : surName,
-                                IsActive = existUser.IsActive,
-                                ImageBytes = picture
-                            };
-                        }
+        //                    //if (ModifyUserData)
+        //                    //{
+        //                    var existUser = _commonUserService.GetUsers(code: TerminalUserData.UserID).FirstOrDefault();
+        //                    if (existUser != null)
+        //                    {
+        //                        user = new User
+        //                        {
+        //                            Id = existUser.Id,
+        //                            Code = existUser.Code,
+        //                            AdminLevel = TerminalUserData.IsAdmin,
+        //                            StartDate = TerminalUserData.StartAccessDate == "0000-00-00"
+        //                                ? existUser.StartDate
+        //                                : DateTime.Parse(TerminalUserData.StartAccessDate),
+        //                            EndDate = TerminalUserData.EndAccessDate == "0000-00-00"
+        //                                ? existUser.EndDate
+        //                                : DateTime.Parse(TerminalUserData.EndAccessDate),
+        //                            AuthMode = TerminalUserData.AuthType,
+        //                            Password = TerminalUserData.Password,
+        //                            UserName = string.IsNullOrEmpty(userName) ? existUser.UserName : userName,
+        //                            FirstName = firstName ?? existUser.FirstName,
+        //                            SurName = string.Equals(surName, userName) ? existUser.SurName ?? surName : surName,
+        //                            IsActive = existUser.IsActive,
+        //                            ImageBytes = picture
+        //                        };
+        //                    }
 
-                        var userInsertionResult = _commonUserService.ModifyUser(user);
+        //                    var userInsertionResult = _commonUserService.ModifyUser(user);
 
-                        Logger.Log("<--User is Modified");
-                        user.Id = userInsertionResult.Id;
+        //                    Logger.Log("<--User is Modified");
+        //                    user.Id = userInsertionResult.Id;
 
-                        //Card
-                        try
-                        {
-                            Logger.Log($"   +TotalCardCount:{TerminalUserData.CardNumber}");
-                            if (TerminalUserData.CardNumber > 0)
-                                for (var i = 0; i < TerminalUserData.CardNumber; i++)
-                                {
-                                    var card = new UserCard
-                                    {
-                                        CardNum = TerminalUserData.RFID[i],
-                                        IsActive = true,
-                                        UserId = user.Id
-                                    };
-                                    _commonUserCardService.ModifyUserCard(card);
-                                }
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Log(e);
-                        }
+        //                    //Card
+        //                    try
+        //                    {
+        //                        Logger.Log($"   +TotalCardCount:{TerminalUserData.CardNumber}");
+        //                        if (TerminalUserData.CardNumber > 0)
+        //                            for (var i = 0; i < TerminalUserData.CardNumber; i++)
+        //                            {
+        //                                var card = new UserCard
+        //                                {
+        //                                    CardNum = TerminalUserData.RFID[i],
+        //                                    IsActive = true,
+        //                                    UserId = user.Id
+        //                                };
+        //                                _commonUserCardService.ModifyUserCard(card);
+        //                            }
+        //                    }
+        //                    catch (Exception e)
+        //                    {
+        //                        Logger.Log(e);
+        //                    }
 
-                        //Finger
-                        try
-                        {
-                            var nFpDataCount = TerminalUserData.TotalFingerCount;
-                            Logger.Log($"   +TotalFingerCount:{nFpDataCount}");
+        //                    //Finger
+        //                    try
+        //                    {
+        //                        var nFpDataCount = TerminalUserData.TotalFingerCount;
+        //                        Logger.Log($"   +TotalFingerCount:{nFpDataCount}");
 
-                            if (user.FingerTemplates is null)
-                                user.FingerTemplates = new List<FingerTemplate>();
+        //                        if (user.FingerTemplates is null)
+        //                            user.FingerTemplates = new List<FingerTemplate>();
 
-                            for (var i = 0; i < nFpDataCount; i++)
-                            {
-                                var sameTemplateExists = false;
-                                var fingerIndex = TerminalUserData.FingerID[i];
-                                if (existUser != null)
-                                {
-                                    // if (existUser.FingerTemplates.Exists(fp =>
-                                    //fp.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(fingerIndex).Code && fp.FingerTemplateType == FingerTemplateTypes.V400))
-                                    lock (FpData)
-                                    {
-                                        var firstSampleCheckSum = 0;
-                                        var secondSampleCheckSum = 0;
+        //                        for (var i = 0; i < nFpDataCount; i++)
+        //                        {
+        //                            var sameTemplateExists = false;
+        //                            var fingerIndex = TerminalUserData.FingerID[i];
+        //                            if (existUser != null)
+        //                            {
+        //                                // if (existUser.FingerTemplates.Exists(fp =>
+        //                                //fp.FingerIndex.Code == BiometricTemplateManager.GetFingerIndex(fingerIndex).Code && fp.FingerTemplateType == FingerTemplateTypes.V400))
+        //                                lock (FpData)
+        //                                {
+        //                                    var firstSampleCheckSum = 0;
+        //                                    var secondSampleCheckSum = 0;
 
-                                        var firstTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 0] as byte[];
-                                        byte[] secondTemplateSample = null;
-                                        try
-                                        {
-                                            secondTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 1] as byte[];
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            Logger.Log(exception);
-                                        }
+        //                                    var firstTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 0] as byte[];
+        //                                    byte[] secondTemplateSample = null;
+        //                                    try
+        //                                    {
+        //                                        secondTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 1] as byte[];
+        //                                    }
+        //                                    catch (Exception exception)
+        //                                    {
+        //                                        Logger.Log(exception);
+        //                                    }
 
-                                        if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
-                                        if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
+        //                                    if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
+        //                                    if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
 
-                                        if (FpData == null) continue;
-                                        FpData.ClearFPData();
-                                        FpData.Import(1, TerminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
+        //                                    if (FpData == null) continue;
+        //                                    FpData.ClearFPData();
+        //                                    FpData.Import(1, TerminalUserData.CurrentIndex, 2, 400, 400, firstTemplateSample, secondTemplateSample);
 
-                                        var deviceTemplate = FpData.TextFIR;
-                                        var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id)).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
+        //                                    var deviceTemplate = FpData.TextFIR;
+        //                                    var fingerTemplates = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id)).Where(ft => ft.FingerTemplateType.Code == FingerTemplateTypes.V400Code).ToList();
 
-                                        if (fingerTemplates.Exists(ft => ft.CheckSum == firstSampleCheckSum) || fingerTemplates.Exists(ft => ft.CheckSum == secondSampleCheckSum))
-                                            continue;
+        //                                    if (fingerTemplates.Exists(ft => ft.CheckSum == firstSampleCheckSum) || fingerTemplates.Exists(ft => ft.CheckSum == secondSampleCheckSum))
+        //                                        continue;
 
-                                        for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
-                                        {
-                                            if (FpData == null) continue;
-                                            FpData.ClearFPData();
-                                            FpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
-                                                fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
-                                            var firTemplate = FpData.TextFIR;
-                                            lock (_matching)
-                                            {
-                                                _matching.VerifyMatch(deviceTemplate, firTemplate);
-                                                if (_matching.MatchingResult == 0) continue;
-                                            }
+        //                                    for (var j = 0; j < fingerTemplates.Count - 1; j += 2)
+        //                                    {
+        //                                        if (FpData == null) continue;
+        //                                        FpData.ClearFPData();
+        //                                        FpData.Import(1, fingerTemplates[j].FingerIndex.OrderIndex, 2, 400, 400,
+        //                                            fingerTemplates[j].Template, fingerTemplates[j + 1].Template);
+        //                                        var firTemplate = FpData.TextFIR;
+        //                                        lock (_matching)
+        //                                        {
+        //                                            _matching.VerifyMatch(deviceTemplate, firTemplate);
+        //                                            if (_matching.MatchingResult == 0) continue;
+        //                                        }
 
-                                            sameTemplateExists = true;
-                                            break;
-                                        }
+        //                                        sameTemplateExists = true;
+        //                                        break;
+        //                                    }
 
-                                        if (sameTemplateExists) continue;
+        //                                    if (sameTemplateExists) continue;
 
-                                        user.FingerTemplates.Add(new FingerTemplate
-                                        {
-                                            FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                                            Index = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
-                                            TemplateIndex = 0,
-                                            Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
-                                            Template = firstTemplateSample,
-                                            CheckSum = firstSampleCheckSum,
-                                            UserId = user.Id,
-                                            FingerTemplateType = _fingerTemplateTypes.V400
-                                        });
+        //                                    user.FingerTemplates.Add(new FingerTemplate
+        //                                    {
+        //                                        FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+        //                                        Index = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+        //                                        TemplateIndex = 0,
+        //                                        Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
+        //                                        Template = firstTemplateSample,
+        //                                        CheckSum = firstSampleCheckSum,
+        //                                        UserId = user.Id,
+        //                                        FingerTemplateType = _fingerTemplateTypes.V400
+        //                                    });
 
-                                        if (secondTemplateSample != null)
-                                        {
-                                            user.FingerTemplates.Add(new FingerTemplate
-                                            {
-                                                FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                                                Index = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
-                                                TemplateIndex = 1,
-                                                Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
-                                                Template = secondTemplateSample,
-                                                CheckSum = secondSampleCheckSum,
-                                                UserId = user.Id,
-                                                FingerTemplateType = _fingerTemplateTypes.V400
-                                            });
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    var firstSampleCheckSum = 0;
-                                    var secondSampleCheckSum = 0;
+        //                                    if (secondTemplateSample != null)
+        //                                    {
+        //                                        user.FingerTemplates.Add(new FingerTemplate
+        //                                        {
+        //                                            FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+        //                                            Index = _fingerTemplateService.FingerTemplates(userId: (int)(existUser.Id))?.Count(ft => ft.FingerIndex.Code == _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]).Code) ?? 0 + 1,
+        //                                            TemplateIndex = 1,
+        //                                            Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
+        //                                            Template = secondTemplateSample,
+        //                                            CheckSum = secondSampleCheckSum,
+        //                                            UserId = user.Id,
+        //                                            FingerTemplateType = _fingerTemplateTypes.V400
+        //                                        });
+        //                                    }
+        //                                }
+        //                            }
+        //                            else
+        //                            {
+        //                                var firstSampleCheckSum = 0;
+        //                                var secondSampleCheckSum = 0;
 
-                                    var firstTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 0] as byte[];
-                                    byte[] secondTemplateSample = null;
-                                    try
-                                    {
-                                        secondTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 1] as byte[];
-                                    }
-                                    catch (Exception exception)
-                                    {
-                                        Logger.Log(exception);
-                                    }
+        //                                var firstTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 0] as byte[];
+        //                                byte[] secondTemplateSample = null;
+        //                                try
+        //                                {
+        //                                    secondTemplateSample = TerminalUserData.FPSampleData[fingerIndex, 1] as byte[];
+        //                                }
+        //                                catch (Exception exception)
+        //                                {
+        //                                    Logger.Log(exception);
+        //                                }
 
-                                    if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
-                                    if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
+        //                                if (firstTemplateSample != null) firstSampleCheckSum = firstTemplateSample.Sum(x => x);
+        //                                if (secondTemplateSample != null) secondSampleCheckSum = secondTemplateSample.Sum(x => x);
 
-                                    user.FingerTemplates.Add(new FingerTemplate
-                                    {
-                                        FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                                        Index = fingerIndex,
-                                        TemplateIndex = 0,
-                                        Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
-                                        Template = firstTemplateSample,
-                                        CheckSum = firstSampleCheckSum,
-                                        UserId = user.Id,
-                                        FingerTemplateType = _fingerTemplateTypes.V400
-                                    });
+        //                                user.FingerTemplates.Add(new FingerTemplate
+        //                                {
+        //                                    FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+        //                                    Index = fingerIndex,
+        //                                    TemplateIndex = 0,
+        //                                    Size = TerminalUserData.FPSampleDataLength[fingerIndex, 0],
+        //                                    Template = firstTemplateSample,
+        //                                    CheckSum = firstSampleCheckSum,
+        //                                    UserId = user.Id,
+        //                                    FingerTemplateType = _fingerTemplateTypes.V400
+        //                                });
 
-                                    if (secondTemplateSample != null)
-                                    {
-                                        user.FingerTemplates.Add(new FingerTemplate
-                                        {
-                                            FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
-                                            Index = fingerIndex,
-                                            TemplateIndex = 1,
-                                            Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
-                                            Template = secondTemplateSample,
-                                            CheckSum = secondSampleCheckSum,
-                                            UserId = user.Id,
-                                            FingerTemplateType = _fingerTemplateTypes.V400
-                                        });
-                                    }
-                                }
-                            }
+        //                                if (secondTemplateSample != null)
+        //                                {
+        //                                    user.FingerTemplates.Add(new FingerTemplate
+        //                                    {
+        //                                        FingerIndex = _biometricTemplateManager.GetFingerIndex(TerminalUserData.FingerID[i]),
+        //                                        Index = fingerIndex,
+        //                                        TemplateIndex = 1,
+        //                                        Size = TerminalUserData.FPSampleDataLength[fingerIndex, 1],
+        //                                        Template = secondTemplateSample,
+        //                                        CheckSum = secondSampleCheckSum,
+        //                                        UserId = user.Id,
+        //                                        FingerTemplateType = _fingerTemplateTypes.V400
+        //                                    });
+        //                                }
+        //                            }
+        //                        }
 
-                            if (user.FingerTemplates.Any())
-                                foreach (var fingerTemplate in user.FingerTemplates)
-                                {
-                                    _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
-                                }
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Log(e);
-                        }
+        //                        if (user.FingerTemplates.Any())
+        //                            foreach (var fingerTemplate in user.FingerTemplates)
+        //                            {
+        //                                _fingerTemplateService.ModifyFingerTemplate(fingerTemplate);
+        //                            }
+        //                    }
+        //                    catch (Exception e)
+        //                    {
+        //                        Logger.Log(e);
+        //                    }
 
-                        //Face
-                        try
-                        {
-                            var faceCount = TerminalUserData.FaceNumber;
-                            Logger.Log($"   +TotalFaceCount:{faceCount}");
+        //                    //Face
+        //                    try
+        //                    {
+        //                        var faceCount = TerminalUserData.FaceNumber;
+        //                        Logger.Log($"   +TotalFaceCount:{faceCount}");
 
-                            if (faceCount > 0)
-                            {
-                                if (user.FaceTemplates is null)
-                                    user.FaceTemplates = new List<FaceTemplate>();
+        //                        if (faceCount > 0)
+        //                        {
+        //                            if (user.FaceTemplates is null)
+        //                                user.FaceTemplates = new List<FaceTemplate>();
 
-                                var userFaces = _faceTemplateService.FaceTemplates(userId: TerminalUserData.UserID);
-                                //existUser.FaceTemplates = new List<FaceTemplate>();
+        //                            var userFaces = _faceTemplateService.FaceTemplates(userId: TerminalUserData.UserID);
+        //                            //existUser.FaceTemplates = new List<FaceTemplate>();
 
-                                if (existUser != null)
-                                    existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
+        //                            if (existUser != null)
+        //                                existUser.FaceTemplates = (userFaces.Any() ? userFaces : new List<FaceTemplate>());
 
-                                var faceData = (byte[])TerminalUserData.FaceData;
-                                var faceTemplate = new FaceTemplate
-                                {
-                                    Index = faceCount,
-                                    FaceTemplateType = _faceTemplateTypes.VFACE,
-                                    UserId = user.Id,
-                                    Template = faceData,
-                                    CheckSum = faceData.Sum(x => x),
-                                    Size = faceData.Length
-                                };
-                                if (existUser != null)
-                                {
-                                    if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
-                                        user.FaceTemplates.Add(faceTemplate);
-                                }
-                                else
-                                    user.FaceTemplates.Add(faceTemplate);
+        //                            var faceData = (byte[])TerminalUserData.FaceData;
+        //                            var faceTemplate = new FaceTemplate
+        //                            {
+        //                                Index = faceCount,
+        //                                FaceTemplateType = _faceTemplateTypes.VFACE,
+        //                                UserId = user.Id,
+        //                                Template = faceData,
+        //                                CheckSum = faceData.Sum(x => x),
+        //                                Size = faceData.Length
+        //                            };
+        //                            if (existUser != null)
+        //                            {
+        //                                if (!existUser.FaceTemplates.Exists(fp => fp.FaceTemplateType.Code == FaceTemplateTypes.VFACECode))
+        //                                    user.FaceTemplates.Add(faceTemplate);
+        //                            }
+        //                            else
+        //                                user.FaceTemplates.Add(faceTemplate);
 
-                                if (user.FaceTemplates.Any())
-                                    foreach (var faceTemplates in user.FaceTemplates)
-                                    {
-                                        _faceTemplateService.ModifyFaceTemplate(faceTemplates);
-                                    }
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.Log(e);
-                        }
-                        //}
+        //                            if (user.FaceTemplates.Any())
+        //                                foreach (var faceTemplates in user.FaceTemplates)
+        //                                {
+        //                                    _faceTemplateService.ModifyFaceTemplate(faceTemplates);
+        //                                }
+        //                        }
+        //                    }
+        //                    catch (Exception e)
+        //                    {
+        //                        Logger.Log(e);
+        //                    }
+        //                    //}
 
-                        if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
-                        {
-                            Task.Run(() =>
-                            {
-                                try
-                                {
-                                    lock (LoadFingerTemplateLock)
-                                    {
-                                        var accessGroupsOfUser = _accessGroupService.GetAccessGroups(userId: user.Id);
-                                        if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
-                                        {
-                                            var devices =
-                                                _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
+        //                    //if (user.FingerTemplates != null && user.FingerTemplates.Count > 0)
+        //                    //{
+        //                    //    Task.Run(() =>
+        //                    //    {
+        //                    //        try
+        //                    //        {
+        //                    //            lock (LoadFingerTemplateLock)
+        //                    //            {
+        //                    //                var accessGroupsOfUser = _accessGroupService.GetAccessGroups(userId: user.Id);
+        //                    //                if (accessGroupsOfUser is null || accessGroupsOfUser.Count == 0)
+        //                    //                {
+        //                    //                    var devices =
+        //                    //                        _commonDeviceService.GetDevices(brandId: DeviceBrands.VirdiCode);
 
-                                            foreach (var device in devices)
-                                            {
-                                                AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
-                                            }
-                                        }
+        //                    //                    foreach (var device in devices)
+        //                    //                    {
+        //                    //                        AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
+        //                    //                    }
+        //                    //                }
 
-                                        else
-                                        {
-                                            foreach (var accessGroup in accessGroupsOfUser)
-                                            {
-                                                foreach (var deviceGroup in accessGroup.DeviceGroup)
-                                                {
-                                                    foreach (var device in deviceGroup.Devices)
-                                                    {
-                                                        AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                catch (Exception exception)
-                                {
-                                    Logger.Log(exception);
-                                }
-                            });
-                        }
+        //                    //                else
+        //                    //                {
+        //                    //                    foreach (var accessGroup in accessGroupsOfUser)
+        //                    //                    {
+        //                    //                        foreach (var deviceGroup in accessGroup.DeviceGroup)
+        //                    //                        {
+        //                    //                            foreach (var device in deviceGroup.Devices)
+        //                    //                            {
+        //                    //                                AddUserToDeviceFastSearch(device.Code, (int)user.Code).ConfigureAwait(false);
+        //                    //                            }
+        //                    //                        }
+        //                    //                    }
+        //                    //                }
+        //                    //            }
+        //                    //        }
+        //                    //        catch (Exception exception)
+        //                    //        {
+        //                    //            Logger.Log(exception);
+        //                    //        }
+        //                    //    });
+        //                    //}
 
-                        Logger.Log($@"<--EventGetUserData
-    +ClientID:{clientId}
-    +TerminalID:{terminalId}
-    +ErrorCode:{UcsApi.ErrorCode}
-    +UserID:{TerminalUserData.UserID}
-    +Admin:{TerminalUserData.IsAdmin}
-    +Admin:{TerminalUserData.FaceNumber}
-    +AccessGroup:{TerminalUserData.AccessGroup}
-    +AccessDateType:{TerminalUserData.AccessDateType}
-    +AccessDate:{TerminalUserData.StartAccessDate}~{TerminalUserData.EndAccessDate}
-    +AuthType:{TerminalUserData.AuthType}
-    +Password:{TerminalUserData.Password}
-    +Progress:{TerminalUserData.CurrentIndex}/{TerminalUserData.TotalNumber}", logType: LogType.Information);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.Log($"--> Error On GetUserDataCallback Error: {e.Message} ");
-            }
+        //                    Logger.Log($@"<--EventGetUserData
+        //+ClientID:{clientId}
+        //+TerminalID:{terminalId}
+        //+ErrorCode:{UcsApi.ErrorCode}
+        //+UserID:{TerminalUserData.UserID}
+        //+Admin:{TerminalUserData.IsAdmin}
+        //+Admin:{TerminalUserData.FaceNumber}
+        //+AccessGroup:{TerminalUserData.AccessGroup}
+        //+AccessDateType:{TerminalUserData.AccessDateType}
+        //+AccessDate:{TerminalUserData.StartAccessDate}~{TerminalUserData.EndAccessDate}
+        //+AuthType:{TerminalUserData.AuthType}
+        //+Password:{TerminalUserData.Password}
+        //+Progress:{TerminalUserData.CurrentIndex}/{TerminalUserData.TotalNumber}", logType: LogType.Information);
+        //                }
+        //            }
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            Logger.Log($"--> Error On GetUserDataCallback Error: {e.Message} ");
+        //        }
 
-            //_ucsApi.EventGetUserData -= GetUserDataCallback;
-        }
+        //        //_ucsApi.EventGetUserData -= GetUserDataCallback;
+        //    }
 
         private async void GetAccessLogCount(int clientId, int terminalId, int logCount)
         {
@@ -790,7 +789,7 @@ namespace Biovation.Brands.Virdi
                 _logCount = logCount;
                 if (GetAccessLogType == (int)VirdiDeviceLogType.Period)
                 {
-                    AccessLogData.SetPeriod(AccessLogPeriodFromDateTime.Year, AccessLogPeriodFromDateTime.Month, AccessLogPeriodFromDateTime.Day, AccessLogPeriodToDateTime.Year, AccessLogPeriodToDateTime.Month, AccessLogPeriodToDateTime.Day);
+                    _accessLogData.SetPeriod(AccessLogPeriodFromDateTime.Year, AccessLogPeriodFromDateTime.Month, AccessLogPeriodFromDateTime.Day, AccessLogPeriodToDateTime.Year, AccessLogPeriodToDateTime.Month, AccessLogPeriodToDateTime.Day);
                     await Task.Run(() =>
                     {
                         //try
@@ -802,7 +801,7 @@ namespace Biovation.Brands.Virdi
                         //    Logger.Log(exception);
                         //}
 
-                        AccessLogData.GetAccessLogFromTerminal(clientId, terminalId, (int)VirdiDeviceLogType.Period);
+                        _accessLogData.GetAccessLogFromTerminal(clientId, terminalId, (int)VirdiDeviceLogType.Period);
                     });
 
                     //try
@@ -829,7 +828,7 @@ namespace Biovation.Brands.Virdi
                         //    Logger.Log(exception);
                         //}
 
-                        AccessLogData.GetAccessLogFromTerminal(clientId, terminalId, (int)VirdiDeviceLogType.New);
+                        _accessLogData.GetAccessLogFromTerminal(clientId, terminalId, (int)VirdiDeviceLogType.New);
                     });
                 }
                 else
@@ -845,7 +844,7 @@ namespace Biovation.Brands.Virdi
                         //    Logger.Log(exception);
                         //}
 
-                        AccessLogData.GetAccessLogFromTerminal(clientId, terminalId, (int)VirdiDeviceLogType.All);
+                        _accessLogData.GetAccessLogFromTerminal(clientId, terminalId, (int)VirdiDeviceLogType.All);
                     });
                 }
             }
@@ -1456,7 +1455,7 @@ namespace Biovation.Brands.Virdi
 
 
             GetAccessLogType = (int)VirdiDeviceLogType.New;
-            AccessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
+            _accessLogData.GetAccessLogCountFromTerminal(0, terminalId, (int)VirdiDeviceLogType.New);
 
             _taskService.ProcessQueue(_deviceBrands.Virdi, device.DeviceId).ConfigureAwait(false);
 
@@ -1468,23 +1467,23 @@ namespace Biovation.Brands.Virdi
         {
             Logger.Log($@"<--EventRealTimeAccessLog
     +TerminalID:{terminalId}
-    +ErrorCode:{UcsApi.ErrorCode}
-    +UserID:{AccessLogData.UserID}
-    +DataTime:{AccessLogData.DateTime}
-    +AuthMode:{AccessLogData.AuthMode}
-    +AuthType:{AccessLogData.AuthType}
-    +IsAuthorized:{AccessLogData.IsAuthorized}
-    +Device:{AccessLogData.DeviceID}
-    +Result:{AccessLogData.AuthResult}
-    +RFID:{AccessLogData.RFID}
-    +PictureDataLength:{AccessLogData.PictureDataLength}
-    +Progress:{AccessLogData.CurrentIndex}/{AccessLogData.TotalNumber}");
+    +ErrorCode:{_ucsApi.ErrorCode}
+    +UserID:{_accessLogData.UserID}
+    +DataTime:{_accessLogData.DateTime}
+    +AuthMode:{_accessLogData.AuthMode}
+    +AuthType:{_accessLogData.AuthType}
+    +IsAuthorized:{_accessLogData.IsAuthorized}
+    +Device:{_accessLogData.DeviceID}
+    +Result:{_accessLogData.AuthResult}
+    +RFID:{_accessLogData.RFID}
+    +PictureDataLength:{_accessLogData.PictureDataLength}
+    +Progress:{_accessLogData.CurrentIndex}/{_accessLogData.TotalNumber}");
 
             byte[] picture = null;
             try
             {
-                if (AccessLogData.PictureDataLength > 0)
-                    picture = AccessLogData.PictureData as byte[];
+                if (_accessLogData.PictureDataLength > 0)
+                    picture = _accessLogData.PictureData as byte[];
             }
             catch (Exception exception)
             {
@@ -1495,13 +1494,13 @@ namespace Biovation.Brands.Virdi
 
             try
             {
-                logDateTime = DateTime.Parse(AccessLogData.DateTime);
+                logDateTime = DateTime.Parse(_accessLogData.DateTime);
             }
             catch (Exception)
             {
                 try
                 {
-                    logDateTime = DateTime.Parse(AccessLogData.DateTime.Replace("0000-00-00", DateTime.Today.ToString("yyyy-MM-dd")));
+                    logDateTime = DateTime.Parse(_accessLogData.DateTime.Replace("0000-00-00", DateTime.Today.ToString("yyyy-MM-dd")));
                 }
                 catch (Exception)
                 {
@@ -1516,15 +1515,15 @@ namespace Biovation.Brands.Virdi
             var log = new Log
             {
                 DeviceCode = (uint)terminalId,
-                EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
-                UserId = AccessLogData.UserID,
+                EventLog = _accessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
+                UserId = _accessLogData.UserID,
                 LogDateTime = logDateTime,
-                AuthType = AccessLogData.AuthType,
-                AuthResult = AccessLogData.AuthResult,
+                AuthType = _accessLogData.AuthType,
+                AuthResult = _accessLogData.AuthResult,
                 //MatchingType = AccessLogData.AuthType,
                 //MatchingType = authMode?.BioCode,
-                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
-                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(_accessLogData.AuthType),
+                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(_accessLogData.AuthMode),
                 TnaEvent = 0,
                 PicByte = picture
             };
@@ -1562,15 +1561,15 @@ namespace Biovation.Brands.Virdi
 
                         Logger.Log($@"<--EventVerifyCard
     +TerminalID:{terminalId}
-    +ErrorCode:{UcsApi.ErrorCode}
+    +ErrorCode:{_ucsApi.ErrorCode}
     +UserID:{user.Id}
     +DataTime:{txtEventTime}
     +AuthMode:{authMode}
-    +AuthType:{AccessLogData.AuthType}
+    +AuthType:{_accessLogData.AuthType}
     +IsAuthorized:{isAuthorized}
     +RFID:{textRfid}
-    +PictureDataLength:{AccessLogData.PictureDataLength}
-    +Progress:{AccessLogData.CurrentIndex}/{AccessLogData.TotalNumber}", logType: LogType.Information);
+    +PictureDataLength:{_accessLogData.PictureDataLength}
+    +Progress:{_accessLogData.CurrentIndex}/{_accessLogData.TotalNumber}", logType: LogType.Information);
                     }
                 }
 
@@ -1578,15 +1577,15 @@ namespace Biovation.Brands.Virdi
                 {
                     Logger.Log($@"<--EventVerifyCard
     +TerminalID:{terminalId}
-    +ErrorCode:{UcsApi.ErrorCode}
+    +ErrorCode:{_ucsApi.ErrorCode}
     +DataTime:{txtEventTime}
     +AuthMode:{authMode}
-    +AuthType:{AccessLogData.AuthType}
+    +AuthType:{_accessLogData.AuthType}
     +IsAuthorized:{isAuthorized}
     +Result:-1
     +RFID:{textRfid}
-    +PictureDataLength:{AccessLogData.PictureDataLength}
-    +Progress:{AccessLogData.CurrentIndex}/{AccessLogData.TotalNumber}", logType: LogType.Information);
+    +PictureDataLength:{_accessLogData.PictureDataLength}
+    +Progress:{_accessLogData.CurrentIndex}/{_accessLogData.TotalNumber}", logType: LogType.Information);
                 }
 
                 var isVisitor = user != null && user.IsAdmin ? 0 : 1;
@@ -1596,8 +1595,8 @@ namespace Biovation.Brands.Virdi
                 isAuthorized = hasAccess;
                 var authErrorCode = hasAccess == 0 ? user != null ? (int)VirdiError.Permission : (int)VirdiError.InvalidUser : (int)VirdiError.None;
 
-                ServerAuthentication.SetAuthType(0, 0, 0, 0, 1, 0);
-                ServerAuthentication.SendAuthResultToTerminal(terminalId, (int)(user?.Code ?? -1), hasAccess, isVisitor,
+                _serverAuthentication.SetAuthType(0, 0, 0, 0, 1, 0);
+                _serverAuthentication.SendAuthResultToTerminal(terminalId, (int)(user?.Code ?? -1), hasAccess, isVisitor,
                    isAuthorized, txtEventTime, authErrorCode);
             });
         }
@@ -1616,9 +1615,9 @@ namespace Biovation.Brands.Virdi
                 int isAuthorized;
                 var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                FpData.Import(1, 1, 2, 400, 400, fingerData);
+                _fpData.Import(1, 1, 2, 400, 400, fingerData);
 
-                var szCapturedFir = FpData.TextFIR;
+                var szCapturedFir = _fpData.TextFIR;
 
                 UCBioBSPClass ucBioBsp;
                 IFastSearch fastSearch;
@@ -1641,8 +1640,8 @@ namespace Biovation.Brands.Virdi
                 {
                     isAuthorized = 0;
                     authErrorCode = 770; //Matching failed
-                    ServerAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
-                    ServerAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
+                    _serverAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
+                    _serverAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
                         authErrorCode);
                     return;
                 }
@@ -1862,8 +1861,8 @@ namespace Biovation.Brands.Virdi
                 {
                     isAuthorized = 0;
                     authErrorCode = 770; //Matching failed
-                    ServerAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
-                    ServerAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
+                    _serverAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
+                    _serverAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
                         authErrorCode);
                     return;
                 }
@@ -1889,11 +1888,11 @@ namespace Biovation.Brands.Virdi
                         authErrorCode = 770; //Matching failed
 
                         //this.serverAuthentication.SetAuthType(IsAndOperation, IsFinger, IsFPCard, IsPassword, IsCard, IsCardID);
-                        ServerAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
-                        ServerAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
+                        _serverAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
+                        _serverAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
                             authErrorCode);
 
-                        Logger.Log($@"   +ErrorCode:{UcsApi.ErrorCode}
+                        Logger.Log($@"   +ErrorCode:{_ucsApi.ErrorCode}
     +TerminalID:{terminalId}
     +AuthMode:{authMode}
     +InputID Length:{inputIdLength}
@@ -1911,11 +1910,11 @@ namespace Biovation.Brands.Virdi
                     isAuthorized = hasAccess;
                     authErrorCode = hasAccess == 0 ? (int)VirdiError.Permission : (int)VirdiError.None;
 
-                    ServerAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
-                    ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, hasAccess, isVisitor, isAuthorized,
+                    _serverAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
+                    _serverAuthentication.SendAuthResultToTerminal(terminalId, userId, hasAccess, isVisitor, isAuthorized,
                         txtEventTime, authErrorCode);
 
-                    Logger.Log($@"   +ErrorCode:{UcsApi.ErrorCode}
+                    Logger.Log($@"   +ErrorCode:{_ucsApi.ErrorCode}
     +TerminalID:{terminalId}
     +UserID:{matchedFpInfo.UserId}
     +DateTime:{txtEventTime}
@@ -1934,11 +1933,11 @@ namespace Biovation.Brands.Virdi
                     authErrorCode = 770; //Matching failed
 
                     //this.serverAuthentication.SetAuthType(IsAndOperation, IsFinger, IsFPCard, IsPassword, IsCard, IsCardID);
-                    ServerAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
-                    ServerAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
+                    _serverAuthentication.SetAuthType(0, isFinger, 0, 0, 0, 0);
+                    _serverAuthentication.SendAuthResultToTerminal(terminalId, -1, 0, 1, isAuthorized, txtEventTime,
                         authErrorCode);
 
-                    Logger.Log($@"   +ErrorCode:{UcsApi.ErrorCode}
+                    Logger.Log($@"   +ErrorCode:{_ucsApi.ErrorCode}
     +TerminalID:{terminalId}
     +AuthMode:{authMode}
     +InputID Length:{inputIdLength}
@@ -1973,7 +1972,7 @@ namespace Biovation.Brands.Virdi
 
                 int isAuthorized;
                 int authErrorCode;
-                var szCapturedFir = FpData.TextFIR;
+                var szCapturedFir = _fpData.TextFIR;
                 var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
                 var user = _commonUserService.GetUsers(code: userId).FirstOrDefault();
@@ -1982,7 +1981,7 @@ namespace Biovation.Brands.Virdi
                     isAuthorized = 0;
                     authErrorCode = (int)VirdiError.InvalidUser;
                     Logger.Log($"   +User {userId} not found.");
-                    ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, 0, 1, isAuthorized, txtEventTime, authErrorCode);
+                    _serverAuthentication.SendAuthResultToTerminal(terminalId, userId, 0, 1, isAuthorized, txtEventTime, authErrorCode);
                     return;
                 }
 
@@ -1991,10 +1990,10 @@ namespace Biovation.Brands.Virdi
 
                 for (var i = 0; i < virdiFingerTemplates.Count - 1; i += 2)
                 {
-                    if (FpData == null) continue;
-                    FpData.ClearFPData();
-                    FpData.Import(1, virdiFingerTemplates[i].FingerIndex.OrderIndex, 2, 400, 400, virdiFingerTemplates[i].Template, virdiFingerTemplates[i + 1].Template);
-                    var firTemplate = FpData.TextFIR;
+                    if (_fpData == null) continue;
+                    _fpData.ClearFPData();
+                    _fpData.Import(1, virdiFingerTemplates[i].FingerIndex.OrderIndex, 2, 400, 400, virdiFingerTemplates[i].Template, virdiFingerTemplates[i + 1].Template);
+                    var firTemplate = _fpData.TextFIR;
 
                     //dynamic storedFir = _fastSearch.FpInfo[userID];
                     //_matching.VerifyMatch(szTextEnrolledFIR, szCapturedFIR);
@@ -2004,7 +2003,7 @@ namespace Biovation.Brands.Virdi
                     if (_matching.MatchingResult == 0) continue;
 
                     Logger.Log("   +Matching Success.");
-                    Logger.Log($@"   +ErrorCode:{UcsApi.ErrorCode}
+                    Logger.Log($@"   +ErrorCode:{_ucsApi.ErrorCode}
     +TerminalID:{terminalId}
     +UserID:{userId}
     +AuthMode:{authMode}
@@ -2026,7 +2025,7 @@ namespace Biovation.Brands.Virdi
                     isAuthorized = hasAccess;
                     authErrorCode = hasAccess == 0 ? (int)VirdiError.Permission : (int)VirdiError.None;
 
-                    ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, hasAccess, isVisitor,
+                    _serverAuthentication.SendAuthResultToTerminal(terminalId, userId, hasAccess, isVisitor,
                         isAuthorized, txtEventTime, authErrorCode);
                     return;
 
@@ -2036,13 +2035,13 @@ namespace Biovation.Brands.Virdi
                 isAuthorized = 0;
                 authErrorCode = 770;
                 Logger.Log("   +Matching Fail.");
-                ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, 0, 1, isAuthorized, txtEventTime, authErrorCode);
+                _serverAuthentication.SendAuthResultToTerminal(terminalId, userId, 0, 1, isAuthorized, txtEventTime, authErrorCode);
             });
         }
 
         private async void GetAccessLogCallback(int clientId, int terminalId)
         {
-            if (string.Equals(AccessLogData.DateTime, "0000-00-00 00:00:00", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(_accessLogData.DateTime, "0000-00-00 00:00:00", StringComparison.InvariantCultureIgnoreCase))
                 return;
 
             //Task<List<TaskInfo>> taskAwaiter = null;
@@ -2052,28 +2051,28 @@ namespace Biovation.Brands.Virdi
             byte[] picture = null;
             try
             {
-                if (AccessLogData.PictureDataLength > 0)
-                    picture = AccessLogData.PictureData as byte[];
+                if (_accessLogData.PictureDataLength > 0)
+                    picture = _accessLogData.PictureData as byte[];
             }
             catch (Exception exception)
             {
                 Logger.Log(exception);
             }
 
-            var currentIndex = AccessLogData.CurrentIndex;
-            var totalCount = AccessLogData.TotalNumber;
+            var currentIndex = _accessLogData.CurrentIndex;
+            var totalCount = _accessLogData.TotalNumber;
 
             var log = new Log
             {
                 DeviceCode = (uint)terminalId,
-                EventLog = AccessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
-                UserId = AccessLogData.UserID,
-                LogDateTime = DateTime.Parse(AccessLogData.DateTime),
+                EventLog = _accessLogData.AuthResult == 0 ? _logEvents.Authorized : _logEvents.UnAuthorized,
+                UserId = _accessLogData.UserID,
+                LogDateTime = DateTime.Parse(_accessLogData.DateTime),
                 //MatchingType = AccessLogData.AuthType,
                 //MatchingType = authMode.BioCode,
-                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthType),
-                AuthType = AccessLogData.AuthType,
-                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(_accessLogData.AuthType),
+                AuthType = _accessLogData.AuthType,
+                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(_accessLogData.AuthMode),
                 PicByte = picture,
                 TnaEvent = 0
             };
@@ -2081,14 +2080,14 @@ namespace Biovation.Brands.Virdi
             _logger.LogDebug($@"<--EventGetAccessLog
     +ClientID:{clientId}
     +TerminalID:{terminalId}
-    +ErrorCode:{UcsApi.ErrorCode}
+    +ErrorCode:{_ucsApi.ErrorCode}
     +UserID:{log.UserId}
     +DateTime:{log.LogDateTime}
     +AuthMode:{log.SubEvent.Code}
     +AuthType:{log.AuthType}
     +IsAuthorized:{log.EventLog.Code == LogEvents.AuthorizedCode}
     +Result:{log.EventLog.Code == LogEvents.AuthorizedCode}
-    +RFID:{AccessLogData.RFID}
+    +RFID:{_accessLogData.RFID}
     +PictureDataLength:{log.PicByte?.Length}
     +Progress:{currentIndex}/{totalCount}/Total:{_logCount}");
 
@@ -2245,7 +2244,7 @@ namespace Biovation.Brands.Virdi
             Logger.Log($"Device time: {{ DeviceID: {terminalId} Time: {DateTime.Now} }}");
 
             //UcsApi.SetTerminalTime((short) DateTime.Now.Year, (byte) DateTime.Now.Month, (byte) DateTime.Now.Day, (byte) DateTime.Now.Hour, (byte) DateTime.Now.Minute, (byte) DateTime.Now.Second);
-            UcsApi.SetTerminalTimezone(terminalId, "Iran Daylight Time");
+            _ucsApi.SetTerminalTimezone(terminalId, "Iran Daylight Time");
         }
 
         //private void GetTerminalOptionCallback(int clientId, int terminalId)
@@ -2377,7 +2376,7 @@ namespace Biovation.Brands.Virdi
             Logger.Log($@"<--Event Get Terminal Option
     +ClientID: {clientId}   
     +TerminalID:  {terminalId}
-    +ErrorCode: {UcsApi.ErrorCode}");
+    +ErrorCode: {_ucsApi.ErrorCode}");
 
             //var termOp = new
             //{
@@ -2402,7 +2401,7 @@ namespace Biovation.Brands.Virdi
 
 
 
-            TerminalOption.Clear();
+            _terminalOption.Clear();
 
 
 
@@ -2504,23 +2503,23 @@ namespace Biovation.Brands.Virdi
         {
             Logger.Log($@"<--EventPictureLog
     +TerminalID: {terminalId}
-    +ErrorCode: {UcsApi.ErrorCode}
+    +ErrorCode: {_ucsApi.ErrorCode}
     +TerminalID: {terminalId}
-    +UserID: {AccessLogData.UserID}
-    +DataTime: {AccessLogData.DateTime}
-    +AuthMode: {AccessLogData.AuthMode}
-    +AuthType: {AccessLogData.AuthType}
-    +IsAuthorized: {AccessLogData.IsAuthorized}
-    +Result: {AccessLogData.AuthResult}
-    +RFID: {AccessLogData.RFID}
-    +PictureDataLength: {AccessLogData.PictureDataLength}
-    +Progress: {AccessLogData.CurrentIndex}/{AccessLogData.TotalNumber}");
+    +UserID: {_accessLogData.UserID}
+    +DataTime: {_accessLogData.DateTime}
+    +AuthMode: {_accessLogData.AuthMode}
+    +AuthType: {_accessLogData.AuthType}
+    +IsAuthorized: {_accessLogData.IsAuthorized}
+    +Result: {_accessLogData.AuthResult}
+    +RFID: {_accessLogData.RFID}
+    +PictureDataLength: {_accessLogData.PictureDataLength}
+    +Progress: {_accessLogData.CurrentIndex}/{_accessLogData.TotalNumber}");
 
             byte[] picture = null;
             try
             {
-                if (AccessLogData.PictureDataLength > 0)
-                    picture = AccessLogData.PictureData as byte[];
+                if (_accessLogData.PictureDataLength > 0)
+                    picture = _accessLogData.PictureData as byte[];
             }
             catch (Exception exception)
             {
@@ -2532,12 +2531,12 @@ namespace Biovation.Brands.Virdi
             var log = new Log
             {
                 DeviceCode = (uint)terminalId,
-                EventLog = AccessLogData.IsAuthorized == 1 ? _logEvents.Authorized : _logEvents.UnAuthorized,
-                UserId = AccessLogData.UserID,
+                EventLog = _accessLogData.IsAuthorized == 1 ? _logEvents.Authorized : _logEvents.UnAuthorized,
+                UserId = _accessLogData.UserID,
                 LogDateTime = DateTime.Now,
                 //MatchingType = authMode.BioCode,
-                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(AccessLogData.AuthMode),
-                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(AccessLogData.AuthMode),
+                MatchingType = _virdiCodeMappings.GetMatchingTypeGenericLookup(_accessLogData.AuthMode),
+                SubEvent = _virdiCodeMappings.GetLogSubEventGenericLookup(_accessLogData.AuthMode),
                 TnaEvent = 0,
                 PicByte = picture
             };
@@ -2550,7 +2549,7 @@ namespace Biovation.Brands.Virdi
             Task.Run(() =>
             {
                 Logger.Log($@"<--EventVerifyPassword
-                   +ErrorCode:{UcsApi.ErrorCode}
+                   +ErrorCode:{_ucsApi.ErrorCode}
                    +TerminalID:{terminalId}
                    +UserID:{userId}
                    +AuthMode:{authMode}
@@ -2564,8 +2563,8 @@ namespace Biovation.Brands.Virdi
                 var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 var errorCode = isAuthorized == 1 ? 0 : 770;
 
-                ServerAuthentication.SetAuthType(0, 0, 0, 1, 0, 0);
-                ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, 0, 0, isAuthorized, txtEventTime, errorCode);
+                _serverAuthentication.SetAuthType(0, 0, 0, 1, 0, 0);
+                _serverAuthentication.SendAuthResultToTerminal(terminalId, userId, 0, 0, isAuthorized, txtEventTime, errorCode);
             });
         }
 
@@ -2574,7 +2573,7 @@ namespace Biovation.Brands.Virdi
             Logger.Log("<--EventVerifyFace1to1");
 
             // Perform server 1:1 face authentication
-            Logger.Log($@"   +ErrorCode:{UcsApi.ErrorCode}
+            Logger.Log($@"   +ErrorCode:{_ucsApi.ErrorCode}
     +TerminalID:{terminalId}
     +UserID:{userId}
     +AuthMode:{authMode}
@@ -2585,9 +2584,9 @@ namespace Biovation.Brands.Virdi
             var authErrorCode = 770; // 770 -> Matching failure
             var txtEventTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-            ServerAuthentication.SetAuthType(0, 0, 0, 0, 0, 0);
-            ServerAuthentication.SetAuthTypeEx(1/*IsFace*/, 0, 0, 0, 0, 0, 0, 0);
-            ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, 1, 0, isAuthorized, txtEventTime, authErrorCode);
+            _serverAuthentication.SetAuthType(0, 0, 0, 0, 0, 0);
+            _serverAuthentication.SetAuthTypeEx(1/*IsFace*/, 0, 0, 0, 0, 0, 0, 0);
+            _serverAuthentication.SendAuthResultToTerminal(terminalId, userId, 1, 0, isAuthorized, txtEventTime, authErrorCode);
         }
 
         private void VerifyFace1ToN(int terminalId, int authMode, int inputIdLength, int antiPassBackLevel, object faceData)
@@ -2606,12 +2605,12 @@ namespace Biovation.Brands.Virdi
 
             //this.serverAuthentication.SetAuthTypeEx(1/*IsFace*/, 0, 0, 0, 0, 0, 0, 0);
             //this.serverAuthentication.SendAuthResultToTerminal(TerminalID, 1, 1, 0, IsAuthorized, txtEventTime, authErrorCode);
-            ServerAuthentication.SetAuthType(0, 0, 0, 0, 0, 0);
-            ServerAuthentication.SetAuthTypeEx(1/*IsFace*/, 0, 0, 0, 0, 0, 0, 0);
-            ServerAuthentication.SendAuthResultToTerminal(terminalId, 1, 1, 0, isAuthorized, txtEventTime, authErrorCode);
+            _serverAuthentication.SetAuthType(0, 0, 0, 0, 0, 0);
+            _serverAuthentication.SetAuthTypeEx(1/*IsFace*/, 0, 0, 0, 0, 0, 0, 0);
+            _serverAuthentication.SendAuthResultToTerminal(terminalId, 1, 1, 0, isAuthorized, txtEventTime, authErrorCode);
 
             //+UserID:{userId}
-            Logger.Log($@" + ErrorCode: {UcsApi.ErrorCode}
+            Logger.Log($@" + ErrorCode: {_ucsApi.ErrorCode}
             +TerminalID: {terminalId}
             +AuthMode: {authMode}
             +AntiPassBack Level: {antiPassBackLevel}
@@ -2846,7 +2845,7 @@ namespace Biovation.Brands.Virdi
             Logger.Log($@"<--EventAuthTypeWithUserID
                +TerminalID:{terminalId}
                +UserID: {userId}
-               +ErrorCode:{UcsApi.ErrorCode}");
+               +ErrorCode:{_ucsApi.ErrorCode}");
         }
 
         private void AuthTypeWithUniqueId(int terminalId, string uniqueId)
@@ -2856,7 +2855,7 @@ namespace Biovation.Brands.Virdi
             Logger.Log($@"<--EventAuthTypeWithUniqueID
                +TerminalID:{terminalId}
                +UniqueID: {uniqueId}
-               +ErrorCode:{UcsApi.ErrorCode}");
+               +ErrorCode:{_ucsApi.ErrorCode}");
         }
 
         private void CallSetAuthTypeAndSendAuthInfoToTerminal(int terminalId, int userId)
@@ -2879,8 +2878,8 @@ namespace Biovation.Brands.Virdi
 
             //ServerAuthentication.SendAuthResultToTerminal(terminalId, userId, hasAccess, isVisitor, isAuthorized, txtEventTime, authErrorCode);
 
-            ServerAuthentication.SetAuthType(isAndOperation, isFinger, isFPCard, isPassword, isCard, isCardID);
-            ServerAuthentication.SendAuthInfoToTerminal(terminalId, userId, hasAccess, authErrorCode);
+            _serverAuthentication.SetAuthType(isAndOperation, isFinger, isFPCard, isPassword, isCard, isCardID);
+            _serverAuthentication.SendAuthInfoToTerminal(terminalId, userId, hasAccess, authErrorCode);
         }
 
         private void GetAntiPassBack(int terminalId, int userId)
@@ -2889,7 +2888,7 @@ namespace Biovation.Brands.Virdi
         +TerminalID: {terminalId}
         +UserID: {userId}");
             const int result = 1; // 0 = Fail, 1 = Success
-            ServerAuthentication.SendAntipassbackResultToTerminal(terminalId, userId, result);
+            _serverAuthentication.SendAntipassbackResultToTerminal(terminalId, userId, result);
             Logger.Log($@"-->SendAntipassbackResultToTerminal
                +TerminalID: {terminalId}
                +UserID: {userId}
@@ -2905,7 +2904,7 @@ namespace Biovation.Brands.Virdi
                 UploadFirmwareFileTaskFinished = true;
 
             Logger.Log($@"<--EventFirmwareUpgrading
-               +ErrorCode: {UcsApi.ErrorCode}
+               +ErrorCode: {_ucsApi.ErrorCode}
                +ClientID: {clientId}
                +TerminalID: {terminalId}
                +CurrentIndex: {currentIndex}
@@ -2915,7 +2914,7 @@ namespace Biovation.Brands.Virdi
         private void FirmwareUpgraded(int clientId, int terminalId)
         {
             Logger.Log($@"<--EventFirmwareUpgraded
-               +ErrorCode: {UcsApi.ErrorCode}
+               +ErrorCode: {_ucsApi.ErrorCode}
                +ClientID: {clientId}
                +TerminalID: {terminalId}");
 
