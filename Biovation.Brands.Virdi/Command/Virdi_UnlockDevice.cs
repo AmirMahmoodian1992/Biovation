@@ -6,6 +6,7 @@ using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -20,10 +21,10 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
         private int DeviceId { get; }
 
-        private readonly VirdiServer _virdiServer;
-        public VirdiUnlockDevice(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
+        private readonly UCSAPI _ucsApi;
+        public VirdiUnlockDevice(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService, UCSAPI ucsApi)
         {
-            _virdiServer = virdiServer;
+            _ucsApi = ucsApi;
 
             OnlineDevices = virdiServer.GetOnlineDevices();
             DeviceId = Convert.ToInt32(items[0]);
@@ -34,25 +35,17 @@ namespace Biovation.Brands.Virdi.Command
 
         public object Execute()
         {
-            if (OnlineDevices.Any(w => w.Key == Code))
+            if (OnlineDevices.All(w => w.Key != Code))
+                return new ResultViewModel
+                { Id = DeviceId, Message = "Error ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
+
+            lock (_ucsApi)
             {
-                _virdiServer.UcsApi.SendTerminalControl(TaskItemId, (int)Code, 0, 1); // Release
+                _ucsApi.SendTerminalControl(TaskItemId, (int)Code, 0, 1); // Release
                 Logger.Log("");
-                Logger.Log("   +ErrorCode :" + _virdiServer.UcsApi.ErrorCode.ToString("X4") + "\n");
-                if (_virdiServer.UcsApi.ErrorCode == 0)
-                {
-                    return new ResultViewModel { Id = DeviceId, Message = "Error free", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
-                }
-                else
-                {
-                    return new ResultViewModel { Id = DeviceId, Message = $"Error { _virdiServer.UcsApi.ErrorCode} ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
-
-                }
-                //return virdiServer.UcsApi.ErrorCode;
+                Logger.Log("   +ErrorCode :" + _ucsApi.ErrorCode.ToString("X4") + "\n");
+                return _ucsApi.ErrorCode == 0 ? new ResultViewModel { Id = DeviceId, Message = "Error free", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) } : new ResultViewModel { Id = DeviceId, Message = $"Error { _ucsApi.ErrorCode} ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
             }
-
-            return new ResultViewModel { Id = DeviceId, Message = "Error ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
-
         }
 
         public void Rollback()
