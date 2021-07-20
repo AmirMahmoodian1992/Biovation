@@ -13,7 +13,7 @@ namespace Biovation.Domain
         public ServiceInstance(string id)
         {
             ChangeId = false;
-            Id = id ?? Guid.NewGuid().ToString();
+            Id = (id is null || id == string.Empty) ? Guid.NewGuid().ToString() : id;
             if (!string.Equals(id,Id))
             {
                 ChangeId = true;

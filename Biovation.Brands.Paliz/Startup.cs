@@ -29,6 +29,8 @@ using Biovation.Brands.Paliz.Devices;
 using Biovation.Brands.Paliz.Command;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
+using System.Linq;
 
 namespace Biovation.Brands.Paliz
 {
@@ -36,9 +38,11 @@ namespace Biovation.Brands.Paliz
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
         public readonly Dictionary<uint, DeviceBasicInfo> OnlineDevices = new Dictionary<uint, DeviceBasicInfo>();
+        private readonly IHostEnvironment _environment;
 
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
+            _environment = environment;
             Configuration = configuration;
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -85,42 +89,101 @@ namespace Biovation.Brands.Paliz
 
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
-            var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-
-            #region checkLock
-
-            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            try
+            var restClient =
+                (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() =>
+                   new RestRequestJsonSerializer());
+            string lockEndTime = string.Empty;
+            if (!_environment.IsDevelopment())
             {
-                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-                if (!requestResult.Result.Data.Success)
+                #region checkLock
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
                 {
-                    Logger.Log("The Lock is not active", logType: LogType.Warning);
-                    try
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
                     {
-                        if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
                         {
-                            Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}",
+                                    logType: LogType.Warning);
+                            }
                         }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
                     }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
+
+                    lockEndTime = requestResult.Result.Data.Data.LockEndTime;
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
                     Environment.Exit(0);
                 }
-            }
-            catch (Exception)
-            {
-                Logger.Log("The connection with Lock service has a problem");
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-                Environment.Exit(0);
-            }
 
-            #endregion
+                #endregion
+            }
 
             services.AddSingleton(restClient);
+            var serviceInstanceId =
+                    FileActions.JsonReader("appsettings.json", "ServiceInstance", "ServiceInstanceId");
+            var serviceInstance = new ServiceInstance(serviceInstanceId.Data);
+            var url = (FileActions.JsonReader("appsettings.json", "Urls")).Data;
+            if (serviceInstance.ChangeId)
+            {
+                var setServiceInstanceId =
+                    FileActions.JsonWriter("appsettings.json", "ServiceInstance", "ServiceInstanceId",
+                        serviceInstance.Id);
+                if (!setServiceInstanceId.Success)
+                {
+                    Logger.Log(LogType.Warning, "Failed to set new GUID in appsettings.json");
+                }
+
+                serviceInstance.IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                    .FirstOrDefault(x => x.ToString().Split('.').Length == 4)?.ToString();
+
+                var splitUrl = url.Split(':');
+                serviceInstance.Port = int.Parse(splitUrl.LastOrDefault() ?? string.Empty);
+            }
+            else
+            {
+                serviceInstance.IpAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                    .FirstOrDefault(x => x.ToString().Split('.').Length == 4)?.ToString();
+                var splitUrl = url.Split(':');
+                serviceInstance.Port = int.Parse(splitUrl.LastOrDefault() ?? string.Empty);
+            }
+
+            var serviceInstanceRequest = new RestRequest($"Commands/v2/serviceInstance", Method.POST);
+            serviceInstanceRequest.AddJsonBody(serviceInstance);
+            //restRequest.AddHeader("Authorization");
+            var serviceInstanceResult = restClient.Execute<ResultViewModel>(serviceInstanceRequest);
+            if (!serviceInstanceResult.Data.Success)
+            {
+                Logger.Log(LogType.Warning, "Failed to insert Instance");
+            }
+
+            services.AddSingleton(serviceInstance);
+            var systemInfo = new SystemInfo
+            {
+                Services = new List<ServiceInstance>()
+                    {
+                        serviceInstance
+                    },
+                LockEndTime = lockEndTime
+
+            };
+            services.AddSingleton(systemInfo);
+
+
+
             //add your injection here 
 
             services.AddSingleton<Biovation.Service.Api.v1.TaskService, Biovation.Service.Api.v1.TaskService>();
