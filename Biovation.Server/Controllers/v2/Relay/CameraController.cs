@@ -1,4 +1,5 @@
-﻿using Biovation.Constants;
+﻿using System;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Authorization;
@@ -120,6 +121,9 @@ namespace Biovation.Server.Controllers.v2.Relay
 
             Parallel.ForEach(serviceInstances, serviceInstance =>
             {
+                if (string.Equals(serviceInstance.Name, "Shahab", StringComparison.InvariantCultureIgnoreCase))
+                    return;
+                
                 var restRequest =
                     new RestRequest($"{serviceInstance.Name}/{serviceInstance.Name}Device/GetOnlineCameras");
                 var result = _restClient.ExecuteAsync<List<Camera>>(restRequest).GetAwaiter().GetResult();
