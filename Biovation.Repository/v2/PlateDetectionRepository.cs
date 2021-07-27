@@ -94,11 +94,12 @@ namespace Biovation.Repository.Sql.v2
             {
                 var parameters = new List<SqlParameter>
                 {
-                    new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value =log.LicensePlate.LicensePlateNumber},
+                    new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value =log.LicensePlate.EntityId},
+                    new SqlParameter("@DetectorId", SqlDbType.Int) {Value = log.DetectorId},
                     new SqlParameter("@UserId",SqlDbType.BigInt){Value = log.User.Id},
                     new SqlParameter("@ParentLogId",SqlDbType.BigInt){Value = log.ParentLog?.Id ?? 0},
-                    new SqlParameter("@DetectorId", SqlDbType.Int) {Value = log.DetectorId},
                     new SqlParameter("@EventId", SqlDbType.Int) {Value = log.EventLog.Code},
+                    new SqlParameter("@LicensePlateNumber",SqlDbType.NVarChar){Value = log.LicensePlate.LicensePlateNumber},
                     new SqlParameter("@LogDateTime", SqlDbType.DateTime) {Value = log.LogDateTime},
                     new SqlParameter("@Ticks", SqlDbType.BigInt) {Value = log.DateTimeTicks},
                     new SqlParameter("@DetectionPrecision", SqlDbType.Int) {Value = log.DetectionPrecision},
@@ -107,7 +108,8 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
+                //return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
+                return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters).Data.FirstOrDefault();
             });
         }
         public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate)
