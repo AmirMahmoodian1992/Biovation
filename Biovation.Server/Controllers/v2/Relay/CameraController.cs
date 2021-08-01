@@ -1,10 +1,13 @@
-﻿using Biovation.Constants;
+﻿using System;
+using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using RestSharp;
 
 namespace Biovation.Server.Controllers.v2.Relay
 {
@@ -16,12 +19,16 @@ namespace Biovation.Server.Controllers.v2.Relay
     {
         private readonly CameraService _cameraService;
         private readonly Lookups _lookups;
+        private readonly RestClient _restClient;
+        private readonly SystemInfo _systemInfo;
 
         //TODO: Complete it
-        public CameraController(CameraService cameraService, Lookups lookups)
+        public CameraController(CameraService cameraService, Lookups lookups, RestClient restClient, SystemInfo systemInfo)
         {
             _cameraService = cameraService;
             _lookups = lookups;
+            _restClient = restClient;
+            _systemInfo = systemInfo;
         }
 
         [HttpGet]
@@ -105,5 +112,28 @@ namespace Biovation.Server.Controllers.v2.Relay
             return await _cameraService.DeleteCamera(id, token);
         }
 
+        [HttpGet]
+        [Authorize]
+        public List<Camera> GetOnlineCameras()
+        {
+            var resultList = new List<Camera>();
+            var serviceInstances = _systemInfo.Services;
+
+            Parallel.ForEach(serviceInstances, serviceInstance =>
+            {
+                if (string.Equals(serviceInstance.Name, "Shahab", StringComparison.InvariantCultureIgnoreCase))
+                    return;
+                
+                var restRequest =
+                    new RestRequest($"{serviceInstance.Name}/{serviceInstance.Name}Device/GetOnlineCameras");
+                var result = _restClient.ExecuteAsync<List<Camera>>(restRequest).GetAwaiter().GetResult();
+
+                if (result.StatusCode != HttpStatusCode.OK) return;
+                lock (resultList)
+                    resultList.AddRange(result.Data);
+            });
+
+            return resultList;
+        }
     }
 }
