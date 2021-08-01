@@ -179,6 +179,18 @@
           "Port": 9020
         }
       ]
+    },
+    {
+      "DownstreamPathTemplate": "/biovation/api/{url}",
+      "DownstreamScheme": "http",
+      "UpstreamPathTemplate": "/biovation/api/PFK/{url}",
+      "UpstreamHttpMethod": [ "Get", "Post" ],
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "192.168.3.110",
+          "Port": 9034
+        }
+      ]
     }
   ]
 }
