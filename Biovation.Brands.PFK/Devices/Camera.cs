@@ -5,13 +5,11 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using PFKParkingLibrary;
 using PFKParkingLibrary.Data;
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Logger = Biovation.CommonClasses.Logger;
 
@@ -20,8 +18,6 @@ namespace Biovation.Brands.PFK.Devices
     public class Camera : IDevices
     {
         private readonly LogEvents _logEvents;
-        private readonly LogSubEvents _logSubEvents;
-        private readonly MatchingTypes _matchingTypes;
         private readonly Domain.Camera _cameraInfo;
         private readonly Dictionary<uint, Camera> _connectedCameras;
 
@@ -30,16 +26,12 @@ namespace Biovation.Brands.PFK.Devices
         private PlateReader _plateReader;
 
         private readonly PlateDetectionService _plateDetectionService;
-        private readonly RestClient _logExternalSubmissionRestClient;
 
-        public Camera(Domain.Camera cameraInfo, Dictionary<uint, Camera> connectedCameras, RestClient logExternalSubmissionRestClient, PlateDetectionService plateDetectionService, LogEvents logEvents, LogSubEvents logSubEvents, MatchingTypes matchingTypes)
+        public Camera(Domain.Camera cameraInfo, Dictionary<uint, Camera> connectedCameras, PlateDetectionService plateDetectionService, LogEvents logEvents)
         {
             _cameraInfo = cameraInfo;
             _connectedCameras = connectedCameras;
-            _logExternalSubmissionRestClient = logExternalSubmissionRestClient;
             _plateDetectionService = plateDetectionService;
-            _logSubEvents = logSubEvents;
-            _matchingTypes = matchingTypes;
             _logEvents = logEvents;
         }
 
@@ -261,6 +253,7 @@ namespace Biovation.Brands.PFK.Devices
                 var detectedLog = new PlateDetectionLog
                 {
                     DetectorId = _cameraInfo.Id,
+                    DeviceName = _cameraInfo.Name,
                     EventLog = permission ? _logEvents.Authorized : _logEvents.UnAuthorized,
                     LicensePlate = licensePlate,
                     DetectionPrecision = ((float)plate.Accuracy) / 10,
@@ -270,76 +263,76 @@ namespace Biovation.Brands.PFK.Devices
                     SuccessTransfer = false
                 };
 
-                await Task.Run(async () =>
-                {
-                    try
-                    {
-                        Logger.Log($@"UpdateMonitoring for {detectedPlate}", logType: CommonClasses.LogType.Warning);
-                        var restRequest = new RestRequest("UpdatePlateMonitoring/OnUpdatePlate", Method.POST);
+                //await Task.Run(async () =>
+                //{
+                //    try
+                //    {
+                //        Logger.Log($@"UpdateMonitoring for {detectedPlate}", logType: CommonClasses.LogType.Warning);
+                //        //var restRequest = new RestRequest("UpdatePlateMonitoring/OnUpdatePlate", Method.POST);
 
-                        var tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
-                        try
-                        {
-                            const string correctedPattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
-                            const string basePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]-[۰-۹][۰-۹][۰-۹]";
-                            const string secondBasePattern = @"[۰-۹][۰-۹][۰-۹]-[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]";
+                //        //var tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
+                //        //try
+                //        //{
+                //        //    const string correctedPattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
+                //        //    const string basePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]-[۰-۹][۰-۹][۰-۹]";
+                //        //    const string secondBasePattern = @"[۰-۹][۰-۹][۰-۹]-[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]";
 
-                            var regexDetect = Regex.Match(tmpPlateNumber, correctedPattern);
-                            if (regexDetect.Success)
-                                tmpPlateNumber = "تشخیص پلاک با قالب نادرست: " + (tmpPlateNumber.Substring(3, 3) + "-" + tmpPlateNumber.Substring(6, 2) + tmpPlateNumber.Substring(2, 1) + tmpPlateNumber.Substring(0, 2));
+                //        //    var regexDetect = Regex.Match(tmpPlateNumber, correctedPattern);
+                //        //    if (regexDetect.Success)
+                //        //        tmpPlateNumber = "تشخیص پلاک با قالب نادرست: " + (tmpPlateNumber.Substring(3, 3) + "-" + tmpPlateNumber.Substring(6, 2) + tmpPlateNumber.Substring(2, 1) + tmpPlateNumber.Substring(0, 2));
 
-                            else if (Regex.Match(tmpPlateNumber, basePattern).Success || Regex.Match(tmpPlateNumber, secondBasePattern).Success)
-                                tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
-                            else
-                            {
-                                tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
-                            }
-                        }
-                        catch
-                        {
-                            tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
-                        }
+                //        //    else if (Regex.Match(tmpPlateNumber, basePattern).Success || Regex.Match(tmpPlateNumber, secondBasePattern).Success)
+                //        //        tmpPlateNumber = detectedLog.LicensePlate.LicensePlateNumber;
+                //        //    else
+                //        //    {
+                //        //        tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
+                //        //    }
+                //        //}
+                //        //catch
+                //        //{
+                //        //    tmpPlateNumber = "مشکل در شناسایی پلاک: " + detectedLog.LicensePlate.LicensePlateNumber;
+                //        //}
 
-                        //detectedLog.LicensePlate.LicensePlateNumber = tmpPlateNumber;
+                //        //detectedLog.LicensePlate.LicensePlateNumber = tmpPlateNumber;
 
-                        //restRequest.AddJsonBody(new
-                        //{
-                        //    //resultAddLog.Result.Id,
-                        //    DeviceId = detectedLog.DetectorId,
-                        //    DeviceCode = _cameraInfo.Code,
-                        //    UserId = tmpPlateNumber,
-                        //    detectedLog.LogDateTime,
-                        //    detectedLog.EventLog,
-                        //    MatchingType = MatchingTypes.Car,
-                        //    PicByte = detectedLog.PlateImage,
-                        //    SubEvent = LogSubEvents.Normal,
-                        //    DeviceName = _cameraInfo.Name,
-                        //});
-                        restRequest.AddJsonBody(detectedLog);
-                        await _logExternalSubmissionRestClient.ExecuteAsync(restRequest);
+                //        //restRequest.AddJsonBody(new
+                //        //{
+                //        //    //resultAddLog.Result.Id,
+                //        //    DeviceId = detectedLog.DetectorId,
+                //        //    DeviceCode = _cameraInfo.Code,
+                //        //    UserId = tmpPlateNumber,
+                //        //    detectedLog.LogDateTime,
+                //        //    detectedLog.EventLog,
+                //        //    MatchingType = MatchingTypes.Car,
+                //        //    PicByte = detectedLog.PlateImage,
+                //        //    SubEvent = LogSubEvents.Normal,
+                //        //    DeviceName = _cameraInfo.Name,
+                //        //});
+                //        //restRequest.AddJsonBody(detectedLog);
+                //        //await _logExternalSubmissionRestClient.ExecuteAsync(restRequest);
 
-                        var altRestRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
-                        altRestRequest.AddJsonBody(new
-                        {
-                            //resultAddLog.Result.Id,
-                            DeviceId = detectedLog.DetectorId,
-                            DeviceCode = _cameraInfo.Code,
-                            UserId = tmpPlateNumber,
-                            detectedLog.LogDateTime,
-                            detectedLog.EventLog,
-                            MatchingType = _matchingTypes.Car,
-                            PicByte = detectedLog.PlateImage,
-                            SubEvent = _logSubEvents.Normal,
-                            DeviceName = _cameraInfo.Name,
-                        });
-                        //altRestRequest.AddJsonBody(detectedLog);
-                        await _logExternalSubmissionRestClient.ExecuteAsync(altRestRequest);
-                    }
-                    catch (Exception exception)
-                    {
-                        Logger.Log(exception);
-                    }
-                });
+                //        //var altRestRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
+                //        //altRestRequest.AddJsonBody(new
+                //        //{
+                //        //    //resultAddLog.Result.Id,
+                //        //    DeviceId = detectedLog.DetectorId,
+                //        //    DeviceCode = _cameraInfo.Code,
+                //        //    UserId = tmpPlateNumber,
+                //        //    detectedLog.LogDateTime,
+                //        //    detectedLog.EventLog,
+                //        //    MatchingType = _matchingTypes.Car,
+                //        //    PicByte = detectedLog.PlateImage,
+                //        //    SubEvent = _logSubEvents.Normal,
+                //        //    DeviceName = _cameraInfo.Name,
+                //        //});
+                //        ////altRestRequest.AddJsonBody(detectedLog);
+                //        //await _logExternalSubmissionRestClient.ExecuteAsync(altRestRequest);
+                //    }
+                //    catch (Exception exception)
+                //    {
+                //        Logger.Log(exception);
+                //    }
+                //});
 
                 await _plateDetectionService.AddPlateDetectionLog(detectedLog);
 
