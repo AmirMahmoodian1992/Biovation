@@ -129,5 +129,74 @@ namespace Biovation.Data.Commands.Sinks
                 }
             });
         }
+
+
+        public async Task<ResultViewModel> SendLogForMonitoring(PlateDetectionLog log)
+        {
+            if (!_biovationConfigurationManager.BroadcastToApi)
+                return new ResultViewModel { Success = false, Message = "The Api broadcast option is off" };
+
+            try
+            {
+                try
+                {
+                    //var tmpPlateNumber = log.LicensePlate.LicensePlateNumber;
+                    //try
+                    //{
+                    //    const string correctedPattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
+                    //    const string basePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]-[۰-۹][۰-۹][۰-۹]";
+                    //    const string secondBasePattern = @"[۰-۹][۰-۹][۰-۹]-[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹]";
+
+                    //    var regexDetect = Regex.Match(tmpPlateNumber, correctedPattern);
+                    //    if (regexDetect.Success)
+                    //        tmpPlateNumber = "تشخیص پلاک با قالب نادرست: " + (tmpPlateNumber.Substring(3, 3) + "-" + tmpPlateNumber.Substring(6, 2) + tmpPlateNumber.Substring(2, 1) + tmpPlateNumber.Substring(0, 2));
+
+                    //    else if (Regex.Match(tmpPlateNumber, basePattern).Success || Regex.Match(tmpPlateNumber, secondBasePattern).Success)
+                    //        tmpPlateNumber = log.LicensePlate.LicensePlateNumber;
+                    //    else
+                    //    {
+                    //        tmpPlateNumber = "مشکل در شناسایی پلاک: " + log.LicensePlate.LicensePlateNumber;
+                    //    }
+                    //}
+                    //catch
+                    //{
+                    //    tmpPlateNumber = "مشکل در شناسایی پلاک: " + log.LicensePlate.LicensePlateNumber;
+                    //}
+
+                    // صفحه مانیتورینگ
+                    var restRequest = new RestRequest("UpdatePlateMonitoring/OnUpdatePlate", Method.POST);
+                    restRequest.AddJsonBody(log);
+                    await _restClient.ExecuteAsync(restRequest);
+
+                    //var altRestRequest = new RestRequest("UpdateMonitoring/UpdateMonitoring", Method.POST);
+                    //altRestRequest.AddJsonBody(new
+                    //{
+                    //    //resultAddLog.Result.Id,
+                    //    DeviceId = detectedLog.DetectorId,
+                    //    DeviceCode = _cameraInfo.Code,
+                    //    UserId = tmpPlateNumber,
+                    //    detectedLog.LogDateTime,
+                    //    detectedLog.EventLog,
+                    //    MatchingType = _matchingTypes.Car,
+                    //    PicByte = detectedLog.PlateImage,
+                    //    SubEvent = _logSubEvents.Normal,
+                    //    DeviceName = _cameraInfo.Name,
+                    //});
+                    ////altRestRequest.AddJsonBody(detectedLog);
+                    //await _logExternalSubmissionRestClient.ExecuteAsync(altRestRequest);
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
+
+                return new ResultViewModel { Success = log.SuccessTransfer, Message = log.SuccessTransfer ? "Logs are sent successfully." : "An error occured" };
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return new ResultViewModel { Success = false, Message = exception.Message };
+            }
+        }
     }
 }

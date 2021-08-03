@@ -1,4 +1,6 @@
 ﻿using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
+using Biovation.Data.Commands.Sinks;
 using Biovation.Domain;
 using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
@@ -13,28 +15,37 @@ namespace Biovation.Data.Commands.Controllers.v2
     //[ApiVersion("2.0")]
     public class PlateDetectionController : ControllerBase
     {
+        private readonly LogApiSink _logApiSink;
+        private readonly RelayApiSink _relayApiSink;
         private readonly PlateDetectionRepository _plateDetectionRepository;
 
-        public PlateDetectionController(PlateDetectionRepository plateDetectionRepository)
+        public PlateDetectionController(PlateDetectionRepository plateDetectionRepository, LogApiSink logApiSink, RelayApiSink relayApiSink)
         {
+            _logApiSink = logApiSink;
+            _relayApiSink = relayApiSink;
             _plateDetectionRepository = plateDetectionRepository;
         }
 
         [HttpPost]
         [Authorize]
-
         public Task<ResultViewModel> AddLicensePlate([FromBody] LicensePlate licensePlate = default)
         {
             return Task.Run(() => _plateDetectionRepository.AddLicensePlate(licensePlate));
         }
 
         [HttpPost]
-        [Route("PlateDetectionLog")]
         [Authorize]
-
-        public Task<ResultViewModel> AddPlateDetectionLog([FromBody] PlateDetectionLog log)
+        [Route("PlateDetectionLog")]
+        public async Task<ResultViewModel> AddPlateDetectionLog([FromBody] PlateDetectionLog log)
         {
-            return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));
+            var logInsertionAwaiter = _plateDetectionRepository.AddPlateDetectionLog(log);
+            var broadcastToRelaysAwaiter = _relayApiSink.OpenRelays(log);
+            var broadcastApiAwaiter = Task.CompletedTask;
+            if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
+                broadcastApiAwaiter = _logApiSink.SendLogForMonitoring(log);
+
+            await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastToRelaysAwaiter);
+            return await logInsertionAwaiter;
         }
 
         [HttpDelete]
@@ -45,9 +56,8 @@ namespace Biovation.Data.Commands.Controllers.v2
         }
 
         [HttpPost]
-        [Route("ManualPlateDetectionLog")]
         [Authorize]
-
+        [Route("ManualPlateDetectionLog")]
         public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] PlateDetectionLog manualLogData)
         {
             var applicantUser = HttpContext.GetUser();
