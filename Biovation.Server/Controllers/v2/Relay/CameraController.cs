@@ -1,13 +1,13 @@
-﻿using System;
-using Biovation.Constants;
+﻿using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using RestSharp;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using RestSharp;
 
 namespace Biovation.Server.Controllers.v2.Relay
 {
@@ -38,7 +38,7 @@ namespace Biovation.Server.Controllers.v2.Relay
             string brandCode = default, int modelId = default, string filterText = default, int pageNumber = 0, int pageSize = 0, int nestingDepthLevel = 4)
         {
             var token = (string)HttpContext.Items["Token"];
-            return await _cameraService.GetCamera(id, code, name, ip, port, brandCode, modelId,filterText, pageNumber, pageSize,
+            return await _cameraService.GetCamera(id, code, name, ip, port, brandCode, modelId, filterText, pageNumber, pageSize,
                 nestingDepthLevel, token);
         }
 
@@ -92,7 +92,28 @@ namespace Biovation.Server.Controllers.v2.Relay
         public async Task<ResultViewModel> AddCamera([FromBody] Camera camera = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return await _cameraService.CreateCamera(camera, token);
+            var result = await _cameraService.CreateCamera(camera, token);
+            if (result.Validate != 1) return result;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
+                    var restRequest = new RestRequest("PFK/PFKDevice/ModifyCamera",
+                        Method.POST);
+                    restRequest.AddJsonBody(camera!);
+                    restRequest.AddHeader("Authorization", token!);
+                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+
+            }).ConfigureAwait(false);
+
+            return result;
         }
 
         [HttpPut]
@@ -100,7 +121,27 @@ namespace Biovation.Server.Controllers.v2.Relay
         public async Task<ResultViewModel> UpdateCamera([FromBody] Camera camera = default)
         {
             var token = (string)HttpContext.Items["Token"];
-            return await _cameraService.UpdateCamera(camera, token);
+            var result = await _cameraService.UpdateCamera(camera, token);
+            if (result.Validate != 1) return result;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
+                    var restRequest = new RestRequest("PFK/PFKDevice/ModifyCamera",
+                        Method.POST);
+                    restRequest.AddJsonBody(camera!);
+                    restRequest.AddHeader("Authorization", token!);
+                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+                }
+                catch (Exception)
+                {
+                    //ignore
+                }
+            }).ConfigureAwait(false);
+
+            return result;
         }
 
         [HttpDelete]
@@ -123,7 +164,7 @@ namespace Biovation.Server.Controllers.v2.Relay
             {
                 if (string.Equals(serviceInstance.Name, "Shahab", StringComparison.InvariantCultureIgnoreCase))
                     return;
-                
+
                 var restRequest =
                     new RestRequest($"{serviceInstance.Name}/{serviceInstance.Name}Device/GetOnlineCameras");
                 var result = _restClient.ExecuteAsync<List<Camera>>(restRequest).GetAwaiter().GetResult();
