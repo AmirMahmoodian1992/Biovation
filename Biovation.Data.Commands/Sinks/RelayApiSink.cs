@@ -49,5 +49,35 @@ namespace Biovation.Data.Commands.Sinks
                 return new ResultViewModel { Validate = 1 };
             });
         }
+
+        public Task<ResultViewModel> OpenRelays(PlateDetectionLog log)
+        {
+            return Task.Run(() =>
+            {
+                //if (!_biovationConfigurationManager.BroadcastToApi)
+                //    return new ResultViewModel { Success = false, Message = "The Api broadcast option is off" };
+
+                try
+                {
+                    if (log.EventLog.Code == "16003" || log.EventLog.Code == "16004")
+                    {
+                        var relays = _relayRepository.GetRelay(cameraId: (int) log.DetectorId) ?.Data?.Data;
+                        if (relays != null)
+                        {
+                            foreach (var relay in relays)
+                            {
+                                _ = _relayApiService.OpenRelay(relay.Id).ConfigureAwait(false);
+                            }
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                }
+
+                return new ResultViewModel { Validate = 1 };
+            });
+        }
     }
 }
