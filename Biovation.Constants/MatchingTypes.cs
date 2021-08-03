@@ -10,7 +10,8 @@ namespace Biovation.Constants
         public const string CarCode = "19003";
         public const string CardCode = "19004";
         public const string UnknownCode = "19000";
-        public const string UnIdentifyCode = "0";
+        public const string UnIdentifyCode = "19099";
+        public const string IrisCode = "19005";
 
         public MatchingTypes(Lookups lookups)
         {
@@ -20,6 +21,7 @@ namespace Biovation.Constants
             Card = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, CardCode));
             Unknown = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnknownCode));
             UnIdentify = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, UnIdentifyCode));
+            Iris = lookups.MatchingTypes.FirstOrDefault(lookup => string.Equals(lookup.Code, IrisCode));
         }
 
         public Lookup Face;
@@ -28,5 +30,6 @@ namespace Biovation.Constants
         public Lookup Card;
         public Lookup Unknown;
         public Lookup UnIdentify;
+        public Lookup Iris;
     }
 }
