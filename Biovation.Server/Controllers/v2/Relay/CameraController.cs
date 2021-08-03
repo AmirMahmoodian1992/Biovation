@@ -154,7 +154,8 @@ namespace Biovation.Server.Controllers.v2.Relay
         }
 
         [HttpGet]
-        [Authorize]
+        [Attribute.Authorize]
+        [Route("GetOnlineCameras")]
         public List<Camera> GetOnlineCameras()
         {
             var resultList = new List<Camera>();
