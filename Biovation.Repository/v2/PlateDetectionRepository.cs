@@ -69,7 +69,7 @@ namespace Biovation.Repository.Sql.v2
                 };
             return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectManualPlateDetectionLog", parameters, fetchCompositions: true).FetchFromResultList();
         }
-        public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log, int nestingDepthLevel = 4)
+        public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log)
         {
             return Task.Run(() =>
             {
@@ -86,13 +86,12 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters,
-                        fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data
+                return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters).Data
                     .FirstOrDefault();
             });
         }
 
-        public Task<ResultViewModel> AddManualPlateDetectionLog(ManualPlateDetectionLog log, int nestingDepthLevel = 4)
+        public Task<ResultViewModel> AddManualPlateDetectionLog(ManualPlateDetectionLog log)
         {
             return Task.Run(() =>
             {
@@ -111,7 +110,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).Data.FirstOrDefault();
+                return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters).Data.FirstOrDefault();
             });
         }
         public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate)
