@@ -89,7 +89,7 @@ namespace Biovation.Server.Controllers.v2.Relay
 
         [HttpPost]
         [Attribute.Authorize]
-        public async Task<ResultViewModel> AddCamera([FromBody] Camera camera = default)
+        public async Task<ResultViewModel> AddCamera([FromBody] Camera camera)
         {
             var token = (string)HttpContext.Items["Token"];
             var result = await _cameraService.CreateCamera(camera, token);
@@ -99,10 +99,11 @@ namespace Biovation.Server.Controllers.v2.Relay
             {
                 try
                 {
+                    camera.Id = result.Id;
                     //var restRequest = new RestRequest($"{device.Brand?.Name}/{device.Brand?.Name}Device/ModifyDevice",
                     var restRequest = new RestRequest("PFK/PFKDevice/ModifyCamera",
                         Method.POST);
-                    restRequest.AddJsonBody(camera!);
+                    restRequest.AddJsonBody(camera);
                     restRequest.AddHeader("Authorization", token!);
                     await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
                 }
@@ -118,7 +119,7 @@ namespace Biovation.Server.Controllers.v2.Relay
 
         [HttpPut]
         [Attribute.Authorize]
-        public async Task<ResultViewModel> UpdateCamera([FromBody] Camera camera = default)
+        public async Task<ResultViewModel> UpdateCamera([FromBody] Camera camera)
         {
             var token = (string)HttpContext.Items["Token"];
             var result = await _cameraService.UpdateCamera(camera, token);
