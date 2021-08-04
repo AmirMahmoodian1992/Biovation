@@ -98,11 +98,15 @@ namespace Biovation.Brands.PFK.Devices
 
         public bool Disconnect()
         {
-            _plateReader.PlateDetected -= OnPlateDetected;
-            _plateReader.PlateUpdated -= OnPlateUpdated;
             try
             {
-                _plateReader.Stop();
+                if (_plateReader != null)
+                {
+                    _plateReader.PlateDetected -= OnPlateDetected;
+                    _plateReader.PlateUpdated -= OnPlateUpdated;
+                    _plateReader?.Stop();
+                    _plateReader = null;
+                }
             }
             catch (Exception)
             {
