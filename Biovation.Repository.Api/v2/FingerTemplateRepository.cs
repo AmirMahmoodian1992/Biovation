@@ -41,8 +41,8 @@ namespace Biovation.Repository.Api.v2
 
         public async Task<ResultViewModel<PagingResult<Lookup>>> GetFingerTemplateTypes(string brandId, string token = default)
         {
-            var restRequest = new RestRequest("Queries/v2/FingerTemplate/FingerTemplateTypes", Method.GET);
-            restRequest.AddQueryParameter("brandId", brandId);
+            var restRequest = new RestRequest("Queries/v2/FingerTemplate/FingerTemplateTypes/{brandId}", Method.GET);
+            restRequest.AddUrlSegment("brandId", brandId);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
             var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<Lookup>>>(restRequest);
