@@ -38,14 +38,15 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("PlateDetectionLog")]
         public async Task<ResultViewModel> AddPlateDetectionLog([FromBody] PlateDetectionLog log)
         {
-            var logInsertionAwaiter = _plateDetectionRepository.AddPlateDetectionLog(log);
             var broadcastToRelaysAwaiter = _relayApiSink.OpenRelays(log);
+            var logInsertionResult = await _plateDetectionRepository.AddPlateDetectionLog(log);
+            log.Id = logInsertionResult.Id;
             var broadcastApiAwaiter = Task.CompletedTask;
             if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
                 broadcastApiAwaiter = _logApiSink.SendLogForMonitoring(log);
 
-            await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastToRelaysAwaiter);
-            return await logInsertionAwaiter;
+            await Task.WhenAll(broadcastApiAwaiter, broadcastToRelaysAwaiter);
+            return logInsertionResult;
         }
 
         [HttpDelete]
