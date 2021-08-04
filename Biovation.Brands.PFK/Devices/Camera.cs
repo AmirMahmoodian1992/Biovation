@@ -127,7 +127,7 @@ namespace Biovation.Brands.PFK.Devices
 [ Detected Plate Plate Location Y ] = {detectedPlate.PlateLocation.Y}
 ");
 
-            ProcessDetectedPlateAsync(detectedPlate);
+            ProcessDetectedPlateAsync(detectedPlate).ConfigureAwait(false);
         }
 
         public void OnPlateUpdated(object source, Plate updatedPlate)
@@ -144,15 +144,15 @@ namespace Biovation.Brands.PFK.Devices
 [ Detected Plate Plate Location Y ] = {updatedPlate.PlateLocation.Y}
 ");
 
-            ProcessDetectedPlateAsync(updatedPlate);
+            ProcessDetectedPlateAsync(updatedPlate).ConfigureAwait(false);
         }
 
 
 
 
-        private void ProcessDetectedPlateAsync(Plate plate)
+        private async Task ProcessDetectedPlateAsync(Plate plate)
         {
-            Task.Run(async () =>
+            try
             {
                 Logger.Log("ProcessDetectedPlateAsync", logType: CommonClasses.LogType.Information);
 
@@ -374,7 +374,11 @@ namespace Biovation.Brands.PFK.Devices
                 //picVehicle.Image = frame_vehicle;
                 //picVehicle.BackColor = SystemColors.ButtonFace;
                 //picVehicle.Invalidate();
-            });
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
         }
 
         public byte[] ImageToByteArray(Image imageIn)

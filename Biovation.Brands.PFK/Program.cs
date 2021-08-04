@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 #if NET472
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Biovation.CommonClasses.Manager;
 using Microsoft.Owin.Hosting;
 #elif NETCORE31
@@ -24,11 +23,14 @@ namespace Biovation.Brands.PFK
         {
             if (!RunningAsAdmin())
             {
-                ProcessStartInfo proc = new ProcessStartInfo();
-                proc.UseShellExecute = true;
-                proc.WorkingDirectory = Environment.CurrentDirectory;
-                proc.FileName = Assembly.GetEntryAssembly()?.CodeBase!;
-                proc.Verb = "runas";
+                var proc = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    WorkingDirectory = Environment.CurrentDirectory,
+                    FileName = Assembly.GetEntryAssembly()?.CodeBase!,
+                    Verb = "runas"
+                };
+
                 try
                 {
                     Process.Start(proc);
@@ -36,7 +38,7 @@ namespace Biovation.Brands.PFK
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("This program must be run as an administrator! \n\n" + ex.ToString());
+                    Console.WriteLine("This program must be run as an administrator! \n\n" + ex);
                     Environment.Exit(0);
                 }
             }
@@ -47,7 +49,7 @@ namespace Biovation.Brands.PFK
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("appsettings.development.json", true, true);
 
-            AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+            AppDomain.CurrentDomain.ProcessExit += (_, _) =>
             {
                 try
                 {
@@ -75,7 +77,7 @@ namespace Biovation.Brands.PFK
                 }
             };
 
-            Thread.GetDomain().ProcessExit += (sender, args) =>
+            Thread.GetDomain().ProcessExit += (_, _) =>
             {
                 try
                 {
@@ -121,12 +123,19 @@ namespace Biovation.Brands.PFK
                 message += $"{Environment.NewLine}                               {ipAddress}:{port}";
             }
 
+
             // Start OWIN host 
             using (WebApp.Start<Startup>(startupOption))
             {
                 Console.WriteLine(message + Environment.NewLine);
-                Console.ReadLine();
+                string input;
+
+                do
+                {
+                    input = Console.ReadLine();
+                } while (input != "biovation-pfk-exit");
             }
+
 
             try
             {
@@ -184,8 +193,8 @@ namespace Biovation.Brands.PFK
 
         private static bool RunningAsAdmin()
         {
-            WindowsIdentity id = WindowsIdentity.GetCurrent();
-            WindowsPrincipal principal = new WindowsPrincipal(id);
+            var id = WindowsIdentity.GetCurrent();
+            var principal = new WindowsPrincipal(id);
 
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }

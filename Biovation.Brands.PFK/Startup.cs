@@ -48,7 +48,16 @@ namespace Biovation.Brands.PFK
                 "biovation/api/{controller}/{action}/{id}",
                 new { id = RouteParameter.Optional }
             );
-            
+
+            appBuilder.Use((context, next) =>
+            {
+                return next().ContinueWith(_ =>
+                {
+                    Logger.Log(
+                        $"New Request Started on : {context.Request.Uri}, Method : {context.Request.Method} , Path : {context.Request.Path}");
+                });
+            });
+
             appBuilder.UseHealthChecks("/biovation/api/health", new List<IHealthCheck>());
 
             var builder = new ConfigurationBuilder()
@@ -70,6 +79,7 @@ namespace Biovation.Brands.PFK
             var resolver = new DefaultDependencyResolver(services.BuildServiceProvider());
             config.DependencyResolver = resolver;
             DependencyResolver.SetResolver(resolver);
+
             appBuilder.UseWebApi(config);
         }
 

@@ -90,16 +90,23 @@ namespace Biovation.Brands.PFK.Controllers
         [HttpPost]
         public async Task<ResultViewModel> ModifyCamera([FromBody] Camera modifiedCamera)
         {
-            //var camera = (await _cameraService.GetCamera(id: modifiedCamera.Id))?.Data?.Data?.FirstOrDefault();
-
             return await Task.Run(() =>
             {
                 try
                 {
-                    if (modifiedCamera.Active && !_pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code))
-                        _pfkServer.ConnectToDevice(modifiedCamera);
-                    else if (!modifiedCamera.Active && _pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code))
-                        _pfkServer.DisconnectDevice(modifiedCamera);
+                    switch (modifiedCamera.Active)
+                    {
+                        case true when !_pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code):
+                            _pfkServer.ConnectToDevice(modifiedCamera);
+                            break;
+                        case true when _pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code):
+                            _pfkServer.DisconnectDevice(modifiedCamera);
+                            _pfkServer.ConnectToDevice(modifiedCamera);
+                            break;
+                        case false when _pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code):
+                            _pfkServer.DisconnectDevice(modifiedCamera);
+                            break;
+                    }
 
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
