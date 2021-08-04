@@ -38,7 +38,7 @@ namespace Biovation.Brands.PFK
             //CheckExit();
             foreach (var device in _cameras)
             {
-                ConnectToDevice(device);
+                ConnectToDevice(device).Wait();
                 //CheckConnectionStatus(device);
             }
         }
@@ -62,7 +62,7 @@ namespace Biovation.Brands.PFK
             }
         }
 
-        public async void ConnectToDevice(Domain.Camera deviceInfo)
+        public async Task ConnectToDevice(Domain.Camera deviceInfo)
         {
             await Task.Run(() =>
             {
@@ -75,6 +75,7 @@ namespace Biovation.Brands.PFK
                             try
                             {
                                 _onlineCameras[deviceInfo.Code].Disconnect();
+                                _onlineCameras.Remove(deviceInfo.Code);
                             }
                             catch (Exception exception)
                             {
@@ -97,7 +98,7 @@ namespace Biovation.Brands.PFK
             });
         }
 
-        public async void DisconnectDevice(Domain.Camera cameraInfo)
+        public async Task DisconnectDevice(Domain.Camera cameraInfo)
         {
             await Task.Run(() =>
             {
@@ -107,6 +108,7 @@ namespace Biovation.Brands.PFK
                     try
                     {
                         _onlineCameras[cameraInfo.Code].Disconnect();
+                        _onlineCameras.Remove(cameraInfo.Code);
                     }
                     catch (Exception exception)
                     {

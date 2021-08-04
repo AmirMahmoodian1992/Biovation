@@ -74,9 +74,9 @@ namespace Biovation.Brands.PFK.Controllers
                 try
                 {
                     if (device.Active && !_pfkServer.GetOnlineDevices().ContainsKey(device.Code))
-                        _pfkServer.ConnectToDevice(camera);
+                        _ = _pfkServer.ConnectToDevice(camera).ConfigureAwait(false);
                     else if (!device.Active && _pfkServer.GetOnlineDevices().ContainsKey(device.Code))
-                        _pfkServer.DisconnectDevice(camera);
+                        _ = _pfkServer.DisconnectDevice(camera).ConfigureAwait(false);
 
                     return new ResultViewModel { Validate = 1, Message = "Unlocking Device queued" };
                 }
@@ -97,14 +97,13 @@ namespace Biovation.Brands.PFK.Controllers
                     switch (modifiedCamera.Active)
                     {
                         case true when !_pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code):
-                            _pfkServer.ConnectToDevice(modifiedCamera);
+                            _ = _pfkServer.ConnectToDevice(modifiedCamera).ConfigureAwait(false);
                             break;
                         case true when _pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code):
-                            _pfkServer.DisconnectDevice(modifiedCamera);
-                            _pfkServer.ConnectToDevice(modifiedCamera);
+                            _ = _pfkServer.ConnectToDevice(modifiedCamera).ConfigureAwait(false);
                             break;
                         case false when _pfkServer.GetOnlineDevices().ContainsKey(modifiedCamera.Code):
-                            _pfkServer.DisconnectDevice(modifiedCamera);
+                            _ = _pfkServer.DisconnectDevice(modifiedCamera).ConfigureAwait(false);
                             break;
                     }
 
