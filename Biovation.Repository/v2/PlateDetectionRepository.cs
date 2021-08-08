@@ -106,12 +106,13 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@LogDateTime", SqlDbType.DateTime) {Value = log.LogDateTime},
                     new SqlParameter("@Ticks", SqlDbType.BigInt) {Value = log.DateTimeTicks},
                     new SqlParameter("@DetectionPrecision", SqlDbType.Int) {Value = log.DetectionPrecision},
-                    new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
-                    new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
+                   // new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
+                    //new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
                     new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
-                return _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters).Data.FirstOrDefault();
+                var res =  _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters).Data.FirstOrDefault();
+                return res;
             });
         }
         public Task<ResultViewModel> AddLicensePlate(LicensePlate licensePlate)
