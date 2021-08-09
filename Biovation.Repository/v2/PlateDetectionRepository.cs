@@ -19,7 +19,7 @@ namespace Biovation.Repository.Sql.v2
             _repository = repository;
         }
 
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+        public ResultViewModel<PagingResult<ManualPlateDetectionLog>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
         int pageSize = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
@@ -40,7 +40,7 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                      new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
                 };
-            return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel<PagingResult<ManualPlateDetectionLog>> GetManualPlateDetectionLog(int logId = default,
@@ -111,7 +111,7 @@ namespace Biovation.Repository.Sql.v2
                     new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
                 };
 
-                var res =  _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters).Data.FirstOrDefault();
+                var res = _repository.ToResultList<ResultViewModel>("InsertManualPlateDetectionLog", parameters).Data.FirstOrDefault();
                 return res;
             });
         }

@@ -33,7 +33,7 @@ namespace Biovation.Repository.Api.v2
             return requestResult.Data;
         }
 
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
             int pageSize = default, string whereClause = "", string orderByClause = "", string token = default)
         {
@@ -57,7 +57,7 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("orderByClause", orderByClause);
             token ??= _biovationConfigurationManager.DefaultToken;
             restRequest.AddHeader("Authorization", token);
-            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<PlateDetectionLog>>>(restRequest);
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<ManualPlateDetectionLog>>>(restRequest);
             return requestResult.Data;
         }
 
