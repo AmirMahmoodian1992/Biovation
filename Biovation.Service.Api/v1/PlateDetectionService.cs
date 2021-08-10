@@ -17,7 +17,7 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel<LicensePlate> GetLicensePlate(string licensePlate = default, int entityId = default)
         {
-            var result =  _plateDetectionRepository.GetLicensePlate(licensePlate, entityId).Result;
+            var result = _plateDetectionRepository.GetLicensePlate(licensePlate, entityId).Result;
             if (result is null)
             {
                 return null;
@@ -44,7 +44,7 @@ namespace Biovation.Service.Api.v1
             int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return _plateDetectionRepository.GetPlateDetectionLog(firstLicensePlatePart,secondLicensePlatePart,thirdLicensePlatePart,fourthLicensePlatePart,logId, licensePlate, detectorId, fromDate, toDate,
+            return _plateDetectionRepository.GetAllPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token).Result;
         }
 

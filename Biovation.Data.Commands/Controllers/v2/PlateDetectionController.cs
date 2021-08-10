@@ -83,7 +83,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             if (manualLogData.ParentLog?.Id == 0)
             {
-                var parentLogData = _plateDetectionRepository.GetPlateDetectionLog(logId: parentLogId);
+                var parentLogData = _plateDetectionRepository.GetCameraPlateDetectionLog(logId: parentLogId);
                 if (parentLogData?.Data?.Data?.FirstOrDefault() is null || !parentLogData.Success)
                     return new ResultViewModel { Success = false, Code = 400, Message = "Wrong parent log id provided" };
 

@@ -341,6 +341,7 @@
     <None Remove="Scripts\03.SPs\0217-Create SelectManualPlateDetectionLog-UP.sql" />
     <None Remove="Scripts\03.SPs\0218-Create InsertManualPlateDetectionLog-UP.sql" />
     <None Remove="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />
+    <None Remove="Scripts\03.SPs\0220-Create SelectCameraPlateDetectionLogs-UP.sql" />
     <None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
     <None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
     <None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -703,6 +704,7 @@
     <EmbeddedResource Include="Scripts\03.SPs\0200-Create SelectPreviousPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0215-Create UpdateCamera-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0218-Create InsertManualPlateDetectionLog-UP.sql" />
+    <EmbeddedResource Include="Scripts\03.SPs\0220-Create SelectCameraPlateDetectionLogs-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0217-Create SelectManualPlateDetectionLog-UP.sql" />
     <EmbeddedResource Include="Scripts\03.SPs\0216-Create DeleteCamera-UP.sql" />
