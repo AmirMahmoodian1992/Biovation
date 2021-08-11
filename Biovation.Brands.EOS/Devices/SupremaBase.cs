@@ -444,13 +444,19 @@ namespace Biovation.Brands.EOS.Devices
                 try
                 {
                     lock (_clock)
+                    {
+                        Thread.Sleep(3000);
+                        var deviceTime = _clock.GetDateTime();
+                        Logger.Log($"The device time is: {deviceTime.ToString(CultureInfo.CurrentCulture)}");
+                        Thread.Sleep(3000);
                         _clock.SetDateTime(DateTime.Now);
-
+                        Logger.Log($"Successfully SetDateTime to {DateTime.Now}");
+                    }
                     return true;
                 }
                 catch (Exception exception)
                 {
-                    Logger.Log(exception);
+                    Logger.Log(exception, exception.Message);
                     Thread.Sleep(++i * 200);
                 }
             }
