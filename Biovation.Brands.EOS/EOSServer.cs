@@ -104,14 +104,14 @@ namespace Biovation.Brands.EOS
                     //var res = _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result;
                     var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
                     restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                    var res = _restClient.ExecuteAsync<ResultViewModel>(restRequest).Result;
+                    _ =  _restClient.ExecuteAsync<ResultViewModel>(restRequest).ConfigureAwait(false);
 
-                    _logService.AddLog(new Log
+                    _ = _logService.AddLog(new Log
                     {
                         DeviceId = deviceInfo.DeviceId,
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.Connect
-                    });
+                    }).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
