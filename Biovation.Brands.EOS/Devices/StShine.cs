@@ -207,7 +207,15 @@ namespace Biovation.Brands.EOS.Devices
 
         private bool IsConnected()
         {
-            _logger.Debug("Create Connection to device {deviceCode} on {deviceIpAddress}:{devicePort}", DeviceInfo.Code, DeviceInfo.IpAddress, DeviceInfo.Port);
+            uint deviceCode;
+            string deviceIpPort;
+
+            lock (DeviceInfo)
+            {
+                deviceCode = DeviceInfo.Code;
+                deviceIpPort = DeviceInfo.IpAddress + " : " + DeviceInfo.Port;
+            }
+            _logger.Debug("Create Connection to device {deviceCode} on {deviceIpAddress}", deviceCode, deviceIpPort);
             lock (DeviceInfo)
             {
                 var connection =
@@ -216,7 +224,7 @@ namespace Biovation.Brands.EOS.Devices
                     _clock = new Clock(connection, ProtocolType.Hdlc, 1, _protocolType);
             }
 
-            _logger.Debug("Connecting to device {deviceCode}", DeviceInfo.Code);
+            _logger.Debug("Connecting to device {deviceCode}", deviceCode);
 
             lock (_clock)
                 if (_clock.TestConnection())
@@ -225,21 +233,14 @@ namespace Biovation.Brands.EOS.Devices
                     return true;
                 }
 
-            uint deviceCode;
-            string deviceIpAddress;
 
-            lock (DeviceInfo)
-            {
-                deviceCode = DeviceInfo.Code;
-                deviceIpAddress = DeviceInfo.IpAddress;
-            }
 
             while (Valid)
             {
-                _logger.Debug("Could not connect to device {deviceCode} --> IP: {deviceIpAddress}", deviceCode, deviceIpAddress);
+                _logger.Debug("Could not connect to device {deviceCode} --> IP: {deviceIpAddress}", deviceCode, deviceIpPort);
 
                 Thread.Sleep(10000);
-                _logger.Debug("Retrying connect to device {deviceCode} --> IP: {deviceIpAddress}", deviceCode, deviceIpAddress);
+                _logger.Debug("Retrying connect to device {deviceCode} --> IP: {deviceIpAddress}", deviceCode, deviceIpPort);
 
                 lock (_clock)
                     if (_clock.TestConnection())
