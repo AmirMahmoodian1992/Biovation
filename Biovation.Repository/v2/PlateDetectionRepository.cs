@@ -43,8 +43,8 @@ namespace Biovation.Repository.Sql.v2
             return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
-        public ResultViewModel<PagingResult<PlateDetectionLog>> GetCameraPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
-        int pageSize = default, int nestingDepthLevel = 4)
+        public ResultViewModel<PagingResult<ManualPlateDetectionLog>> GetCameraPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+            int pageSize = default, string whereClause = default, string orderByClause = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
                 {
@@ -63,15 +63,17 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@SuccessTransfer", SqlDbType.Bit) {Value = successTransfer},
                      new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
                      new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
+                     new SqlParameter("@Where", string.IsNullOrWhiteSpace(whereClause) ? "" : whereClause),
+                     new SqlParameter("@Order", string.IsNullOrWhiteSpace(orderByClause) ? "" : orderByClause)
                 };
-            return _repository.ToResultList<PagingResult<PlateDetectionLog>>("SelectCameraPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectCameraPlateDetectionLogs", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
 
         public ResultViewModel<PagingResult<ManualPlateDetectionLog>> GetManualPlateDetectionLog(int logId = default,
             long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default,
             DateTime fromDate = default, DateTime toDate = default, int minPrecision = 0, int maxPrecision = 0,
             bool withPic = true, bool successTransfer = false, int pageNumber = default, int pageSize = default,
-            string whereClause = default, string orderByClause = default)
+            string whereClause = default, string orderByClause = default, int nestingDepthLevel = 4)
         {
             var parameters = new List<SqlParameter>
                 {
@@ -91,7 +93,7 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@Where", string.IsNullOrWhiteSpace(whereClause) ? "" : whereClause),
                      new SqlParameter("@Order", string.IsNullOrWhiteSpace(orderByClause) ? "" : orderByClause),
                 };
-            return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectManualPlateDetectionLog", parameters, fetchCompositions: true).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<ManualPlateDetectionLog>>("SelectManualPlateDetectionLog", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
         public Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log)
         {
