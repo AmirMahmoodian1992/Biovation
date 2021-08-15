@@ -49,7 +49,7 @@ namespace Biovation.Server.Controllers.v2
         [Route("{parentLogId:int}/ManualPlateDetectionLog")]
         public async Task<ResultViewModel> AddManualPlateDetectionLogOfExistLog([FromRoute] int parentLogId, [FromBody] PlateDetectionLog manualLogData)
         {
-            var parentLogData = await _plateDetectionService.GetPlateDetectionLog(logId: parentLogId);
+            var parentLogData = await _plateDetectionService.GetAllPlateDetectionLog(logId: parentLogId);
             if (parentLogData?.Data?.Data?.FirstOrDefault() is null || !parentLogData.Success)
                 return new ResultViewModel { Success = false, Code = 400, Message = "Wrong parent log id provided" };
 
@@ -64,7 +64,7 @@ namespace Biovation.Server.Controllers.v2
         [HttpGet]
         [Authorize]
         [Route("PlateDetectionLog")]
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetAllPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
@@ -72,7 +72,22 @@ namespace Biovation.Server.Controllers.v2
             int pageSize = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            return await _plateDetectionService.GetPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
+            return await _plateDetectionService.GetAllPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("CameraPlateDetectionLog")]
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetCameraPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
+            string licensePlate = default, int detectorId = default, DateTime fromDate = default,
+            DateTime toDate = default,
+            int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
+            int pageNumber = default,
+            int pageSize = default)
+        {
+            var token = HttpContext.Items["Token"] as string;
+            return await _plateDetectionService.GetCameraPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 

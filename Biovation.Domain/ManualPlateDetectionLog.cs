@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DataAccessLayerCore.Attributes;
+using System;
 
 namespace Biovation.Domain
 {
@@ -15,7 +16,9 @@ namespace Biovation.Domain
             }
         }
 
+        [OneToOne]
         public User User { get; set; }
+        [OneToOne]
         public PlateDetectionLog ParentLog { get; set; }
     }
 }

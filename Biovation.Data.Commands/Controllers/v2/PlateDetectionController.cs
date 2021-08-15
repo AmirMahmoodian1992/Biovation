@@ -59,18 +59,18 @@ namespace Biovation.Data.Commands.Controllers.v2
         [HttpPost]
         [Authorize]
         [Route("ManualPlateDetectionLog")]
-        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] PlateDetectionLog manualLogData)
+        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] ManualPlateDetectionLog manualLogData)
         {
             var applicantUser = HttpContext.GetUser();
             if (applicantUser is null || applicantUser.Id == 0)
                 return new ResultViewModel { Success = false, Code = 400, Message = "User of request is empty, Could not find the applicant user." };
 
-            var plateDetectionLogData = new ManualPlateDetectionLog(manualLogData)
-            {
-                User = applicantUser
-            };
-
-            return await _plateDetectionRepository.AddManualPlateDetectionLog(plateDetectionLogData);
+            //var plateDetectionLogData = new ManualPlateDetectionLog(manualLogData)
+            //{
+            //    User = applicantUser
+            //};
+            manualLogData.User = applicantUser;
+            return await _plateDetectionRepository.AddManualPlateDetectionLog(manualLogData);
         }
 
         [HttpPut]
@@ -83,7 +83,7 @@ namespace Biovation.Data.Commands.Controllers.v2
 
             if (manualLogData.ParentLog?.Id == 0)
             {
-                var parentLogData = _plateDetectionRepository.GetPlateDetectionLog(logId: parentLogId);
+                var parentLogData = _plateDetectionRepository.GetCameraPlateDetectionLog(logId: parentLogId);
                 if (parentLogData?.Data?.Data?.FirstOrDefault() is null || !parentLogData.Success)
                     return new ResultViewModel { Success = false, Code = 400, Message = "Wrong parent log id provided" };
 

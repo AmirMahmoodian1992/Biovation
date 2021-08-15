@@ -40,16 +40,16 @@ namespace Biovation.Domain
         public TimeSpan EndTime { get; set; }
 
 
-        public const string PlatePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
+        //public const string PlatePattern = @"[۰-۹][۰-۹][آ-ی][۰-۹][۰-۹][۰-۹][۰-۹][۰-۹]";
 
         private void FormatPlate(string licensePlateNumber)
         {
             try
             {
-                var regexDetect = Regex.Match(licensePlateNumber, PlatePattern);
-                if (!regexDetect.Success) return;
-                for (var i = 48; i < 58; i++)
-                    licensePlateNumber = licensePlateNumber.Replace(Convert.ToChar(1728 + i), Convert.ToChar(i));
+                //var regexDetect = Regex.Match(licensePlateNumber, PlatePattern);
+                //if (!regexDetect.Success) return;
+                //for (var i = 48; i < 58; i++)
+                licensePlateNumber = ToEnglishNumber(licensePlateNumber);
 
                 FirstPart = Convert.ToInt32(licensePlateNumber.Substring(6, 2));
                 SecondPart = licensePlateNumber.Substring(2, 1);
@@ -65,8 +65,8 @@ namespace Biovation.Domain
         public void FillLicensePlateNumber(int firstPart, string secondPart, int thirdPart, int fourthPart)
         {
             var licensePlateNumber = fourthPart + secondPart + thirdPart + firstPart;
-            for (var i = 48; i < 58; i++)
-                licensePlateNumber = licensePlateNumber.Replace(Convert.ToChar(i), Convert.ToChar(1728 + i));
+
+            licensePlateNumber = ToEnglishNumber(licensePlateNumber);
 
             FirstPart = firstPart;
             SecondPart = secondPart;
@@ -75,11 +75,27 @@ namespace Biovation.Domain
 
             LicensePlateNumber = licensePlateNumber;
         }
-
-        public bool ValidateLicensePlateFormat()
+        public static string ToEnglishNumber(string input)
         {
-            var regexDetect = Regex.Match(LicensePlateNumber, PlatePattern);
-            return regexDetect.Success;
+            if (input == null) return "";
+            string EnglishNumbers = "";
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (Char.IsDigit(input[i]))
+                {
+                    EnglishNumbers += char.GetNumericValue(input, i);
+                }
+                else
+                {
+                    EnglishNumbers += input[i].ToString();
+                }
+            }
+            return EnglishNumbers;
         }
+        //public bool ValidateLicensePlateFormat()
+        //{
+        //    var regexDetect = Regex.Match(LicensePlateNumber, PlatePattern);
+        //    return regexDetect.Success;
+        //}
     }
 }

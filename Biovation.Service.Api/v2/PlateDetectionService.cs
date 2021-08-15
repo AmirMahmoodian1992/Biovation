@@ -19,14 +19,25 @@ namespace Biovation.Service.Api.v2
             return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId, token);
         }
 
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetAllPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
             int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return await _plateDetectionRepository.GetPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
+            return await _plateDetectionRepository.GetAllPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+        }
+
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetCameraPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
+            string licensePlate = default, int detectorId = default, DateTime fromDate = default,
+            DateTime toDate = default,
+            int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
+            int pageNumber = default,
+            int pageSize = default, string token = default)
+        {
+            return await _plateDetectionRepository.GetCameraPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 
