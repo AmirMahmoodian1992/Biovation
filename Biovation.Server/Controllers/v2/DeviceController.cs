@@ -73,6 +73,32 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
             var token = HttpContext.Items["Token"] as string;
+            try
+            {
+                device.IpAddress = device.IpAddress.Trim();
+                var validateIpAddress = IPv4.IsValidIPv4Address(device.IpAddress);
+                if (!validateIpAddress)
+                {
+                    return new ResultViewModel
+                    {
+                        Success = false, Code = 502, Id = device.Code,
+                        Message = @"آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                    };
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Code = 502,
+                    Id = device.Code,
+                    Message = "آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                };
+            }
+
             var result = await _deviceService.ModifyDevice(device, token);
             if (result.Validate != 1) return result;
 
@@ -92,8 +118,36 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
+        public async Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device)
         {
+            try
+            {
+                device.IpAddress = device.IpAddress.Trim();
+                var validateIpAddress = IPv4.IsValidIPv4Address(device.IpAddress);
+                if (!validateIpAddress)
+                {
+                    return new ResultViewModel
+                    {
+                        Success = false,
+                        Code = 502,
+                        Id = device.Code,
+                        Message = @"آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                    };
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Code = 502,
+                    Id = device.Code,
+                    Message = "آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                };
+            }
+
             return await _deviceService.AddDevice(device, HttpContext.Items["Token"] as string);
         }
 
