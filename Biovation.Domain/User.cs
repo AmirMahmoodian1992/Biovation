@@ -136,6 +136,11 @@ namespace Biovation.Domain
         [OneToOne]
         public IdentityCard IdentityCard { get; set; }
 
+        public int FaceTemplatesCount { get; set; }
+        public int FingerTemplatesCount { get; set; }
+        public int IrisTemplatesCount { get; set; }
+        public int IdentityCardsCount { get; set; }
+
         public int GetStartDateInTicks()
         {
             var refDate = new DateTime(1970, 1, 1).Ticks / 10000000;

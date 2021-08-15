@@ -112,6 +112,10 @@ namespace Biovation.Brands.Virdi.Command
                     var surName = indexOfSpace > 0
                         ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim()
                         : userName;
+                    var fingerCount = _terminalUserData.TotalFingerCount;
+                    var irisCount = _terminalUserData.IrisDataLength > 1 ? 1 : 0;
+                    var faceCount = _terminalUserData.FaceNumber;
+                    var cardCount = _terminalUserData.CardNumber;
 
                     Logger.Log($@"<--EventGetUserInfoList
     +TerminalID:{terminalId}
@@ -150,7 +154,11 @@ namespace Biovation.Brands.Virdi.Command
                         FirstName = firstName,
                         SurName = surName,
                         IsActive = true,
-                        ImageBytes = picture
+                        ImageBytes = picture,
+                        FingerTemplatesCount = fingerCount,
+                        FaceTemplatesCount = faceCount,
+                        IrisTemplatesCount = irisCount,
+                        IdentityCardsCount = cardCount
                     };
                     //user.Id = _commonUserService.GetUsers(code: _terminalUserData.UserID, withPicture: false)?.FirstOrDefault()?.Id == null
                     //    ? 0
