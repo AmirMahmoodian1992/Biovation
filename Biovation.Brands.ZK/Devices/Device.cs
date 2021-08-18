@@ -379,10 +379,10 @@ namespace Biovation.Brands.ZK.Devices
 
                 await _taskService.ProcessQueue(_deviceBrands.ZkTeco, DeviceInfo.DeviceId).ConfigureAwait(false);
                 //_taskManager.ProcessQueue(DeviceInfo.DeviceId);
-                await CheckConnection(cancellationToken);
                 _logger.Debug(
                     $"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
+                await CheckConnection(cancellationToken);
                 return true;
             }, cancellationToken);
         }
@@ -1200,6 +1200,7 @@ namespace Biovation.Brands.ZK.Devices
                                                 IsActive = true
                                                 //Id = (int)user.Id
                                             };
+                                            user.IdentityCardsCount++;
                                             _logger.Debug($"Retried user card of user {iUserId}, index: {index}");
                                         }
                                         else
@@ -1244,6 +1245,7 @@ namespace Biovation.Brands.ZK.Devices
                                             };
 
                                             retrievedFingerTemplates.Add(fingerTemplate);
+                                            user.FingerTemplatesCount++;
                                         }
                                         else
                                         {
@@ -1288,6 +1290,7 @@ namespace Biovation.Brands.ZK.Devices
                                             };
 
                                             retrievedFaceTemplates.Add(faceTemplate);
+                                            user.FaceTemplatesCount++;
                                         }
                                         else
                                         {

@@ -133,6 +133,7 @@ namespace Biovation.Brands.EOS.Devices
 
         public bool DisconnectFromDevice()
         {
+            Thread.Sleep(500);
             try
             {
                 Valid = false;
@@ -146,17 +147,21 @@ namespace Biovation.Brands.EOS.Devices
             {
                 return false;
             }
+            lock (_onlineDevices)
+            {
+                Logger.Log(@$"Disconnect From Device with DeviceCode {DeviceInfo.Code}");
+            }
+            Thread.Sleep(500);
             return true;
         }
 
 
         public bool ConnectToDevice()
         {
-
+            Thread.Sleep(500);
             Valid = true;
             var isConnect = IsConnected();
             if (!isConnect) return false;
-
             lock (_onlineDevices)
             {
                 if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
@@ -164,7 +169,7 @@ namespace Biovation.Brands.EOS.Devices
                     _onlineDevices.Add(DeviceInfo.Code, this);
                 }
             }
-
+            Thread.Sleep(500);
             return true;
         }
 
@@ -216,6 +221,7 @@ namespace Biovation.Brands.EOS.Devices
                 deviceIpPort = DeviceInfo.IpAddress + " : " + DeviceInfo.Port;
             }
             _logger.Debug("Create Connection to device {deviceCode} on {deviceIpAddress}", deviceCode, deviceIpPort);
+            Logger.Log(@$"Create Connection to device {deviceCode} on {deviceIpPort}");
             lock (DeviceInfo)
             {
                 var connection =
@@ -225,7 +231,8 @@ namespace Biovation.Brands.EOS.Devices
             }
 
             _logger.Debug("Connecting to device {deviceCode}", deviceCode);
-
+            Logger.Log(@$"Connecting to device {deviceCode}");
+            Thread.Sleep(500);
             lock (_clock)
                 if (_clock.TestConnection())
                 {
@@ -1595,7 +1602,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (deviceConnected && Valid && writePointer != -1)
                 {
                     var initialReadPointer = writePointer;
-                    _logger.Debug($"The initial pointer is: {initialReadPointer}");
+                    _logger.Debug($"The initial pointer in Read Offline Logs is: {initialReadPointer}");
 
                     var leftBoundary = writePointer - 1;
 
@@ -1637,6 +1644,7 @@ namespace Biovation.Brands.EOS.Devices
                                 {
                                     lock (_clock)
                                     {
+                                        Thread.Sleep(500);
                                         clockRecord = (ClockRecord)_clock.GetRecord();
                                     }
 
@@ -1650,11 +1658,10 @@ namespace Biovation.Brands.EOS.Devices
                             }
 
 
-                            _logger.Debug($"First datetime {clockRecord.DateTime}");
+                            _logger.Debug($"First datetime in ReadOfflineLog {clockRecord.DateTime} with DeviceCode {DeviceInfo.Code}");
 
                             var exceptionRecordCount = 0;
-                            var goalDateTime = new DateTime(startTime.Value.Year, startTime.Value.Month,
-                                startTime.Value.Day - 7);
+                            var goalDateTime = startTime.Value.AddDays(-7);
 
                             //First Try
                             var firstReturnedDateTime = EosSearch(ref firstIndex, ref exceptionRecordCount, goalDateTime, 0, leftBoundary,
@@ -1705,7 +1712,7 @@ namespace Biovation.Brands.EOS.Devices
                                     }
 
                                     _logger.Debug(
-                                        $@"First Read Offline log from {firstReturnedDateTime} with index {firstIndex}");
+                                        $@"First Read Offline log from {firstReturnedDateTime} with index {firstIndex} and deviceCode {DeviceInfo.Code}");
                                 }
                                 else if (exceptionRecordCount <= 2 * MaxExceptionRecordCount)
                                 {
@@ -1732,13 +1739,13 @@ namespace Biovation.Brands.EOS.Devices
 
                                     }
                                     _logger.Debug(
-                                        $@"First Read Offline log from {secondReturnedDateTime} with index {secondIndex}");
+                                        $@"Second Read Offline log from {secondReturnedDateTime} with index {secondIndex} and deviceCode {DeviceInfo.Code}");
                                 }
                             }
                             else
                             {
                                 _logger.Debug(
-                                    $@"First Read Offline log from {firstReturnedDateTime} with index {firstIndex} without computing the second one");
+                                    $@"First Read Offline log from {firstReturnedDateTime} with index {firstIndex} without computing the second one and deviceCode {DeviceInfo.Code}");
                             }
                         }
                         catch (Exception e)
@@ -1812,8 +1819,8 @@ namespace Biovation.Brands.EOS.Devices
 
             var successSetPointer = false;
             ClockRecord clockRecord = null;
-            Logger.Log("THe beginOfInterval: " + beginOfInterval);
-            Logger.Log("THe endOfInterval: " + endOfInterval);
+            Logger.Log("THe beginOfInterval in EosSearch: " + beginOfInterval);
+            Logger.Log("THe endOfInterval in EosSearch: " + endOfInterval);
             if (Math.Abs(beginOfInterval - endOfInterval) < 2)
             {
                 return prevDateTime;
@@ -1848,7 +1855,6 @@ namespace Biovation.Brands.EOS.Devices
                     Thread.Sleep(++i * 100);
                 }
             }
-
             if (clockRecord == null)
             {
                 return EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, beginOfInterval, currentIndex, prevDateTime);
