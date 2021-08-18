@@ -185,8 +185,15 @@ namespace Biovation.Brands.ZK.Manager
                             {
                                 executeTask = Task.Run(() =>
                                 {
-                                    result = (ResultViewModel)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
-                                        new List<object> { taskItem.DeviceId, taskItem.Id }).Execute();
+                                    var retrieveAllUsersResult = (ResultViewModel<List<User>>)_commandFactory.Factory(CommandType.RetrieveUsersListFromDevice,
+                                        new List<object> { taskItem }).Execute();
+                                    result = new ResultViewModel
+                                    {
+                                        Id = retrieveAllUsersResult.Id,
+                                        Validate = retrieveAllUsersResult.Validate,
+                                        Code = retrieveAllUsersResult.Code,
+                                        Message = retrieveAllUsersResult.Message
+                                    };
                                 });
 
                             }
@@ -332,7 +339,6 @@ namespace Biovation.Brands.ZK.Manager
                             break;
                         }
 
-                    #region MyRegion
 
                     case TaskItemTypes.UserAdaptationCode:
                         {
@@ -352,7 +358,6 @@ namespace Biovation.Brands.ZK.Manager
 
                             break;
                         }
-                        #endregion
 
                 }
 

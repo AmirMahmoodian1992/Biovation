@@ -159,7 +159,7 @@ namespace Biovation.Brands.ZK.Command
                 case CommandType.RetrieveUsersListFromDevice:
                     //Unlocks the device
                     {
-                        return new ZkRetrieveUsersListFromTerminal(transferModelData.Items, _onlineDevices, _deviceService, _taskService);
+                        return new ZkRetrieveUsersListFromTerminal(transferModelData.Items, _onlineDevices, _deviceService);
                     }
                 //Get some data like mac,firmware and etc from device
                 case CommandType.GetDeviceAdditionalData:
@@ -180,7 +180,7 @@ namespace Biovation.Brands.ZK.Command
 
                 #region Tools
                 case CommandType.UserAdaptation:
-                    return new ZkUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService,_taskTypes,_taskService, _taskStatuses, _taskItemTypes,_taskPriorities,_userService,_restClient);
+                    return new ZkUserAdaptation(transferModelData.Items, _onlineDevices, _deviceService, _taskTypes, _taskService, _taskStatuses, _taskItemTypes, _taskPriorities, _userService, _restClient);
                 #endregion
 
                 #endregion
