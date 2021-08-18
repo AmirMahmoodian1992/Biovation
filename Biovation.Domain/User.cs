@@ -136,10 +136,69 @@ namespace Biovation.Domain
         [OneToOne]
         public IdentityCard IdentityCard { get; set; }
 
-        public int FaceTemplatesCount { get; set; }
-        public int FingerTemplatesCount { get; set; }
-        public int IrisTemplatesCount { get; set; }
-        public int IdentityCardsCount { get; set; }
+        private int _faceTemplatesCount;
+
+        public int FaceTemplatesCount
+        {
+            get
+            {
+                if (FaceTemplates is not null && (_faceTemplatesCount == default || (FaceTemplates.Count != 0 && _faceTemplatesCount != FaceTemplates.Count)))
+                {
+                    return FaceTemplates.Count;
+                }
+                return _faceTemplatesCount;
+            }
+            set => _faceTemplatesCount = value;
+        }
+
+        private int _fingerTemplatesCount;
+
+        public int FingerTemplatesCount
+        {
+            get
+            {
+                if (FingerTemplates is not null && (_fingerTemplatesCount == default || (FingerTemplates.Count != 0 && _fingerTemplatesCount != FingerTemplates.Count)))
+                {
+                    return FingerTemplates.Count;
+                }
+                return _fingerTemplatesCount;
+            }
+            set => _fingerTemplatesCount = value;
+        }
+
+        private int _irisTemplatesCount;
+
+        public int IrisTemplatesCount
+        {
+            get
+            {
+                if (IrisTemplates is not null && (_irisTemplatesCount == default || (IrisTemplates.Count != 0 && _irisTemplatesCount != IrisTemplates.Count)))
+                {
+                    return IrisTemplates.Count;
+                }
+                return _irisTemplatesCount;
+            }
+            set => _irisTemplatesCount = value;
+        }
+
+        private int _identityCardsCount;
+        public int IdentityCardsCount
+        {
+            get
+            {
+                if (_identityCardsCount == default && IdentityCard is not null)
+                {
+                    return 1;
+                }
+                return _identityCardsCount;
+            }
+            set => _identityCardsCount = value;
+        }
+
+
+        //public int FingerTemplatesCount { get; set; }
+        //public int IrisTemplatesCount { get; set; }
+        //public int IdentityCardsCount { get; set; }
 
         public int GetStartDateInTicks()
         {
