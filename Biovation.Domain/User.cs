@@ -194,11 +194,7 @@ namespace Biovation.Domain
             }
             set => _identityCardsCount = value;
         }
-
-
-        //public int FingerTemplatesCount { get; set; }
-        //public int IrisTemplatesCount { get; set; }
-        //public int IdentityCardsCount { get; set; }
+        
 
         public int GetStartDateInTicks()
         {
