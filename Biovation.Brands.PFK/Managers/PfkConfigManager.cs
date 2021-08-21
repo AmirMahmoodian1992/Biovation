@@ -1,4 +1,5 @@
-﻿using Biovation.Domain;
+﻿using Biovation.Constants;
+using Biovation.Domain;
 using PFKParkingLibrary.Data;
 using PFKParkingLibrary.Devices;
 using System;
@@ -7,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
+using Logger = Biovation.CommonClasses.Logger;
+using LogType = Biovation.CommonClasses.LogType;
 
 namespace Biovation.Brands.PFK.Managers
 {
@@ -24,8 +27,10 @@ namespace Biovation.Brands.PFK.Managers
             var plateDetectionResultPath = Path.Combine(executingPath!, $@"PlateReader\Result{cameraInfo.Code}");
             var plateDetectionInstancePath = Path.Combine(executingPath!, $@"PlateReader\LPR{cameraInfo.Code}");
 
+            Logger.Log($"Configuring Camera: {cameraInfo.Code}");
             if (!Directory.Exists(plateDetectionInstancePath))
             {
+                Logger.Log("The main LPR directory does not exist, creating the directory");
                 Directory.CreateDirectory(plateDetectionInstancePath);
 
                 var files = Directory.GetFiles(Path.Combine(executingPath, @"PlateReader\LPR0"));
@@ -38,10 +43,16 @@ namespace Biovation.Brands.PFK.Managers
             var configGenerationResult = Generate(plateDetectionInstancePath);
             if (configGenerationResult == ResultEnum.OK || configGenerationResult == ResultEnum.FileExist)
             {
-                /*var outputConfigResult = */SetOutPutConfig(plateDetectionInstancePath, plateDetectionBasePath, "H:", plateDetectionResultPath);
-                /*var inputImageConfigResult = */SetInputImageConfig(plateDetectionInstancePath, cameraInfo.ImageWidth, cameraInfo.ImageHeight, 3);
-                /*var cpuConfigResult = */SetCpuConfig(plateDetectionInstancePath, 240);
-                /*var calibrationConfigResult = */SetCalibrationConfig(plateDetectionInstancePath, 0, 15, 0, 3000, 2);
+                Logger.Log($"File generation result: {(configGenerationResult == ResultEnum.OK ? "OK" : "FileExists")}");
+                var outputConfigResult = SetOutPutConfig(plateDetectionInstancePath, plateDetectionBasePath, "H:", plateDetectionResultPath);
+                var inputImageConfigResult = SetInputImageConfig(plateDetectionInstancePath, cameraInfo.ImageWidth, cameraInfo.ImageHeight, 3);
+                //var cpuConfigResult = SetCpuConfig(plateDetectionInstancePath, 240);
+                //var calibrationConfigResult = SetCalibrationConfig(plateDetectionInstancePath, 0, 15, 0, 3000, 2);
+
+                Logger.Log(
+                    //$"The Output Config Result = {outputConfigResult},{Environment.NewLine}    Input Image Config Result = {inputImageConfigResult},{Environment.NewLine}   Cpu Config Result = {cpuConfigResult},{Environment.NewLine}    Calibration Config Result = {calibrationConfigResult}",
+                    $"The Output Config Result = {outputConfigResult},{Environment.NewLine}    Input Image Config Result = {inputImageConfigResult},{Environment.NewLine}",
+                    string.Empty, LogType.Information);
             }
 
 
@@ -64,14 +75,15 @@ namespace Biovation.Brands.PFK.Managers
 
             //config.CamID = 0;
             config.CamID = (int)cameraInfo.Id;
+            Logger.Log($"Camera {cameraInfo.Code} IP is : {cameraInfo.ConnectionInfo.Ip}");
             config.CameraConfig = new IpCamerConfig
             {
-                CameraIP = cameraAddress,
+                CameraIP = string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? cameraInfo.ConnectionInfo.Ip : cameraAddress,
                 CameraImageHeight = cameraInfo.ImageHeight,
                 CameraImageWidth = cameraInfo.ImageWidth,
                 CameraPass = cameraConnectionPassword,
                 CameraRecordinFolder = $@"{executingPath}\PlateReader\Record{cameraInfo.Code}",
-                CameraType = CameraType.RTSP,
+                CameraType = string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? CameraType.PanasonicNew : CameraType.RTSP,
                 CameraUserName = cameraConnectionUserName,
                 CameraofflinePath = default,
                 ConnectToCamera = true,
@@ -141,7 +153,7 @@ namespace Biovation.Brands.PFK.Managers
             config.RemoteConfig = new RemoteConfig
             {
                 RemoteServerIP = "127.0.0.1",
-                RemoteServerPort = 4249,
+                RemoteServerPort = (int)(4249 + 6 * (cameraInfo.Code % 350) + 1),
                 ServerIsOnLocalPc = true,
                 ShowRemoteWindow = true
             };
@@ -156,11 +168,11 @@ namespace Biovation.Brands.PFK.Managers
             config.SaveRowPlatesPath2 = $@"{executingPath}\PlateReader\Logs\RowPlates{cameraInfo.Code}_2";
             config.SenderConfig = new SenderConfig
             {
-                DfsIndex = 0,
+                DfsIndex = (int)cameraInfo.Code,
                 DisableOCR = false,
                 SenderIP = "127.0.0.1",
                 SenderMaximumdelaySecond = 2,
-                SenderPort = (int) (11124 + cameraInfo.Id),
+                SenderPort = (int)(11124 + 6 * (cameraInfo.Code % 350) + 1),
                 //SenderResulSavePath = $@"D:\PlateLogs\Result{cameraInfo.DeviceId}",
                 //SenderResulSavePath = $@"D:\LPR{cameraInfo.Code}",
                 SenderResulSavePath = plateDetectionResultPath,
@@ -186,8 +198,9 @@ namespace Biovation.Brands.PFK.Managers
                     return;
                 Directory.CreateDirectory(path);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
+                Logger.Log(exception);
             }
         }
 
@@ -216,28 +229,48 @@ namespace Biovation.Brands.PFK.Managers
         {
             if (!File.Exists(path + "\\basic_param.XML"))
                 return ResultEnum.FileNotExist;
+
+
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(path + "\\basic_param.XML");
+            Logger.Log($"Checking watch dog folder existence on: {watchDogFolder}");
             MakeDirectory(watchDogFolder);
             if (!Directory.Exists(watchDogFolder))
+            {
+                Logger.Log("Watch dog directory does not exist");
                 return ResultEnum.DirNotValid;
+            }
+            watchDogFolder = "\"" + watchDogFolder.Trim('\"') + "\"";
             xmlDocument.SelectSingleNode("opencv_storage/BASE_FOLDER_FOR_SAVE").ChildNodes[0].InnerText = watchDogFolder;
+
+            Logger.Log($"Checking log folder existence on: {logFolder}");
             MakeDirectory(logFolder);
             if (!Directory.Exists(logFolder))
+            {
+                Logger.Log("Log directory does not exist");
                 return ResultEnum.DirNotValid;
+            }
+            logFolder = "\"" + logFolder.Trim('\"') + "\"";
             xmlDocument.SelectSingleNode("opencv_storage/BASE_RAM_DISK_FOLDER").ChildNodes[0].InnerText = logFolder;
+
+            Logger.Log($"Checking result folder existence on: {resultFolder}");
             MakeDirectory(resultFolder);
             if (!Directory.Exists(resultFolder))
+            {
+                Logger.Log("Result directory does not exist");
                 return ResultEnum.DirNotValid;
+            }
+            resultFolder = "\"" + resultFolder.Trim('\"') + "\"";
             xmlDocument.SelectSingleNode("opencv_storage/saveResultFolderPath").ChildNodes[0].InnerText = resultFolder;
             try
             {
+                //Logger.Log(xmlDocument.InnerText);
                 xmlDocument.Save(path + "\\basic_param.XML");
                 return ResultEnum.OK;
             }
             catch (Exception ex)
             {
-                CommonClasses.Logger.Log(ex);
+                Logger.Log(ex);
                 return ResultEnum.Exception;
             }
         }
@@ -286,7 +319,7 @@ namespace Biovation.Brands.PFK.Managers
                 return ResultEnum.FileExist;
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.Load(path + "\\basic_param.XML");
-            XmlNodeList childNodes = xmlDocument.SelectSingleNode("opencv_storage /GRAB_IMAGE_CONFIG").ChildNodes;
+            XmlNodeList childNodes = xmlDocument.SelectSingleNode("opencv_storage/GRAB_IMAGE_CONFIG").ChildNodes;
             int num;
             if (grabImageCols > 0)
             {

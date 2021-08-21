@@ -121,7 +121,7 @@ namespace Biovation.Brands.PFK.Devices
             Logger.Log($@"Plate Detected by :  {source}
     Plate detail:
 [ Detected Plate ] = {detectedPlate.DetectedPlate}
-[ Detected Plate Id] = {detectedPlate.ID}
+[ Detected Plate Camera Id] = {detectedPlate.CameraID}
 [ Detected Plate Accuracy ] = {detectedPlate.Accuracy}
 [ Detected Plate Key ] = {detectedPlate.PlateDetectionKey}
 [ Detected Plate Data Folder Path] = {detectedPlate.DataFolderPath}
@@ -139,7 +139,7 @@ namespace Biovation.Brands.PFK.Devices
             Logger.Log($@"Plate Updated by :  {source}
     Plate detail:
 [ Detected Plate ] = {updatedPlate.DetectedPlate}
-[ Detected Plate Id] = {updatedPlate.ID}
+[ Detected Plate Camera Id] = {updatedPlate.CameraID}
 [ Detected Plate Accuracy ] = {updatedPlate.Accuracy}
 [ Detected Plate Data Folder Path] = {updatedPlate.DataFolderPath}
 [ Detected Plate Direction] = {(updatedPlate.Direction == DirectionType.Ingoing ? "Ingoing" : "Outgoing")}
@@ -264,6 +264,7 @@ namespace Biovation.Brands.PFK.Devices
                     LogDateTime = DateTime.Now,
                     FullImage = frameImage,
                     PlateImage = plateImage,
+                    InOrOut = plate.Direction is null ? 0 : plate.Direction == DirectionType.Ingoing ? 1 : plate.Direction == DirectionType.Outgoing ? 2 : 0,
                     SuccessTransfer = false
                 };
 

@@ -123,7 +123,7 @@ namespace Biovation.Brands.PFK
         {
             Logger.Log($@"Log write by :   {source} 
     Log detail:
-[ Log Id ] = {log.ID}
+[ Log Camera Id ] = {log.ID}
 [ Log DateTime ] = {log.DateTime}
 [ Log Comment ] = {log.Comment}
 [ Log Item ] = {log.Item}
