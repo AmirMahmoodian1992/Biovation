@@ -4,11 +4,11 @@ using Biovation.CommonClasses.Interface;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Biovation.Brands.ZK.Command
 {
@@ -20,19 +20,17 @@ namespace Biovation.Brands.ZK.Command
         private Dictionary<uint, Device> OnlineDevices { get; }
         private int DeviceId { get; }
         private uint Code { get; }
-        private int TaskItemId { get; }
         private bool EmbedTemplate { get; }
 
-        public ZkRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService, TaskService taskService)
+        public ZkRetrieveUsersListFromTerminal(IReadOnlyList<object> items, Dictionary<uint, Device> devices, DeviceService deviceService)
         {
             OnlineDevices = devices;
             //DeviceId = Convert.ToInt32(items[0]);
             //TaskItemId = Convert.ToInt32(items[1]);
-            var taskItem = (TaskItem) items[0];
+            var taskItem = (TaskItem)items[0];
             DeviceId = taskItem.DeviceId;
-            TaskItemId = taskItem.Id;
             Code = (deviceService.GetDevices(brandId: DeviceBrands.ZkTecoCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0);
-            DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
+            //DeviceId = devices.FirstOrDefault(dev => dev.Key == Code).Value.GetDeviceInfo().DeviceId;
             //var taskItem = taskService.GetTaskItem(TaskItemId);
             var data = (JObject)JsonConvert.DeserializeObject(taskItem.Data);
             if (data != null) EmbedTemplate = Convert.ToBoolean(data["embedTemplate"]);
@@ -42,7 +40,13 @@ namespace Biovation.Brands.ZK.Command
             if (OnlineDevices.All(device => device.Key != Code))
             {
                 Logger.Log($"The device: {Code} is not connected.");
-                return new List<User>();
+                return new ResultViewModel<List<User>>
+                {
+                    Id = DeviceId,
+                    Data = new List<User>(),
+                    Success = true,
+                    Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode)
+                };
             }
 
             try
@@ -55,7 +59,13 @@ namespace Biovation.Brands.ZK.Command
             catch (Exception exception)
             {
                 Logger.Log(exception);
-                return new List<User>();
+                return new ResultViewModel<List<User>>
+                {
+                    Id = DeviceId,
+                    Data = new List<User>(),
+                    Code = Convert.ToInt64(TaskStatuses.FailedCode),
+                    Success = false
+                };
             }
         }
 

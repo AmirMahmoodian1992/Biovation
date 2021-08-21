@@ -137,33 +137,64 @@ namespace Biovation.Domain
         public IdentityCard IdentityCard { get; set; }
 
         private int _faceTemplatesCount;
-        private int _fingerTemplatesCount;
-        private int _irisTemplatesCount;
-        private int _identityCardsCount;
 
         public int FaceTemplatesCount
         {
-            get => _faceTemplatesCount == 0 ? FaceTemplates.Count : _faceTemplatesCount;
+            get
+            {
+                if (FaceTemplates is not null && (_faceTemplatesCount == default || (FaceTemplates.Count != 0 && _faceTemplatesCount != FaceTemplates.Count)))
+                {
+                    return FaceTemplates.Count;
+                }
+                return _faceTemplatesCount;
+            }
             set => _faceTemplatesCount = value;
         }
 
+        private int _fingerTemplatesCount;
+
         public int FingerTemplatesCount
         {
-            get => _fingerTemplatesCount == 0 ? FingerTemplates.Count : _fingerTemplatesCount;
+            get
+            {
+                if (FingerTemplates is not null && (_fingerTemplatesCount == default || (FingerTemplates.Count != 0 && _fingerTemplatesCount != FingerTemplates.Count)))
+                {
+                    return FingerTemplates.Count;
+                }
+                return _fingerTemplatesCount;
+            }
             set => _fingerTemplatesCount = value;
         }
 
+        private int _irisTemplatesCount;
+
         public int IrisTemplatesCount
         {
-            get => _irisTemplatesCount == 0 ? IrisTemplates.Count : _irisTemplatesCount;
+            get
+            {
+                if (IrisTemplates is not null && (_irisTemplatesCount == default || (IrisTemplates.Count != 0 && _irisTemplatesCount != IrisTemplates.Count)))
+                {
+                    return IrisTemplates.Count;
+                }
+                return _irisTemplatesCount;
+            }
             set => _irisTemplatesCount = value;
         }
 
+        private int _identityCardsCount;
         public int IdentityCardsCount
         {
-            get => _identityCardsCount == 0 ? IdentityCard is null ? 0 : 1 : _identityCardsCount;
+            get
+            {
+                if (_identityCardsCount == default && IdentityCard is not null)
+                {
+                    return 1;
+                }
+                return _identityCardsCount;
+            }
             set => _identityCardsCount = value;
         }
+        
 
         public int GetStartDateInTicks()
         {
