@@ -749,9 +749,9 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> RemoveUserFromDevice([FromRoute] int id = default, [FromRoute] int deviceId = default)
         {
             var token = HttpContext.Items["Token"] as string;
-            var restRequest = new RestRequest("v2/Device/{id}/UserFromDevice/{deviceId}", Method.DELETE);
-            restRequest.AddUrlSegment("id", deviceId);
-            restRequest.AddUrlSegment("deviceId", id);
+            var restRequest = new RestRequest("v2/Device/{deviceId}/RemoveUser/{id}", Method.DELETE);
+            restRequest.AddUrlSegment("id", id);
+            restRequest.AddUrlSegment("deviceId", deviceId);
             restRequest.AddHeader("Authorization", token!);
             return (await _restClient.ExecuteAsync<ResultViewModel>(restRequest)).Data;
         }
