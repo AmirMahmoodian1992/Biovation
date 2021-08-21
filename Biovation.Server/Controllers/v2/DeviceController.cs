@@ -81,7 +81,9 @@ namespace Biovation.Server.Controllers.v2
                 {
                     return new ResultViewModel
                     {
-                        Success = false, Code = 502, Id = device.Code,
+                        Success = false,
+                        Code = 502,
+                        Id = device.Code,
                         Message = @"آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
                     };
                 }
@@ -398,7 +400,7 @@ namespace Biovation.Server.Controllers.v2
 
                // Parallel.ForEach(deviceBrands, deviceBrand =>
                // {
-                    
+
                //     var restRequest =
                //         new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
                //     if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
@@ -494,11 +496,16 @@ namespace Biovation.Server.Controllers.v2
                                  {
                                      Type = u == null ? 0 : 1,
                                      IsActive = r.IsActive,
-                                     Id = r.Id,
+                                     Id = u?.Id ?? 0,
                                      Code = r.Code,
-                                     FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
-                                     StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
-                                     EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                                     FullName = u != null && !string.IsNullOrWhiteSpace(u.FirstName) && !string.IsNullOrWhiteSpace(u.SurName) ? u.FirstName + " " + u.SurName : r.UserName,
+                                     StartDate = r.StartDate,
+                                     EndDate = r.EndDate,
+                                     AdminLevel = r.AdminLevel,
+                                     FaceTemplatesCount = r.FaceTemplatesCount,
+                                     FingerTemplatesCount = r.FingerTemplatesCount,
+                                     IdentityCardsCount = r.IdentityCardsCount,
+                                     IrisTemplatesCount = r.IrisTemplatesCount
                                  }).ToList();
 
             return usersOfDevice;
