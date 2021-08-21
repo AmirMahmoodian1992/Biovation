@@ -136,10 +136,34 @@ namespace Biovation.Domain
         [OneToOne]
         public IdentityCard IdentityCard { get; set; }
 
-        public int FaceTemplatesCount { get; set; }
-        public int FingerTemplatesCount { get; set; }
-        public int IrisTemplatesCount { get; set; }
-        public int IdentityCardsCount { get; set; }
+        private int _faceTemplatesCount;
+        private int _fingerTemplatesCount;
+        private int _irisTemplatesCount;
+        private int _identityCardsCount;
+
+        public int FaceTemplatesCount
+        {
+            get => _faceTemplatesCount == 0 ? FaceTemplates.Count : _faceTemplatesCount;
+            set => _faceTemplatesCount = value;
+        }
+
+        public int FingerTemplatesCount
+        {
+            get => _fingerTemplatesCount == 0 ? FingerTemplates.Count : _fingerTemplatesCount;
+            set => _fingerTemplatesCount = value;
+        }
+
+        public int IrisTemplatesCount
+        {
+            get => _irisTemplatesCount == 0 ? IrisTemplates.Count : _irisTemplatesCount;
+            set => _irisTemplatesCount = value;
+        }
+
+        public int IdentityCardsCount
+        {
+            get => _identityCardsCount == 0 ? IdentityCard is null ? 0 : 1 : _identityCardsCount;
+            set => _identityCardsCount = value;
+        }
 
         public int GetStartDateInTicks()
         {
