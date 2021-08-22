@@ -342,6 +342,7 @@
 		<None Remove="Scripts\03.SPs\0218-Create InsertManualPlateDetectionLog-UP.sql" />
 		<None Remove="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />
 		<None Remove="Scripts\03.SPs\0220-Create SelectCameraPlateDetectionLogs-UP.sql" />
+		<None Remove="Scripts\03.SPs\0221-Create SelectAccessGroupByFilter-UP.sql" />
 		<None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
 		<None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
 		<None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -731,6 +732,7 @@
 		<EmbeddedResource Include="Scripts\03.SPs\0194-Create DeleteEntranceById-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0193-Create SelectUserGroupsByFilter-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0192-Create DeleteFingerTemplates-UP.sql" />
+		<EmbeddedResource Include="Scripts\03.SPs\0221-Create SelectAccessGroupByFilter-UP.sql" />
 		<EmbeddedResource Include="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
 		<EmbeddedResource Include="Scripts\05.Data\0023-Insert RelayHubModel-UP.sql" />
 		<EmbeddedResource Include="Scripts\05.Data\0022-Insert ProtocolRemainAddressesCameraModel-UP.sql" />

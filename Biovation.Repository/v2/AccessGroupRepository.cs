@@ -33,9 +33,11 @@ namespace Biovation.Repository.Sql.v2
                 new SqlParameter("@PageSize",pageSize)
             };
 
-            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByFilter", parameters, fetchCompositions: nestingDepthLevel != 0, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            if (nestingDepthLevel > 2)
+                return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupsByFilter", parameters,
+                    fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
+            return _repository.ToResultList<PagingResult<AccessGroup>>("SelectAccessGroupByFilter", parameters, fetchCompositions: true, compositionDepthLevel: nestingDepthLevel).FetchFromResultList();
         }
-
         public AccessGroupRepository(GenericRepository repository)
         {
             _repository = repository;
