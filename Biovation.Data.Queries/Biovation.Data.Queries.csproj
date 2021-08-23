@@ -343,6 +343,7 @@
 		<None Remove="Scripts\03.SPs\0219-Create SelectCameraModel-UP.sql" />
 		<None Remove="Scripts\03.SPs\0220-Create SelectCameraPlateDetectionLogs-UP.sql" />
 		<None Remove="Scripts\03.SPs\0221-Create SelectAccessGroupByFilter-UP.sql" />
+		<None Remove="Scripts\03.SPs\0222-Create SelectAccessGroupsById-UP.sql" />
 		<None Remove="Scripts\05.Data\0001-Insert DeviceBrands-UP.sql" />
 		<None Remove="Scripts\05.Data\0002-Insert DeviceModels-UP.sql" />
 		<None Remove="Scripts\05.Data\0003-Insert TimeZones-UP.sql" />
@@ -541,6 +542,7 @@
 		<EmbeddedResource Include="Scripts\03.SPs\0031-Create ModifyUserGroupMember-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0032-Create SelectAccessControlDeviceGroup-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0033-Create SelectAccessControlUserGroup-UP.sql" />
+		<EmbeddedResource Include="Scripts\03.SPs\0222-Create SelectAccessGroupsById-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0034-Create SelectAccessGroupById-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0035-Create SelectAccessGroups-UP.sql" />
 		<EmbeddedResource Include="Scripts\03.SPs\0036-Create SelectAccessGroupsByUserId-UP.sql" />
