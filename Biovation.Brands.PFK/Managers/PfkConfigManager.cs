@@ -75,15 +75,17 @@ namespace Biovation.Brands.PFK.Managers
 
             //config.CamID = 0;
             config.CamID = (int)cameraInfo.Id;
-            Logger.Log($"Camera {cameraInfo.Code} IP is : {cameraInfo.ConnectionInfo.Ip}");
+            Logger.Log($"Camera {cameraInfo.Code} { (string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? $" the camera is panasonic and the IP is : {cameraInfo.ConnectionInfo.Ip}" : $" the camera is generic and the address is : {cameraAddress}")}");
             config.CameraConfig = new IpCamerConfig
             {
-                CameraIP = string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? cameraInfo.ConnectionInfo.Ip : cameraAddress,
+                //CameraIP = string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? cameraInfo.ConnectionInfo.Ip : cameraAddress,
+                CameraIP = cameraAddress,
                 CameraImageHeight = cameraInfo.ImageHeight,
                 CameraImageWidth = cameraInfo.ImageWidth,
                 CameraPass = cameraConnectionPassword,
                 CameraRecordinFolder = $@"{executingPath}\PlateReader\Record{cameraInfo.Code}",
-                CameraType = string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? CameraType.PanasonicNew : CameraType.RTSP,
+                //CameraType = string.Equals(cameraInfo.Model.Id.ToString(), CameraModels.PanasonicCode, StringComparison.InvariantCultureIgnoreCase) ? CameraType.Panasonic : CameraType.RTSP,
+                CameraType = CameraType.RTSP,
                 CameraUserName = cameraConnectionUserName,
                 CameraofflinePath = default,
                 ConnectToCamera = true,
@@ -153,7 +155,7 @@ namespace Biovation.Brands.PFK.Managers
             config.RemoteConfig = new RemoteConfig
             {
                 RemoteServerIP = "127.0.0.1",
-                RemoteServerPort = (int)(4249 + 6 * (cameraInfo.Code % 350) + 1),
+                RemoteServerPort = 4249,
                 ServerIsOnLocalPc = true,
                 ShowRemoteWindow = true
             };
@@ -168,7 +170,7 @@ namespace Biovation.Brands.PFK.Managers
             config.SaveRowPlatesPath2 = $@"{executingPath}\PlateReader\Logs\RowPlates{cameraInfo.Code}_2";
             config.SenderConfig = new SenderConfig
             {
-                DfsIndex = (int)cameraInfo.Code,
+                DfsIndex = 0,
                 DisableOCR = false,
                 SenderIP = "127.0.0.1",
                 SenderMaximumdelaySecond = 2,
