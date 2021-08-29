@@ -372,7 +372,7 @@ namespace Biovation.Brands.Virdi
                 var dueTime =
                     ((DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265
                         ? new DateTime(DateTime.Now.Year, 3, 22, 0, 0, 10)
-                        : new DateTime(DateTime.Now.Year, 6, 22, 0, 0, 10)) - DateTime.Now).TotalMilliseconds;
+                        : new DateTime(DateTime.Now.Year, 9, 22, 0, 0, 10)) - DateTime.Now).TotalMilliseconds;
                 _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
             }
             catch (Exception exception)
