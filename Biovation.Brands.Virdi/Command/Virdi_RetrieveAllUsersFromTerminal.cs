@@ -37,6 +37,7 @@ namespace Biovation.Brands.Virdi.Command
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
+            TaskItemId = TaskItemId == 0 ? new Random().Next(1, 10000) : TaskItemId;
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
 
             OnlineDevices = virdiServer.GetOnlineDevices();
@@ -62,7 +63,9 @@ namespace Biovation.Brands.Virdi.Command
                     if (_terminalUserData.ErrorCode == 0)
                     {
                         Logger.Log($"  +Retrieving users from device: {Code} started successful.\n");
-                        _doneEvent.Wait(TimeSpan.FromMinutes(2));
+                        _doneEvent.Wait(TimeSpan.FromMinutes(1));
+
+                        Logger.Log($"  +Retrieving users from device: {Code} completed successful with {_users.Count} users.\n");
 
                         return new ResultViewModel<List<User>>
                         {
@@ -89,13 +92,17 @@ namespace Biovation.Brands.Virdi.Command
 
         private void GetUserListCallback(int clientId, int terminalId)
         {
-            if (_terminalUserData.UserID == 0 || clientId != TaskItemId)
-                return;
-
-            lock (_ucsApi)
+            try
             {
-                lock (_terminalUserData)
+                if (_terminalUserData.UserID == 0 || clientId != TaskItemId)
+                    return;
+
+                lock (_ucsApi)
                 {
+                    //Logger.Log($"  +Get user list callback from device: {Code} with task id {clientId}, getting user data.\n");
+
+                    //lock (_terminalUserData)
+                    //{
                     var isoEncoding = Encoding.GetEncoding(28591);
                     var windowsEncoding = Encoding.GetEncoding(1256);
 
@@ -112,10 +119,14 @@ namespace Biovation.Brands.Virdi.Command
                     var surName = indexOfSpace > 0
                         ? userName?.Substring(indexOfSpace, userName.Length - indexOfSpace).Trim()
                         : userName;
-                    var fingerCount = _terminalUserData.TotalFingerCount;
-                    var irisCount = _terminalUserData.IrisDataLength > 1 ? 1 : 0;
-                    var faceCount = _terminalUserData.FaceNumber;
-                    var cardCount = _terminalUserData.CardNumber;
+                    //var fingerCount = _terminalUserData.TotalFingerCount;
+                    var fingerCount = 0;
+                    //var irisCount = _terminalUserData.IrisDataLength > 1 ? 1 : 0;
+                    var irisCount = 0;
+                    //var faceCount = _terminalUserData.FaceNumber;
+                    var faceCount = 0;
+                    //var cardCount = _terminalUserData.CardNumber;
+                    var cardCount = 0;
 
                     Logger.Log($@"<--EventGetUserInfoList
     +TerminalID:{terminalId}
@@ -124,7 +135,7 @@ namespace Biovation.Brands.Virdi.Command
     +Admin:{_terminalUserData.IsAdmin}
     +AuthType:{_terminalUserData.AuthType}
     +Blacklist:{_terminalUserData.IsBlacklist}
-    +Progress:{_terminalUserData.CurrentIndex}/{_terminalUserData.TotalNumber}", logType: LogType.Verbose);
+    +Progress:{_terminalUserData.CurrentIndex}/{_terminalUserData.TotalNumber}", logType: LogType.Debug);
 
                     byte[] picture = null;
                     try
@@ -169,28 +180,33 @@ namespace Biovation.Brands.Virdi.Command
                     if (_terminalUserData.CurrentIndex != _terminalUserData.TotalNumber) return;
                     _doneEvent.Set();
                     _ucsApi.EventGetUserInfoList -= GetUserListCallback;
+                    //}
                 }
-            }
-            /*Task.Run(async () =>
-            {
-
-                var taskItem = _taskService.GetTaskItem(clientId);
-                if (taskItem != null)
+                /*Task.Run(async () =>
                 {
-                    taskItem.TotalCount = totalCount;
-                    taskItem.CurrentIndex = currentIndex;
 
-                }
+                    var taskItem = _taskService.GetTaskItem(clientId);
+                    if (taskItem != null)
+                    {
+                        taskItem.TotalCount = totalCount;
+                        taskItem.CurrentIndex = currentIndex;
 
-                _taskService.UpdateTaskStatus(taskItem);
-            });*/
-            //for (var i = 0; i < 20; i++)
-            //{
-            //    Thread.Sleep(100);
-            //    if (RetrieveUsers.Count == _terminalUserData.TotalNumber) break;
-            //}
+                    }
 
-            ////while (RetrieveUsers.Count != _terminalUserData.TotalNumber) { }
+                    _taskService.UpdateTaskStatus(taskItem);
+                });*/
+                //for (var i = 0; i < 20; i++)
+                //{
+                //    Thread.Sleep(100);
+                //    if (RetrieveUsers.Count == _terminalUserData.TotalNumber) break;
+                //}
+
+                ////while (RetrieveUsers.Count != _terminalUserData.TotalNumber) { }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+            }
         }
 
         public void Rollback()
