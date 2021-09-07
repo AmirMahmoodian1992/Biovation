@@ -1150,6 +1150,7 @@ namespace Biovation.Brands.ZK.Devices
             {
                 if (ZkTecoSdk.ReadAllUserID((int)DeviceInfo.Code))
                 {
+                    ZkTecoSdk.ReadAllTemplate((int)DeviceInfo.Code);
                     var retrievedUsers = new List<User>();
                     var isoEncoding = Encoding.GetEncoding(28591);
                     var windowsEncoding = Encoding.GetEncoding(1256);
@@ -1224,15 +1225,14 @@ namespace Biovation.Brands.ZK.Devices
                                     user.FingerTemplatesCount = 0;
                                     for (var i = 0; i <= 9; i++)
                                     {
-                                        if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
-                                            out var tempData, out var tempLength))
-                                        {
-                                            Thread.Sleep(50);
-                                            continue;
-                                        }
-
                                         if (template)
                                         {
+                                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
+                                                out var tempData, out var tempLength))
+                                            {
+                                                Thread.Sleep(50);
+                                                continue;
+                                            }
                                             var fingerTemplate = new FingerTemplate
                                             {
                                                 FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
@@ -1249,8 +1249,13 @@ namespace Biovation.Brands.ZK.Devices
                                         }
                                         else
                                         {
-                                            user.FingerTemplatesCount++;
+                                            if (ZkTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Code.ToString(),
+                                                i, out _, out _, out _))
+                                            {
+                                                user.FingerTemplatesCount++;
+                                            }
                                         }
+
                                     }
 
                                     user.FingerTemplates = retrievedFingerTemplates;
@@ -1266,16 +1271,10 @@ namespace Biovation.Brands.ZK.Devices
                                     var faceStr = "";
                                     var faceLen = 0;
                                     user.FaceTemplatesCount = 0;
-                                    for (var i = 0; i < 9; i++)
+                                    if (template)
                                     {
-                                        if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
-                                            ref faceStr, ref faceLen))
-                                        {
-                                            Thread.Sleep(50);
-                                            continue;
-                                        }
-
-                                        if (template)
+                                        if (ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
+                                        ref faceStr, ref faceLen))
                                         {
 
 
@@ -1291,17 +1290,17 @@ namespace Biovation.Brands.ZK.Devices
 
                                             retrievedFaceTemplates.Add(faceTemplate);
                                             user.FaceTemplatesCount++;
-                                        }
-                                        else
-                                        {
-                                            user.FaceTemplatesCount++;
-                                        }
 
-                                        _logger.Debug($"Retrieving face templates of user {iUserId}, index: {index}");
-                                        break;
+
+                                            _logger.Debug($"Retrieving face templates of user {iUserId}, index: {index}");
+
+                                            user.FaceTemplates = retrievedFaceTemplates;
+                                        }
                                     }
-
-                                    user.FaceTemplates = retrievedFaceTemplates;
+                                    //else
+                                    //{
+                                    //    user.FaceTemplatesCount++;
+                                    //}
                                 }
                                 catch (Exception e)
                                 {
