@@ -1150,25 +1150,48 @@ namespace Biovation.Brands.ZK.Devices
             {
                 if (ZkTecoSdk.ReadAllUserID((int)DeviceInfo.Code))
                 {
-                    ZkTecoSdk.ReadAllTemplate((int)DeviceInfo.Code);
+                    var getTmpRes = ZkTecoSdk.ReadAllTemplate((int)DeviceInfo.Code);
+                    _logger.Debug("The result of read all templates is: " + getTmpRes);
                     var retrievedUsers = new List<User>();
                     var isoEncoding = Encoding.GetEncoding(28591);
                     var windowsEncoding = Encoding.GetEncoding(1256);
                     var index = 0;
 
+                    var tasks = new List<Task>();
+
                     while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
                             out var privilege, out var enable))
                     {
-                        lock (LockObject) //make the object exclusive 
+                        var tmpCardNumber = string.Empty;
+                        try
+                        {
+                            lock (LockObject)
+                            {
+                                var getCardResult = ZkTecoSdk.GetStrCardNumber(out var cardNumber) &&
+                                                 cardNumber != "0";
+                                if (getCardResult)
+                                {
+                                    tmpCardNumber = cardNumber;
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.Warning(e, e.Message);
+                        }
+                        var t = Task.Run(() =>
                         {
                             try
                             {
                                 _logger.Debug($"Retrieved user {iUserId}, index: {index}");
 
                                 var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
-                                var userName = replacements.Aggregate(name, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                                var userName = replacements.Aggregate(name,
+                                    (current, replacement) => current.Replace(replacement.Key, replacement.Value));
 
-                                userName = string.IsNullOrEmpty(userName) ? null : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+                                userName = string.IsNullOrEmpty(userName)
+                                    ? null
+                                    : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
 
                                 var user = new User
                                 {
@@ -1183,38 +1206,32 @@ namespace Biovation.Brands.ZK.Devices
                                     EndDate = DateTime.Parse("2050/01/01")
                                 };
 
+                                if (tmpCardNumber != string.Empty)
+                                {
+                                    user.IdentityCardsCount = 0;
+                                    if (template)
+                                    {
+                                        user.IdentityCard = new IdentityCard
+                                        {
+                                            Number = tmpCardNumber,
+                                            IsActive = true
+                                            //Id = (int)user.Id
+                                        };
+                                        user.IdentityCardsCount++;
+                                        _logger.Debug($"Retried user card of user {iUserId}, index: {index}");
+                                    }
+                                    else
+                                    {
+                                        user.IdentityCardsCount++;
+                                    }
+
+                                }
+
 
                                 index++;
                                 _logger.Debug($"Retrieving templates of user {iUserId}, index: {index}");
 
-                                try
-                                {
-                                    var getCardResult = ZkTecoSdk.GetStrCardNumber(out var cardNumber) && cardNumber != "0";
-                                    if (getCardResult)
-                                    {
-                                        user.IdentityCardsCount = 0;
-                                        if (template)
-                                        {
-                                            user.IdentityCard = new IdentityCard
-                                            {
-                                                Number = cardNumber,
-                                                IsActive = true
-                                                //Id = (int)user.Id
-                                            };
-                                            user.IdentityCardsCount++;
-                                            _logger.Debug($"Retried user card of user {iUserId}, index: {index}");
-                                        }
-                                        else
-                                        {
-                                            user.IdentityCardsCount++;
-                                        }
 
-                                    }
-                                }
-                                catch (Exception e)
-                                {
-                                    _logger.Warning(e, e.Message);
-                                }
 
 
                                 var retrievedFingerTemplates = new List<FingerTemplate>();
@@ -1223,16 +1240,18 @@ namespace Biovation.Brands.ZK.Devices
                                 try
                                 {
                                     user.FingerTemplatesCount = 0;
-                                    for (var i = 0; i <= 9; i++)
+                                    Parallel.For(0, 10, (i, state) =>
                                     {
                                         if (template)
                                         {
-                                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
+                                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code,
+                                                user.Code.ToString(), i,
                                                 out var tempData, out var tempLength))
                                             {
-                                                Thread.Sleep(50);
-                                                continue;
+                                                //Thread.Sleep(50);
+                                                state.Break();
                                             }
+
                                             var fingerTemplate = new FingerTemplate
                                             {
                                                 FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
@@ -1243,23 +1262,27 @@ namespace Biovation.Brands.ZK.Devices
                                                 Size = tempLength,
                                                 Index = i
                                             };
-
+                                            _logger.Debug($"Retrieving finger templates of user {iUserId}, index: {index}");
                                             retrievedFingerTemplates.Add(fingerTemplate);
                                             user.FingerTemplatesCount++;
                                         }
                                         else
                                         {
-                                            if (ZkTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Code.ToString(),
-                                                i, out _, out _, out _))
+                                            if (getTmpRes)
                                             {
-                                                user.FingerTemplatesCount++;
+                                                if (ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code,
+                                                    user.Code.ToString(),
+                                                    i, out _, out _))
+                                                {
+                                                    user.FingerTemplatesCount++;
+                                                }
                                             }
                                         }
 
-                                    }
+                                    });
 
                                     user.FingerTemplates = retrievedFingerTemplates;
-                                    _logger.Debug($"Retrieving finger templates of user {iUserId}, index: {index}");
+
                                 }
                                 catch (Exception e)
                                 {
@@ -1273,10 +1296,15 @@ namespace Biovation.Brands.ZK.Devices
                                     user.FaceTemplatesCount = 0;
                                     if (template)
                                     {
-                                        if (ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(), 50,
-                                        ref faceStr, ref faceLen))
+                                        for (var i = 0; i < 9; i++)
                                         {
-
+                                            if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(),
+                                                50,
+                                                ref faceStr, ref faceLen))
+                                            {
+                                                Thread.Sleep(50);
+                                                continue;
+                                            }
 
                                             var faceTemplate = new FaceTemplate
                                             {
@@ -1287,14 +1315,12 @@ namespace Biovation.Brands.ZK.Devices
                                                 CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
                                                 Size = faceLen,
                                             };
-
-                                            retrievedFaceTemplates.Add(faceTemplate);
                                             user.FaceTemplatesCount++;
+                                            retrievedFaceTemplates.Add(faceTemplate);
+                                            _logger.Debug(
+                                                $"Retrieving face templates of user {iUserId}, index: {index}");
+                                            break;
 
-
-                                            _logger.Debug($"Retrieving face templates of user {iUserId}, index: {index}");
-
-                                            user.FaceTemplates = retrievedFaceTemplates;
                                         }
                                     }
                                     //else
@@ -1315,8 +1341,21 @@ namespace Biovation.Brands.ZK.Devices
                             {
                                 _logger.Warning($"User id of log is not in a correct format. UserId : {iUserId}");
                             }
-                        }
+                        });
+                        tasks.Add(t);
                     }
+
+                    try
+                    {
+                        Task.WaitAll(tasks.ToArray());
+                    }
+                    catch (Exception e)
+                    {
+
+                        _logger.Warning($"Cannot Get Users Of Device {DeviceInfo.Code}, Error : {e}");
+                        return new List<User>();
+                    }
+
 
                     return retrievedUsers;
                 }
