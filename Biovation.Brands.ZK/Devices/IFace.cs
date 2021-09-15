@@ -271,6 +271,19 @@ namespace Biovation.Brands.ZK.Devices
                     }
                 }
 
+                if (!user.IsActive || user.StartDate != user.EndDate && user.StartDate != default &&
+                    user.StartDate != DateTime.MinValue && user.StartDate != DateTime.MaxValue &&
+                    user.EndDate != default && user.EndDate != DateTime.MinValue &&
+                    (user.StartDate > DateTime.Now || user.EndDate < DateTime.Now))
+                {
+                    lock (ZkTecoSdk)
+                    {
+                        ZkTecoSdk.DeleteEnrollData((int)DeviceInfo.Code, (int)user.Code, (int)DeviceInfo.Code, 12);
+                        ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
+                        return true;
+                    }
+                }
+
                 var name = user.FirstName + " " + user.SurName;
                 if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
                     user.IsAdmin ? 3 : 0, true))
