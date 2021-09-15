@@ -30,6 +30,12 @@ namespace Biovation.Brands.ZK.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly FaceTemplateTypes _faceTemplateTypes;
 
+        private readonly List<char> _persianLetters = new List<char>
+        {
+            'آ', 'ا', 'ب', 'پ', 'ت', 'ث', 'ج', 'چ', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'ژ', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ',
+            'ع', 'غ', 'ف', 'ق', 'ک', 'گ', 'ل', 'م', 'ن', 'و', 'ه', 'ی', 'ي', 'ء', 'إ', 'أ', 'ؤ', 'ئ', 'ة', 'ك'
+        };
+
         internal BlackWhite(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
             : base(info, taskService, userService, deviceService, logService, accessGroupService, fingerTemplateService, userCardService, faceTemplateService, restClient, onlineDevices, biovationConfigurationManager, logEvents, zkCodeMappings, taskTypes, taskPriorities, taskStatuses, taskItemTypes, deviceBrands, matchingTypes, biometricTemplateManager, fingerTemplateTypes, faceTemplateTypes, logger)
         {
@@ -419,8 +425,18 @@ namespace Biovation.Brands.ZK.Devices
                     }
                 }
 
-                var name = user.FirstName + " " + user.SurName;
-                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), name.Trim(), user.Password,
+                var isoEncoding = Encoding.GetEncoding(28591);
+                var windowsEncoding = Encoding.GetEncoding(1256);
+                var userName = (string.IsNullOrWhiteSpace(user.UserName) ? user.FirstName + " " + user.SurName : user.UserName).Trim();
+                var convertedUserName = string.IsNullOrEmpty(userName) ? null : isoEncoding.GetString(windowsEncoding.GetBytes(userName));
+
+                if (userName.Count(c => _persianLetters.Contains(c)) > 3)
+                {
+                    var replacements = new Dictionary<string, string> { { "\u0098", "˜" }, { "\u008e", "Ž" } };
+                    convertedUserName = replacements.Aggregate(convertedUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+                }
+
+                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), convertedUserName.Trim(), user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
                     _logger.Debug("UserId {UserCode} successfully added to DeviceId {DeviceCode}.", user.Code, DeviceInfo.Code);
