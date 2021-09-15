@@ -301,7 +301,7 @@ namespace Biovation.Brands.ZK.Devices
                     convertedUserName = replacements.Aggregate(convertedUserName, (current, replacement) => current.Replace(replacement.Key, replacement.Value));
                 }
 
-                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), convertedUserName.Trim(), user.Password,
+                if (ZkTecoSdk.SSR_SetUserInfo((int)DeviceInfo.Code, user.Code.ToString(), convertedUserName?.Trim() ?? string.Empty, user.Password,
                     user.IsAdmin ? 3 : 0, true))
                 {
                     Logger.Log($"UserId {user.Code} successfully added to DeviceId {DeviceInfo.Code}.", logType: LogType.Information);
