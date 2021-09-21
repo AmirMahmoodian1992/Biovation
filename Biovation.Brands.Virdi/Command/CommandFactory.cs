@@ -289,6 +289,11 @@ namespace Biovation.Brands.Virdi.Command
                         //var filePath = Convert.ToString(transferModelData.Items[1]);
                         return new VirdiUpgradeDeviceFirmware(transferModelData.Items, _virdiServer, _taskService, _deviceService, _ucsApi);
                     }
+                case CommandType.GetDeviceAdditionalData:
+                    {
+                        return new VirdiGetAdditionalData(transferModelData.Items, _ucsApi, _virdiServer, _deviceService,
+                            _terminalUserData, _accessLogData);
+                    }
 
                 #region Tools
                 case CommandType.UserAdaptation:

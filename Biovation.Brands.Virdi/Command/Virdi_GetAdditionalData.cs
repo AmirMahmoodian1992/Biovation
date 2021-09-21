@@ -7,7 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Biovation.Brands.Virdi.UniComAPI;
 using UCSAPICOMLib;
+using UCSAPI = UCSAPICOMLib.UCSAPI;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -16,7 +18,9 @@ namespace Biovation.Brands.Virdi.Command
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
         private readonly UCSAPI _ucsApi;
         private readonly ITerminalUserData _terminalUserData;
+        private readonly IAccessLogData _accessLogData;
         private readonly ManualResetEventSlim _doneEventUserCount;
+        private readonly ManualResetEventSlim _doneLogCount;
         private int DeviceId { get; }
         private uint Code { get; }
         private int TaskItemId { get; }
@@ -24,14 +28,17 @@ namespace Biovation.Brands.Virdi.Command
         private Dictionary<string, string> InfoDictionary { get; set; }
         private int UserCount { get; set; }
         private int AdminCount { get; set; }
+        private int LogCount { get; set; }
 
-        public VirdiGetAdditionalData(IReadOnlyList<object> items, UCSAPI ucsApi, VirdiServer virdiServer, DeviceService deviceService, ITerminalUserData terminalUserData)
+        public VirdiGetAdditionalData(IReadOnlyList<object> items, UCSAPI ucsApi, VirdiServer virdiServer, DeviceService deviceService, ITerminalUserData terminalUserData, IAccessLogData accessLogData)
         {
             _ucsApi = ucsApi;
             _terminalUserData = terminalUserData;
+            _accessLogData = accessLogData;
             //_terminalUserData = ucsApi.TerminalUserData as ITerminalUserData;
 
             _doneEventUserCount = new ManualResetEventSlim(false);
+            _doneLogCount = new ManualResetEventSlim(false);
 
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
@@ -42,6 +49,7 @@ namespace Biovation.Brands.Virdi.Command
             InfoDictionary = new Dictionary<string, string>();
             UserCount = 0;
             AdminCount = 0;
+            LogCount = 0;
 
         }
 
@@ -80,10 +88,31 @@ namespace Biovation.Brands.Virdi.Command
                 _ucsApi.EventGetUserCount -= GetUserCount;
 
 
-                //if (deviceBasicInfo.FirmwareVersion != null)
-                //{
-                //    InfoDictionary.Add("Firmware Version", deviceBasicInfo.FirmwareVersion);
-                //}
+
+
+                lock (_ucsApi)
+                    _ucsApi.EventGetAccessLogCount += GetAccessLogCount;
+                lock (_accessLogData)
+                {
+                    _accessLogData.GetAccessLogCountFromTerminal(TaskItemId, ( (int)Code),
+                        (int) VirdiDeviceLogType.All);
+                }
+                //Logger.Log(GetDescription());
+                lock (_terminalUserData)
+                {
+
+                    if (_terminalUserData.ErrorCode == 0)
+                    {
+                        Logger.Log($"  +Get Log Count from device: {Code} started successful.\n");
+                        _doneLogCount.Wait(TimeSpan.FromSeconds(5));
+                        _ucsApi.EventGetAccessLogCount -= GetAccessLogCount;
+                    }
+                    else
+                    {
+                        Logger.Log($"  +Cannot retrieve Log Count from device: {Code}. Error code = {_terminalUserData.ErrorCode}\n");
+                    }
+                }
+                _ucsApi.EventGetUserCount -= GetUserCount;
 
                 return InfoDictionary;
             }
@@ -105,6 +134,16 @@ namespace Biovation.Brands.Virdi.Command
             InfoDictionary.Add("AdminCount", AdminCount.ToString());
             InfoDictionary.Add("UserCount", UserCount.ToString());
             _doneEventUserCount.Set();
+        }
+
+        private void GetAccessLogCount(int clientId, int terminalId, int logCount)
+        {
+            if (clientId != TaskItemId)
+                return;
+
+            LogCount = logCount;
+            InfoDictionary.Add("LogCount", logCount.ToString());
+            _doneLogCount.Set();
         }
 
         public string GetDescription()
