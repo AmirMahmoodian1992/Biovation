@@ -8,6 +8,7 @@ using RestSharp;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -374,6 +375,9 @@ namespace Biovation.Brands.ZK.Devices
                             return true;
                         }
 
+                        //ZkTecoSdk.SetUserValidDate((int) DeviceInfo.Code, user.Code.ToString(), 0, 0,
+                        //    user.StartDate.ToString(CultureInfo.InvariantCulture), user.EndDate.ToString(CultureInfo.InvariantCulture));
+                        //ZkTecoSdk.SSR_EnableUser((int) DeviceInfo.Code, user.Code.ToString(), user.IsActive);
                         ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
                         ZkTecoSdk.GetLastError(ref errorCode);
                         //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, true);

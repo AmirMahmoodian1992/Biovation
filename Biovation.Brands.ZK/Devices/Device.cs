@@ -1171,7 +1171,7 @@ namespace Biovation.Brands.ZK.Devices
                     var windowsEncoding = Encoding.GetEncoding(1256);
                     var index = 0;
 
-                    var tasks = new List<Task>();
+                    //var tasks = new List<Task>();
 
                     while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
                             out var privilege, out var enable))
@@ -1193,182 +1193,191 @@ namespace Biovation.Brands.ZK.Devices
                         {
                             _logger.Warning(e, e.Message);
                         }
-                        var t = Task.Run(() =>
+
+                        //var t = Task.Run(() =>
+                        //{
+                        try
                         {
+                            _logger.Debug($"Retrieved user {iUserId}, index: {index}");
+
+                            var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
+                            var userName = replacements.Aggregate(name,
+                                (current, replacement) => current.Replace(replacement.Key, replacement.Value));
+
+                            userName = string.IsNullOrEmpty(userName)
+                                ? null
+                                : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
+
+                            var user = new User
+                            {
+                                Code = Convert.ToInt64(iUserId),
+                                UserName = userName,
+                                IsActive = enable,
+                                AdminLevel = privilege,
+                                Password = password,
+                                SurName = name.Split(' ').LastOrDefault(),
+                                FirstName = name.Split(' ').FirstOrDefault(),
+                                StartDate = DateTime.Parse("1970/01/01"),
+                                EndDate = DateTime.Parse("2050/01/01")
+                            };
+
+                            if (tmpCardNumber != string.Empty)
+                            {
+                                user.IdentityCardsCount = 0;
+                                if (template)
+                                {
+                                    user.IdentityCard = new IdentityCard
+                                    {
+                                        Number = tmpCardNumber,
+                                        IsActive = true
+                                        //Id = (int)user.Id
+                                    };
+                                    user.IdentityCardsCount++;
+                                    _logger.Debug($"Retried user card of user {iUserId}, index: {index}");
+                                }
+                                else
+                                {
+                                    user.IdentityCardsCount++;
+                                }
+
+                            }
+
+
+                            index++;
+                            _logger.Debug($"Retrieving templates of user {iUserId}, index: {index}");
+
+
+
+
+                            var retrievedFingerTemplates = new List<FingerTemplate>();
+                            var retrievedFaceTemplates = new List<FaceTemplate>();
+
                             try
                             {
-                                _logger.Debug($"Retrieved user {iUserId}, index: {index}");
-
-                                var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
-                                var userName = replacements.Aggregate(name,
-                                    (current, replacement) => current.Replace(replacement.Key, replacement.Value));
-
-                                userName = string.IsNullOrEmpty(userName)
-                                    ? null
-                                    : windowsEncoding.GetString(isoEncoding.GetBytes(userName)).Trim();
-
-                                var user = new User
+                                user.FingerTemplatesCount = 0;
+                                //Parallel.For(0, 10, (i, state) =>
+                                //{
+                                for (var i = 0; i < 10; i++)
                                 {
-                                    Code = Convert.ToInt64(iUserId),
-                                    UserName = userName,
-                                    IsActive = enable,
-                                    AdminLevel = privilege,
-                                    Password = password,
-                                    SurName = name.Split(' ').LastOrDefault(),
-                                    FirstName = name.Split(' ').FirstOrDefault(),
-                                    StartDate = DateTime.Parse("1970/01/01"),
-                                    EndDate = DateTime.Parse("2050/01/01")
-                                };
-
-                                if (tmpCardNumber != string.Empty)
-                                {
-                                    user.IdentityCardsCount = 0;
                                     if (template)
                                     {
-                                        user.IdentityCard = new IdentityCard
+                                        if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code,
+                                            user.Code.ToString(), i,
+                                            out var tempData, out var tempLength))
                                         {
-                                            Number = tmpCardNumber,
-                                            IsActive = true
-                                            //Id = (int)user.Id
+                                            Thread.Sleep(50);
+                                            //state.Break();
+                                            break;
+                                        }
+
+                                        var fingerTemplate = new FingerTemplate
+                                        {
+                                            FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
+                                            FingerTemplateType = _fingerTemplateTypes.VX10,
+                                            UserId = user.Id,
+                                            Template = Encoding.ASCII.GetBytes(tempData),
+                                            CheckSum = Encoding.ASCII.GetBytes(tempData).Sum(x => x),
+                                            Size = tempLength,
+                                            Index = i
                                         };
-                                        user.IdentityCardsCount++;
-                                        _logger.Debug($"Retried user card of user {iUserId}, index: {index}");
+                                        _logger.Debug($"Retrieving finger templates of user {iUserId}, index: {index}");
+                                        retrievedFingerTemplates.Add(fingerTemplate);
+                                        user.FingerTemplatesCount++;
                                     }
                                     else
                                     {
-                                        user.IdentityCardsCount++;
+                                        if (getTmpRes)
+                                        {
+                                            if (ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code,
+                                                user.Code.ToString(),
+                                                i, out _, out _))
+                                            {
+                                                user.FingerTemplatesCount++;
+                                            }
+                                        }
                                     }
 
                                 }
+                                //);
 
+                                user.FingerTemplates = retrievedFingerTemplates;
 
-                                index++;
-                                _logger.Debug($"Retrieving templates of user {iUserId}, index: {index}");
-
-
-
-
-                                var retrievedFingerTemplates = new List<FingerTemplate>();
-                                var retrievedFaceTemplates = new List<FaceTemplate>();
-
-                                try
-                                {
-                                    user.FingerTemplatesCount = 0;
-                                    Parallel.For(0, 10, (i, state) =>
-                                    {
-                                        if (template)
-                                        {
-                                            if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code,
-                                                user.Code.ToString(), i,
-                                                out var tempData, out var tempLength))
-                                            {
-                                                //Thread.Sleep(50);
-                                                state.Break();
-                                            }
-
-                                            var fingerTemplate = new FingerTemplate
-                                            {
-                                                FingerIndex = _biometricTemplateManager.GetFingerIndex(i),
-                                                FingerTemplateType = _fingerTemplateTypes.VX10,
-                                                UserId = user.Id,
-                                                Template = Encoding.ASCII.GetBytes(tempData),
-                                                CheckSum = Encoding.ASCII.GetBytes(tempData).Sum(x => x),
-                                                Size = tempLength,
-                                                Index = i
-                                            };
-                                            _logger.Debug($"Retrieving finger templates of user {iUserId}, index: {index}");
-                                            retrievedFingerTemplates.Add(fingerTemplate);
-                                            user.FingerTemplatesCount++;
-                                        }
-                                        else
-                                        {
-                                            if (getTmpRes)
-                                            {
-                                                if (ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code,
-                                                    user.Code.ToString(),
-                                                    i, out _, out _))
-                                                {
-                                                    user.FingerTemplatesCount++;
-                                                }
-                                            }
-                                        }
-
-                                    });
-
-                                    user.FingerTemplates = retrievedFingerTemplates;
-
-                                }
-                                catch (Exception e)
-                                {
-                                    _logger.Warning(e, e.Message);
-                                }
-
-                                try
-                                {
-                                    var faceStr = "";
-                                    var faceLen = 0;
-                                    user.FaceTemplatesCount = 0;
-                                    if (template)
-                                    {
-                                        for (var i = 0; i < 9; i++)
-                                        {
-                                            if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(),
-                                                50,
-                                                ref faceStr, ref faceLen))
-                                            {
-                                                Thread.Sleep(50);
-                                                continue;
-                                            }
-
-                                            var faceTemplate = new FaceTemplate
-                                            {
-                                                Index = 50,
-                                                FaceTemplateType = _faceTemplateTypes.ZKVX7,
-                                                UserId = user.Id,
-                                                Template = Encoding.ASCII.GetBytes(faceStr),
-                                                CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
-                                                Size = faceLen,
-                                            };
-                                            user.FaceTemplatesCount++;
-                                            retrievedFaceTemplates.Add(faceTemplate);
-                                            _logger.Debug(
-                                                $"Retrieving face templates of user {iUserId}, index: {index}");
-                                            break;
-
-                                        }
-                                    }
-                                    //else
-                                    //{
-                                    //    user.FaceTemplatesCount++;
-                                    //}
-                                }
-                                catch (Exception e)
-                                {
-                                    _logger.Warning(e, e.Message);
-                                }
-
-
-                                //_zkLogService.AddLog(log);
-                                retrievedUsers.Add(user);
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
-                                _logger.Warning($"User id of log is not in a correct format. UserId : {iUserId}");
+                                _logger.Warning(e, e.Message);
                             }
-                        });
-                        tasks.Add(t);
+
+                            try
+                            {
+                                var faceStr = "";
+                                var faceLen = 0;
+                                user.FaceTemplatesCount = 0;
+                                if (template)
+                                {
+                                    for (var i = 0; i < 9; i++)
+                                    {
+                                        if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, user.Code.ToString(),
+                                            50,
+                                            ref faceStr, ref faceLen))
+                                        {
+                                            Thread.Sleep(50);
+                                            continue;
+                                        }
+
+                                        var faceTemplate = new FaceTemplate
+                                        {
+                                            Index = 50,
+                                            FaceTemplateType = _faceTemplateTypes.ZKVX7,
+                                            UserId = user.Id,
+                                            Template = Encoding.ASCII.GetBytes(faceStr),
+                                            CheckSum = Encoding.ASCII.GetBytes(faceStr).Sum(x => x),
+                                            Size = faceLen,
+                                        };
+                                        user.FaceTemplatesCount++;
+                                        retrievedFaceTemplates.Add(faceTemplate);
+                                        _logger.Debug(
+                                            $"Retrieving face templates of user {iUserId}, index: {index}");
+                                        break;
+
+                                    }
+
+                                    user.FaceTemplates.AddRange(retrievedFaceTemplates.Where(faceTemplate =>
+                                        user.FaceTemplates.All(existTemplate => !string.Equals(faceTemplate.FaceTemplateType.Code, existTemplate.FaceTemplateType.Code) 
+                                            && faceTemplate.CheckSum != existTemplate.CheckSum)));
+                                }
+                                //else
+                                //{
+                                //    user.FaceTemplatesCount++;
+                                //}
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.Warning(e, e.Message);
+                            }
+
+
+                            //_zkLogService.AddLog(log);
+                            retrievedUsers.Add(user);
+                        }
+                        catch (Exception)
+                        {
+                            _logger.Warning($"User id of log is not in a correct format. UserId : {iUserId}");
+                        }
+                        //});
+                        //tasks.Add(t);
                     }
 
-                    try
-                    {
-                        Task.WaitAll(tasks.ToArray());
-                    }
-                    catch (Exception e)
-                    {
+                    //try
+                    //{
+                    //    Task.WaitAll(tasks.ToArray());
+                    //}
+                    //catch (Exception e)
+                    //{
 
-                        _logger.Warning($"Cannot Get Users Of Device {DeviceInfo.Code}, Error : {e}");
-                        return new List<User>();
-                    }
+                    //    _logger.Warning($"Cannot Get Users Of Device {DeviceInfo.Code}, Error : {e}");
+                    //    return new List<User>();
+                    //}
 
 
                     return retrievedUsers;
