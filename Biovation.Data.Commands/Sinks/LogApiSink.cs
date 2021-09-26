@@ -73,7 +73,6 @@ namespace Biovation.Data.Commands.Sinks
                         log.SuccessTransfer = result.IsSuccessful && result.StatusCode == HttpStatusCode.OK && result.Data?.Validate == 1;
                         if (!log.SuccessTransfer) continue;
 
-                        await _logRepository.UpdateLog(log);
                         break;
                     }
 

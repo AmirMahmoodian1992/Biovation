@@ -58,6 +58,8 @@ namespace Biovation.Data.Commands.Controllers.v2
                 broadcastApiAwaiter = _logApiSink.TransferLog(log);
 
             await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastMessageBusAwaiter, broadcastToRelaysAwaiter);
+            if (log.SuccessTransfer)
+                await _logRepository.UpdateLog(log);
             return await logInsertionAwaiter;
         }
 
