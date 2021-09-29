@@ -121,6 +121,18 @@ namespace Biovation.Brands.PFK
 
         public void OnLogHappened(object source, PFKParkingLibrary.Data.Log log)
         {
+            if (log.Comment.ToLower().Contains("jammer camera buffer"))
+            {
+                Logger.Log($@"Log write by :   {source} 
+    Log detail:
+[ Log Camera Id ] = {log.ID}
+[ Log DateTime ] = {log.DateTime}
+[ Log Comment ] = {log.Comment}
+[ Log Item ] = {log.Item}
+", string.Empty, LogType.Verbose);
+                return;
+            }
+
             Logger.Log($@"Log write by :   {source} 
     Log detail:
 [ Log Camera Id ] = {log.ID}
