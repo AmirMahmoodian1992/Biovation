@@ -31,8 +31,8 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@LogId", SqlDbType.Int) {Value = logId},
                      new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
                      new SqlParameter("@DetectorId", SqlDbType.Int) {Value = detectorId},
-                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default? (object) null: fromDate},
-                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default? (object) null: toDate},
+                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default ? null: fromDate},
+                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default ? null: toDate},
                      new SqlParameter("@MinPrecision", SqlDbType.TinyInt) {Value = minPrecision},
                      new SqlParameter("@MaxPrecision", SqlDbType.TinyInt) {Value = maxPrecision},
                      new SqlParameter("@WithPic", SqlDbType.Bit ){Value = withPic},
@@ -55,8 +55,8 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@LogId", SqlDbType.Int) {Value = logId},
                      new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
                      new SqlParameter("@DetectorId", SqlDbType.Int) {Value = detectorId},
-                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default? (object) null: fromDate},
-                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default? (object) null: toDate},
+                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default ? null: fromDate},
+                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default ? null: toDate},
                      new SqlParameter("@MinPrecision", SqlDbType.TinyInt) {Value = minPrecision},
                      new SqlParameter("@MaxPrecision", SqlDbType.TinyInt) {Value = maxPrecision},
                      new SqlParameter("@WithPic", SqlDbType.Bit ){Value = withPic},
@@ -82,8 +82,8 @@ namespace Biovation.Repository.Sql.v2
                      new SqlParameter("@" + nameof(parentLogId), SqlDbType.BigInt) {Value = parentLogId},
                      new SqlParameter("@LicensePlate", SqlDbType.NVarChar) {Value = licensePlate},
                      new SqlParameter("@DetectorId", SqlDbType.Int) {Value = detectorId},
-                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default? (object) null: fromDate},
-                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default? (object) null: toDate},
+                     new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = fromDate == default? null: fromDate},
+                     new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = toDate == default? null: toDate},
                      new SqlParameter("@MinPrecision", SqlDbType.TinyInt) {Value = minPrecision},
                      new SqlParameter("@MaxPrecision", SqlDbType.TinyInt) {Value = maxPrecision},
                      new SqlParameter("@WithPic", SqlDbType.Bit ){Value = withPic},
@@ -101,18 +101,34 @@ namespace Biovation.Repository.Sql.v2
             {
                 var parameters = new List<SqlParameter>
                 {
-                    new SqlParameter("@LicensePlateid", SqlDbType.Int) {Value = log.LicensePlate.EntityId},
+                    new SqlParameter("@LicensePlateId", SqlDbType.Int) {Value = log.LicensePlate.EntityId},
                     new SqlParameter("@DetectorId", SqlDbType.Int) {Value = log.DetectorId},
                     new SqlParameter("@EventId", SqlDbType.Int) {Value = log.EventLog.Code},
                     new SqlParameter("@LogDateTime", SqlDbType.DateTime) {Value = log.LogDateTime},
                     new SqlParameter("@Ticks", SqlDbType.BigInt) {Value = log.DateTimeTicks},
                     new SqlParameter("@DetectionPrecision", SqlDbType.Int) {Value = log.DetectionPrecision},
-                    new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
-                    new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
-                    new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut},
+                    //new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
+                    //new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage},
+                    new SqlParameter("@InOrOut", SqlDbType.TinyInt) {Value = log.InOrOut}
                 };
 
                 return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLog", parameters).Data
+                    .FirstOrDefault();
+            });
+        }
+
+        public Task<ResultViewModel> AddPlateDetectionPictureLog(PlateDetectionLog log)
+        {
+            return Task.Run(() =>
+            {
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@Id", SqlDbType.Int) {Value = log.Id},
+                    new SqlParameter("@FullImage", SqlDbType.VarBinary) {Value = log.FullImage},
+                    new SqlParameter("@PlateImage", SqlDbType.VarBinary) {Value = log.PlateImage}
+                };
+
+                return _repository.ToResultList<ResultViewModel>("InsertPlateDetectionLogPicture", parameters).Data
                     .FirstOrDefault();
             });
         }

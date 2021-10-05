@@ -1,7 +1,7 @@
-﻿using System;
-using System.Globalization;
-using Biovation.Domain.DataMappers;
+﻿using Biovation.Domain.DataMappers;
 using DataAccessLayerCore.Attributes;
+using System;
+using System.Globalization;
 
 namespace Biovation.Domain
 {
@@ -59,7 +59,10 @@ namespace Biovation.Domain
             get => NDateTime;
             set
             {
-                if ((long)value / 10000000 > 0)
+                if (NDateTime != default)
+                    return;
+
+                if (value / 100000000000 > 0)
                     value /= 10000000;
 
                 NDateTime = value;

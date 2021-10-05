@@ -38,15 +38,32 @@ namespace Biovation.Data.Commands.Controllers.v2
         [Route("PlateDetectionLog")]
         public async Task<ResultViewModel> AddPlateDetectionLog([FromBody] PlateDetectionLog log)
         {
+            log.DateTimeTicks = log.DateTimeTicks < 1000 ? (ulong)log.LogDateTime.Ticks : log.DateTimeTicks;
+
             var broadcastToRelaysAwaiter = _relayApiSink.OpenRelays(log);
             var logInsertionResult = await _plateDetectionRepository.AddPlateDetectionLog(log);
-            log.Id = logInsertionResult.Id;
+            log.Id = logInsertionResult.Id == default ? int.MaxValue : logInsertionResult.Id;
             var broadcastApiAwaiter = Task.CompletedTask;
-            if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
+            if ((log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode) && (logInsertionResult.Success && !(logInsertionResult.Code == 409 || logInsertionResult.Id == 0)) || !logInsertionResult.Success)
                 broadcastApiAwaiter = _logApiSink.SendLogForMonitoring(log);
 
             await Task.WhenAll(broadcastApiAwaiter, broadcastToRelaysAwaiter);
+
+            if (logInsertionResult.Success && !(logInsertionResult.Code == 409 || logInsertionResult.Id == 0))
+                await _plateDetectionRepository.AddPlateDetectionPictureLog(log);
+
             return logInsertionResult;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("PlateDetectionPictureLog")]
+        public async Task<ResultViewModel> AddPlateDetectionPictureLog([FromBody] PlateDetectionLog log)
+        {
+            if (log.Id == default)
+                return new ResultViewModel { Code = 403, Message = "Bad data, the Id has not been set" };
+            
+            return await _plateDetectionRepository.AddPlateDetectionPictureLog(log);
         }
 
         [HttpDelete]
