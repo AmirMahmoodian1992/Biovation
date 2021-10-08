@@ -293,7 +293,7 @@ namespace Biovation.Brands.EOS.Devices
                     try
                     {
                         bool newRecordExists;
-                        Thread.Sleep(1000);
+                        Thread.Sleep(300);
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
@@ -523,10 +523,13 @@ namespace Biovation.Brands.EOS.Devices
                         deviceConnected = _clock.TestConnection();
                 }
 
+                _logger.Debug("Connection fail. Cannot connect to device: " + deviceCode + ", IP: " + deviceIpAddress);
+                
+                if (Valid)
+                    Connect();
+
                 return new ResultViewModel { Id = deviceId, Validate = 1, Message = "0" };
-
             }
-
             catch (Exception ex)
             {
                 _logger.Debug(ex, "Clock " + deviceCode);
