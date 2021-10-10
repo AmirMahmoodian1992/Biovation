@@ -1562,7 +1562,8 @@ namespace Biovation.Brands.ZK.Devices
 
                                 if (existUser != null)
                                 {
-                                    if (existUser.FaceTemplates.Any(fp => fp.Index == 50)) break;
+                                    if (existUser.FaceTemplates.Any(fp => fp.Index == 50 && fp.CheckSum == faceTemplate.CheckSum)) break;
+                                    faceTemplate.Id = existUser.FaceTemplates.FirstOrDefault()?.Id ?? 0;
                                     user.FaceTemplates.Add(faceTemplate);
                                     break;
                                 }
