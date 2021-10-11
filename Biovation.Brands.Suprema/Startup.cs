@@ -319,6 +319,21 @@ namespace Biovation.Brands.Suprema
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 
+            if (lookups.CameraBrand is null || lookups.CameraProtocol is null || lookups.DeviceBrands is null ||
+                lookups.FingerIndexNames is null || lookups.FingerTemplateType is null || lookups.FaceTemplateType is null ||
+                lookups.IrisTemplateType is null || lookups.LogEvents is null || lookups.LogSubEvents is null ||
+                lookups.MatchingTypes is null || lookups.RelayHubBrand is null || lookups.RelayType is null ||
+                lookups.Resolution is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null ||
+                lookups.TaskStatuses is null || lookups.TaskTypes is null ||
+                genericCodeMappings.FaceTemplateTypeMappings is null || genericCodeMappings.FingerIndexMappings is null ||
+                genericCodeMappings.FingerTemplateTypeMappings is null || genericCodeMappings.LogEventMappings is null ||
+                genericCodeMappings.LogSubEventMappings is null || genericCodeMappings.MatchingTypeMappings is null)
+            {
+                Logger.Log("The prerequisite services are not run or some configs may be missing.", logType: LogType.Warning);
+                Logger.Log("Closing the app in 10 seconds.", logType: LogType.Warning);
+                Thread.Sleep(TimeSpan.FromSeconds(10));
+                Environment.Exit(0);
+            }
 
             services.AddSingleton(lookups);
             services.AddSingleton(genericCodeMappings);

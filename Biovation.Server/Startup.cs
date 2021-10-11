@@ -5,10 +5,13 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Repository.Api.v2;
+using Biovation.Repository.Api.v2.RelayController;
 using Biovation.Server.HostedServices;
 using Biovation.Server.Jobs;
 using Biovation.Server.Managers;
 using Biovation.Server.Middleware;
+using Biovation.Service.Api.v2;
+using Biovation.Service.Api.v2.RelayController;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -23,15 +26,11 @@ using Microsoft.OpenApi.Models;
 using Quartz;
 using RestSharp;
 using Serilog;
-using System.Reflection;
-using Biovation.Repository.Api.v2.RelayController;
-using Biovation.Service.Api.v2.RelayController;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Biovation.Service.Api.v2;
+using System.Threading;
 using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
 using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
 using BlackListService = Biovation.Service.Api.v1.BlackListService;
@@ -107,14 +106,14 @@ namespace Biovation.Server
             services.AddSwaggerGen(config =>
             {
                 config.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                {  
-                    Name = "Authorization",  
-                    Type = SecuritySchemeType.ApiKey,  
-                    Scheme = "Bearer",  
-                    BearerFormat = "JWT",  
-                    In = ParameterLocation.Header,  
-                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",  
-                }); 
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+                });
 
                 config.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -375,6 +374,21 @@ namespace Biovation.Server
                 FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data
             };
 
+            if (lookups.CameraBrand is null || lookups.CameraProtocol is null || lookups.DeviceBrands is null ||
+                lookups.FingerIndexNames is null || lookups.FingerTemplateType is null || lookups.FaceTemplateType is null ||
+                lookups.IrisTemplateType is null || lookups.LogEvents is null || lookups.LogSubEvents is null ||
+                lookups.MatchingTypes is null || lookups.RelayHubBrand is null || lookups.RelayType is null ||
+                lookups.Resolution is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null ||
+                lookups.TaskStatuses is null || lookups.TaskTypes is null ||
+                genericCodeMappings.FaceTemplateTypeMappings is null || genericCodeMappings.FingerIndexMappings is null ||
+                genericCodeMappings.FingerTemplateTypeMappings is null || genericCodeMappings.LogEventMappings is null ||
+                genericCodeMappings.LogSubEventMappings is null || genericCodeMappings.MatchingTypeMappings is null)
+            {
+                Logger.Log("The prerequisite services are not run or some configs may be missing.", logType: LogType.Warning);
+                Logger.Log("Closing the app in 10 seconds.", logType: LogType.Warning);
+                Thread.Sleep(TimeSpan.FromSeconds(10));
+                Environment.Exit(0);
+            }
 
             services.AddSingleton(lookups);
             services.AddSingleton(genericCodeMappings);
