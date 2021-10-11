@@ -265,11 +265,9 @@ namespace Biovation.Brands.Virdi
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 
-            if (lookups.CameraBrand is null || lookups.CameraProtocol is null || lookups.DeviceBrands is null ||
-                lookups.FingerIndexNames is null || lookups.FingerTemplateType is null || lookups.FaceTemplateType is null ||
-                lookups.IrisTemplateType is null || lookups.LogEvents is null || lookups.LogSubEvents is null ||
-                lookups.MatchingTypes is null || lookups.RelayHubBrand is null || lookups.RelayType is null ||
-                lookups.Resolution is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null ||
+            if (lookups.DeviceBrands is null || lookups.FingerIndexNames is null || lookups.FingerTemplateType is null ||
+                lookups.FaceTemplateType is null || lookups.IrisTemplateType is null || lookups.LogEvents is null || lookups.LogSubEvents is null ||
+                lookups.MatchingTypes is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null ||
                 lookups.TaskStatuses is null || lookups.TaskTypes is null ||
                 genericCodeMappings.FaceTemplateTypeMappings is null || genericCodeMappings.FingerIndexMappings is null ||
                 genericCodeMappings.FingerTemplateTypeMappings is null || genericCodeMappings.LogEventMappings is null ||

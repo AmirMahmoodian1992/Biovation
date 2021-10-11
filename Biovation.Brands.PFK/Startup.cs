@@ -263,6 +263,9 @@ namespace Biovation.Brands.PFK
             var fingerTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 9);
             var faceTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 10);
             var matchingTypeQuery = lookupService.GetLookups(lookupCategoryId: 11);
+            var cameraProtocolQuery = lookupService.GetLookups(lookupCategoryId: 12);
+            var resolutionQuery = lookupService.GetLookups(lookupCategoryId: 13);
+            var cameraBrandQuery = lookupService.GetLookups(lookupCategoryId: 14);
 
 
             var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
@@ -271,6 +274,8 @@ namespace Biovation.Brands.PFK
             var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+            var faceTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(14);
+            var fingerIndexMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(10);
 
             var lookups = new Lookups
             {
@@ -284,7 +289,10 @@ namespace Biovation.Brands.PFK
                 FingerTemplateType = fingerTemplateTypeQuery.Result,
                 FaceTemplateType = faceTemplateTypeQuery.Result,
                 LogEvents = logEventsQuery.Result,
-                MatchingTypes = matchingTypeQuery.Result
+                MatchingTypes = matchingTypeQuery.Result,
+                CameraProtocol = cameraProtocolQuery.Result,
+                CameraBrand = cameraBrandQuery.Result,
+                Resolution = resolutionQuery.Result
             };
 
             var genericCodeMappings = new GenericCodeMappings
@@ -292,14 +300,15 @@ namespace Biovation.Brands.PFK
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
+                FaceTemplateTypeMappings = faceTemplateTypeMappingsQuery.Result?.Data?.Data,
+                FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data,
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 
             if (lookups.CameraBrand is null || lookups.CameraProtocol is null || lookups.DeviceBrands is null ||
                 lookups.FingerIndexNames is null || lookups.FingerTemplateType is null || lookups.FaceTemplateType is null ||
-                lookups.IrisTemplateType is null || lookups.LogEvents is null || lookups.LogSubEvents is null ||
-                lookups.MatchingTypes is null || lookups.RelayHubBrand is null || lookups.RelayType is null ||
-                lookups.Resolution is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null ||
+                lookups.LogEvents is null || lookups.LogSubEvents is null || lookups.MatchingTypes is null || 
+                lookups.Resolution is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null || 
                 lookups.TaskStatuses is null || lookups.TaskTypes is null ||
                 genericCodeMappings.FaceTemplateTypeMappings is null || genericCodeMappings.FingerIndexMappings is null ||
                 genericCodeMappings.FingerTemplateTypeMappings is null || genericCodeMappings.LogEventMappings is null ||

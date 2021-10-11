@@ -31,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using AccessGroupService = Biovation.Service.Api.v1.AccessGroupService;
 using AdminDeviceService = Biovation.Service.Api.v1.AdminDeviceService;
 using BlackListService = Biovation.Service.Api.v1.BlackListService;
@@ -336,6 +337,22 @@ namespace Biovation.Server
             var relayHubBrand = lookupService.GetLookups(lookupCategoryId: 16);
             var irisTemplateTypeQuery = lookupService.GetLookups(lookupCategoryId: 17);
 
+
+            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
+
+            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
+            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
+            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
+            var faceTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(14);
+            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+            var fingerIndexMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(10);
+
+            //Task.WaitAll(taskStatusesQuery, taskTypesQuery, taskItemTypesQuery, taskPrioritiesQuery,
+            //    fingerIndexNamesQuery, deviceBrandsQuery, logSubEventsQuery, fingerTemplateTypeQuery,
+            //    faceTemplateTypeQuery, irisTemplateTypeQuery, logEventsQuery, matchingTypeQuery, cameraProtocol,
+            //    resolution, cameraBrand, relayType, relayHubBrand, logEventMappingsQuery, logSubEventMappingsQuery,
+            //    fingerTemplateTypeMappingsQuery, matchingTypeMappingsQuery, fingerIndexMappingsQuery);
+
             var lookups = new Lookups
             {
                 TaskStatuses = taskStatusesQuery.Result,
@@ -357,21 +374,14 @@ namespace Biovation.Server
                 RelayHubBrand = relayHubBrand.Result,
             };
 
-            var genericCodeMappingService = serviceProvider.GetService<GenericCodeMappingService>();
-
-            var logEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(1);
-            var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
-            var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
-            var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
-            var fingerIndexMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(10);
-
             var genericCodeMappings = new GenericCodeMappings
             {
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data,
-                FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data
+                FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data,
+                FaceTemplateTypeMappings = faceTemplateTypeMappingsQuery.Result?.Data?.Data
             };
 
             if (lookups.CameraBrand is null || lookups.CameraProtocol is null || lookups.DeviceBrands is null ||
