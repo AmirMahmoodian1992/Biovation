@@ -379,7 +379,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(Configuration.GetSection("AppSettings")["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["ShowLiveImageInMonitoring"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {
