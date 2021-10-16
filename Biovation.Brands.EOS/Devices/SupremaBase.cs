@@ -1448,8 +1448,19 @@ namespace Biovation.Brands.EOS.Devices
 
                     }
 
+                    ClockRecord initialClockRecord = null;
+                    try
+                    {
+                        initialClockRecord = (ClockRecord)_clock.GetRecord();
+                    }
+                    catch (Exception exception)
+                    {
+                        Logger.Log(exception);
+                    }
+
+
                     var rightBoundary = writePointer;
-                    var leftBoundary = writePointer + 2;
+                    var leftBoundary = writePointer - 1;
 
                     for (var i = 0; i < 5; i++)
                     {
@@ -1479,18 +1490,28 @@ namespace Biovation.Brands.EOS.Devices
                             {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0},
                             {12, 0}
                         };
-                        var index = 0;
+
+                        var firstIndex = leftBoundary;
                         try
                         {
                             var clockRecord = (ClockRecord)_clock.GetRecord();
-                            Logger.Log($"First datetime {clockRecord.DateTime}");
-                            EOSsearch(ref index, new DateTime(1399, 5, 6), 10, DateTime.Now, dic,
-                                clockRecord.DateTime.Month);
+                            var recordDateTime = clockRecord.DateTime;
+                            if (initialClockRecord != null && initialClockRecord.DateTime.Month < recordDateTime.Month)
+                            {
+                                recordDateTime = recordDateTime.AddYears(-2);
+                            }
+                            Logger.Log($"First datetime {recordDateTime}");
+                            //EOSsearch(ref index, (DateTime) startTime, 10, DateTime.Now, dic,
+                            //    clockRecord.DateTime.Month);
+
+                            var goalDateTime = startTime.Value.AddDays(-7);
+
+                            EOSsearch(ref firstIndex, (DateTime)startTime, 10, recordDateTime, dic,
+                                initialClockRecord?.DateTime.Month ?? DateTime.Now.Month);
                         }
-                        catch (Exception e)
+                        catch (Exception exception)
                         {
-                            Console.WriteLine(e);
-                            throw;
+                            Logger.Log(exception);
                         }
 
 
@@ -1518,34 +1539,33 @@ namespace Biovation.Brands.EOS.Devices
 
                         //}
 
-                        if (!successSetPointer)
-                        {
-                            for (var i = 0; i < 5; i++)
-                            {
-                                try
-                                {
-                                    lock (_clock)
-                                    {
-                                        Thread.Sleep(500);
-                                        successSetPointer = _clock.SetReadPointer(initialReadPointer);
-                                    }
 
-                                    break;
-                                }
-                                catch (Exception exception)
-                                {
-                                    Logger.Log(exception, exception.Message);
-                                    Thread.Sleep(++i * 100);
-                                }
-                            }
-                        }
 
                         return new ResultViewModel
                         {
-                             Id = DeviceInfo.DeviceId,
+                            Id = DeviceInfo.DeviceId,
                             Success = successSetPointer,
                             Code = Convert.ToInt32(TaskStatuses.DoneCode)
                         };
+                    }
+
+                    for (var i = 0; i < 5; i++)
+                    {
+                        try
+                        {
+                            lock (_clock)
+                            {
+                                Thread.Sleep(500);
+                                successSetPointer = _clock.SetReadPointer(initialReadPointer);
+                            }
+
+                            break;
+                        }
+                        catch (Exception exception)
+                        {
+                            Logger.Log(exception, exception.Message);
+                            Thread.Sleep(++i * 100);
+                        }
                     }
                 }
 
