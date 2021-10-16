@@ -358,13 +358,13 @@ namespace Biovation.Brands.EOS.Devices
 
                         _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-                        _logService.AddLog(new Log
+                        _ = _logService.AddLog(new Log
                         {
                             DeviceId = DeviceInfo.DeviceId,
                             DeviceCode = DeviceInfo.Code,
                             LogDateTime = DateTime.Now,
                             EventLog = LogEvents.Disconnect
-                        });
+                        }).ConfigureAwait(false);
                     }
                     catch (Exception)
                     {
@@ -414,12 +414,12 @@ namespace Biovation.Brands.EOS.Devices
 
                         _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 
-                        _logService.AddLog(new Log
+                        _ = _logService.AddLog(new Log
                         {
                             DeviceId = DeviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
                             EventLog = LogEvents.Connect
-                        });
+                        }).ConfigureAwait(false);
                     }
                     catch (Exception)
                     {
@@ -602,7 +602,7 @@ namespace Biovation.Brands.EOS.Devices
                                                     };
 
                                                     //var logService = new EOSLogService();
-                                                    _logService.AddLog(receivedLog);
+                                                    _ = _logService.AddLog(receivedLog).ConfigureAwait(false);
                                                     test = false;
                                                     Logger.Log($@"<--
    +TerminalID:{DeviceInfo.Code}
@@ -653,7 +653,7 @@ namespace Biovation.Brands.EOS.Devices
                                             TnaEvent = 0,
                                         };
 
-                                        _logService.AddLog(receivedLog);
+                                        _ = _logService.AddLog(receivedLog).ConfigureAwait(false);
                                         test = false;
                                         Logger.Log($@"<--
    +TerminalID:{DeviceInfo.Code}
@@ -1506,7 +1506,7 @@ namespace Biovation.Brands.EOS.Devices
 
                             var goalDateTime = startTime.Value.AddDays(-7);
 
-                            EOSsearch(ref firstIndex, (DateTime)startTime, 10, recordDateTime, dic,
+                            EosSearch(ref firstIndex, (DateTime)goalDateTime, 10, recordDateTime, dic,
                                 initialClockRecord?.DateTime.Month ?? DateTime.Now.Month);
                         }
                         catch (Exception exception)
@@ -1544,7 +1544,7 @@ namespace Biovation.Brands.EOS.Devices
                         return new ResultViewModel
                         {
                             Id = DeviceInfo.DeviceId,
-                            Success = successSetPointer,
+                            Success = true,
                             Code = Convert.ToInt32(TaskStatuses.DoneCode)
                         };
                     }
@@ -1556,7 +1556,7 @@ namespace Biovation.Brands.EOS.Devices
                             lock (_clock)
                             {
                                 Thread.Sleep(500);
-                                successSetPointer = _clock.SetReadPointer(initialReadPointer);
+                                _clock.SetReadPointer(initialReadPointer);
                             }
 
                             break;
@@ -1579,107 +1579,107 @@ namespace Biovation.Brands.EOS.Devices
         }
 
 
-        private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
-        {
-            if (Math.Abs(right - left) <= 1)
-            {
-                return;
-            }
+        //private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
+        //{
+        //    if (Math.Abs(right - left) <= 1)
+        //    {
+        //        return;
+        //    }
 
-            Logger.Log("Searching for appropriate log pointer value.");
+        //    Logger.Log("Searching for appropriate log pointer value.");
 
-            var successSetPointer = false;
-            ClockRecord clockRecord = null;
-            var flag = false;
+        //    var successSetPointer = false;
+        //    ClockRecord clockRecord = null;
+        //    var flag = false;
 
-            var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
-            var mid = (left + interval / 2);
+        //    var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
+        //    var mid = (left + interval / 2);
 
-            Logger.Log($"The interval is: {interval} and the mid pointer is: {mid}");
+        //    Logger.Log($"The interval is: {interval} and the mid pointer is: {mid}");
 
-            for (var i = 0; i < 5; i++)
-            {
-                try
-                {
-                    lock (_clock)
-                    {
-                        if (!successSetPointer)
-                        {
-                            Thread.Sleep(500);
-                            successSetPointer = _clock.SetReadPointer(mid);
-                            Logger.Log($"The read pointer is successfully set to {mid}");
-                        }
-                        Thread.Sleep(500);
-                        clockRecord = (ClockRecord)_clock.GetRecord();
-                        Logger.Log($"The log date is: {clockRecord.DateTime}");
-                    }
-                    break;
-                }
-                catch (Exception exception)
-                {
-                    Logger.Log(exception, exception.Message);
-                    Thread.Sleep(++i * 100);
-                }
+        //    for (var i = 0; i < 5; i++)
+        //    {
+        //        try
+        //        {
+        //            lock (_clock)
+        //            {
+        //                if (!successSetPointer)
+        //                {
+        //                    Thread.Sleep(500);
+        //                    successSetPointer = _clock.SetReadPointer(mid);
+        //                    Logger.Log($"The read pointer is successfully set to {mid}");
+        //                }
+        //                Thread.Sleep(500);
+        //                clockRecord = (ClockRecord)_clock.GetRecord();
+        //                Logger.Log($"The log date is: {clockRecord.DateTime}");
+        //            }
+        //            break;
+        //        }
+        //        catch (Exception exception)
+        //        {
+        //            Logger.Log(exception, exception.Message);
+        //            Thread.Sleep(++i * 100);
+        //        }
 
-            }
+        //    }
 
-            if (clockRecord == null)
-                BinarySearch(0, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
-            else
-            {
+        //    if (clockRecord == null)
+        //        BinarySearch(0, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
+        //    else
+        //    {
 
-                if (previousDateTimes.Item1 != new DateTime(1900, 1, 1) &&
-                    previousDateTimes.Item2 != new DateTime(1900, 1, 1) &&
-                    previousDateTimes.Item3 != new DateTime(1900, 1, 1) &&
-                    ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
-                     (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)) && nearestIndex.Item2 > (previousDateTimes.Item2.Ticks - goalDateTime.Ticks))
-                {
-                    Logger.Log("Wrong value detected", string.Empty, LogType.Warning);
-                    flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
-                   (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
-                    Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
-                }
+        //        if (previousDateTimes.Item1 != new DateTime(1900, 1, 1) &&
+        //            previousDateTimes.Item2 != new DateTime(1900, 1, 1) &&
+        //            previousDateTimes.Item3 != new DateTime(1900, 1, 1) &&
+        //            ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
+        //             (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)) && nearestIndex.Item2 > (previousDateTimes.Item2.Ticks - goalDateTime.Ticks))
+        //        {
+        //            Logger.Log("Wrong value detected", string.Empty, LogType.Warning);
+        //            flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
+        //           (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
+        //            Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
+        //        }
 
-                if (!(flag && !previousFlag))
-                {
-                    Logger.Log("Trying to handling the situation");
-                    previousDateTimes.Item3 = previousDateTimes.Item2;
-                    previousDateTimes.Item2 = previousDateTimes.Item1;
-                    previousDateTimes.Item1 = clockRecord.DateTime;
-                }
+        //        if (!(flag && !previousFlag))
+        //        {
+        //            Logger.Log("Trying to handling the situation");
+        //            previousDateTimes.Item3 = previousDateTimes.Item2;
+        //            previousDateTimes.Item2 = previousDateTimes.Item1;
+        //            previousDateTimes.Item1 = clockRecord.DateTime;
+        //        }
 
-                if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
-                {
-                    nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
-                    Logger.Log($"The nearest value has been changes to: {nearestIndex.Item1} with date of: {clockRecord.DateTime}, and the difference is: {nearestIndex.Item2}");
-                }
+        //        if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
+        //        {
+        //            nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
+        //            Logger.Log($"The nearest value has been changes to: {nearestIndex.Item1} with date of: {clockRecord.DateTime}, and the difference is: {nearestIndex.Item2}");
+        //        }
 
-                if (flag && !(previousFlag))
-                {
-                    if (previousmid > mid)
-                    {
-                        BinarySearch(right, right + (right - left), goalDateTime, ref nearestIndex,
-                            previousDateTimes, previousmid, true);
-                    }
+        //        if (flag && !(previousFlag))
+        //        {
+        //            if (previousmid > mid)
+        //            {
+        //                BinarySearch(right, right + (right - left), goalDateTime, ref nearestIndex,
+        //                    previousDateTimes, previousmid, true);
+        //            }
 
-                    Logger.Log("Searching, considering the wrong values");
-                    BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
-                        previousmid, true);
-                }
-                else if (clockRecord.DateTime > goalDateTime)
-                {
-                    Logger.Log("Searching left side of mid");
-                    BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
-                }
-                else if (clockRecord.DateTime < goalDateTime)
-                {
-                    Logger.Log("Searching right side of mid");
-                    BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
-                }
-            }
-        }
+        //            Logger.Log("Searching, considering the wrong values");
+        //            BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
+        //                previousmid, true);
+        //        }
+        //        else if (clockRecord.DateTime > goalDateTime)
+        //        {
+        //            Logger.Log("Searching left side of mid");
+        //            BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
+        //        }
+        //        else if (clockRecord.DateTime < goalDateTime)
+        //        {
+        //            Logger.Log("Searching right side of mid");
+        //            BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
+        //        }
+        //    }
+        //}
 
-        private void EOSsearch(ref int currentIndex, DateTime startDateTime, int stepLenght, DateTime prevDateTime, IDictionary<int, int> seenMonth, int firstSeenMonth)
+        private void EosSearch(ref int currentIndex, DateTime startDateTime, int stepLenght, DateTime prevDateTime, IDictionary<int, int> seenMonth, int firstSeenMonth)
         {
             var successSetPointer = false;
             ClockRecord clockRecord = null;
@@ -1739,21 +1739,21 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         stepLenght += stepLenght * 2 <= 80 ? stepLenght * 2 : stepLenght;
                     }
-                    EOSsearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth, firstSeenMonth);
+                    EosSearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth, firstSeenMonth);
                 }
                 else if (recordDateTime.Month < startDateTime.Month)
                 {
-                    EOSsearch(ref currentIndex, startDateTime, stepLenght / 3, recordDateTime, seenMonth, firstSeenMonth);
+                    EosSearch(ref currentIndex, startDateTime, stepLenght / 3, recordDateTime, seenMonth, firstSeenMonth);
                 }
                 else
                 {
                     if (recordDateTime.Day > startDateTime.Day - 1)
                     {
-                        EOSsearch(ref currentIndex, startDateTime, 1, recordDateTime, seenMonth, firstSeenMonth);
+                        EosSearch(ref currentIndex, startDateTime, 1, recordDateTime, seenMonth, firstSeenMonth);
                     }
                     else if (recordDateTime.Day + 2 < startDateTime.Day - 1)
                     {
-                        EOSsearch(ref currentIndex, startDateTime, -1, recordDateTime, seenMonth, firstSeenMonth);
+                        EosSearch(ref currentIndex, startDateTime, -1, recordDateTime, seenMonth, firstSeenMonth);
                     }
 
                 }
