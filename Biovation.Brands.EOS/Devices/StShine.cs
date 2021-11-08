@@ -39,7 +39,6 @@ namespace Biovation.Brands.EOS.Devices
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
-        private const int MaxRecordCount = 350000;
         private const int MaxExceptionRecordCount = 300;
 
         public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger, TaskService taskService, DeviceBrands deviceBrands)
@@ -524,7 +523,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
 
                 _logger.Debug("Connection fail. Cannot connect to device: " + deviceCode + ", IP: " + deviceIpAddress);
-                
+
                 if (Valid)
                     Connect();
 
@@ -1633,7 +1632,7 @@ namespace Biovation.Brands.EOS.Devices
                     }
 
 
-
+                    var returnedDateTime = DateTime.MinValue;
                     _logger.Debug(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
                     if (successSetPointer)
                     {
@@ -1666,90 +1665,12 @@ namespace Biovation.Brands.EOS.Devices
                             var exceptionRecordCount = 0;
                             var goalDateTime = startTime.Value.AddDays(-7);
 
-                            //First Try
-                            var firstReturnedDateTime = EosSearch(ref firstIndex, ref exceptionRecordCount, goalDateTime, 0, leftBoundary,
+                            returnedDateTime = EosSearch(ref firstIndex, ref exceptionRecordCount, goalDateTime, 0, leftBoundary,
                                 clockRecord.DateTime);
-                            if (goalDateTime.Subtract(firstReturnedDateTime) > new TimeSpan(1, 0, 0, 0) ||
-                                goalDateTime.Subtract(firstReturnedDateTime) < new TimeSpan(-1, 0, 0, 0))
-                            {
 
-                                //Second Try
-                                exceptionRecordCount = 0;
-                                var secondIndex = firstIndex;
-                                var secondReturnedDateTime = EosSearch(ref secondIndex, ref exceptionRecordCount, goalDateTime, leftBoundary,
-                                    MaxRecordCount, clockRecord.DateTime);
-                                if (exceptionRecordCount <= 2 * MaxExceptionRecordCount && ((firstReturnedDateTime > goalDateTime && secondReturnedDateTime > goalDateTime &&
-                                     firstReturnedDateTime.Subtract(goalDateTime) <
-                                     secondReturnedDateTime.Subtract(goalDateTime)) ||
-                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime < goalDateTime &&
-                                     goalDateTime.Subtract(firstReturnedDateTime) <
-                                     goalDateTime.Subtract(secondReturnedDateTime)) ||
-                                    (firstReturnedDateTime < goalDateTime && secondReturnedDateTime > goalDateTime &&
-                                     goalDateTime.Subtract(firstReturnedDateTime) <
-                                     secondReturnedDateTime.Subtract(goalDateTime)) ||
-                                    (firstReturnedDateTime > goalDateTime && secondReturnedDateTime < goalDateTime &&
-                                     firstReturnedDateTime.Subtract(goalDateTime) <
-                                     goalDateTime.Subtract(secondReturnedDateTime))))
-                                {
-                                    for (var i = 0; i < 5; i++)
-                                    {
-                                        try
-                                        {
-                                            lock (_clock)
-                                            {
-                                                Thread.Sleep(500);
-                                                successSetPointer = _clock.SetReadPointer(firstIndex);
-                                                if (!successSetPointer) continue;
-                                                var reconnect = DisconnectFromDevice() && ConnectToDevice();
-                                                if (!reconnect) continue;
-                                            }
+                            _logger.Debug(
+                                $@"First Read Offline log from {returnedDateTime} with index {firstIndex} without computing the second one and deviceCode {DeviceInfo.Code}");
 
-                                            break;
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            _logger.Warning(exception, exception.Message);
-                                            Thread.Sleep(++i * 100);
-                                        }
-
-                                    }
-
-                                    _logger.Debug(
-                                        $@"First Read Offline log from {firstReturnedDateTime} with index {firstIndex} and deviceCode {DeviceInfo.Code}");
-                                }
-                                else if (exceptionRecordCount <= 2 * MaxExceptionRecordCount)
-                                {
-                                    for (var i = 0; i < 5; i++)
-                                    {
-                                        try
-                                        {
-                                            lock (_clock)
-                                            {
-                                                Thread.Sleep(500);
-                                                successSetPointer = _clock.SetReadPointer(secondIndex);
-                                                if (!successSetPointer) continue;
-                                                var reconnect = DisconnectFromDevice() && ConnectToDevice();
-                                                if (!reconnect) continue;
-                                            }
-
-                                            break;
-                                        }
-                                        catch (Exception exception)
-                                        {
-                                            Logger.Log(exception, exception.Message);
-                                            Thread.Sleep(++i * 100);
-                                        }
-
-                                    }
-                                    _logger.Debug(
-                                        $@"Second Read Offline log from {secondReturnedDateTime} with index {secondIndex} and deviceCode {DeviceInfo.Code}");
-                                }
-                            }
-                            else
-                            {
-                                _logger.Debug(
-                                    $@"First Read Offline log from {firstReturnedDateTime} with index {firstIndex} without computing the second one and deviceCode {DeviceInfo.Code}");
-                            }
                         }
                         catch (Exception e)
                         {
@@ -1757,7 +1678,7 @@ namespace Biovation.Brands.EOS.Devices
                             throw;
                         }
 
-                        if (!successSetPointer)
+                        if (returnedDateTime == DateTime.MinValue)
                         {
                             for (var i = 0; i < 5; i++)
                             {
@@ -1820,15 +1741,36 @@ namespace Biovation.Brands.EOS.Devices
             }
 
 
-            var successSetPointer = false;
+
             ClockRecord clockRecord = null;
             Logger.Log("THe beginOfInterval in EosSearch: " + beginOfInterval);
             Logger.Log("THe endOfInterval in EosSearch: " + endOfInterval);
             if (Math.Abs(beginOfInterval - endOfInterval) < 2)
             {
-                return prevDateTime;
+                currentIndex = beginOfInterval;
+                return SetPointer(currentIndex, ref clockRecord, ref exceptionRecordCount) ? clockRecord.DateTime : prevDateTime;
             }
             currentIndex = (beginOfInterval + endOfInterval) / 2;
+
+            var res = SetPointer(currentIndex, ref clockRecord, ref exceptionRecordCount);
+
+            if (clockRecord == null || !res)
+            {
+                return EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, beginOfInterval, currentIndex, prevDateTime);
+            }
+            var recordDateTime = clockRecord.DateTime;
+            _logger.Debug($"New datetime {recordDateTime}");
+            if (recordDateTime > goalDateTime)
+            {
+                return EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, beginOfInterval, currentIndex, recordDateTime);
+            }
+            return recordDateTime < goalDateTime ? EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, currentIndex, endOfInterval, recordDateTime) : recordDateTime;
+
+        }
+
+        private bool SetPointer(int currentIndex, ref ClockRecord clockRecord, ref int exceptionRecordCount)
+        {
+            var successSetPointer = false;
             for (var i = 0; i < 15; i++) //15 may seems too much for that but trust me!!!
             {
                 try
@@ -1858,18 +1800,7 @@ namespace Biovation.Brands.EOS.Devices
                     Thread.Sleep(++i * 100);
                 }
             }
-            if (clockRecord == null)
-            {
-                return EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, beginOfInterval, currentIndex, prevDateTime);
-            }
-            var recordDateTime = clockRecord.DateTime;
-            _logger.Debug($"New datetime {recordDateTime}");
-            if (recordDateTime > goalDateTime)
-            {
-                return EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, beginOfInterval, currentIndex, recordDateTime);
-            }
-            return recordDateTime < goalDateTime ? EosSearch(ref currentIndex, ref exceptionRecordCount, goalDateTime, currentIndex, endOfInterval, recordDateTime) : recordDateTime;
-
+            return successSetPointer;
         }
 
 
