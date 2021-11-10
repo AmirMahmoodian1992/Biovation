@@ -114,6 +114,7 @@
 		<None Remove="Scripts\01.Tables\0097-Alter PlateDetectionLog-UP.sql" />
 		<None Remove="Scripts\01.Tables\0098-Alter RelayHubModel-UP.sql" />
 		<None Remove="Scripts\01.Tables\0099-Alter Camera-UP.sql" />
+		<None Remove="Scripts\01.Tables\0100-Alter Log-UP.sql" />
 		<None Remove="Scripts\03.SPs\0001-Create DeleteAccessGroupById-UP.sql" />
 		<None Remove="Scripts\03.SPs\0002-Create DeleteDeviceBasicInfoById-UP.sql" />
 		<None Remove="Scripts\03.SPs\0003-Create DeleteFingerTemplatesByUserId-UP.sql" />
@@ -474,6 +475,7 @@
 		<EmbeddedResource Include="Scripts\01.Tables\0065-Alter DeviceBrand-UP.sql" />
 		<EmbeddedResource Include="Scripts\01.Tables\0066-Alter DeviceModel-UP.sql" />
 		<EmbeddedResource Include="Scripts\01.Tables\0067-Alter FingerTemplate-UP.sql" />
+		<EmbeddedResource Include="Scripts\01.Tables\0100-Alter Log-UP.sql" />
 		<EmbeddedResource Include="Scripts\01.Tables\0068-Alter Log-UP.sql" />
 		<EmbeddedResource Include="Scripts\01.Tables\0069-Alter LogData TableType-UP.sql" />
 		<EmbeddedResource Include="Scripts\01.Tables\0070-Create BlackList.sql" />
