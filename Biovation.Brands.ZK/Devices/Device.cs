@@ -129,26 +129,25 @@ namespace Biovation.Brands.ZK.Devices
                     //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
                     if (_reconnecting)
                     {
-                        if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
-                        {
-                            //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
-                            //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
-                            //Thread.Sleep(500);
-                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
-                            ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
-                            ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
-                            //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
-                            ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
-                            //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
-                            //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
-                            //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
-                            //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
-                            //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
-                            //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
-                            //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
-                            //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
-                            ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
-                        }
+                        //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
+                        //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
+                        //Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                        ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
+                        ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
+                        //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
+                        ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
+                        //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
+                        //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
+                        //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
+                        //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
+                        //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
+                        //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
+                        //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
+                        //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
+                        ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                        ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 0);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                     }
 
                     if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
@@ -409,16 +408,14 @@ namespace Biovation.Brands.ZK.Devices
                     ref day,
                     ref hour, ref minute, ref second);
 
-            _logger.Debug($"Connection lost on device {DeviceInfo.Code}");
-
             if (deviceConnectionStatus)
             {
                 _checkDeviceConnectionStatusTimer.Change(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
                 return;
             }
 
+            _logger.Debug($"Connection lost on device {DeviceInfo.Code}");
             Disconnect(false);
-
 
             if (ServiceCancellationToken.IsCancellationRequested) return;
             _reconnecting = true;
@@ -431,21 +428,23 @@ namespace Biovation.Brands.ZK.Devices
             _checkDeviceConnectionStatusTimer.Change(Timeout.InfiniteTimeSpan, TimeSpan.FromMilliseconds(-1));
             lock (ZkTecoSdk)
             {
-                ////_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
-                ////_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
-                //_zkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
-                //_zkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
-                ////_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
-                //_zkTecoSdk.OnKeyPress -= OnKeyPressCallback;
-                ////_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
-                ////_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
-                ////_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
-                ////_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
-                ////_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
-                ////_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
-                ////_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
-                ////_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
-                //_zkTecoSdk.RegEvent((int)_deviceInfo.Code, 0);
+                //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
+                //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
+                ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
+                ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
+                //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
+                ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
+                //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
+                //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
+                //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
+                //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
+                //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
+                //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
+                //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
+                //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
+                ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 0);
+                Task.Delay(TimeSpan.FromMilliseconds(100), ServiceCancellationToken).Wait(ServiceCancellationToken);
 
                 ZkTecoSdk.Disconnect();
 
@@ -466,6 +465,9 @@ namespace Biovation.Brands.ZK.Devices
             }).ConfigureAwait(false);
 
             _logger.Information($"Disconnected from device: {DeviceInfo.Code} IPAddress => {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
+            if (cancelReconnecting)
+                Dispose();
+            
             return true;
         }
         //If your fingerprint(or your card) passes the verification,this event will be triggered
