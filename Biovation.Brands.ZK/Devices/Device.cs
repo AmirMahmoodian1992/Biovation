@@ -693,7 +693,7 @@ namespace Biovation.Brands.ZK.Devices
                     var logInsertionTasks = new List<Task>();
                     var retrievedLogs = new List<Log>();
                     var recordCnt = 0;
-                    while (ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
+                    while (!ServiceCancellationToken.IsCancellationRequested && ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
                     {
@@ -722,13 +722,13 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 retrievedLogs.Add(log);
-                                _logger.Debug($@"<--
-       +TerminalID: {DeviceInfo.Code}
-       +UserID: {userId}
-       +DateTime: {log.LogDateTime}
-       +AuthType: {iVerifyMethod}
-       +TnaEvent: {(ushort)iInOutMode}
-       +Progress: {iLogCount}/{recordCnt}");
+       //                         _logger.Debug($@"<--
+       //+TerminalID: {DeviceInfo.Code}
+       //+UserID: {userId}
+       //+DateTime: {log.LogDateTime}
+       //+AuthType: {iVerifyMethod}
+       //+TnaEvent: {(ushort)iInOutMode}
+       //+Progress: {iLogCount}/{recordCnt}");
 
                                 if (retrievedLogs.Count % 1000 == 0)
                                 {
@@ -766,6 +766,20 @@ namespace Biovation.Brands.ZK.Devices
                         _logger.Warning(exception, exception.Message);
                         return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                     }
+
+                    logInsertionTasks.Add(Task.Run(() =>
+                    {
+                        foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((value, i) => (value, i)))
+                        {
+                            _logger.Debug($@"<--
+       +TerminalID: {DeviceInfo.Code}
+       +UserID: {log.UserId}
+       +DateTime: {log.LogDateTime}
+       +AuthType: {log.MatchingType.Code}
+       +TnaEvent: {log.TnaEvent}
+       +Progress: {index}/{recordCnt}");
+                        }
+                    }, ServiceCancellationToken));
 
                     Task.WaitAll(logInsertionTasks.ToArray());
                     _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
