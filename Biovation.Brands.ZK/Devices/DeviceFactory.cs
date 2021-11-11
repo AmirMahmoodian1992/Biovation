@@ -3,7 +3,6 @@ using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
-using RestSharp;
 using System.Collections.Generic;
 using Serilog;
 
@@ -12,8 +11,7 @@ namespace Biovation.Brands.ZK.Devices
     public class DeviceFactory
     {
         private readonly ILogger _logger;
-       
-        private readonly RestClient _restClient;
+
         private readonly TaskService _taskService;
         private readonly UserService _userService;
         private readonly DeviceService _deviceService;
@@ -42,7 +40,7 @@ namespace Biovation.Brands.ZK.Devices
         /// <En>Creates a device instance by device type.</En>
         /// <Fa>با توجه به نوع دستگاه درحال پردازش، یک نمونه از آن ایجاد می کند.</Fa>
         /// </summary>
-        public DeviceFactory(LogEvents logEvents, LogService logService, UserService userService, TaskService taskService, MatchingTypes matchingTypes, DeviceService deviceService, AccessGroupService accessGroupService, Dictionary<uint, Device> onlineDevices, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, BiovationConfigurationManager biovationConfigurationManager, ILogger logger)
+        public DeviceFactory(LogEvents logEvents, LogService logService, UserService userService, TaskService taskService, MatchingTypes matchingTypes, DeviceService deviceService, AccessGroupService accessGroupService, Dictionary<uint, Device> onlineDevices, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, BiovationConfigurationManager biovationConfigurationManager, ILogger logger)
         {
             _logEvents = logEvents;
             _logService = logService;
@@ -55,7 +53,6 @@ namespace Biovation.Brands.ZK.Devices
             _fingerTemplateService = fingerTemplateService;
             _userCardService = userCardService;
             _faceTemplateService = faceTemplateService;
-            _restClient = restClient;
             _zkCodeMappings = zkCodeMappings;
             _taskTypes = taskTypes;
             _taskPriorities = taskPriorities;
@@ -75,17 +72,17 @@ namespace Biovation.Brands.ZK.Devices
             {
                 case DeviceModels.IFace202:
                     {
-                        return new IFace(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
+                        return new IFace(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
                     }
 
                 case DeviceModels.BlackWhite:
                 {
-                    return new BlackWhite(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
+                    return new BlackWhite(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
                 }
 
                 default:
 
-                    return new Device(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _restClient, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
+                    return new Device(device, _taskService, _userService, _deviceService, _logService, _accessGroupService, _fingerTemplateService, _userCardService, _faceTemplateService, _onlineDevices, _biovationConfigurationManager, _logEvents, _zkCodeMappings, _taskTypes, _taskPriorities, _taskStatuses, _taskItemTypes, _deviceBrands, _matchingTypes, _biometricTemplateManager, _fingerTemplateTypes, _faceTemplateTypes, _logger);
             }
         }
     }
