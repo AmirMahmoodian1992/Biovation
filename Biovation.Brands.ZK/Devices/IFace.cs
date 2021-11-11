@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 
 namespace Biovation.Brands.ZK.Devices
 {
@@ -135,7 +135,7 @@ namespace Biovation.Brands.ZK.Devices
                                     if (!ZkTecoSdk.GetUserTmpExStr((int)DeviceInfo.Code, user.Code.ToString(), i,
                                         out _, out var tempData, out var tempLength))
                                     {
-                                        Thread.Sleep(50);
+                                        Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                         continue;
                                     }
 
@@ -199,7 +199,7 @@ namespace Biovation.Brands.ZK.Devices
                                 if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
                                     ref faceStr, ref faceLen))
                                 {
-                                    Thread.Sleep(50);
+                                    Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                     continue;
                                 }
                                 var faceTemplate = new FaceTemplate
@@ -326,7 +326,7 @@ namespace Biovation.Brands.ZK.Devices
                                     }
 
                                     ZkTecoSdk.GetLastError(ref errorCode);
-                                    Thread.Sleep(50);
+                                    Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                     Logger.Log(
                                         $"Cannot set template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                                 }
@@ -352,7 +352,7 @@ namespace Biovation.Brands.ZK.Devices
                                 }
 
                                 ZkTecoSdk.GetLastError(ref errorCode);
-                                Thread.Sleep(50);
+                                Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 Logger.Log(
                                     $"Cannot set face template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.", logType: LogType.Warning);
                             }

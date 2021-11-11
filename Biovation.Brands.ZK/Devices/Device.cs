@@ -37,7 +37,8 @@ namespace Biovation.Brands.ZK.Devices
         protected readonly FingerTemplateService FingerTemplateService;
         protected readonly FaceTemplateService FaceTemplateService;
         private readonly Dictionary<uint, Device> _onlineDevices;
-        protected CancellationTokenSource TokenSource = new CancellationTokenSource();
+        protected CancellationToken ServiceCancellationToken;
+        private Timer _checkDeviceConnectionStatusTimer;
         private Timer _fixDaylightSavingTimer;
 
         protected readonly CZKEMClass ZkTecoSdk = new CZKEMClass(); //create Standalone _zkTecoSdk class dynamically
@@ -102,8 +103,10 @@ namespace Biovation.Brands.ZK.Devices
 
         public async Task<bool> Connect(CancellationToken cancellationToken)
         {
+            ServiceCancellationToken = cancellationToken != CancellationToken.None && !ServiceCancellationToken.Equals(cancellationToken) ? cancellationToken : ServiceCancellationToken;
             return await Task.Run(async () =>
             {
+
                 lock (ZkTecoSdk)
                 {
                     if (!string.IsNullOrEmpty(DeviceInfo.DeviceLockPassword))
@@ -112,16 +115,16 @@ namespace Biovation.Brands.ZK.Devices
                     }
 
                     var connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
-                    while (!connectResult && !cancellationToken.IsCancellationRequested)
+                    while (!connectResult && !ServiceCancellationToken.IsCancellationRequested)
                     {
                         _logger.Debug(
                             $"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
-                        Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).Wait(cancellationToken);
+                        Task.Delay(TimeSpan.FromSeconds(20), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
                     }
 
-                    Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
 
                     //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
                     if (_reconnecting)
@@ -131,7 +134,7 @@ namespace Biovation.Brands.ZK.Devices
                             //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
                             //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
                             //Thread.Sleep(500);
-                            Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                             ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
                             ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
                             //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
@@ -153,7 +156,7 @@ namespace Biovation.Brands.ZK.Devices
                         //_zkTecoSdk.OnFinger += _zkTecoSdk_OnFinger;
                         //_zkTecoSdk.OnVerify += _zkTecoSdk_OnVerify;
                         //Thread.Sleep(500);
-                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         ZkTecoSdk.OnAttTransaction += OnAttendanceTransactionCallback;
                         ZkTecoSdk.OnAttTransactionEx += OnAttendanceTransactionExCallback;
                         //_zkTecoSdk.OnFingerFeature += _zkTecoSdk_OnFingerFeature;
@@ -174,11 +177,11 @@ namespace Biovation.Brands.ZK.Devices
                         var firmwareVersion = "";
                         var macAddress = "";
 
-                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         ZkTecoSdk.GetDeviceFirmwareVersion((int)DeviceInfo.Code, ref firmwareVersion);
-                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         ZkTecoSdk.GetDeviceMAC((int)DeviceInfo.Code, ref macAddress);
-                        Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         ZkTecoSdk.GetSerialNumber((int)DeviceInfo.Code, out var serialNumber);
 
                         DeviceInfo.FirmwareVersion = firmwareVersion;
@@ -346,10 +349,13 @@ namespace Biovation.Brands.ZK.Devices
                 _logger.Debug(
                     $"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
-                await CheckConnection(cancellationToken);
+                _checkDeviceConnectionStatusTimer = new Timer(CheckDeviceConnectionTimer_Elapsed, ServiceCancellationToken, TimeSpan.FromSeconds(7), Timeout.InfiniteTimeSpan);
+                _reconnecting = true;
                 return true;
-            }, cancellationToken);
+            }, ServiceCancellationToken);
         }
+
+
 
         public void SetDateTime()
         {
@@ -389,33 +395,40 @@ namespace Biovation.Brands.ZK.Devices
         {
             SetDateTime();
         }
-        public async Task CheckConnection(CancellationToken cancellationToken)
+
+        private void CheckDeviceConnectionTimer_Elapsed(object state)
         {
+            if (ServiceCancellationToken.IsCancellationRequested) return;
+
             int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
 
             bool deviceConnectionStatus;
 
-            do
-            {
-                lock (ZkTecoSdk)
-                    deviceConnectionStatus = ZkTecoSdk.GetDeviceTime((int)DeviceInfo.Code, ref year, ref month,
-                        ref day,
-                        ref hour, ref minute, ref second);
-
-                Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).Wait(cancellationToken);
-            } while (deviceConnectionStatus && !cancellationToken.IsCancellationRequested && !(TokenSource?.Token.IsCancellationRequested ?? false));
+            lock (ZkTecoSdk)
+                deviceConnectionStatus = ZkTecoSdk.GetDeviceTime((int)DeviceInfo.Code, ref year, ref month,
+                    ref day,
+                    ref hour, ref minute, ref second);
 
             _logger.Debug($"Connection lost on device {DeviceInfo.Code}");
+
+            if (deviceConnectionStatus)
+            {
+                _checkDeviceConnectionStatusTimer.Change(TimeSpan.FromSeconds(5), Timeout.InfiniteTimeSpan);
+                return;
+            }
+
             Disconnect(false);
 
-            if (TokenSource.IsCancellationRequested) return;
+
+            if (ServiceCancellationToken.IsCancellationRequested) return;
             _reconnecting = true;
 
-            await Connect(cancellationToken);
+            _ = Connect(ServiceCancellationToken).ConfigureAwait(false);
         }
 
         public bool Disconnect(bool cancelReconnecting = true)
         {
+            _checkDeviceConnectionStatusTimer.Change(Timeout.InfiniteTimeSpan, TimeSpan.FromMilliseconds(-1));
             lock (ZkTecoSdk)
             {
                 ////_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
@@ -436,8 +449,7 @@ namespace Biovation.Brands.ZK.Devices
 
                 ZkTecoSdk.Disconnect();
 
-                if (cancelReconnecting)
-                    TokenSource.Cancel(false);
+                //_reconnecting = !cancelReconnecting;
             }
 
             lock (_onlineDevices)
@@ -607,7 +619,7 @@ namespace Biovation.Brands.ZK.Devices
                                     }
 
                                     ZkTecoSdk.GetLastError(ref errorCode);
-                                    Thread.Sleep(50);
+                                    Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                     _logger.Warning(
                                         $"Cannot set template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.");
                                 }
@@ -633,7 +645,7 @@ namespace Biovation.Brands.ZK.Devices
                                 }
 
                                 ZkTecoSdk.GetLastError(ref errorCode);
-                                Thread.Sleep(50);
+                                Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 _logger.Warning(
                                     $"Cannot set face template for UserId {user.Code} in DeviceId {DeviceInfo.Code}.");
                             }
@@ -1030,7 +1042,7 @@ namespace Biovation.Brands.ZK.Devices
                         ZkTecoSdk.SSR_DeleteEnrollData((int)DeviceInfo.Code, sUserId.ToString(), 12);
                         ZkTecoSdk.RefreshData((int)DeviceInfo.Code);
                     }
-                }, TokenSource.Token);
+                }, ServiceCancellationToken);
 
                 return true;
             }
@@ -1179,7 +1191,7 @@ namespace Biovation.Brands.ZK.Devices
                                             user.Code.ToString(), i,
                                             out var tempData, out var tempLength))
                                         {
-                                            Thread.Sleep(50);
+                                            Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                             //state.Break();
                                             break;
                                         }
@@ -1235,7 +1247,7 @@ namespace Biovation.Brands.ZK.Devices
                                             50,
                                             ref faceStr, ref faceLen))
                                         {
-                                            Thread.Sleep(50);
+                                            Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                             continue;
                                         }
 
@@ -1399,7 +1411,7 @@ namespace Biovation.Brands.ZK.Devices
                                 if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
                                     out var tempData, out var tempLength))
                                 {
-                                    Thread.Sleep(50);
+                                    Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                     continue;
                                 }
                                 var fingerTemplate = new FingerTemplate
@@ -1459,7 +1471,7 @@ namespace Biovation.Brands.ZK.Devices
                                 if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
                                     ref faceStr, ref faceLen))
                                 {
-                                    Thread.Sleep(50);
+                                    Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                     continue;
                                 }
                                 var faceTemplate = new FaceTemplate
@@ -1584,7 +1596,7 @@ namespace Biovation.Brands.ZK.Devices
                             if (!ZkTecoSdk.SSR_GetUserTmpStr((int)DeviceInfo.Code, user.Code.ToString(), i,
                                 out var tempData, out var tempLength))
                             {
-                                Thread.Sleep(50);
+                                Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 continue;
                             }
                             var fingerTemplate = new FingerTemplate
@@ -1619,7 +1631,7 @@ namespace Biovation.Brands.ZK.Devices
                             if (!ZkTecoSdk.GetUserFaceStr((int)DeviceInfo.Code, userId.ToString(), 50,
                                 ref faceStr, ref faceLen))
                             {
-                                Thread.Sleep(50);
+                                Task.Delay(TimeSpan.FromMilliseconds(50), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 continue;
                             }
                             var faceTemplate = new FaceTemplate
@@ -1839,12 +1851,10 @@ namespace Biovation.Brands.ZK.Devices
         {
             try
             {
-                if (!TokenSource.IsCancellationRequested)
-                    TokenSource.Cancel();
-
-                TokenSource?.Dispose();
-                //ZkTecoSdk = null;
+                _checkDeviceConnectionStatusTimer?.Dispose();
+                _checkDeviceConnectionStatusTimer = null;
                 _fixDaylightSavingTimer?.Dispose();
+                _fixDaylightSavingTimer = null;
                 GC.SuppressFinalize(ZkTecoSdk);
                 GC.SuppressFinalize(this);
             }
