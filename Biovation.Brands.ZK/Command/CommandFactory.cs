@@ -128,13 +128,13 @@ namespace Biovation.Brands.ZK.Command
                 case CommandType.LockDevice:
                     //Locks the device
                     {
-                        return new ZkRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices, _deviceService);
+                        return new ZkLockDevice(transferModelData.Items, _onlineDevices, _deviceService, _taskService);
                     }
 
                 case CommandType.UnlockDevice:
                     //Unlocks the device
                     {
-                        return new ZkRetrieveAllLogsOfDevice(transferModelData.Items, _onlineDevices, _deviceService);
+                        return new ZkUnlockDevice(transferModelData.Items, _onlineDevices, _deviceService);
                     }
 
                 case CommandType.EnrollFromTerminal:
