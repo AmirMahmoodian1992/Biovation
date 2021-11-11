@@ -1141,15 +1141,10 @@ namespace Biovation.Brands.ZK.Devices
                                 {
                                     user.IdentityCardsCount++;
                                 }
-
                             }
-
 
                             index++;
                             _logger.Debug($"Retrieving templates of user {iUserId}, index: {index}");
-
-
-
 
                             var retrievedFingerTemplates = new List<FingerTemplate>();
                             var retrievedFaceTemplates = new List<FaceTemplate>();
@@ -1198,7 +1193,6 @@ namespace Biovation.Brands.ZK.Devices
                                 }
 
                                 user.FingerTemplates = retrievedFingerTemplates;
-
                             }
                             catch (Exception e)
                             {
