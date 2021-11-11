@@ -87,7 +87,7 @@ namespace Biovation.Brands.ZK.Devices
                     var iHour = 0;
                     var iMinute = 0;
 
-                    while (ZkTecoSdk.GetGeneralLogData((int)DeviceInfo.Code, ref tDeviceCode,ref iUserId,
+                    while (!ServiceCancellationToken.IsCancellationRequested && ZkTecoSdk.GetGeneralLogData((int)DeviceInfo.Code, ref tDeviceCode,ref iUserId,
                         ref eDeviceCode, ref iVerifyMethod, ref iInOutMode, ref iYear, ref iMonth, ref iDay,ref iHour, ref iMinute))
                     {
                         //if (iLogCount > 100000)

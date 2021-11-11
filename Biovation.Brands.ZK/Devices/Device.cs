@@ -439,7 +439,7 @@ namespace Biovation.Brands.ZK.Devices
             _logger.Information($"Disconnected from device: {DeviceInfo.Code} IPAddress => {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
             if (cancelReconnecting)
                 Dispose();
-            
+
             return true;
         }
         //If your fingerprint(or your card) passes the verification,this event will be triggered
@@ -692,7 +692,6 @@ namespace Biovation.Brands.ZK.Devices
                     var thousandIndex = 0;
                     var logInsertionTasks = new List<Task>();
                     var retrievedLogs = new List<Log>();
-                    var recordCnt = 0;
                     while (!ServiceCancellationToken.IsCancellationRequested && ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
@@ -722,13 +721,13 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 retrievedLogs.Add(log);
-       //                         _logger.Debug($@"<--
-       //+TerminalID: {DeviceInfo.Code}
-       //+UserID: {userId}
-       //+DateTime: {log.LogDateTime}
-       //+AuthType: {iVerifyMethod}
-       //+TnaEvent: {(ushort)iInOutMode}
-       //+Progress: {iLogCount}/{recordCnt}");
+                                //                         _logger.Debug($@"<--
+                                //+TerminalID: {DeviceInfo.Code}
+                                //+UserID: {userId}
+                                //+DateTime: {log.LogDateTime}
+                                //+AuthType: {iVerifyMethod}
+                                //+TnaEvent: {(ushort)iInOutMode}
+                                //+Progress: {iLogCount}/{recordCnt}");
 
                                 if (retrievedLogs.Count % 1000 == 0)
                                 {
@@ -769,7 +768,8 @@ namespace Biovation.Brands.ZK.Devices
 
                     logInsertionTasks.Add(Task.Run(() =>
                     {
-                        foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((value, i) => (value, i)))
+                        var retrievedLogCount = retrievedLogs.Count;
+                        foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                         {
                             _logger.Debug($@"<--
        +TerminalID: {DeviceInfo.Code}
@@ -777,7 +777,7 @@ namespace Biovation.Brands.ZK.Devices
        +DateTime: {log.LogDateTime}
        +AuthType: {log.MatchingType.Code}
        +TnaEvent: {log.TnaEvent}
-       +Progress: {index}/{recordCnt}");
+       +Progress: {index}/{retrievedLogCount}");
                         }
                     }, ServiceCancellationToken));
 
@@ -804,16 +804,12 @@ namespace Biovation.Brands.ZK.Devices
                     var iLogCount = 0;
                     _logger.Debug($"Retrieving offline logs of DeviceId: {DeviceInfo.Code}.");
 
-                    //_zkTecoSdk.EnableDevice((int)_deviceInfo.Code, false);//disable the device
-                    //if (_zkTecoSdk.ReadTimeGLogData((int)_deviceInfo.Code, fDate, eDate))
                     if (fDate == default && eDate == default)
                     {
                         if (!ZkTecoSdk.ReadGeneralLogData((int)DeviceInfo.Code))
                         {
                             var idwErrorCode = 0;
                             ZkTecoSdk.GetLastError(ref idwErrorCode);
-                            //Thread.Sleep(2000);
-                            //Connect();
                             _logger.Warning(
                                 $"Could not retrieve offline logs from DeviceId:{DeviceInfo.Code} General Log Data Count:0 ErrorCode={idwErrorCode}");
                             return new ResultViewModel
@@ -848,8 +844,7 @@ namespace Biovation.Brands.ZK.Devices
                     var thousandIndex = 0;
                     var logInsertionTasks = new List<Task>();
                     var retrievedLogs = new List<Log>();
-                    var recordsCount = 0;
-                    while (ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
+                    while (!ServiceCancellationToken.IsCancellationRequested && ZkTecoSdk.SSR_GetGeneralLogData((int)DeviceInfo.Code, out var iUserId,
                         out var iVerifyMethod, out var iInOutMode, out var iYear, out var iMonth, out var iDay, out var iHour, out var iMinute,
                         out var iSecond, ref iWorkCode))
                     {
@@ -874,13 +869,13 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 retrievedLogs.Add(log);
-                                _logger.Debug($@"<--
-    +TerminalID:{DeviceInfo.Code}
-    +UserID:{userId}
-    +DateTime:{log.LogDateTime}
-    +AuthType:{iVerifyMethod}
-    +TnaEvent:{(ushort)iInOutMode}
-    +Progress:{iLogCount}/{recordsCount}");
+                                //                            _logger.Debug($@"<--
+                                //+TerminalID:{DeviceInfo.Code}
+                                //+UserID:{userId}
+                                //+DateTime:{log.LogDateTime}
+                                //+AuthType:{iVerifyMethod}
+                                //+TnaEvent:{(ushort)iInOutMode}
+                                //+Progress:{iLogCount}/{recordsCount}");
 
                                 if (retrievedLogs.Count % 1000 == 0)
                                 {
@@ -918,6 +913,21 @@ namespace Biovation.Brands.ZK.Devices
                         _logger.Warning(exception, exception.Message);
                         return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                     }
+
+                    logInsertionTasks.Add(Task.Run(() =>
+                    {
+                        var retrievedLogCount = retrievedLogs.Count;
+                        foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
+                        {
+                            _logger.Debug($@"<--
+       +TerminalID: {DeviceInfo.Code}
+       +UserID: {log.UserId}
+       +DateTime: {log.LogDateTime}
+       +AuthType: {log.MatchingType.Code}
+       +TnaEvent: {log.TnaEvent}
+       +Progress: {index}/{retrievedLogCount}");
+                        }
+                    }, ServiceCancellationToken));
 
                     Task.WaitAll(logInsertionTasks.ToArray());
                     _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
@@ -1067,7 +1077,7 @@ namespace Biovation.Brands.ZK.Devices
                     var windowsEncoding = Encoding.GetEncoding(1256);
                     var index = 0;
 
-                    while (ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
+                    while (!ServiceCancellationToken.IsCancellationRequested && ZkTecoSdk.SSR_GetAllUserInfo((int)DeviceInfo.Code, out var iUserId, out var name, out var password,
                             out var privilege, out var enable))
                     {
                         var tmpCardNumber = string.Empty;
