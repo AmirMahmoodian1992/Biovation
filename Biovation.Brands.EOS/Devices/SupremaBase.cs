@@ -5,8 +5,6 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using EosClocks;
 using MoreLinq;
-using Newtonsoft.Json;
-using RestSharp;
 using Suprema;
 using System;
 using System.Collections.Generic;
@@ -31,20 +29,18 @@ namespace Biovation.Brands.EOS.Devices
         private readonly LogService _logService;
         private Timer _fixDaylightSavingTimer;
 
-        private readonly RestClient _restClient;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly Dictionary<uint, Device> _onlineDevices;
 
-        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, TaskService taskService, DeviceBrands deviceBrands)
+        public SupremaBaseDevice(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, Dictionary<uint, Device> onlineDevices, TaskService taskService, DeviceBrands deviceBrands)
          : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             Valid = true;
             _logService = logService;
             _fingerTemplateTypes = fingerTemplateTypes;
-            _restClient = restClient;
             _onlineDevices = onlineDevices;
             _taskService = taskService;
             _deviceBrands = deviceBrands;
@@ -52,329 +48,45 @@ namespace Biovation.Brands.EOS.Devices
             TotalLogCount = 20000;
         }
 
-        ///// <summary>
-        ///// <En>Read all log data from device, since last disconnect.</En>
-        ///// <Fa>داده های اتفاقات در طول زمان قطعی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
-        ///// </summary>
-        /*   public override void ReadOfflineLog(object token)
-           {
-               var Object = new object();
-
-               //Logger.Log("Discharging Clock: {0}", DeviceInfo.ReaderId);
-               Connection connection = new TCPIPConnection();
-
-               try
-               {
-                   connection = ConnectionFactory.CreateTCPIPConnection(DeviceInfo.IpAddress,
-                                                                        DeviceInfo.Port,
-                                                                        DeviceInfo.ReadTimeout,
-                                                                        DeviceInfo.WriteTimeout,
-                                                                        DeviceInfo.WaitBeforRead);
-               }
-               catch (Exception ex)
-               {
-                   Logger.Log(ex.Message);
-               }
-
-               //ProtocolType.Suprema
-               var clock = new Clock(connection, DeviceInfo.DeviceProtocolType,
-                 DeviceInfo.TRT, DeviceInfo.SensorProtocolType);
-
-               lock (Object)
-               {
-                   //Logger.Log("Testing connection to device: {0}", DeviceInfo.ReaderId);
-
-                   if (clock.TestConnection())
-                   {
-                       //                    Logger.Log("Discharging Clock: {0}", DeviceInfo.ReaderId);
-                       Thread.Sleep(1000);
-                       try
-                       {
-                           //                        clock.Dump()
-                           DeviceInfo.EosDeviceType = clock.GetModel();
-                           Logger.Log("\nConnected to Device: {0}. Discharging Clock. Device type: {1}\n", DeviceInfo.DeviceId, DeviceInfo.EosDeviceType);
-
-                           while (clock.Connected)
-                           {
-                               while (!clock.IsEmpty())
-                               {
-                                   var test = true;
-                                   var exceptionTester = false;
-                                   while (test)
-                                   {
-                                       //                            ClockRecord record = null;
-                                       ClockRecord record = null;
-
-                                       try
-                                       {
-                                           //                                                            record2 = (ClockRecord) clock.GetRecord();
-                                           while (record == null)
-                                           {
-                                               record = (ClockRecord)clock.GetRecord();
-                                               //                                        Thread.Sleep(2000);
-                                           }
-
-                                           EosServer.Count++;
-
-                                           //try
-                                           //{
-                                           //    System.IO.File.AppendAllText(@".\records" + DeviceInfo.ReaderId + ".txt",
-                                           //        Environment.NewLine + "Rec: " + EosServer.Count + "," + record);
-                                           //    //                                        test = false;
-                                           //    System.IO.File.AppendAllText(@".\recordsRAW" + DeviceInfo.ReaderId + ".txt",
-                                           //        Environment.NewLine + record.RawData);
-                                           //}
-                                           //catch (Exception ex)
-                                           //{
-                                           //    Logger.Log("Clock " + DeviceInfo.ReaderId + ": " + ex.Message);
-                                           //}
-                                       }
-                                       catch (Exception ex)
-                                       {
-                                           //                                    Logger.Log("Clock " + DeviceInfo.ReaderId + ": " + ex.Message);
-                                           try
-                                           {
-                                               if (ex is InvalidRecordException ||
-                                                   ex is InvalidDataInRecordException)
-                                               {
-                                                   var badRecordRawData = ex.Data["RecordRawData"].ToString();
-                                                   if (ex is InvalidDataInRecordException)
-                                                   {
-                                                       Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + "Bad record: " + badRecordRawData);
-                                                   }
-                                                   // you can find bad record data in ex.Data["RecordRawData"]
-                                                   //                                    MessageBox.Show("Bad Record :" + Environment.NewLine + ex.Data["RecordRawData"]);
-                                                   System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                       Environment.NewLine + "Bad Record: " + badRecordRawData);
-
-                                                   if (badRecordRawData != "")
-                                                   {
-                                                       try
-                                                       {
-                                                           System.IO.File.AppendAllText(@".\BadRecordsRAW" + DeviceInfo.DeviceId + ".txt",
-                                                                                                   Environment.NewLine + ex.Data["RecordRawData"]);
-
-
-                                                           var year = Convert.ToInt32(badRecordRawData.Substring(24, 2)) + 1300;
-                                                           var month = Convert.ToInt32(badRecordRawData.Substring(19, 2));
-                                                           var day = Convert.ToInt32(badRecordRawData.Substring(21, 2));
-
-                                                           var hour = Convert.ToInt32(badRecordRawData.Substring(15, 2));
-                                                           var minute = Convert.ToInt32(badRecordRawData.Substring(17, 2));
-
-                                                           var userId = Convert.ToInt32(badRecordRawData.Substring(6, 8));
-                                                           //int readerId = Convert.ToInt32(badRecordRawData.Substring(3, 3));
-
-                                                           var gregorianDateOfRec = new DateTime(year, month, day, hour, minute, 10, new PersianCalendar());
-
-                                                           var generatedRecord = "BadRecord ID: " + userId + " ," + gregorianDateOfRec;
-                                                           Logger.Log("Clock: " + DeviceInfo.DeviceId + generatedRecord);
-
-                                                           System.IO.File.AppendAllText(@".\BadRecords" + DeviceInfo.DeviceId + ".txt",
-                                                               Environment.NewLine + badRecordRawData +
-                                                               Environment.NewLine + year + "/" + month + "/" + day +
-                                                               Environment.NewLine + userId);
-
-                                                           var recivedLog = new EOSLog
-                                                           {
-                                                               LogDateTime = gregorianDateOfRec,
-                                                               UserId = userId,
-                                                               DeviceId = DeviceInfo.DeviceId,
-                                                               EventId = 55,
-                                                               RawData = generatedRecord
-                                                           };
-
-                                                           var logService = new EOSLogService();
-                                                           logService.AddLog(recivedLog, "KASRACONNECTIONSTRING");
-                                                           test = false;
-
-                                                       }
-                                                       catch (Exception)
-                                                       {
-                                                           Logger.Log("Error in parsing bad record.");
-                                                           System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                               Environment.NewLine + "Error in parsing bad record.");
-                                                       }
-                                                   }
-
-                                                   if (!(ex is InvalidRecordException))
-                                                       _counter++;
-                                                   if (_counter == 4)
-                                                   {
-                                                       test = false;
-                                                   }
-                                               }
-                                               else
-                                               {
-                                                   if (ex is InvalidRecordException)
-                                                       exceptionTester = true;
-                                                   else
-                                                       Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + ex.Message);
-                                               }
-                                               //                                lock (EOSServer.ExceptionWriteLockObject)
-                                               //                                {
-                                               System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                   Environment.NewLine + "Exception: " + ex.Message);
-                                               //                                }
-                                           }
-                                           catch (Exception e)
-                                           {
-                                               Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + e.Message);
-                                           }
-                                       }
-
-
-                                       try
-                                       {
-                                           //                                    while (record == null)
-                                           //                                    {
-                                           //                                        record = clock.GetRecord();
-                                           ////                                        Thread.Sleep(2000);
-                                           //                                    }
-
-                                           if (record != null)
-                                           {
-                                               var subEvent = 0;
-
-                                               try
-                                               {
-                                                   subEvent = Convert.ToInt32(record.RecType1);
-                                               }
-                                               catch (Exception)
-                                               {
-                                                   //ignore
-                                               }
-
-                                               var recivedLog = new EOSLog
-                                               {
-                                                   LogDateTime = record.DateTime,
-                                                   UserId = (int)record.ID,
-                                                   DeviceId = DeviceInfo.DeviceId,
-                                                   EventId = 55,
-                                                   SubEvent = subEvent,
-                                                   RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray())
-                                               };
-
-                                               var logService = new EOSLogService();
-                                               logService.AddLog(recivedLog, "KASRACONNECTIONSTRING");
-                                               test = false;
-                                               Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + record);
-
-                                               clock.NextRecord();
-                                               Thread.Sleep(1000);
-                                           }
-
-                                           else
-                                           {
-                                               if (!exceptionTester)
-                                               {
-                                                   Logger.Log("Null record.");
-                                               }
-                                           }
-                                       }
-                                       catch (Exception ex)
-                                       {
-                                           Logger.Log("Clock " + DeviceInfo.DeviceId + ": " +
-                                               "Error while Inserting Data to Attendance :" + ex.Message + " record: " + record);
-
-                                           try
-                                           {
-                                               System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                   Environment.NewLine + "Error in Insert Data to Attendance : " + ex.Message
-                                                   + record);
-                                           }
-                                           catch (Exception)
-                                           {
-                                               //                        Logger.Log(e.Message);
-                                           }
-                                       }
-                                   }
-
-                                   //                            Thread.Sleep(1500);
-
-                                   //                            if (DeviceInfo.EOSDeviceType != "ST-PRO+")
-                                   //                            {
-                                   //                                Thread.Sleep(1000);
-                                   //                            }
-                               }
-                           }
-
-                           clock?.Disconnect();
-                           clock?.Dispose();
-                       }
-
-
-
-                       catch (Exception ex)
-                       {
-                           Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + ex.Message);
-                           try
-                           {
-                               //                        System.IO.File.AppendAllText(@".\Exceptions.txt",
-                               //                            Environment.NewLine + "Error Read Data from Clock " + ex.Message);
-                           }
-                           catch (Exception)
-                           {
-                               //                        Logger.Log(e.Message);
-                           }
-                       }
-
-                       //                    Logger.Log("Finished, Clock: {0} discharged to last record.", DeviceInfo.ReaderId);
-                   }
-
-                   Logger.Log("Connection fail. Cannot connect to device: " + DeviceInfo.DeviceId + ", IP: " + DeviceInfo.IpAddress);
-               }
-
-               clock?.Disconnect();
-               clock?.Dispose();
-
-               EosServer.IsRunnig[DeviceInfo.DeviceId] = false;
-           }
-   */
         /// <summary>
         /// <En>Add new device to database.</En>
         /// <Fa>دستگاه جدید را در دیتابیس ثبت می کند.</Fa>
         /// </summary>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override bool Connect()
+        public override bool Connect(CancellationToken cancellationToken)
         {
+            ServiceCancellationToken = cancellationToken != CancellationToken.None && !ServiceCancellationToken.Equals(cancellationToken) ? cancellationToken : ServiceCancellationToken;
+
             lock (_onlineDevices)
             {
                 if (_onlineDevices.ContainsKey(DeviceInfo.Code))
                 {
                     _onlineDevices[DeviceInfo.Code].Disconnect();
                     _onlineDevices.Remove(DeviceInfo.Code);
-
-                    var disconnectConnectionStatus = new ConnectionStatus
-                    {
-                        DeviceId = DeviceInfo.DeviceId,
-                        IsConnected = false
-                    };
-
-                    try
-                    {
-                        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(disconnectConnectionStatus));
-
-                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                        _ = _logService.AddLog(new Log
-                        {
-                            DeviceId = DeviceInfo.DeviceId,
-                            DeviceCode = DeviceInfo.Code,
-                            LogDateTime = DateTime.Now,
-                            EventLog = LogEvents.Disconnect
-                        }).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
                 }
             }
 
             var isConnect = IsConnected();
             if (!isConnect) return false;
+
+            try
+            {
+                lock (DeviceInfo)
+                {
+                    _ = _logService.AddLog(new Log
+                    {
+                        DeviceId = DeviceInfo.DeviceId,
+                        DeviceCode = DeviceInfo.Code,
+                        LogDateTime = DateTime.Now,
+                        EventLog = LogEvents.Disconnect
+                    }).ConfigureAwait(false);
+                }
+            }
+            catch (Exception)
+            {
+                //ignore
+            }
 
             var setDateTimeResult = SetDateTime();
             if (!setDateTimeResult)
@@ -382,8 +94,6 @@ namespace Biovation.Brands.EOS.Devices
 
             try
             {
-                //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
-                //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
                 var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
                 _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
             }
@@ -392,44 +102,18 @@ namespace Biovation.Brands.EOS.Devices
                 Logger.Log(exception, exception.Message);
             }
 
-            _taskService.ProcessQueue(_deviceBrands.Eos, DeviceInfo.DeviceId).ConfigureAwait(false);
+            _ = _taskService.ProcessQueue(_deviceBrands.Eos, DeviceInfo.DeviceId).ConfigureAwait(false);
 
             lock (_onlineDevices)
             {
                 if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
                 {
                     _onlineDevices.Add(DeviceInfo.Code, this);
-
-
-                    var connectionStatus = new ConnectionStatus
-                    {
-                        DeviceId = DeviceInfo.DeviceId,
-                        IsConnected = true
-                    };
-
-                    try
-                    {
-                        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                        _ = _logService.AddLog(new Log
-                        {
-                            DeviceId = DeviceInfo.DeviceId,
-                            LogDateTime = DateTime.Now,
-                            EventLog = LogEvents.Connect
-                        }).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
                 }
             }
 
             Valid = true;
-            Task.Run(() => { ReadOnlineLog(Token); }, Token);
+            _ = Task.Run(() => { ReadOnlineLog(Token); }, Token).ConfigureAwait(false);
             return true;
         }
 
@@ -445,10 +129,10 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     lock (_clock)
                     {
-                        Thread.Sleep(3000);
+                        Task.Delay(TimeSpan.FromSeconds(3), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         var deviceTime = _clock.GetDateTime();
                         Logger.Log($"The device time is: {deviceTime.ToString(CultureInfo.CurrentCulture)}");
-                        Thread.Sleep(3000);
+                        Task.Delay(TimeSpan.FromSeconds(3), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         _clock.SetDateTime(DateTime.Now);
                         Logger.Log($"Successfully SetDateTime to {DateTime.Now}");
                     }
@@ -457,7 +141,7 @@ namespace Biovation.Brands.EOS.Devices
                 catch (Exception exception)
                 {
                     Logger.Log(exception, exception.Message);
-                    Thread.Sleep(++i * 200);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
             }
 
@@ -484,11 +168,11 @@ namespace Biovation.Brands.EOS.Devices
                     return true;
                 }
 
-            while (true)
+            while (!ServiceCancellationToken.IsCancellationRequested)
             {
                 Logger.Log($"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}");
 
-                Thread.Sleep(10000);
+                Task.Delay(TimeSpan.FromSeconds(10), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 Logger.Log($"Retrying connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}");
 
                 lock (_clock)
@@ -499,10 +183,12 @@ namespace Biovation.Brands.EOS.Devices
                     }
             }
 
+            return false;
         }
+
         public virtual ResultViewModel ReadOnlineLog(object token)
         {
-            Thread.Sleep(1000);
+            Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken); ;
             try
             {
                 string eosDeviceType;
@@ -516,7 +202,7 @@ namespace Biovation.Brands.EOS.Devices
                 lock (_clock)
                     deviceConnected = _clock.TestConnection();
 
-                while (deviceConnected && Valid)
+                while (deviceConnected && Valid && !ServiceCancellationToken.IsCancellationRequested)
                 {
                     try
                     {
@@ -525,7 +211,7 @@ namespace Biovation.Brands.EOS.Devices
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists)
+                        while (newRecordExists && !ServiceCancellationToken.IsCancellationRequested)
                         {
                             if (!Valid)
                             {
@@ -535,7 +221,7 @@ namespace Biovation.Brands.EOS.Devices
 
                             var test = true;
                             var exceptionTester = false;
-                            while (test)
+                            while (test && !ServiceCancellationToken.IsCancellationRequested)
                             {
                                 if (!Valid)
                                 {
@@ -547,7 +233,7 @@ namespace Biovation.Brands.EOS.Devices
 
                                 try
                                 {
-                                    while (record == null)
+                                    while (record == null && !ServiceCancellationToken.IsCancellationRequested)
                                     {
                                         if (!Valid)
                                         {
@@ -557,7 +243,7 @@ namespace Biovation.Brands.EOS.Devices
 
                                         lock (_clock)
                                             record = (ClockRecord)_clock.GetRecord();
-                                        Thread.Sleep(300);
+                                        Task.Delay(TimeSpan.FromMilliseconds(300), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                     }
 
                                     //_eosServer.Count++;
@@ -693,7 +379,7 @@ namespace Biovation.Brands.EOS.Devices
                 }
 
                 if (Valid)
-                    Connect();
+                    Connect(ServiceCancellationToken);
 
                 return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 1, Message = "0" };
             }
@@ -705,17 +391,27 @@ namespace Biovation.Brands.EOS.Devices
             Logger.Log("Connection fail. Cannot connect to device: " + DeviceInfo.Code + ", IP: " + DeviceInfo.IpAddress);
 
             if (Valid)
-                Connect();
+                Connect(ServiceCancellationToken);
 
             return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0" };
         }
         public override bool Disconnect()
         {
-            Valid = false;
-            lock (_clock)
+            try
             {
-                _clock?.Disconnect();
-                _clock?.Dispose();
+                Valid = false;
+                lock (_clock)
+                {
+                    _clock?.Disconnect();
+                    _clock?.Dispose();
+                }
+
+                Dispose();
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+                return false;
             }
 
             return true;
@@ -880,7 +576,7 @@ namespace Biovation.Brands.EOS.Devices
                         //if (retrievedUser.FingerTemplates.Any(template => template.CheckSum == fingerTemplate.CheckSum))
                         //    continue;
 
-                        Thread.Sleep(1000);
+                        Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken); ;
                         var sendTemplateResult = false;
                         supremaMatcher.RotateTemplate(firstFingerTemplate.Template, 384);
 
@@ -910,7 +606,7 @@ namespace Biovation.Brands.EOS.Devices
                             catch (Exception exception)
                             {
                                 Logger.Log(exception);
-                                Thread.Sleep(++i * 200);
+                                Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                             }
                         }
 
@@ -922,7 +618,7 @@ namespace Biovation.Brands.EOS.Devices
                             //if (retrievedUser.FingerTemplates.Any(template => template.CheckSum == fingerTemplate.CheckSum))
                             //    continue;
 
-                            Thread.Sleep(1000);
+                            Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken); ;
                             supremaMatcher.RotateTemplate(secondFingerTemplate.Template, 384);
 
                             for (var i = 0; i < 5;)
@@ -952,7 +648,7 @@ namespace Biovation.Brands.EOS.Devices
                                 catch (Exception exception)
                                 {
                                     Logger.Log(exception);
-                                    Thread.Sleep(++i * 200);
+                                    Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 }
                             }
                         }
@@ -1012,7 +708,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception);
-                            Thread.Sleep(++i * 200);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
                     }
 
@@ -1128,7 +824,7 @@ namespace Biovation.Brands.EOS.Devices
 
                     //List<SensorInfo> sensorInfo = new List<SensorInfo>();
 
-                    //Thread.Sleep(1000);
+                    //Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken);;
                     //try
                     //{
                     //    sensorInfo = GetUserList(out var fingerprintsHelpList);
@@ -1291,7 +987,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (isConnectToSensor)
                     break;
 
-                Thread.Sleep(500);
+                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 try
                 {
                     lock (_clock)
@@ -1329,7 +1025,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (disconnectedFromSensor)
                     break;
 
-                Thread.Sleep((i + 1) * 200);
+                Task.Delay(TimeSpan.FromMilliseconds((i + 1) * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 try
                 {
                     lock (_clock)
@@ -1384,7 +1080,7 @@ namespace Biovation.Brands.EOS.Devices
             if (invalidTime)
                 Logger.Log("The chosen Time Period is wrong.");
 
-            Thread.Sleep(1000);
+            Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken); ;
             string eosDeviceType;
             lock (_clock)
                 eosDeviceType = _clock.GetModel();
@@ -1408,7 +1104,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     lock (_clock)
                     {
-                        Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         writePointer = _clock.GetWritePointer();
                     }
 
@@ -1417,7 +1113,7 @@ namespace Biovation.Brands.EOS.Devices
                 catch (Exception exception)
                 {
                     Logger.Log(exception, exception.Message);
-                    Thread.Sleep(++i * 100);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
 
             }
@@ -1434,7 +1130,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             lock (_clock)
                             {
-                                Thread.Sleep(500);
+                                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 initialReadPointer = _clock.GetReadPointer();
                             }
 
@@ -1443,7 +1139,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception, exception.Message);
-                            Thread.Sleep(++i * 100);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
 
                     }
@@ -1468,7 +1164,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             lock (_clock)
                             {
-                                Thread.Sleep(500);
+                                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 successSetPointer = _clock.SetReadPointer(leftBoundary);
                             }
 
@@ -1477,7 +1173,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception, exception.Message);
-                            Thread.Sleep(++i * 100);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
 
                     }
@@ -1526,7 +1222,7 @@ namespace Biovation.Brands.EOS.Devices
                         //    {
                         //        lock (_clock)
                         //        {
-                        //            Thread.Sleep(500);
+                        //            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         //            successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
                         //        }
                         //        break;
@@ -1534,7 +1230,7 @@ namespace Biovation.Brands.EOS.Devices
                         //    catch (Exception exception)
                         //    {
                         //        Logger.Log(exception, exception.Message);
-                        //        Thread.Sleep(++i * 100);
+                        //        Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         //    }
 
                         //}
@@ -1555,7 +1251,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             lock (_clock)
                             {
-                                Thread.Sleep(500);
+                                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 _clock.SetReadPointer(initialReadPointer);
                             }
 
@@ -1564,7 +1260,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             Logger.Log(exception, exception.Message);
-                            Thread.Sleep(++i * 100);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
                     }
                 }
@@ -1605,11 +1301,11 @@ namespace Biovation.Brands.EOS.Devices
         //            {
         //                if (!successSetPointer)
         //                {
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    successSetPointer = _clock.SetReadPointer(mid);
         //                    Logger.Log($"The read pointer is successfully set to {mid}");
         //                }
-        //                Thread.Sleep(500);
+        //                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                clockRecord = (ClockRecord)_clock.GetRecord();
         //                Logger.Log($"The log date is: {clockRecord.DateTime}");
         //            }
@@ -1618,7 +1314,7 @@ namespace Biovation.Brands.EOS.Devices
         //        catch (Exception exception)
         //        {
         //            Logger.Log(exception, exception.Message);
-        //            Thread.Sleep(++i * 100);
+        //            Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //        }
 
         //    }
@@ -1697,10 +1393,10 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         if (!successSetPointer)
                         {
-                            Thread.Sleep(500);
+                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                             successSetPointer = _clock.SetReadPointer(currentIndex);
                         }
-                        Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         clockRecord = (ClockRecord)_clock.GetRecord();
                     }
                     break;
@@ -1708,7 +1404,7 @@ namespace Biovation.Brands.EOS.Devices
                 catch (Exception exception)
                 {
                     Logger.Log(exception, exception.Message);
-                    Thread.Sleep(++i * 100);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
             }
 
@@ -1767,6 +1463,7 @@ namespace Biovation.Brands.EOS.Devices
             {
                 _clock?.Dispose();
                 _fixDaylightSavingTimer?.Dispose();
+                GC.SuppressFinalize(this);
             }
             catch (Exception exception)
             {

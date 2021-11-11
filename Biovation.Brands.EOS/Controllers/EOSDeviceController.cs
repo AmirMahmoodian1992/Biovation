@@ -11,6 +11,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Biovation.Brands.EOS.Controllers
@@ -92,11 +93,11 @@ namespace Biovation.Brands.EOS.Controllers
 
         [HttpPost]
         [Authorize]
-        public ResultViewModel ModifyDevice([FromBody] DeviceBasicInfo device)
+        public ResultViewModel ModifyDevice([FromBody] DeviceBasicInfo device, CancellationToken cancellationToken)
         {
             if (device.Active)
             {
-                _eosServer.ConnectToDevice(device);
+                _eosServer.ConnectToDevice(device, cancellationToken);
             }
 
             else

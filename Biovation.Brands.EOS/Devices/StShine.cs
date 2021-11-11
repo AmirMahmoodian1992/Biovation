@@ -4,8 +4,6 @@ using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using EosClocks;
 using MoreLinq;
-using Newtonsoft.Json;
-using RestSharp;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -33,7 +31,6 @@ namespace Biovation.Brands.EOS.Devices
         private readonly ILogger _logger;
         private readonly LogService _logService;
 
-        private readonly RestClient _restClient;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
         private readonly FingerTemplateTypes _fingerTemplateTypes;
@@ -41,11 +38,10 @@ namespace Biovation.Brands.EOS.Devices
         private readonly Dictionary<uint, Device> _onlineDevices;
         private const int MaxExceptionRecordCount = 300;
 
-        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, RestClient restClient, Dictionary<uint, Device> onlineDevices, ILogger logger, TaskService taskService, DeviceBrands deviceBrands)
+        public StShineDevice(ProtocolType protocolType, DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents, LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, Dictionary<uint, Device> onlineDevices, ILogger logger, TaskService taskService, DeviceBrands deviceBrands)
          : base(deviceInfo, logEvents, logSubEvents, eosCodeMappings)
         {
             _logService = logService;
-            _restClient = restClient;
             _protocolType = protocolType;
             _onlineDevices = onlineDevices;
             _taskService = taskService;
@@ -62,30 +58,18 @@ namespace Biovation.Brands.EOS.Devices
         /// <En>Add new device to database.</En>
         /// <Fa>دستگاه جدید را در دیتابیس ثبت می کند.</Fa>
         /// </summary>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override bool Connect()
+        public override bool Connect(CancellationToken cancellationToken)
         {
+            ServiceCancellationToken = cancellationToken != CancellationToken.None && !ServiceCancellationToken.Equals(cancellationToken) ? cancellationToken : ServiceCancellationToken;
+
             var result = ConnectToDevice();
             if (!result)
                 return false;
 
-            ConnectionStatus connectionStatus;
-            lock (DeviceInfo)
-            {
-                connectionStatus = new ConnectionStatus
-                {
-                    DeviceId = DeviceInfo.DeviceId,
-                    IsConnected = true
-                };
-            }
-
             try
             {
-                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
                 lock (DeviceInfo)
                 {
                     _ = _logService.AddLog(new Log
@@ -101,6 +85,7 @@ namespace Biovation.Brands.EOS.Devices
             {
                 //ignore
             }
+
             var setDateTimeResult = SetDateTime();
             if (!setDateTimeResult)
                 lock (_onlineDevices)
@@ -121,18 +106,16 @@ namespace Biovation.Brands.EOS.Devices
 
             Task.Run(() => { ReadOnlineLog(Token); }, Token);
 
+            if (DeviceInfo == null) return false;
             lock (DeviceInfo)
-            {
-                _taskService.ProcessQueue(_deviceBrands.Eos, DeviceInfo.DeviceId).ConfigureAwait(false);
-            }
+                _ = _taskService.ProcessQueue(_deviceBrands.Eos, DeviceInfo.DeviceId).ConfigureAwait(false);
             return true;
-
         }
 
 
         public bool DisconnectFromDevice()
         {
-            Thread.Sleep(500);
+            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
             try
             {
                 Valid = false;
@@ -150,14 +133,14 @@ namespace Biovation.Brands.EOS.Devices
             {
                 Logger.Log(@$"Disconnect From Device with DeviceCode {DeviceInfo.Code}");
             }
-            Thread.Sleep(500);
+            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
             return true;
         }
 
 
         public bool ConnectToDevice()
         {
-            Thread.Sleep(500);
+            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
             Valid = true;
             var isConnect = IsConnected();
             if (!isConnect) return false;
@@ -168,7 +151,7 @@ namespace Biovation.Brands.EOS.Devices
                     _onlineDevices.Add(DeviceInfo.Code, this);
                 }
             }
-            Thread.Sleep(500);
+            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
             return true;
         }
 
@@ -186,9 +169,9 @@ namespace Biovation.Brands.EOS.Devices
 
                     lock (_clock)
                     {
-                        Thread.Sleep(3000);
+                        Task.Delay(TimeSpan.FromSeconds(3), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         _clock.GetDateTime();
-                        Thread.Sleep(3000);
+                        Task.Delay(TimeSpan.FromSeconds(3), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         _clock.SetDateTime(DateTime.Now);
                         _logger.Debug($"Successfully SetDateTime to {DateTime.Now}");
                     }
@@ -197,7 +180,7 @@ namespace Biovation.Brands.EOS.Devices
                 catch (Exception exception)
                 {
                     _logger.Debug(exception, exception.Message);
-                    Thread.Sleep(++i * 200);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
             }
 
@@ -231,7 +214,7 @@ namespace Biovation.Brands.EOS.Devices
 
             _logger.Debug("Connecting to device {deviceCode}", deviceCode);
             Logger.Log(@$"Connecting to device {deviceCode}");
-            Thread.Sleep(500);
+            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
             lock (_clock)
                 if (_clock.TestConnection())
                 {
@@ -240,12 +223,11 @@ namespace Biovation.Brands.EOS.Devices
                 }
 
 
-
-            while (Valid)
+            while (Valid && !ServiceCancellationToken.IsCancellationRequested)
             {
                 _logger.Debug("Could not connect to device {deviceCode} --> IP: {deviceIpAddress}", deviceCode, deviceIpPort);
 
-                Thread.Sleep(10000);
+                Task.Delay(TimeSpan.FromSeconds(10), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 _logger.Debug("Retrying connect to device {deviceCode} --> IP: {deviceIpAddress}", deviceCode, deviceIpPort);
 
                 lock (_clock)
@@ -260,7 +242,7 @@ namespace Biovation.Brands.EOS.Devices
         }
         public virtual ResultViewModel ReadOnlineLog(object token)
         {
-            Thread.Sleep(1000);
+            Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken);
 
             uint deviceCode;
             int deviceId;
@@ -283,20 +265,20 @@ namespace Biovation.Brands.EOS.Devices
 
                 bool deviceConnected;
 
-                Thread.Sleep(1000);
+                Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 lock (_clock)
                     deviceConnected = _clock.TestConnection();
 
-                while (deviceConnected && Valid)
+                while (deviceConnected && Valid && !ServiceCancellationToken.IsCancellationRequested)
                 {
                     try
                     {
                         bool newRecordExists;
-                        Thread.Sleep(300);
+                        Task.Delay(TimeSpan.FromMilliseconds(300), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         lock (_clock)
                             newRecordExists = !_clock.IsEmpty();
 
-                        while (newRecordExists)
+                        while (newRecordExists && !ServiceCancellationToken.IsCancellationRequested)
                         {
                             if (!Valid)
                             {
@@ -308,7 +290,7 @@ namespace Biovation.Brands.EOS.Devices
                             {
                                 var invalidRecordExceptionTest = true;
                                 var exceptionTester = false;
-                                while (invalidRecordExceptionTest)
+                                while (invalidRecordExceptionTest && !ServiceCancellationToken.IsCancellationRequested)
                                 {
                                     if (!Valid)
                                     {
@@ -320,7 +302,7 @@ namespace Biovation.Brands.EOS.Devices
                                     ClockRecord record = null;
                                     try
                                     {
-                                        while (record == null)
+                                        while (record == null && !ServiceCancellationToken.IsCancellationRequested)
                                         {
                                             if (!Valid)
                                             {
@@ -332,7 +314,7 @@ namespace Biovation.Brands.EOS.Devices
 
                                             lock (_clock)
                                                 record = (ClockRecord)_clock.GetRecord();
-                                            Thread.Sleep(300);
+                                            Task.Delay(TimeSpan.FromMilliseconds(300), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                         }
 
                                         //_eosServer.Count++;
@@ -396,7 +378,7 @@ namespace Biovation.Brands.EOS.Devices
                                                             {
                                                                 lock (_clock)
                                                                 {
-                                                                    Thread.Sleep(500);
+                                                                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                                                     rp = _clock.GetReadPointer();
                                                                 }
 
@@ -405,7 +387,7 @@ namespace Biovation.Brands.EOS.Devices
                                                             catch (Exception exception)
                                                             {
                                                                 _logger.Warning(exception, exception.Message);
-                                                                Thread.Sleep(++i * 100);
+                                                                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                                             }
 
                                                         }
@@ -477,7 +459,7 @@ namespace Biovation.Brands.EOS.Devices
                                                     {
                                                         lock (_clock)
                                                         {
-                                                            Thread.Sleep(500);
+                                                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                                             rp = _clock.GetReadPointer();
                                                         }
 
@@ -486,7 +468,7 @@ namespace Biovation.Brands.EOS.Devices
                                                     catch (Exception exception)
                                                     {
                                                         _logger.Warning(exception, exception.Message);
-                                                        Thread.Sleep(++i * 100);
+                                                        Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                                     }
 
                                                 }
@@ -511,7 +493,7 @@ namespace Biovation.Brands.EOS.Devices
                                 newRecordExists = !_clock.IsEmpty();
                         }
 
-                        Thread.Sleep(2000);
+                        Task.Delay(TimeSpan.FromSeconds(2), ServiceCancellationToken).Wait(ServiceCancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -525,7 +507,7 @@ namespace Biovation.Brands.EOS.Devices
                 _logger.Debug("Connection fail. Cannot connect to device: " + deviceCode + ", IP: " + deviceIpAddress);
 
                 if (Valid)
-                    Connect();
+                    Connect(ServiceCancellationToken);
 
                 return new ResultViewModel { Id = deviceId, Validate = 1, Message = "0" };
             }
@@ -551,39 +533,27 @@ namespace Biovation.Brands.EOS.Devices
 
             lock (_onlineDevices)
             {
-                if (_onlineDevices.ContainsKey(deviceCode))
-                {
-                    _onlineDevices[deviceCode].Disconnect();
-                    _onlineDevices.Remove(deviceCode);
+                if (!_onlineDevices.ContainsKey(deviceCode)) return true;
+                _onlineDevices[deviceCode].Disconnect();
+                _onlineDevices.Remove(deviceCode);
 
-                    var connectionStatus = new ConnectionStatus
+                try
+                {
+                    _ = _logService.AddLog(new Log
                     {
                         DeviceId = DeviceInfo.DeviceId,
-                        IsConnected = false
-                    };
-
-                    try
-                    {
-                        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                        _ = _logService.AddLog(new Log
-                        {
-                            DeviceId = DeviceInfo.DeviceId,
-                            DeviceCode = DeviceInfo.Code,
-                            LogDateTime = DateTime.Now,
-                            EventLog = LogEvents.Disconnect
-                        }).ConfigureAwait(false);
-                    }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
+                        DeviceCode = DeviceInfo.Code,
+                        LogDateTime = DateTime.Now,
+                        EventLog = LogEvents.Disconnect
+                    }).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    //ignore
                 }
             }
 
+            Dispose();
             return true;
         }
 
@@ -621,7 +591,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             _logger.Warning(exception, exception.Message);
-                            Thread.Sleep(100 * ++i);
+                            Task.Delay(TimeSpan.FromMilliseconds(100 * ++i), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
                     }
 
@@ -802,7 +772,7 @@ namespace Biovation.Brands.EOS.Devices
                             catch (Exception exception)
                             {
                                 _logger.Warning(exception, exception.Message);
-                                Thread.Sleep(++i * 200);
+                                Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                             }
                         }
 
@@ -838,7 +808,7 @@ namespace Biovation.Brands.EOS.Devices
                                 catch (Exception exception)
                                 {
                                     _logger.Warning(exception, exception.Message);
-                                    Thread.Sleep(++i * 200);
+                                    Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 }
                             }
                         }
@@ -901,7 +871,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             _logger.Debug(exception, exception.Message);
-                            Thread.Sleep(++i * 200);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
                     }
 
@@ -1018,7 +988,7 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             _logger.Warning(exception, exception.Message);
-                            Thread.Sleep(++i * 200);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
                     }
 
@@ -1172,7 +1142,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (isConnectToSensor)
                     break;
 
-                Thread.Sleep(500);
+                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 try
                 {
                     isConnectToSensor = _clock.ConnectToSensor();
@@ -1207,7 +1177,7 @@ namespace Biovation.Brands.EOS.Devices
                 if (disconnectedFromSensor)
                     break;
 
-                Thread.Sleep((i + 1) * 200);
+                Task.Delay(TimeSpan.FromMilliseconds((i + 1) * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 try
                 {
                     disconnectedFromSensor = _clock.DisconnectFromSensor();
@@ -1252,7 +1222,7 @@ namespace Biovation.Brands.EOS.Devices
         //    if (invalidTime)
         //        Logger.Log("The chosen Time Period is wrong.");
 
-        //    Thread.Sleep(1000);
+        //    Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken);;
         //    string eosDeviceType;
         //    lock (_clock)
         //        eosDeviceType = _clock.GetModel();
@@ -1276,7 +1246,7 @@ namespace Biovation.Brands.EOS.Devices
         //        {
         //            lock (_clock)
         //            {
-        //                Thread.Sleep(500);
+        //                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                writePointer = _clock.GetWritePointer();
         //            }
         //            break;
@@ -1284,7 +1254,7 @@ namespace Biovation.Brands.EOS.Devices
         //        catch (Exception exception)
         //        {
         //            Logger.Log(exception, exception.Message);
-        //            Thread.Sleep(++i * 100);
+        //            Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //        }
 
         //    }
@@ -1299,7 +1269,7 @@ namespace Biovation.Brands.EOS.Devices
         //            {
         //                lock (_clock)
         //                {
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    initialReadPointer = _clock.GetReadPointer();
         //                    _logger.Information("The Read Pointer is: {initialPointer}", initialReadPointer);
         //                }
@@ -1308,7 +1278,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //            }
 
         //        }
@@ -1329,7 +1299,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //            }
         //        }
 
@@ -1343,10 +1313,10 @@ namespace Biovation.Brands.EOS.Devices
         //                {
         //                    successSetPointer = _clock.SetReadPointer(9000);
         //                    //_clock.Connection.SendCommandAndGetResult("AUR=1", "\r");
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    var clockRecord = (ClockRecord)_clock.GetRecord();
         //                    _logger.Debug("Before 1 set pointer: {dateTime}", clockRecord.DateTime);
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                }
 
         //                break;
@@ -1354,7 +1324,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //            }
         //        }
 
@@ -1376,7 +1346,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //            }
         //        }
 
@@ -1389,10 +1359,10 @@ namespace Biovation.Brands.EOS.Devices
         //                {
         //                    successSetPointer = _clock.SetReadPointer(10000);
         //                    //_clock.Connection.SendCommandAndGetResult("AUR=100", "\r");
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    var clockRecord = (ClockRecord)_clock.GetRecord();
         //                    _logger.Debug("Before 2 set pointer: {dateTime}", clockRecord.DateTime);
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                }
 
         //                break;
@@ -1400,7 +1370,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //            }
         //        }
 
@@ -1414,7 +1384,7 @@ namespace Biovation.Brands.EOS.Devices
         //            {
         //                lock (_clock)
         //                {
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    successSetPointer = _clock.SetReadPointer(leftBoundary);
         //                }
         //                break;
@@ -1422,7 +1392,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //            }
 
         //        }
@@ -1434,7 +1404,7 @@ namespace Biovation.Brands.EOS.Devices
         //            {
         //                lock (_clock)
         //                {
-        //                    Thread.Sleep(500);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    record = (ClockRecord)_clock.GetRecord();
         //                    _logger.Debug("First record: {dateTime}", record.DateTime);
         //                }
@@ -1443,7 +1413,7 @@ namespace Biovation.Brands.EOS.Devices
         //            catch (Exception exception)
         //            {
         //                Logger.Log(exception, exception.Message);
-        //                Thread.Sleep(++i * 100);
+        //                Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                if (i == 4)
         //                {
         //                    leftBoundary = 1;
@@ -1463,7 +1433,7 @@ namespace Biovation.Brands.EOS.Devices
         //                {
         //                    lock (_clock)
         //                    {
-        //                        Thread.Sleep(500);
+        //                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                        var clockRecord = (ClockRecord)_clock.GetRecord();
         //                        _logger.Debug("second record: {dateTime}", clockRecord.DateTime);
         //                    }
@@ -1473,7 +1443,7 @@ namespace Biovation.Brands.EOS.Devices
         //                catch (Exception exception)
         //                {
         //                    Logger.Log(exception, exception.Message);
-        //                    Thread.Sleep(++i * 100);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                }
         //            }
 
@@ -1489,7 +1459,7 @@ namespace Biovation.Brands.EOS.Devices
         //                    {
         //                        lock (_clock)
         //                        {
-        //                            Thread.Sleep(500);
+        //                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                            successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
         //                        }
         //                        break;
@@ -1497,7 +1467,7 @@ namespace Biovation.Brands.EOS.Devices
         //                    catch (Exception exception)
         //                    {
         //                        Logger.Log(exception, exception.Message);
-        //                        Thread.Sleep(++i * 100);
+        //                        Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                    }
 
         //                }
@@ -1511,7 +1481,7 @@ namespace Biovation.Brands.EOS.Devices
         //                {
         //                    lock (_clock)
         //                    {
-        //                        Thread.Sleep(500);
+        //                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                        successSetPointer = _clock.SetReadPointer(initialReadPointer);
         //                    }
         //                    break;
@@ -1519,7 +1489,7 @@ namespace Biovation.Brands.EOS.Devices
         //                catch (Exception exception)
         //                {
         //                    Logger.Log(exception, exception.Message);
-        //                    Thread.Sleep(++i * 100);
+        //                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
         //                }
 
         //            }
@@ -1559,7 +1529,7 @@ namespace Biovation.Brands.EOS.Devices
             if (invalidTime)
                 _logger.Debug("The chosen Time Period is wrong.");
 
-            Thread.Sleep(1000);
+            Task.Delay(TimeSpan.FromSeconds(1), ServiceCancellationToken).Wait(ServiceCancellationToken);
             string eosDeviceType;
             lock (_clock)
                 eosDeviceType = _clock.GetModel();
@@ -1584,7 +1554,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     lock (_clock)
                     {
-                        Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         writePointer = _clock.GetWritePointer();
                     }
 
@@ -1593,7 +1563,7 @@ namespace Biovation.Brands.EOS.Devices
                 catch (Exception exception)
                 {
                     _logger.Warning(exception, exception.Message);
-                    Thread.Sleep(++i * 100);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
 
             }
@@ -1614,7 +1584,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             lock (_clock)
                             {
-                                Thread.Sleep(500);
+                                Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 successSetPointer = _clock.SetReadPointer(leftBoundary);
                                 if (!successSetPointer) continue;
                                 var reconnect = DisconnectFromDevice() && ConnectToDevice();
@@ -1626,18 +1596,18 @@ namespace Biovation.Brands.EOS.Devices
                         catch (Exception exception)
                         {
                             _logger.Warning(exception, exception.Message);
-                            Thread.Sleep(++i * 100);
+                            Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         }
 
                     }
 
 
-                    var returnedDateTime = DateTime.MinValue;
                     _logger.Debug(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
                     if (successSetPointer)
                     {
                         var firstIndex = leftBoundary;
                         var clockRecord = new ClockRecord();
+                        DateTime returnedDateTime;
                         try
                         {
                             for (var i = 0; i < 5; i++)
@@ -1646,7 +1616,7 @@ namespace Biovation.Brands.EOS.Devices
                                 {
                                     lock (_clock)
                                     {
-                                        Thread.Sleep(500);
+                                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                         clockRecord = (ClockRecord)_clock.GetRecord();
                                     }
 
@@ -1655,7 +1625,7 @@ namespace Biovation.Brands.EOS.Devices
                                 catch (Exception exception)
                                 {
                                     _logger.Warning(exception, exception.Message);
-                                    Thread.Sleep(++i * 100);
+                                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 }
                             }
 
@@ -1686,7 +1656,7 @@ namespace Biovation.Brands.EOS.Devices
                                 {
                                     lock (_clock)
                                     {
-                                        Thread.Sleep(500);
+                                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                         successSetPointer = _clock.SetReadPointer(initialReadPointer);
                                         if (!successSetPointer) continue;
                                         var reconnect = DisconnectFromDevice() && ConnectToDevice();
@@ -1698,7 +1668,7 @@ namespace Biovation.Brands.EOS.Devices
                                 catch (Exception exception)
                                 {
                                     _logger.Warning(exception, exception.Message);
-                                    Thread.Sleep(++i * 100);
+                                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 }
                             }
                         }
@@ -1779,14 +1749,14 @@ namespace Biovation.Brands.EOS.Devices
                     {
                         if (!successSetPointer)
                         {
-                            Thread.Sleep(500);
+                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                             successSetPointer = _clock.SetReadPointer(currentIndex);
                             if (!successSetPointer) continue;
                         }
-                        Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         var reconnect = DisconnectFromDevice() && ConnectToDevice();
                         if (!reconnect) continue;
-                        Thread.Sleep(500);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                         clockRecord = (ClockRecord)_clock.GetRecord();
                     }
 
@@ -1797,7 +1767,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     exceptionRecordCount++;
                     _logger.Warning(exception, exception.Message);
-                    Thread.Sleep(++i * 100);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 100), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
             }
             return successSetPointer;
@@ -1833,6 +1803,7 @@ namespace Biovation.Brands.EOS.Devices
             {
                 _clock?.Dispose();
                 _fixDaylightSavingTimer?.Dispose();
+                GC.SuppressFinalize(this);
             }
             catch (Exception exception)
             {
