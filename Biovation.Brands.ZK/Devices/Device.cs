@@ -129,24 +129,31 @@ namespace Biovation.Brands.ZK.Devices
                     //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
                     if (_reconnecting)
                     {
-                        //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
-                        //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
-                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
-                        ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
-                        ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
-                        //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
-                        ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
-                        //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
-                        //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
-                        //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
-                        //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
-                        //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
-                        //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
-                        //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
-                        //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
-                        ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
-                        ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 0);
-                        Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                        try
+                        {
+                            //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
+                            //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
+                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                            ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
+                            ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
+                            //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
+                            ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
+                            //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
+                            //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
+                            //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
+                            //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
+                            //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
+                            //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
+                            //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
+                            //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
+                            ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                            ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 0);
+                            Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                        }
+                        catch (Exception exception)
+                        {
+                            _logger.Warning(exception, exception.Message);
+                        }
                     }
 
                     if (ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 65535))
@@ -400,27 +407,32 @@ namespace Biovation.Brands.ZK.Devices
             _checkDeviceConnectionStatusTimer.Change(Timeout.InfiniteTimeSpan, TimeSpan.FromMilliseconds(-1));
             lock (ZkTecoSdk)
             {
-                //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
-                //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
-                ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
-                ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
-                //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
-                ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
-                //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
-                //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
-                //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
-                //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
-                //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
-                //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
-                //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
-                //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
-                ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
-                ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 0);
-                Task.Delay(TimeSpan.FromMilliseconds(100), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                try
+                {
+                    //_zkTecoSdk.OnFinger -= _zkTecoSdk_OnFinger;
+                    //_zkTecoSdk.OnVerify -= _zkTecoSdk_OnVerify;
+                    ZkTecoSdk.OnAttTransaction -= OnAttendanceTransactionCallback;
+                    ZkTecoSdk.OnAttTransactionEx -= OnAttendanceTransactionExCallback;
+                    //_zkTecoSdk.OnFingerFeature -= _zkTecoSdk_OnFingerFeature;
+                    ZkTecoSdk.OnKeyPress -= OnKeyPressCallback;
+                    //_zkTecoSdk.OnEnrollFinger -= _zkTecoSdk_OnEnrollFinger;
+                    //_zkTecoSdk.OnDeleteTemplate -= _zkTecoSdk_OnDeleteTemplate;
+                    //_zkTecoSdk.OnNewUser -= _zkTecoSdk_OnNewUser;
+                    //_zkTecoSdk.OnHIDNum -= _zkTecoSdk_OnHIDNum;
+                    //_zkTecoSdk.OnAlarm -= _zkTecoSdk_OnAlarm;
+                    //_zkTecoSdk.OnDoor -= _zkTecoSdk_OnDoor;
+                    //_zkTecoSdk.OnWriteCard -= _zkTecoSdk_OnWriteCard;
+                    //_zkTecoSdk.OnEmptyCard -= _zkTecoSdk_OnEmptyCard;
+                    ZkTecoSdk.OnDisConnected -= OnDisconnectedCallback;
+                    ZkTecoSdk.RegEvent((int)DeviceInfo.Code, 0);
+                    Task.Delay(TimeSpan.FromMilliseconds(100), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    _logger.Warning(exception, exception.Message);
+                }
 
                 ZkTecoSdk.Disconnect();
-
-                //_reconnecting = !cancelReconnecting;
             }
 
             lock (_onlineDevices)
