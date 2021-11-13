@@ -733,13 +733,13 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 retrievedLogs.Add(log);
-                                //                         _logger.Debug($@"<--
-                                //+TerminalID: {DeviceInfo.Code}
-                                //+UserID: {userId}
-                                //+DateTime: {log.LogDateTime}
-                                //+AuthType: {iVerifyMethod}
-                                //+TnaEvent: {(ushort)iInOutMode}
-                                //+Progress: {iLogCount}/{recordCnt}");
+                                _logger.Debug(@"<--
+                                +TerminalID: {DeviceCode}
+                                +UserID: {LogUserId}
+                                +DateTime: {LogDateTime}
+                                +AuthType: {LogVerifyMethod}
+                                +TnaEvent: {LogInOutMode}
+                                +Progress: {LogIndex}", DeviceInfo.Code, userId, log.LogDateTime, iVerifyMethod, (ushort)iInOutMode, iLogCount);
 
                                 if (retrievedLogs.Count % 1000 == 0)
                                 {
@@ -778,20 +778,20 @@ namespace Biovation.Brands.ZK.Devices
                         return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                     }
 
-                    logInsertionTasks.Add(Task.Run(() =>
-                    {
-                        var retrievedLogCount = retrievedLogs.Count;
-                        foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
-                        {
-                            _logger.Debug($@"<--
-       +TerminalID: {DeviceInfo.Code}
-       +UserID: {log.UserId}
-       +DateTime: {log.LogDateTime}
-       +AuthType: {log.MatchingType.Code}
-       +TnaEvent: {log.TnaEvent}
-       +Progress: {index}/{retrievedLogCount}");
-                        }
-                    }, ServiceCancellationToken));
+                    //             logInsertionTasks.Add(Task.Run(() =>
+                    //             {
+                    //                 var retrievedLogCount = retrievedLogs.Count;
+                    //                 foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
+                    //                 {
+                    //                     _logger.Debug($@"<--
+                    //+TerminalID: {DeviceInfo.Code}
+                    //+UserID: {log.UserId}
+                    //+DateTime: {log.LogDateTime}
+                    //+AuthType: {log.MatchingType.Code}
+                    //+TnaEvent: {log.TnaEvent}
+                    //+Progress: {index}/{retrievedLogCount}");
+                    //                 }
+                    //             }, ServiceCancellationToken));
 
                     Task.WaitAll(logInsertionTasks.ToArray());
                     _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
@@ -881,13 +881,13 @@ namespace Biovation.Brands.ZK.Devices
                                 };
 
                                 retrievedLogs.Add(log);
-                                //                            _logger.Debug($@"<--
-                                //+TerminalID:{DeviceInfo.Code}
-                                //+UserID:{userId}
-                                //+DateTime:{log.LogDateTime}
-                                //+AuthType:{iVerifyMethod}
-                                //+TnaEvent:{(ushort)iInOutMode}
-                                //+Progress:{iLogCount}/{recordsCount}");
+                                _logger.Debug(@"<--
+                                +TerminalID: {DeviceCode}
+                                +UserID: {LogUserId}
+                                +DateTime: {LogDateTime}
+                                +AuthType: {LogVerifyMethod}
+                                +TnaEvent: {LogInOutMode}
+                                +Progress: {LogIndex}", DeviceInfo.Code, userId, log.LogDateTime, iVerifyMethod, (ushort)iInOutMode, iLogCount);
 
                                 if (retrievedLogs.Count % 1000 == 0)
                                 {
@@ -926,20 +926,20 @@ namespace Biovation.Brands.ZK.Devices
                         return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0", Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                     }
 
-                    logInsertionTasks.Add(Task.Run(() =>
-                    {
-                        var retrievedLogCount = retrievedLogs.Count;
-                        foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
-                        {
-                            _logger.Debug($@"<--
-       +TerminalID: {DeviceInfo.Code}
-       +UserID: {log.UserId}
-       +DateTime: {log.LogDateTime}
-       +AuthType: {log.MatchingType.Code}
-       +TnaEvent: {log.TnaEvent}
-       +Progress: {index}/{retrievedLogCount}");
-                        }
-                    }, ServiceCancellationToken));
+                    //             logInsertionTasks.Add(Task.Run(() =>
+                    //             {
+                    //                 var retrievedLogCount = retrievedLogs.Count;
+                    //                 foreach (var (log, index) in retrievedLogs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
+                    //                 {
+                    //                     _logger.Debug($@"<--
+                    //+TerminalID: {DeviceInfo.Code}
+                    //+UserID: {log.UserId}
+                    //+DateTime: {log.LogDateTime}
+                    //+AuthType: {log.MatchingType.Code}
+                    //+TnaEvent: {log.TnaEvent}
+                    //+Progress: {index}/{retrievedLogCount}");
+                    //                 }
+                    //             }, ServiceCancellationToken));
 
                     Task.WaitAll(logInsertionTasks.ToArray());
                     _logger.Information($"{iLogCount} Offline log retrieved from DeviceId: {DeviceInfo.Code}.");
@@ -1112,7 +1112,7 @@ namespace Biovation.Brands.ZK.Devices
 
                         try
                         {
-                            _logger.Debug($"Retrieved user {iUserId}, index: {index}");
+                            _logger.Debug("Retrieved user {UserId}, index: {index}", iUserId, index);
 
                             var replacements = new Dictionary<string, string> { { "˜", "\u0098" }, { "Ž", "\u008e" } };
                             var userName = replacements.Aggregate(name,
@@ -1147,7 +1147,7 @@ namespace Biovation.Brands.ZK.Devices
                                         //Id = (int)user.Id
                                     };
                                     user.IdentityCardsCount++;
-                                    _logger.Debug($"Retried user card of user {iUserId}, index: {index}");
+                                    _logger.Debug("Retried user card of user {UserId}, index: {index}", iUserId, index);
                                 }
                                 else
                                 {
@@ -1156,7 +1156,7 @@ namespace Biovation.Brands.ZK.Devices
                             }
 
                             index++;
-                            _logger.Debug($"Retrieving templates of user {iUserId}, index: {index}");
+                            _logger.Debug("Retrieving templates of user {UserId}, index: {index}", iUserId, index);
 
                             var retrievedFingerTemplates = new List<FingerTemplate>();
                             var retrievedFaceTemplates = new List<FaceTemplate>();
@@ -1186,7 +1186,7 @@ namespace Biovation.Brands.ZK.Devices
                                             Size = tempLength,
                                             Index = i
                                         };
-                                        _logger.Debug($"Retrieving finger templates of user {iUserId}, index: {index}");
+                                        _logger.Debug("Retrieving finger templates of user {UserId}, index: {index}", iUserId, index);
                                         retrievedFingerTemplates.Add(fingerTemplate);
                                         user.FingerTemplatesCount++;
                                     }
@@ -1240,7 +1240,7 @@ namespace Biovation.Brands.ZK.Devices
                                         user.FaceTemplatesCount++;
                                         retrievedFaceTemplates.Add(faceTemplate);
                                         _logger.Debug(
-                                            $"Retrieving face templates of user {iUserId}, index: {index}");
+                                            "Retrieving face templates of user {UserId}, index: {index}", iUserId, index);
                                         break;
 
                                     }
