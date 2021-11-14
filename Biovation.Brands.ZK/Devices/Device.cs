@@ -5,7 +5,6 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using Newtonsoft.Json;
-using RestSharp;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -18,13 +17,12 @@ using System.Threading.Tasks;
 using zkemkeeper;
 using Log = Biovation.Domain.Log;
 using TimeZone = Biovation.Domain.TimeZone;
-//using TimeZone = Biovation.CommonClasses.Models.TimeZone;
 // ReSharper disable InconsistentlySynchronizedField
 
 
 namespace Biovation.Brands.ZK.Devices
 {
-    public class Device : IDevices
+    public class Device : IDevices, IDisposable
     {
         private readonly ILogger _logger;
         protected readonly DeviceBasicInfo DeviceInfo;
@@ -39,8 +37,6 @@ namespace Biovation.Brands.ZK.Devices
         protected readonly FingerTemplateService FingerTemplateService;
         protected readonly FaceTemplateService FaceTemplateService;
         private readonly Dictionary<uint, Device> _onlineDevices;
-        //private readonly CommunicationManager<ResultViewModel> _communicationManager = new CommunicationManager<ResultViewModel>();
-        private readonly RestClient _restClient;
         protected CancellationTokenSource TokenSource = new CancellationTokenSource();
         private Timer _fixDaylightSavingTimer;
 
@@ -69,7 +65,7 @@ namespace Biovation.Brands.ZK.Devices
         };
 
         protected static readonly object LockObject = new object();
-        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, RestClient restClient, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
+        internal Device(DeviceBasicInfo info, TaskService taskService, UserService userService, DeviceService deviceService, LogService logService, AccessGroupService accessGroupService, FingerTemplateService fingerTemplateService, UserCardService userCardService, FaceTemplateService faceTemplateService, Dictionary<uint, Device> onlineDevices, BiovationConfigurationManager biovationConfigurationManager, LogEvents logEvents, ZkCodeMappings zkCodeMappings, TaskTypes taskTypes, TaskPriorities taskPriorities, TaskStatuses taskStatuses, TaskItemTypes taskItemTypes, DeviceBrands deviceBrands, MatchingTypes matchingTypes, BiometricTemplateManager biometricTemplateManager, FingerTemplateTypes fingerTemplateTypes, FaceTemplateTypes faceTemplateTypes, ILogger logger)
         {
             DeviceInfo = info;
             _taskService = taskService;
@@ -82,7 +78,6 @@ namespace Biovation.Brands.ZK.Devices
             FingerTemplateService = fingerTemplateService;
             UserCardService = userCardService;
             FaceTemplateService = faceTemplateService;
-            _restClient = restClient;
             _onlineDevices = onlineDevices;
             _logEvents = logEvents;
             _zkCodeMappings = zkCodeMappings;
@@ -122,12 +117,10 @@ namespace Biovation.Brands.ZK.Devices
                         _logger.Debug(
                             $"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
-                        //Thread.Sleep(20000);
                         Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).Wait(cancellationToken);
                         connectResult = ZkTecoSdk.Connect_Net(DeviceInfo.IpAddress, DeviceInfo.Port);
                     }
 
-                    //Thread.Sleep(500);
                     Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
 
                     //Here you can register the realtime events that you want to be triggered(the parameters 65535 means registering all)
@@ -181,13 +174,10 @@ namespace Biovation.Brands.ZK.Devices
                         var firmwareVersion = "";
                         var macAddress = "";
 
-                        //Thread.Sleep(500);
                         Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
                         ZkTecoSdk.GetDeviceFirmwareVersion((int)DeviceInfo.Code, ref firmwareVersion);
-                        //Thread.Sleep(500);
                         Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
                         ZkTecoSdk.GetDeviceMAC((int)DeviceInfo.Code, ref macAddress);
-                        //Thread.Sleep(500);
                         Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).Wait(cancellationToken);
                         ZkTecoSdk.GetSerialNumber((int)DeviceInfo.Code, out var serialNumber);
 
@@ -240,31 +230,9 @@ namespace Biovation.Brands.ZK.Devices
                     #endregion
                 }
 
-                if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
-                {
-                    _onlineDevices.Add(DeviceInfo.Code, this);
-                }
-
-                var connectionStatus = new ConnectionStatus
-                {
-                    DeviceId = DeviceInfo.DeviceId,
-                    IsConnected = true
-                };
-
-                try
-                {
-                    //_communicationManager.CallRest(
-                    //    "/api/Biovation/DeviceConnectionState/DeviceConnectionState", "SignalR",
-                    //    new List<object> { data });
-                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                    await _restClient.ExecuteAsync<ResultViewModel>(restRequest, cancellationToken);
-
-                }
-                catch (Exception)
-                {
-                    //ignore
-                }
+                lock (_onlineDevices)
+                    if (!_onlineDevices.ContainsKey(DeviceInfo.Code))
+                        _onlineDevices.Add(DeviceInfo.Code, this);
 
                 await LogService.AddLog(new Log
                 {
@@ -276,9 +244,6 @@ namespace Biovation.Brands.ZK.Devices
 
                 if (_isGetLogEnable)
                 {
-                    //Task.Run(() => { ReadOfflineLog(Token); }, Token);
-                    //ZKTecoServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(TokenSource.Token), TokenSource.Token));
-                    //ZKTecoServer.StartReadLogs();
                     var creatorUser = _userService.GetUsers(code: 123456789).FirstOrDefault();
                     var lastLogsOfDevice = _logService.GetLastLogsOfDevice((uint)DeviceInfo.DeviceId).Result;
 
@@ -377,8 +342,7 @@ namespace Biovation.Brands.ZK.Devices
                     }
                 }
 
-                await _taskService.ProcessQueue(_deviceBrands.ZkTeco, DeviceInfo.DeviceId).ConfigureAwait(false);
-                //_taskManager.ProcessQueue(DeviceInfo.DeviceId);
+                _ = _taskService.ProcessQueue(_deviceBrands.ZkTeco, DeviceInfo.DeviceId).ConfigureAwait(false);
                 _logger.Debug(
                     $"Successfully connected to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
 
@@ -433,19 +397,13 @@ namespace Biovation.Brands.ZK.Devices
 
             do
             {
-                //if (TokenSource.IsCancellationRequested)
-                //    return;
                 lock (ZkTecoSdk)
                     deviceConnectionStatus = ZkTecoSdk.GetDeviceTime((int)DeviceInfo.Code, ref year, ref month,
                         ref day,
                         ref hour, ref minute, ref second);
 
                 Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).Wait(cancellationToken);
-                //cancellationToken.WaitHandle.WaitOne(TimeSpan.FromSeconds(5));
-                //Thread.Sleep(5000);
-                //if (TokenSource.IsCancellationRequested)
-                //    return;
-            } while (deviceConnectionStatus && !cancellationToken.IsCancellationRequested);
+            } while (deviceConnectionStatus && !cancellationToken.IsCancellationRequested && !(TokenSource?.Token.IsCancellationRequested ?? false));
 
             _logger.Debug($"Connection lost on device {DeviceInfo.Code}");
             Disconnect(false);
@@ -454,7 +412,6 @@ namespace Biovation.Brands.ZK.Devices
             _reconnecting = true;
 
             await Connect(cancellationToken);
-            //Task.Run(() => { Connect(); }, TokenSource.Token);
         }
 
         public bool Disconnect(bool cancelReconnecting = true)
@@ -487,31 +444,14 @@ namespace Biovation.Brands.ZK.Devices
                 if (_onlineDevices.ContainsKey(DeviceInfo.Code))
                     _onlineDevices.Remove(DeviceInfo.Code);
 
-            var connectionStatus = new ConnectionStatus
-            {
-                DeviceId = DeviceInfo.DeviceId,
-                IsConnected = false
-            };
-
-            try
-            {
-                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
-
-            LogService.AddLog(new Log
+            _ = LogService.AddLog(new Log
             {
                 DeviceId = DeviceInfo.DeviceId,
                 LogDateTime = DateTime.Now,
                 EventLog = _logEvents.Disconnect,
                 SuccessTransfer = true,
                 MatchingType = _matchingTypes.Finger
-            });
+            }).ConfigureAwait(false);
 
             _logger.Information($"Disconnected from device: {DeviceInfo.Code} IPAddress => {DeviceInfo.IpAddress}:{DeviceInfo.Port}");
             return true;
@@ -590,35 +530,9 @@ namespace Biovation.Brands.ZK.Devices
 
         private void OnDisconnectedCallback()
         {
-            if (_onlineDevices.ContainsKey(DeviceInfo.Code))
-            {
-                _onlineDevices.Remove(DeviceInfo.Code);
-            }
-
-            var connectionStatus = new ConnectionStatus
-            {
-                DeviceId = DeviceInfo.DeviceId,
-                IsConnected = false
-            };
-
-            try
-            {
-                var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-                _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-                LogService.AddLog(new Log
-                {
-                    DeviceId = DeviceInfo.DeviceId,
-                    LogDateTime = DateTime.Now,
-                    EventLog = _logEvents.Disconnect,
-                    SuccessTransfer = true,
-                    MatchingType = _matchingTypes.Finger
-                });
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
+            lock (_onlineDevices)
+                if (_onlineDevices.ContainsKey(DeviceInfo.Code))
+                    _onlineDevices.Remove(DeviceInfo.Code);
 
             _reconnecting = true;
             _logger.Information($"Device {DeviceInfo.Code} disconnected.");
@@ -1343,7 +1257,7 @@ namespace Biovation.Brands.ZK.Devices
                                     }
 
                                     user.FaceTemplates.AddRange(retrievedFaceTemplates.Where(faceTemplate =>
-                                        user.FaceTemplates.All(existTemplate => !string.Equals(faceTemplate.FaceTemplateType.Code, existTemplate.FaceTemplateType.Code) 
+                                        user.FaceTemplates.All(existTemplate => !string.Equals(faceTemplate.FaceTemplateType.Code, existTemplate.FaceTemplateType.Code)
                                             && faceTemplate.CheckSum != existTemplate.CheckSum)));
                                 }
                                 //else
@@ -1925,8 +1839,14 @@ namespace Biovation.Brands.ZK.Devices
         {
             try
             {
+                if (!TokenSource.IsCancellationRequested)
+                    TokenSource.Cancel();
+
                 TokenSource?.Dispose();
+                //ZkTecoSdk = null;
                 _fixDaylightSavingTimer?.Dispose();
+                GC.SuppressFinalize(ZkTecoSdk);
+                GC.SuppressFinalize(this);
             }
             catch (Exception exception)
             {

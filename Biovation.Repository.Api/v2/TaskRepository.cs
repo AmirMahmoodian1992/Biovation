@@ -71,8 +71,9 @@ namespace Biovation.Repository.Api.v2
             var restRequest = new RestRequest($"{brand.Name}/{brand.Name}Task/RunProcessQueue", Method.POST);
             restRequest.AddQueryParameter("deviceId", deviceId.ToString());
             token ??= _biovationConfigurationManager.DefaultToken;
-            restRequest.AddHeader("Authorization", token); var requestResult = _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-            return (await requestResult).Data;
+            restRequest.AddHeader("Authorization", token); 
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
+            return requestResult.Data;
         }
     }
 }
