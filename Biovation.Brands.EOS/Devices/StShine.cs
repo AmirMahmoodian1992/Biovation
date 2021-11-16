@@ -1730,13 +1730,10 @@ namespace Biovation.Brands.EOS.Devices
 
         private DateTime EosSearch(ref int currentIndex, ref int exceptionRecordCount, DateTime goalDateTime, int beginOfInterval, int endOfInterval, DateTime prevDateTime)
         {
-            if (exceptionRecordCount > 2 * MaxExceptionRecordCount)
+            switch (exceptionRecordCount)
             {
-                return DateTime.Now;
-            }
-            else if (exceptionRecordCount > MaxExceptionRecordCount)
-            {
-                if (!(DisconnectFromDevice() && ConnectToDevice()))
+                case > 2 * MaxExceptionRecordCount:
+                case > MaxExceptionRecordCount when !(DisconnectFromDevice() && ConnectToDevice()):
                     return DateTime.Now;
             }
 

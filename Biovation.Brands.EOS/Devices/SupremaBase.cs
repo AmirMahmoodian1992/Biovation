@@ -52,290 +52,6 @@ namespace Biovation.Brands.EOS.Devices
             TotalLogCount = 20000;
         }
 
-        ///// <summary>
-        ///// <En>Read all log data from device, since last disconnect.</En>
-        ///// <Fa>داده های اتفاقات در طول زمان قطعی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
-        ///// </summary>
-        /*   public override void ReadOfflineLog(object token)
-           {
-               var Object = new object();
-
-               //Logger.Log("Discharging Clock: {0}", DeviceInfo.ReaderId);
-               Connection connection = new TCPIPConnection();
-
-               try
-               {
-                   connection = ConnectionFactory.CreateTCPIPConnection(DeviceInfo.IpAddress,
-                                                                        DeviceInfo.Port,
-                                                                        DeviceInfo.ReadTimeout,
-                                                                        DeviceInfo.WriteTimeout,
-                                                                        DeviceInfo.WaitBeforRead);
-               }
-               catch (Exception ex)
-               {
-                   Logger.Log(ex.Message);
-               }
-
-               //ProtocolType.Suprema
-               var clock = new Clock(connection, DeviceInfo.DeviceProtocolType,
-                 DeviceInfo.TRT, DeviceInfo.SensorProtocolType);
-
-               lock (Object)
-               {
-                   //Logger.Log("Testing connection to device: {0}", DeviceInfo.ReaderId);
-
-                   if (clock.TestConnection())
-                   {
-                       //                    Logger.Log("Discharging Clock: {0}", DeviceInfo.ReaderId);
-                       Thread.Sleep(1000);
-                       try
-                       {
-                           //                        clock.Dump()
-                           DeviceInfo.EosDeviceType = clock.GetModel();
-                           Logger.Log("\nConnected to Device: {0}. Discharging Clock. Device type: {1}\n", DeviceInfo.DeviceId, DeviceInfo.EosDeviceType);
-
-                           while (clock.Connected)
-                           {
-                               while (!clock.IsEmpty())
-                               {
-                                   var test = true;
-                                   var exceptionTester = false;
-                                   while (test)
-                                   {
-                                       //                            ClockRecord record = null;
-                                       ClockRecord record = null;
-
-                                       try
-                                       {
-                                           //                                                            record2 = (ClockRecord) clock.GetRecord();
-                                           while (record == null)
-                                           {
-                                               record = (ClockRecord)clock.GetRecord();
-                                               //                                        Thread.Sleep(2000);
-                                           }
-
-                                           EosServer.Count++;
-
-                                           //try
-                                           //{
-                                           //    System.IO.File.AppendAllText(@".\records" + DeviceInfo.ReaderId + ".txt",
-                                           //        Environment.NewLine + "Rec: " + EosServer.Count + "," + record);
-                                           //    //                                        test = false;
-                                           //    System.IO.File.AppendAllText(@".\recordsRAW" + DeviceInfo.ReaderId + ".txt",
-                                           //        Environment.NewLine + record.RawData);
-                                           //}
-                                           //catch (Exception ex)
-                                           //{
-                                           //    Logger.Log("Clock " + DeviceInfo.ReaderId + ": " + ex.Message);
-                                           //}
-                                       }
-                                       catch (Exception ex)
-                                       {
-                                           //                                    Logger.Log("Clock " + DeviceInfo.ReaderId + ": " + ex.Message);
-                                           try
-                                           {
-                                               if (ex is InvalidRecordException ||
-                                                   ex is InvalidDataInRecordException)
-                                               {
-                                                   var badRecordRawData = ex.Data["RecordRawData"].ToString();
-                                                   if (ex is InvalidDataInRecordException)
-                                                   {
-                                                       Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + "Bad record: " + badRecordRawData);
-                                                   }
-                                                   // you can find bad record data in ex.Data["RecordRawData"]
-                                                   //                                    MessageBox.Show("Bad Record :" + Environment.NewLine + ex.Data["RecordRawData"]);
-                                                   System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                       Environment.NewLine + "Bad Record: " + badRecordRawData);
-
-                                                   if (badRecordRawData != "")
-                                                   {
-                                                       try
-                                                       {
-                                                           System.IO.File.AppendAllText(@".\BadRecordsRAW" + DeviceInfo.DeviceId + ".txt",
-                                                                                                   Environment.NewLine + ex.Data["RecordRawData"]);
-
-
-                                                           var year = Convert.ToInt32(badRecordRawData.Substring(24, 2)) + 1300;
-                                                           var month = Convert.ToInt32(badRecordRawData.Substring(19, 2));
-                                                           var day = Convert.ToInt32(badRecordRawData.Substring(21, 2));
-
-                                                           var hour = Convert.ToInt32(badRecordRawData.Substring(15, 2));
-                                                           var minute = Convert.ToInt32(badRecordRawData.Substring(17, 2));
-
-                                                           var userId = Convert.ToInt32(badRecordRawData.Substring(6, 8));
-                                                           //int readerId = Convert.ToInt32(badRecordRawData.Substring(3, 3));
-
-                                                           var gregorianDateOfRec = new DateTime(year, month, day, hour, minute, 10, new PersianCalendar());
-
-                                                           var generatedRecord = "BadRecord ID: " + userId + " ," + gregorianDateOfRec;
-                                                           Logger.Log("Clock: " + DeviceInfo.DeviceId + generatedRecord);
-
-                                                           System.IO.File.AppendAllText(@".\BadRecords" + DeviceInfo.DeviceId + ".txt",
-                                                               Environment.NewLine + badRecordRawData +
-                                                               Environment.NewLine + year + "/" + month + "/" + day +
-                                                               Environment.NewLine + userId);
-
-                                                           var recivedLog = new EOSLog
-                                                           {
-                                                               LogDateTime = gregorianDateOfRec,
-                                                               UserId = userId,
-                                                               DeviceId = DeviceInfo.DeviceId,
-                                                               EventId = 55,
-                                                               RawData = generatedRecord
-                                                           };
-
-                                                           var logService = new EOSLogService();
-                                                           logService.AddLog(recivedLog, "KASRACONNECTIONSTRING");
-                                                           test = false;
-
-                                                       }
-                                                       catch (Exception)
-                                                       {
-                                                           Logger.Log("Error in parsing bad record.");
-                                                           System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                               Environment.NewLine + "Error in parsing bad record.");
-                                                       }
-                                                   }
-
-                                                   if (!(ex is InvalidRecordException))
-                                                       _counter++;
-                                                   if (_counter == 4)
-                                                   {
-                                                       test = false;
-                                                   }
-                                               }
-                                               else
-                                               {
-                                                   if (ex is InvalidRecordException)
-                                                       exceptionTester = true;
-                                                   else
-                                                       Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + ex.Message);
-                                               }
-                                               //                                lock (EOSServer.ExceptionWriteLockObject)
-                                               //                                {
-                                               System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                   Environment.NewLine + "Exception: " + ex.Message);
-                                               //                                }
-                                           }
-                                           catch (Exception e)
-                                           {
-                                               Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + e.Message);
-                                           }
-                                       }
-
-
-                                       try
-                                       {
-                                           //                                    while (record == null)
-                                           //                                    {
-                                           //                                        record = clock.GetRecord();
-                                           ////                                        Thread.Sleep(2000);
-                                           //                                    }
-
-                                           if (record != null)
-                                           {
-                                               var subEvent = 0;
-
-                                               try
-                                               {
-                                                   subEvent = Convert.ToInt32(record.RecType1);
-                                               }
-                                               catch (Exception)
-                                               {
-                                                   //ignore
-                                               }
-
-                                               var recivedLog = new EOSLog
-                                               {
-                                                   LogDateTime = record.DateTime,
-                                                   UserId = (int)record.ID,
-                                                   DeviceId = DeviceInfo.DeviceId,
-                                                   EventId = 55,
-                                                   SubEvent = subEvent,
-                                                   RawData = new string(record.RawData.Where(c => !char.IsControl(c)).ToArray())
-                                               };
-
-                                               var logService = new EOSLogService();
-                                               logService.AddLog(recivedLog, "KASRACONNECTIONSTRING");
-                                               test = false;
-                                               Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + record);
-
-                                               clock.NextRecord();
-                                               Thread.Sleep(1000);
-                                           }
-
-                                           else
-                                           {
-                                               if (!exceptionTester)
-                                               {
-                                                   Logger.Log("Null record.");
-                                               }
-                                           }
-                                       }
-                                       catch (Exception ex)
-                                       {
-                                           Logger.Log("Clock " + DeviceInfo.DeviceId + ": " +
-                                               "Error while Inserting Data to Attendance :" + ex.Message + " record: " + record);
-
-                                           try
-                                           {
-                                               System.IO.File.AppendAllText(@".\Exceptions" + DeviceInfo.DeviceId + ".txt",
-                                                   Environment.NewLine + "Error in Insert Data to Attendance : " + ex.Message
-                                                   + record);
-                                           }
-                                           catch (Exception)
-                                           {
-                                               //                        Logger.Log(e.Message);
-                                           }
-                                       }
-                                   }
-
-                                   //                            Thread.Sleep(1500);
-
-                                   //                            if (DeviceInfo.EOSDeviceType != "ST-PRO+")
-                                   //                            {
-                                   //                                Thread.Sleep(1000);
-                                   //                            }
-                               }
-                           }
-
-                           clock?.Disconnect();
-                           clock?.Dispose();
-                       }
-
-
-
-                       catch (Exception ex)
-                       {
-                           Logger.Log("Clock " + DeviceInfo.DeviceId + ": " + ex.Message);
-                           try
-                           {
-                               //                        System.IO.File.AppendAllText(@".\Exceptions.txt",
-                               //                            Environment.NewLine + "Error Read Data from Clock " + ex.Message);
-                           }
-                           catch (Exception)
-                           {
-                               //                        Logger.Log(e.Message);
-                           }
-                       }
-
-                       //                    Logger.Log("Finished, Clock: {0} discharged to last record.", DeviceInfo.ReaderId);
-                   }
-
-                   Logger.Log("Connection fail. Cannot connect to device: " + DeviceInfo.DeviceId + ", IP: " + DeviceInfo.IpAddress);
-               }
-
-               clock?.Disconnect();
-               clock?.Dispose();
-
-               EosServer.IsRunnig[DeviceInfo.DeviceId] = false;
-           }
-   */
-        /// <summary>
-        /// <En>Add new device to database.</En>
-        /// <Fa>دستگاه جدید را در دیتابیس ثبت می کند.</Fa>
-        /// </summary>
-        /// <returns></returns>
         public override bool Connect()
         {
             lock (_onlineDevices)
@@ -1356,13 +1072,6 @@ namespace Biovation.Brands.EOS.Devices
             DateTime? endTime,
             bool saveFile = false)
         {
-            //lock (_clock)
-            //{
-            //    _logger.Information("dumping device");
-            //    var records = _clock.Dump(TotalLogCount, (DateTime)startTime, (DateTime)endTime, out var badRecords);
-            //    _logger.Information("Dumping finished, {recordsCount} records and {badRecordsCount} bad records retrieved", records.Count, badRecords.Count);
-            //    return new ResultViewModel { Success = true };
-            //}
 
             var invalidTime = false;
             Logger.Log($"The datetime start with {startTime}");
@@ -1459,7 +1168,6 @@ namespace Biovation.Brands.EOS.Devices
                     }
 
 
-                    var rightBoundary = writePointer;
                     var leftBoundary = writePointer - 1;
 
                     for (var i = 0; i < 5; i++)
@@ -1485,11 +1193,11 @@ namespace Biovation.Brands.EOS.Devices
                     Logger.Log(successSetPointer ? "Successfully set read pointer" : "FAILED in set read pointer");
                     if (successSetPointer)
                     {
-                        var dic = new Dictionary<int, int>()
+                        var dic = new Dictionary<int, int>();
+                        for (var i = 1; i <= 12; i++)
                         {
-                            {1, 0}, {2, 0}, {3, 0}, {4, 0}, {5, 0}, {6, 0}, {7, 0}, {8, 0}, {9, 0}, {10, 0}, {11, 0},
-                            {12, 0}
-                        };
+                            dic.Add(i, 0);
+                        }// added count of seen month
 
                         var firstIndex = leftBoundary;
                         try
@@ -1501,43 +1209,16 @@ namespace Biovation.Brands.EOS.Devices
                                 recordDateTime = recordDateTime.AddYears(-2);
                             }
                             Logger.Log($"First datetime {recordDateTime}");
-                            //EOSsearch(ref index, (DateTime) startTime, 10, DateTime.Now, dic,
-                            //    clockRecord.DateTime.Month);
 
                             var goalDateTime = startTime.Value.AddDays(-7);
 
-                            EosSearch(ref firstIndex, (DateTime)goalDateTime, 10, recordDateTime, dic,
+                            EosSearch(ref firstIndex, goalDateTime, 10, recordDateTime, dic,
                                 initialClockRecord?.DateTime.Month ?? DateTime.Now.Month);
                         }
                         catch (Exception exception)
                         {
                             Logger.Log(exception);
                         }
-
-
-                        //(int, long) nearestIndex = (writePointer, new DateTime(DateTime.Today.Year + 10, 1, 1).Ticks);
-                        //BinarySearch(writePointer + 1, writePointer, Convert.ToDateTime(startTime), ref nearestIndex,
-                        //    (new DateTime(1900, 1, 1), new DateTime(1900, 1, 1), new DateTime(1900, 1, 1)), 0, false);
-
-
-                        //for (var i = 0; i < 5; i++)
-                        //{
-                        //    try
-                        //    {
-                        //        lock (_clock)
-                        //        {
-                        //            Thread.Sleep(500);
-                        //            successSetPointer = _clock.SetReadPointer(nearestIndex.Item1);
-                        //        }
-                        //        break;
-                        //    }
-                        //    catch (Exception exception)
-                        //    {
-                        //        Logger.Log(exception, exception.Message);
-                        //        Thread.Sleep(++i * 100);
-                        //    }
-
-                        //}
 
 
 
@@ -1578,108 +1259,7 @@ namespace Biovation.Brands.EOS.Devices
             };
         }
 
-
-        //private void BinarySearch(int left, int right, DateTime goalDateTime, ref (int, long) nearestIndex, (DateTime, DateTime, DateTime) previousDateTimes, int previousmid, bool previousFlag)
-        //{
-        //    if (Math.Abs(right - left) <= 1)
-        //    {
-        //        return;
-        //    }
-
-        //    Logger.Log("Searching for appropriate log pointer value.");
-
-        //    var successSetPointer = false;
-        //    ClockRecord clockRecord = null;
-        //    var flag = false;
-
-        //    var interval = (right - left) > 0 ? (right - left) : TotalLogCount + (right - left);
-        //    var mid = (left + interval / 2);
-
-        //    Logger.Log($"The interval is: {interval} and the mid pointer is: {mid}");
-
-        //    for (var i = 0; i < 5; i++)
-        //    {
-        //        try
-        //        {
-        //            lock (_clock)
-        //            {
-        //                if (!successSetPointer)
-        //                {
-        //                    Thread.Sleep(500);
-        //                    successSetPointer = _clock.SetReadPointer(mid);
-        //                    Logger.Log($"The read pointer is successfully set to {mid}");
-        //                }
-        //                Thread.Sleep(500);
-        //                clockRecord = (ClockRecord)_clock.GetRecord();
-        //                Logger.Log($"The log date is: {clockRecord.DateTime}");
-        //            }
-        //            break;
-        //        }
-        //        catch (Exception exception)
-        //        {
-        //            Logger.Log(exception, exception.Message);
-        //            Thread.Sleep(++i * 100);
-        //        }
-
-        //    }
-
-        //    if (clockRecord == null)
-        //        BinarySearch(0, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, false);
-        //    else
-        //    {
-
-        //        if (previousDateTimes.Item1 != new DateTime(1900, 1, 1) &&
-        //            previousDateTimes.Item2 != new DateTime(1900, 1, 1) &&
-        //            previousDateTimes.Item3 != new DateTime(1900, 1, 1) &&
-        //            ((clockRecord.DateTime.Ticks - goalDateTime.Ticks) >
-        //             (previousDateTimes.Item2.Ticks - goalDateTime.Ticks)) && nearestIndex.Item2 > (previousDateTimes.Item2.Ticks - goalDateTime.Ticks))
-        //        {
-        //            Logger.Log("Wrong value detected", string.Empty, LogType.Warning);
-        //            flag = previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks < 0 &&
-        //           (Math.Sign(previousDateTimes.Item1.Ticks - previousDateTimes.Item2.Ticks) !=
-        //            Math.Sign(previousDateTimes.Item2.Ticks - previousDateTimes.Item3.Ticks));
-        //        }
-
-        //        if (!(flag && !previousFlag))
-        //        {
-        //            Logger.Log("Trying to handling the situation");
-        //            previousDateTimes.Item3 = previousDateTimes.Item2;
-        //            previousDateTimes.Item2 = previousDateTimes.Item1;
-        //            previousDateTimes.Item1 = clockRecord.DateTime;
-        //        }
-
-        //        if (Math.Abs(clockRecord.DateTime.Ticks - goalDateTime.Ticks) < Math.Abs(nearestIndex.Item2))
-        //        {
-        //            nearestIndex = (mid, clockRecord.DateTime.Ticks - goalDateTime.Ticks);
-        //            Logger.Log($"The nearest value has been changes to: {nearestIndex.Item1} with date of: {clockRecord.DateTime}, and the difference is: {nearestIndex.Item2}");
-        //        }
-
-        //        if (flag && !(previousFlag))
-        //        {
-        //            if (previousmid > mid)
-        //            {
-        //                BinarySearch(right, right + (right - left), goalDateTime, ref nearestIndex,
-        //                    previousDateTimes, previousmid, true);
-        //            }
-
-        //            Logger.Log("Searching, considering the wrong values");
-        //            BinarySearch(left - (right - left), left, goalDateTime, ref nearestIndex, previousDateTimes,
-        //                previousmid, true);
-        //        }
-        //        else if (clockRecord.DateTime > goalDateTime)
-        //        {
-        //            Logger.Log("Searching left side of mid");
-        //            BinarySearch(left, mid - 1, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
-        //        }
-        //        else if (clockRecord.DateTime < goalDateTime)
-        //        {
-        //            Logger.Log("Searching right side of mid");
-        //            BinarySearch(mid + 1, right, goalDateTime, ref nearestIndex, previousDateTimes, mid, flag);
-        //        }
-        //    }
-        //}
-
-        private void EosSearch(ref int currentIndex, DateTime startDateTime, int stepLenght, DateTime prevDateTime, IDictionary<int, int> seenMonth, int firstSeenMonth)
+        private void EosSearch(ref int currentIndex, DateTime goalDateTime, int stepLenght, DateTime prevDateTime, IDictionary<int, int> seenMonth, int firstSeenMonth)
         {
             var successSetPointer = false;
             ClockRecord clockRecord = null;
@@ -1705,9 +1285,9 @@ namespace Biovation.Brands.EOS.Devices
                     }
                     break;
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
-                    Logger.Log(exception, exception.Message);
+                    //Logger.Log(exception, exception.Message);
                     Thread.Sleep(++i * 100);
                 }
             }
@@ -1733,27 +1313,31 @@ namespace Biovation.Brands.EOS.Devices
                     }
                 }
 
-                if (recordDateTime.Month > startDateTime.Month)
+                if (recordDateTime.Month > goalDateTime.Month)
                 {
-                    if (prevDateTime - recordDateTime < recordDateTime - startDateTime)
+                    if (prevDateTime - recordDateTime < recordDateTime - goalDateTime)
                     {
                         stepLenght += stepLenght * 2 <= 80 ? stepLenght * 2 : stepLenght;
                     }
-                    EosSearch(ref currentIndex, startDateTime, stepLenght * 2, recordDateTime, seenMonth, firstSeenMonth);
+                    EosSearch(ref currentIndex, goalDateTime, stepLenght * 2, recordDateTime, seenMonth, firstSeenMonth);
                 }
-                else if (recordDateTime.Month < startDateTime.Month)
+                else if (recordDateTime.Month < goalDateTime.Month)
                 {
-                    EosSearch(ref currentIndex, startDateTime, stepLenght / 3, recordDateTime, seenMonth, firstSeenMonth);
+                    EosSearch(ref currentIndex, goalDateTime, stepLenght / 3, recordDateTime, seenMonth, firstSeenMonth);
                 }
                 else
                 {
-                    if (recordDateTime.Day > startDateTime.Day - 1)
+                    if (Math.Abs(recordDateTime.Day - goalDateTime.Day) <= 2)
                     {
-                        EosSearch(ref currentIndex, startDateTime, 1, recordDateTime, seenMonth, firstSeenMonth);
+                        return;
                     }
-                    else if (recordDateTime.Day + 2 < startDateTime.Day - 1)
+                    if (recordDateTime.Day > goalDateTime.Day - 1)
                     {
-                        EosSearch(ref currentIndex, startDateTime, -1, recordDateTime, seenMonth, firstSeenMonth);
+                        EosSearch(ref currentIndex, goalDateTime, 1, recordDateTime, seenMonth, firstSeenMonth);
+                    }
+                    else if (recordDateTime.Day + 2 < goalDateTime.Day - 1)
+                    {
+                        EosSearch(ref currentIndex, goalDateTime, -1, recordDateTime, seenMonth, firstSeenMonth);
                     }
 
                 }
