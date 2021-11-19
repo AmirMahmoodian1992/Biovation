@@ -1,7 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using Biovation.CommonClasses.Extension;
+using Biovation.Constants;
+using Biovation.Data.Commands.Sinks;
 using Biovation.Domain;
 using Biovation.Repository.Sql.v2;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Biovation.Data.Commands.Controllers.v2
 {
@@ -10,29 +15,104 @@ namespace Biovation.Data.Commands.Controllers.v2
     //[ApiVersion("2.0")]
     public class PlateDetectionController : ControllerBase
     {
+        private readonly LogApiSink _logApiSink;
+        private readonly RelayApiSink _relayApiSink;
         private readonly PlateDetectionRepository _plateDetectionRepository;
 
-        public PlateDetectionController(PlateDetectionRepository plateDetectionRepository)
+        public PlateDetectionController(PlateDetectionRepository plateDetectionRepository, LogApiSink logApiSink, RelayApiSink relayApiSink)
         {
+            _logApiSink = logApiSink;
+            _relayApiSink = relayApiSink;
             _plateDetectionRepository = plateDetectionRepository;
         }
 
         [HttpPost]
-        [Route("LicensePlate")]
         [Authorize]
-
-        public Task<ResultViewModel> AddLicensePlate([FromBody]LicensePlate licensePlate = default)
+        public Task<ResultViewModel> AddLicensePlate([FromBody] LicensePlate licensePlate = default)
         {
             return Task.Run(() => _plateDetectionRepository.AddLicensePlate(licensePlate));
         }
 
         [HttpPost]
-        [Route("PlateDetectionLog")]
         [Authorize]
-
-        public Task<ResultViewModel> AddPlateDetectionLog([FromBody]PlateDetectionLog log)
+        [Route("PlateDetectionLog")]
+        public async Task<ResultViewModel> AddPlateDetectionLog([FromBody] PlateDetectionLog log)
         {
-            return Task.Run(() => _plateDetectionRepository.AddPlateDetectionLog(log));
+            log.DateTimeTicks = log.DateTimeTicks < 1000 ? (ulong)log.LogDateTime.Ticks : log.DateTimeTicks;
+
+            var broadcastToRelaysAwaiter = _relayApiSink.OpenRelays(log);
+            var logInsertionResult = await _plateDetectionRepository.AddPlateDetectionLog(log);
+            log.Id = logInsertionResult.Id == default ? int.MaxValue : logInsertionResult.Id;
+            var broadcastApiAwaiter = Task.CompletedTask;
+            if ((log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode) && (logInsertionResult.Success && !(logInsertionResult.Code == 409 || logInsertionResult.Id == 0)) || !logInsertionResult.Success)
+                broadcastApiAwaiter = _logApiSink.SendLogForMonitoring(log);
+
+            await Task.WhenAll(broadcastApiAwaiter, broadcastToRelaysAwaiter);
+
+            if (logInsertionResult.Success && !(logInsertionResult.Code == 409 || logInsertionResult.Id == 0))
+                await _plateDetectionRepository.AddPlateDetectionPictureLog(log);
+
+            return logInsertionResult;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("PlateDetectionPictureLog")]
+        public async Task<ResultViewModel> AddPlateDetectionPictureLog([FromBody] PlateDetectionLog log)
+        {
+            if (log.Id == default)
+                return new ResultViewModel { Code = 403, Message = "Bad data, the Id has not been set" };
+            
+            return await _plateDetectionRepository.AddPlateDetectionPictureLog(log);
+        }
+
+        [HttpDelete]
+        [Authorize]
+        public Task<ResultViewModel> DeleteLicensePlate([FromBody] LicensePlate licensePlate, DateTime modifiedAt, string modifiedBy, string action)
+        {
+            return Task.Run(() => _plateDetectionRepository.DeleteLicensePlate(licensePlate, modifiedAt, modifiedBy, action));
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("ManualPlateDetectionLog")]
+        public async Task<ResultViewModel> AddManualPlateDetectionLog([FromBody] ManualPlateDetectionLog manualLogData)
+        {
+            var applicantUser = HttpContext.GetUser();
+            if (applicantUser is null || applicantUser.Id == 0)
+                return new ResultViewModel { Success = false, Code = 400, Message = "User of request is empty, Could not find the applicant user." };
+
+            //var plateDetectionLogData = new ManualPlateDetectionLog(manualLogData)
+            //{
+            //    User = applicantUser
+            //};
+            manualLogData.User = applicantUser;
+            return await _plateDetectionRepository.AddManualPlateDetectionLog(manualLogData);
+        }
+
+        [HttpPut]
+        [Authorize]
+        [Route("{parentLogId:int}/ManualPlateDetectionLog")]
+        public async Task<ResultViewModel> AddManualPlateDetectionLogOfExistLog([FromRoute] int parentLogId, [FromBody] ManualPlateDetectionLog manualLogData)
+        {
+            if (parentLogId == 0 || manualLogData.ParentLog?.Id == 0)
+                return new ResultViewModel { Success = false, Code = 400, Message = "Wrong parent log id is provided." };
+
+            if (manualLogData.ParentLog?.Id == 0)
+            {
+                var parentLogData = _plateDetectionRepository.GetCameraPlateDetectionLog(logId: parentLogId);
+                if (parentLogData?.Data?.Data?.FirstOrDefault() is null || !parentLogData.Success)
+                    return new ResultViewModel { Success = false, Code = 400, Message = "Wrong parent log id provided" };
+
+                manualLogData.ParentLog = parentLogData.Data.Data.FirstOrDefault();
+            }
+
+            var applicantUser = HttpContext.GetUser();
+            if (applicantUser is null || applicantUser.Id == 0)
+                return new ResultViewModel { Success = false, Code = 400, Message = "User of request is empty, Could not find the applicant user." };
+
+            manualLogData.User = applicantUser;
+            return await _plateDetectionRepository.AddManualPlateDetectionLog(manualLogData);
         }
     }
 }

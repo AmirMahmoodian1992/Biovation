@@ -130,8 +130,71 @@ namespace Biovation.Domain
         public List<FingerTemplate> FingerTemplates { get; set; }
         [OneToMany]
         public List<FaceTemplate> FaceTemplates { get; set; }
+
+        [OneToMany]
+        public List<IrisTemplate> IrisTemplates { get; set; }
         [OneToOne]
         public IdentityCard IdentityCard { get; set; }
+
+        private int _faceTemplatesCount;
+
+        public int FaceTemplatesCount
+        {
+            get
+            {
+                if (FaceTemplates is not null && (_faceTemplatesCount == default || (FaceTemplates.Count != 0 && _faceTemplatesCount != FaceTemplates.Count)))
+                {
+                    return FaceTemplates.Count;
+                }
+                return _faceTemplatesCount;
+            }
+            set => _faceTemplatesCount = value;
+        }
+
+        private int _fingerTemplatesCount;
+
+        public int FingerTemplatesCount
+        {
+            get
+            {
+                if (FingerTemplates is not null && (_fingerTemplatesCount == default || (FingerTemplates.Count != 0 && _fingerTemplatesCount != FingerTemplates.Count)))
+                {
+                    return FingerTemplates.Count;
+                }
+                return _fingerTemplatesCount;
+            }
+            set => _fingerTemplatesCount = value;
+        }
+
+        private int _irisTemplatesCount;
+
+        public int IrisTemplatesCount
+        {
+            get
+            {
+                if (IrisTemplates is not null && (_irisTemplatesCount == default || (IrisTemplates.Count != 0 && _irisTemplatesCount != IrisTemplates.Count)))
+                {
+                    return IrisTemplates.Count;
+                }
+                return _irisTemplatesCount;
+            }
+            set => _irisTemplatesCount = value;
+        }
+
+        private int _identityCardsCount;
+        public int IdentityCardsCount
+        {
+            get
+            {
+                if (_identityCardsCount == default && IdentityCard is not null)
+                {
+                    return 1;
+                }
+                return _identityCardsCount;
+            }
+            set => _identityCardsCount = value;
+        }
+        
 
         public int GetStartDateInTicks()
         {
@@ -139,7 +202,7 @@ namespace Biovation.Domain
             return Convert.ToInt32(StartDate.Ticks / 10000000 - refDate);
         }
 
-        public void SetStartDateFromTicks(int startDateTicks)
+        public void SetStartDateFromTicks(long startDateTicks)
         {
             StartDate = new DateTime(1970, 1, 1).AddTicks(startDateTicks);
         }
@@ -150,7 +213,7 @@ namespace Biovation.Domain
             return Convert.ToInt32(EndDate.Ticks / 10000000 - refDate);
         }
 
-        public void SetEndDateFromTicks(int endDateTicks)
+        public void SetEndDateFromTicks(long endDateTicks)
         {
             EndDate = new DateTime(1970, 1, 1).AddTicks(endDateTicks);
         }

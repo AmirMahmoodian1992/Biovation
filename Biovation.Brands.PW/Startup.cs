@@ -1,4 +1,3 @@
-using System;
 using App.Metrics;
 using App.Metrics.Extensions.Configuration;
 using Biovation.Brands.PW.Command;
@@ -9,6 +8,7 @@ using Biovation.Brands.PW.Middleware;
 using Biovation.CommonClasses;
 using Biovation.CommonClasses.Manager;
 using Biovation.Constants;
+using Biovation.Domain;
 using Biovation.Repository.Api.v2;
 using Biovation.Service.Api.v1;
 using Microsoft.AspNetCore.Builder;
@@ -20,10 +20,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
-using Biovation.Domain;
 using Log = Serilog.Log;
 
 namespace Biovation.Brands.PW
@@ -31,6 +31,7 @@ namespace Biovation.Brands.PW
     public class Startup
     {
         public BiovationConfigurationManager BiovationConfiguration { get; set; }
+        private readonly IHostEnvironment _environment;
         public IConfiguration Configuration { get; }
 
         public readonly Dictionary<uint, Device> OnlineDevices = new Dictionary<uint, Device>();
@@ -38,6 +39,7 @@ namespace Biovation.Brands.PW
         public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             Configuration = configuration;
+            _environment = environment;
 
             Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(configuration)
                 .Enrich.With(new ThreadIdEnricher())
@@ -87,39 +89,42 @@ namespace Biovation.Brands.PW
         private void ConfigureRepositoriesServices(IServiceCollection services)
         {
             var restClient = (RestClient)new RestClient(BiovationConfiguration.BiovationServerUri).UseSerializer(() => new RestRequestJsonSerializer());
-            #region checkLock
-
-            var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
-            try
+            if (!_environment.IsDevelopment())
             {
-                var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
-                if (!requestResult.Result.Data.Success)
+                #region checkLock
+
+                var restRequest = new RestRequest($"v2/SystemInfo/LockStatus", Method.GET);
+                try
                 {
-                    Logger.Log("The Lock is not active", logType: LogType.Warning);
-                    try
+                    var requestResult = restClient.ExecuteAsync<ResultViewModel<SystemInfo>>(restRequest);
+                    if (!requestResult.Result.Data.Success)
                     {
-                        if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                        Logger.Log("The Lock is not active", logType: LogType.Warning);
+                        try
                         {
-                            Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            if (!(requestResult.Result.Data.Data.LockEndTime is null))
+                            {
+                                Logger.Log(@$"The Lock Expiration Time is {requestResult.Result.Data.Data.LockEndTime}", logType: LogType.Warning);
+                            }
                         }
+                        catch (Exception)
+                        {
+                            //ignore
+                        }
+                        Thread.Sleep(TimeSpan.FromSeconds(10));
+                        Environment.Exit(0);
                     }
-                    catch (Exception)
-                    {
-                        //ignore
-                    }
-                    Thread.Sleep(TimeSpan.FromSeconds(10));
+                }
+                catch (Exception)
+                {
+                    Logger.Log("The connection with Lock service has a problem");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
                     Environment.Exit(0);
                 }
-            }
-            catch (Exception)
-            {
-                Logger.Log("The connection with Lock service has a problem");
-                Thread.Sleep(TimeSpan.FromSeconds(5));
-                Environment.Exit(0);
-            }
 
 
-            #endregion
+                #endregion
+            }
 
             services.AddSingleton(restClient);
 
@@ -199,6 +204,8 @@ namespace Biovation.Brands.PW
             var logSubEventMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(2);
             var fingerTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(9);
             var matchingTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(15);
+            var faceTemplateTypeMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(14);
+            var fingerIndexMappingsQuery = genericCodeMappingService.GetGenericCodeMappings(10);
 
             var lookups = new Lookups
             {
@@ -220,9 +227,24 @@ namespace Biovation.Brands.PW
                 LogEventMappings = logEventMappingsQuery.Result?.Data?.Data,
                 LogSubEventMappings = logSubEventMappingsQuery.Result?.Data?.Data,
                 FingerTemplateTypeMappings = fingerTemplateTypeMappingsQuery.Result?.Data?.Data,
+                FaceTemplateTypeMappings = faceTemplateTypeMappingsQuery.Result?.Data?.Data,
+                FingerIndexMappings = fingerIndexMappingsQuery.Result?.Data?.Data,
                 MatchingTypeMappings = matchingTypeMappingsQuery.Result?.Data?.Data
             };
 
+            if (lookups.DeviceBrands is null || lookups.FingerIndexNames is null || lookups.FingerTemplateType is null ||
+                lookups.FaceTemplateType is null || lookups.LogEvents is null || lookups.LogSubEvents is null ||
+                lookups.MatchingTypes is null || lookups.TaskItemTypes is null || lookups.TaskPriorities is null ||
+                lookups.TaskStatuses is null || lookups.TaskTypes is null ||
+                genericCodeMappings.FaceTemplateTypeMappings is null || genericCodeMappings.FingerIndexMappings is null ||
+                genericCodeMappings.FingerTemplateTypeMappings is null || genericCodeMappings.LogEventMappings is null ||
+                genericCodeMappings.LogSubEventMappings is null || genericCodeMappings.MatchingTypeMappings is null)
+            {
+                Logger.Log("The prerequisite services are not run or some configs may be missing.", logType: LogType.Warning);
+                Logger.Log("Closing the app in 10 seconds.", logType: LogType.Warning);
+                Thread.Sleep(TimeSpan.FromSeconds(10));
+                Environment.Exit(0);
+            }
 
             services.AddSingleton(lookups);
             services.AddSingleton(genericCodeMappings);

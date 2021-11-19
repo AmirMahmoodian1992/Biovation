@@ -1,5 +1,6 @@
 ﻿using Biovation.CommonClasses.Manager;
 using Biovation.Domain;
+using Microsoft.Win32;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace Biovation.Tools.UserAdapter
 {
@@ -18,6 +18,7 @@ namespace Biovation.Tools.UserAdapter
         private RestClient _restClient;
         private int _biovationServerPort = 9038;
         private string _biovationServerAddress = "localhost";
+        private string _biovationServerToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6IjEyMzQ1Njc4OSIsInVuaXF1ZUlkIjoiMTIzNDU2Nzg5IiwianRpIjoiNDQ0NGY2Y2ItNWRlZC00ZWQwLWI3ZWQtODAzMzBjOTdmZjI1IiwiZXhwIjoxNjM3NTcwODMwfQ.bvALo-ieWeYreBRX4TE4aarV8LWPX5WkHnlQ5N9PqSs";
         private readonly Dictionary<uint, uint> _userCodeMappings = new Dictionary<uint, uint>();
 
         public UserAdaptationForm()
@@ -43,6 +44,7 @@ namespace Biovation.Tools.UserAdapter
             _restClient = (RestClient)new RestClient($"http://{_biovationServerAddress}:{_biovationServerPort}/biovation/api").UseSerializer(() => new RestRequestJsonSerializer());
 
             var restRequest = new RestRequest("v2/Device/OnlineDevices", Method.GET);
+            restRequest.AddHeader("Authorization", _biovationServerToken);
             var result = _restClient.Execute<List<DeviceBasicInfo>>(restRequest);
             if (result.IsSuccessful && result.StatusCode == HttpStatusCode.OK)
             {
@@ -185,7 +187,7 @@ namespace Biovation.Tools.UserAdapter
                 var restRequest = new RestRequest("/v2/Device/{id}/UserAdaptation", Method.POST);
                 restRequest.AddUrlSegment("id", selectedDeviceId.ToString());
                 restRequest.AddJsonBody(_userCodeMappings);
-                restRequest.AddHeader("Authorization", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyQ29kZSI6Ijk4NzY1NDMyMSIsInVuaXF1ZUlkIjoiOTg3NjU0MzIxIiwianRpIjoiMGM1NjVjMzctNjE0Yi00MTIyLWE3ZTAtMzRjNjY2OWM0ZjI5IiwiZXhwIjoxNjExNjY5OTI0fQ.yk-5b2W4mFxaUBQBHHcHhSTFG_ZCNUOuemQNyWwfdHs");
+                restRequest.AddHeader("Authorization", _biovationServerToken);
 
                 var result = await _restClient.ExecuteAsync<ResultViewModel>(restRequest);
 

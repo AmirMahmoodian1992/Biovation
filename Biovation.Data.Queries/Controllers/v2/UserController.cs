@@ -20,10 +20,10 @@ namespace Biovation.Data.Queries.Controllers.v2
         [HttpGet]
         [Route("Users")]
         [Authorize]
-        public Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default, int size = default, bool getTemplatesData = default, long userId = default,int code =default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int pageSize = default)
+        public Task<ResultViewModel<PagingResult<User>>> GetUsers(int from = default, int size = default, bool getTemplatesData = default, long userId = default, long userGroupId = default, int code =default, string filterText = default, int type = default, bool withPicture = default, bool isAdmin = default, int pageNumber = default, int pageSize = default)
         {
             var user = HttpContext.GetUser();
-            return Task.Run(() => _userRepository.GetUsersByFilter(user.Id, from, size, getTemplatesData, userId, code, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
+            return Task.Run(() => _userRepository.GetUsersByFilter(user.Id, from, size, getTemplatesData, userId, userGroupId, code, filterText, type, withPicture, isAdmin, pageNumber, pageSize));
         }
 
         [HttpGet]

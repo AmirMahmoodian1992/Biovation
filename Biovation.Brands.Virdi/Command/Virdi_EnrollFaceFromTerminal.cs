@@ -5,6 +5,7 @@ using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -14,16 +15,16 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
         public Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
 
-        private readonly VirdiServer _virdiServer;
         private readonly DeviceService _deviceService;
+        private readonly ITerminalUserData _terminalUserData;
 
-        public VirdiEnrollFaceFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
+        public VirdiEnrollFaceFromTerminal(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService, ITerminalUserData terminalUserData)
         {
-            _virdiServer = virdiServer;
             _deviceService = deviceService;
+            _terminalUserData = terminalUserData;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
-            OnlineDevices = _virdiServer.GetOnlineDevices();
+            OnlineDevices = virdiServer.GetOnlineDevices();
         }
 
         public object Execute()
@@ -34,20 +35,21 @@ namespace Biovation.Brands.Virdi.Command
                 return new ResultViewModel { Id = DeviceId, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode), Message = $"  Enroll User face from device: {device.Code} failed. The device is disconnected.{Environment.NewLine}", Validate = 0 };
 
             //_virdiServer._ucsApi.EnrollFromTerminal(0, DeviceId);
-
-            _virdiServer.TerminalUserData.RegistFaceFromTerminal(TaskItemId, (int)device.Code, 0);
-
-
-            if (_virdiServer.UcsApi.ErrorCode == 0)
+            lock (_terminalUserData)
             {
-                Logger.Log($"-->Terminal:{device.Code} Face Template enrollment started.");
-                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  Enroll User face from device: {device.Code} started.", Validate = 1 };
+                _terminalUserData.RegistFaceFromTerminal(TaskItemId, (int)device.Code, 0);
+
+                if (_terminalUserData.ErrorCode == 0)
+                {
+                    Logger.Log($"-->Terminal:{device.Code} Face Template enrollment started.");
+                    return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  Enroll User face from device: {device.Code} started.", Validate = 1 };
+                }
+
+                Logger.Log($@"-->Terminal:{device.Code} Face Template enrollment failed.
+                +ErrorCode : {_terminalUserData.ErrorCode:X4}{Environment.NewLine}");
+
+                return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  Enroll User face from device: {device.Code} failed. Error code = {_terminalUserData.ErrorCode}{Environment.NewLine}", Validate = 0 };
             }
-
-            Logger.Log($@"-->Terminal:{device.Code} Face Template enrollment failed.
-                +ErrorCode : {_virdiServer.UcsApi.ErrorCode:X4}{Environment.NewLine}");
-
-            return new ResultViewModel { Code = Convert.ToInt64(TaskStatuses.FailedCode), Id = DeviceId, Message = $"  Enroll User face from device: {device.Code} failed. Error code = {_virdiServer.UcsApi.ErrorCode}{Environment.NewLine}", Validate = 0 };
         }
 
         public void Rollback()

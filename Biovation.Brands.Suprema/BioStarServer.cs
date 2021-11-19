@@ -272,7 +272,10 @@ namespace Biovation.Brands.Suprema
                 Port = _mPort,
                 DeviceTypeId = deviceType,
                 Name = string.IsNullOrWhiteSpace(name) ? $"{deviceId} ({ipAddress})" : name,
-                ConnectionType = "Normal"
+                ConnectionType = "Normal",
+                Active = true,
+                RegisterDate = DateTime.Now,
+                SSL = connectionType != 0
             };
 
 
@@ -745,7 +748,7 @@ namespace Biovation.Brands.Suprema
                     receivedLog.DeviceCode = device.Code;
                     receivedLog.EventLog = _supremaCodeMappings.GetLogEventGenericLookup(logRecord.Event) ??
                                            new Lookup { Code = logRecord.Event.ToString() };
-                    receivedLog.DateTimeTicks = (uint)logRecord.eventTime;
+                    receivedLog.DateTimeTicks = (ulong)logRecord.eventTime;
                     receivedLog.InOutMode = device.DeviceTypeId;
                     receivedLog.Reserved = logRecord.reserved1;
                     receivedLog.TnaEvent = logRecord.tnaKey;
@@ -981,7 +984,7 @@ namespace Biovation.Brands.Suprema
                     DeviceId = device.DeviceId,
                     DeviceCode = device.Code,
                     EventLog = _supremaCodeMappings.GetLogEventGenericLookup(logRecord.Event) ?? new Lookup { Code = logRecord.Event.ToString() },
-                    DateTimeTicks = (uint)logRecord.eventTime,
+                    DateTimeTicks = (ulong)logRecord.eventTime,
                     InOutMode = device.DeviceTypeId,
                     Reserved = logRecord.reserved,
                     TnaEvent = logRecord.tnaEvent,
@@ -1139,8 +1142,8 @@ namespace Biovation.Brands.Suprema
 
         public int ImageLogProc(int handle, uint deviceId, int deviceType, int connectionType, IntPtr data, int dataLen)
         {
-            //return ImageLogProcMethod(handle, deviceId, deviceType, connectionType, data, dataLen);
-            return BSSDK.BS_SUCCESS;
+            return ImageLogProcMethod(handle, deviceId, deviceType, connectionType, data, dataLen);
+            //return BSSDK.BS_SUCCESS;
         }
 
         public int ImageLogProcMethod(int handle, uint deviceId, int deviceType, int connectionType, IntPtr data, int dataLen)
@@ -1187,7 +1190,7 @@ namespace Biovation.Brands.Suprema
 
                     var faceLog = new Log
                     {
-                        DateTimeTicks = (uint)imageLogHdr.eventTime,
+                        DateTimeTicks = (ulong)imageLogHdr.eventTime,
                         //EventLog =SupremaLogService Convert.ToInt32(imageLogHdr.Event),
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(imageLogHdr.Event),
                         DeviceId = (int)deviceId,

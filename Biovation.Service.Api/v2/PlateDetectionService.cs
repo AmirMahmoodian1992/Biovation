@@ -14,19 +14,38 @@ namespace Biovation.Service.Api.v2
             _plateDetectionRepository = plateDetectionRepository;
         }
 
-        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId)
+        public async Task<ResultViewModel<LicensePlate>> GetLicensePlate(string licensePlate, int entityId, string token = default)
         {
-            return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId);
+            return await _plateDetectionRepository.GetLicensePlate(licensePlate, entityId, token);
         }
 
-        public async Task<ResultViewModel<PagingResult<PlateDetectionLog>>> GetPlateDetectionLog(int logId = default,
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetAllPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
             string licensePlate = default, int detectorId = default, DateTime fromDate = default,
             DateTime toDate = default,
             int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
             int pageNumber = default,
             int pageSize = default, string token = default)
         {
-            return await _plateDetectionRepository.GetPlateDetectionLog(logId, licensePlate, detectorId, fromDate, toDate,
+            return await _plateDetectionRepository.GetAllPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+        }
+
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetCameraPlateDetectionLog(string firstLicensePlatePart = default, string secondLicensePlatePart = default, string thirdLicensePlatePart = default, string fourthLicensePlatePart = default, int logId = default,
+            string licensePlate = default, int detectorId = default, DateTime fromDate = default,
+            DateTime toDate = default,
+            int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false,
+            int pageNumber = default,
+            int pageSize = default, string token = default)
+        {
+            return await _plateDetectionRepository.GetCameraPlateDetectionLog(firstLicensePlatePart, secondLicensePlatePart, thirdLicensePlatePart, fourthLicensePlatePart, logId, licensePlate, detectorId, fromDate, toDate,
+                minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
+        }
+
+        public async Task<ResultViewModel<PagingResult<ManualPlateDetectionLog>>> GetManualPlateDetectionLog(int logId = default, long userId = default, long parentLogId = default, string licensePlate = default, int detectorId = default, DateTime fromDate = default, DateTime toDate = default,
+            int minPrecision = 0, int maxPrecision = 0, bool withPic = true, bool successTransfer = false, int pageNumber = default,
+            int pageSize = default, string token = default)
+        {
+            return await _plateDetectionRepository.GetManualPlateDetectionLog(logId, userId, parentLogId, licensePlate, detectorId, fromDate, toDate,
                 minPrecision, maxPrecision, withPic, successTransfer, pageNumber, pageSize, token);
         }
 
@@ -38,6 +57,21 @@ namespace Biovation.Service.Api.v2
         public async Task<ResultViewModel> AddPlateDetectionLog(PlateDetectionLog log, string token = default)
         {
             return await _plateDetectionRepository.AddPlateDetectionLog(log, token);
+        }
+
+        public async Task<ResultViewModel> AddManualPlateDetectionLog(PlateDetectionLog log, string token = default)
+        {
+            return await _plateDetectionRepository.AddManualPlateDetectionLog(log, token);
+        }
+
+        public async Task<ResultViewModel> AddManualPlateDetectionLogOfExistLog(ManualPlateDetectionLog log, string token = default)
+        {
+            return await _plateDetectionRepository.AddManualPlateDetectionLogOfExistLog(log, token);
+        }
+
+        public async Task<ResultViewModel<PlateDetectionLog>> SelectPreviousPlateDetectionLog(int id = default, string licensePlateNumber = default, DateTime? logDateTime = null, string token = default)
+        {
+            return await _plateDetectionRepository.SelectPreviousPlateDetectionLog(id, licensePlateNumber, logDateTime);
         }
     }
 }

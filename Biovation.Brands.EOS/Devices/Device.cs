@@ -18,6 +18,7 @@ namespace Biovation.Brands.EOS.Devices
 
         //protected Clock _clock;
         protected readonly DeviceBasicInfo DeviceInfo;
+        protected CancellationToken ServiceCancellationToken;
         //public Semaphore DeviceAccessSemaphore;
         protected bool Valid;
 
@@ -40,7 +41,7 @@ namespace Biovation.Brands.EOS.Devices
             EosCodeMappings = eosCodeMappings;
             TotalLogCount = 0;
         }
-        public virtual bool Connect()
+        public virtual bool Connect(CancellationToken cancellationToken)
         {
             /*   var isConnect = IsConnected();
                if (!isConnect) return false;
@@ -53,7 +54,7 @@ namespace Biovation.Brands.EOS.Devices
                catch (Exception exception)
                {
                    Logger.Log(exception);
-                   Thread.Sleep(500);
+                   Task.Delay(TimeSpan.FromMilliseconds(500), ServiceCancellationToken).Wait(ServiceCancellationToken);
                    try
                    {
                        if (_deviceInfo.TimeSync)
@@ -131,6 +132,11 @@ namespace Biovation.Brands.EOS.Devices
         }
 
         public virtual ResultViewModel ReadOfflineLogInPeriod(object cancellationToken, DateTime? startTime, DateTime? endTime, bool saveFile = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual Dictionary<string, string> GetAdditionalData(int code)
         {
             throw new NotImplementedException();
         }

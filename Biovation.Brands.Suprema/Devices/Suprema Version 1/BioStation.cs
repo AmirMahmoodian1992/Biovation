@@ -6,6 +6,7 @@ using Biovation.Domain;
 using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -71,16 +72,17 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             if (userData == null) return false;
 
 
-            var userHdr = new BSSDK.BSUserHdrEx();
+            var userHdr = new BSSDK.BSUserHdrEx
+            {
+                checksum = new ushort[5],
+                name = new byte[33],
+                department = new byte[33],
+                password = new byte[17],
 
-            userHdr.checksum = new ushort[5];
-            userHdr.name = new byte[33];
-            userHdr.department = new byte[33];
-            userHdr.password = new byte[17];
-
-            userHdr.authLimitCount = 0;
-            userHdr.timedAntiPassback = 0;
-            userHdr.disabled = 0;
+                authLimitCount = 0,
+                timedAntiPassback = 0,
+                disabled = 0
+            };
 
             // name 
 
@@ -94,10 +96,21 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             // pwd
             if (!(userData.Password is null))
             {
-                var pwd = userData.Password;
-                userHdr.password = new byte[17];
-                var tmppw = Encoding.ASCII.GetBytes(pwd);
-                Buffer.BlockCopy(tmppw, 0, userHdr.password, 0, tmppw.Length);
+                if (userData.PasswordBytes is null)
+                {
+                    // pwd
+                    var pwd = userData.Password;
+                    //                var encoding = new ASCIIEncoding();
+                    var pwdOut = new byte[32];
+                    //                byte[] pwdBytes = encoding.GetBytes(pwd);
+                    var pwdBytes = Encoding.ASCII.GetBytes(pwd);
+                    BSSDK.BS_EncryptSHA256(pwdBytes, pwdBytes.Length, pwdOut);
+                    Buffer.BlockCopy(pwdOut, 0, userHdr.password, 0, pwdOut.Length);
+                }
+                else
+                {
+                    Buffer.BlockCopy(userData.PasswordBytes, 0, userHdr.password, 0, userData.PasswordBytes.Length);
+                }
             }
 
 
@@ -757,9 +770,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var receivedLog = new SupremaLog();
 
-                    if (record.eventType == 40)
-                        record.userID = 0;
-                    receivedLog.DateTimeTicks = (uint)record.eventTime;
+
+                    receivedLog.DateTimeTicks = (ulong)record.eventTime;
                     receivedLog.DeviceId = DeviceInfo.DeviceId;
                     receivedLog.DeviceCode = DeviceInfo.Code;
                     receivedLog.InOutMode = DeviceInfo.DeviceTypeId;
@@ -775,11 +787,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     };
                     receivedLog.MatchingType = _supremaCodeMappings.GetMatchingTypeGenericLookup(record.subEvent);
                     receivedLog.UserId = (int)record.userID;
-                    if (receivedLog.EventLog.Code == "16001" || receivedLog.EventLog.Code == "16002" || receivedLog.EventLog.Code == "16007")
-                    {
-                        receivedLog.UserId = 0;
-                    }
-                    //receivedLog.MatchingType = _matchingTypes.Unknown;
+                    if (record.eventType == 40 || receivedLog.EventLog.Code == LogEvents.ConnectCode || receivedLog.EventLog.Code == LogEvents.DisconnectCode || receivedLog.EventLog.Code == LogEvents.DeviceEnabledCode)
+                        record.userID = 0;
+
+                    receivedLog.UserId = receivedLog.EventLog.Code == LogEvents.UnAuthorizedCode ? -1 : receivedLog.UserId;
+
                     switch (record.subEvent)
                     {
                         case 0x3A:
@@ -871,7 +883,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
         /// <En>Read all log data from device, since last disconnect, For FaceStation , D-Station, X-Station.</En>
         /// <Fa>داده های اتفاقات در طول مدت زمان مشخصی دستگاه از سرور را، از دستگاه دریافت می کند.</Fa>
         /// </summary>
-        public override List<object> ReadLogOfPeriod(int startTime, int endTime)
+        public override ResultViewModel<List<Log>> ReadLogOfPeriod(int startTime, int endTime)
         {
             var objectLock = new object();
             lock (objectLock)
@@ -885,7 +897,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                     if (Token.IsCancellationRequested)
                     {
                         Logger.Log("Thread canceled.");
-                        return new List<object>();
+                        return new ResultViewModel<List<Log>> { Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = "Thread canceled" };
                     }
 
                     DeviceAccessSemaphore.WaitOne();
@@ -909,7 +921,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
 
                 if (mNumOfLog == 0)
-                    return new List<object>();
+                    return new ResultViewModel<List<Log>> { Success = false, Code = Convert.ToInt64(TaskStatuses.FailedCode), Message = $"Can't get logs of device {DeviceInfo.DeviceId}" };
 
                 Logger.Log($"Getting {mNumOfLog} logs of device {DeviceInfo.Code} started.");
 
@@ -1015,7 +1027,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                     var receivedLog = new SupremaLog
                     {
-                        DateTimeTicks = (uint)record.eventTime,
+                        DateTimeTicks = (ulong)record.eventTime,
                         DeviceId = DeviceInfo.DeviceId,
                         InOutMode = DeviceInfo.DeviceTypeId,
                         EventLog = _supremaCodeMappings.GetLogEventGenericLookup(record.eventType) ?? new Lookup
@@ -1032,8 +1044,11 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         UserId = (int)record.userID
                     };
 
-                    if (record.eventType == 40)
+                    if (record.eventType == 40 || receivedLog.EventLog.Code == LogEvents.ConnectCode || receivedLog.EventLog.Code == LogEvents.DisconnectCode || receivedLog.EventLog.Code == LogEvents.DeviceEnabledCode)
                         record.userID = 0;
+
+                    receivedLog.UserId = receivedLog.EventLog.Code == LogEvents.UnAuthorizedCode ? -1 : receivedLog.UserId;
+
 
                     allLogList.Add(receivedLog);
                     //logService.InsertLog(recivedLog, ConnectionType);
@@ -1045,8 +1060,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 Marshal.FreeHGlobal(logRecord);
 
-                var logListOfObject = new List<object>(allLogList);
-                return logListOfObject;
+                return new ResultViewModel<List<Log>> { Success = true, Code = Convert.ToInt64(TaskStatuses.DoneCode), Data = allLogList, Message = $"{logTotalCount} offline logs retrieved from device {DeviceInfo.DeviceId}" };
             }
         }
 
@@ -1199,15 +1213,19 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
                 var tempUser = new User
                 {
-                    Id = Convert.ToInt32(user.ID),
+                    Code = Convert.ToInt32(user.ID),
                     UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                     IsActive = !Convert.ToBoolean(user.disabled),
                     AdminLevel = user.adminLevel,
-                    AuthMode = user.authMode
+                    AuthMode = user.authMode,
+                    FingerTemplatesCount = user.numOfFinger,
+                    IdentityCardsCount = user.cardID != 0 ? 1 : 0,
+
                 };
 
-                tempUser.SetStartDateFromTicks(Convert.ToInt32(user.startDateTime));
-                tempUser.SetEndDateFromTicks(Convert.ToInt32(user.expireDateTime));
+
+                tempUser.SetStartDateFromTicks(user.startDateTime);
+                tempUser.SetEndDateFromTicks(user.expireDateTime);
 
                 usersList.Add(tempUser);
 
@@ -1281,7 +1299,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             Buffer.BlockCopy(userHdr.name, 0, nameAsBytes, 0, nameAsBytes.Length);
             var tempUser = new User
             {
-                Id = Convert.ToInt32(userHdr.ID),
+                Code = Convert.ToInt32(userHdr.ID),
                 UserName = Encoding.Unicode.GetString(nameAsBytes).Replace("\0", string.Empty),
                 IsActive = !Convert.ToBoolean(userHdr.disabled),
                 AdminLevel = userHdr.adminLevel
@@ -1289,8 +1307,9 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             if (!(userHdr.password is null))
             {
-                tempUser.PasswordBytes = userHdr.password.Select(Convert.ToByte).ToArray();
-                tempUser.Password = userHdr.password.ToString();
+                tempUser.PasswordBytes = new byte[userHdr.password.Length * 2];
+                Buffer.BlockCopy(userHdr.password, 0, tempUser.PasswordBytes, 0, tempUser.PasswordBytes.Length);
+                tempUser.Password = Encoding.ASCII.GetString(tempUser.PasswordBytes);
             }
 
             tempUser.FingerTemplates = new List<FingerTemplate>();
@@ -1298,9 +1317,9 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
             //card
             tempUser.IdentityCard = new IdentityCard
             {
-                Id = (int)userHdr.ID,
+                //Id = (int)userHdr.ID,
                 Number = userHdr.cardID.ToString(),
-                DataCheck = 0,
+                DataCheck = 1,
                 IsActive = userHdr.cardID != 0
             };
 
@@ -1317,6 +1336,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             if (numOfFinger > 0)
             {
+                tempUser.FingerTemplates = new List<FingerTemplate>();
                 for (var i = 0; i < numOfFinger; i++)
                 {
                     //user.FingerTemplates.Add(new FingerTemplate
@@ -1346,8 +1366,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                         CreateAt = DateTime.Now,
                         TemplateIndex = 0
                     };
-                    tempUser.FingerTemplates.Add(fingerTemplate);
 
+                    tempUser.FingerTemplates.Add(fingerTemplate);
 
                     var secondTemplateBytes = templateData.Skip(384 * (2 * i + 1)).Take(384).ToArray();
 
@@ -1369,8 +1389,8 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
                 }
             }
 
-            tempUser.SetStartDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.startDateTime)).Ticks);
-            tempUser.SetEndDateFromTicks((int)(new DateTime(1970, 1, 1).AddSeconds(userHdr.expireDateTime)).Ticks);
+            tempUser.SetStartDateFromTicks(userHdr.startDateTime);
+            tempUser.SetEndDateFromTicks(userHdr.expireDateTime);
 
             return tempUser;
         }
@@ -1419,7 +1439,7 @@ namespace Biovation.Brands.Suprema.Devices.Suprema_Version_1
 
             var deleteLog = new SupremaLog
             {
-                DateTimeTicks = (uint)(DateTime.Now.Ticks / 100000),
+                LogDateTime = DateTime.Now,
                 DeviceId = DeviceInfo.DeviceId,
                 DeviceCode = DeviceInfo.Code,
                 EventLog = _logEvents.RemoveUserFromDevice,

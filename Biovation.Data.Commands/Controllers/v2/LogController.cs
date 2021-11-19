@@ -23,18 +23,20 @@ namespace Biovation.Data.Commands.Controllers.v2
     public class LogController : ControllerBase
     {
         private readonly LogApiSink _logApiSink;
+        private readonly RelayApiSink _relayApiSink;
         private readonly LogRepository _logRepository;
         private readonly DeviceRepository _deviceRepository;
         private readonly LogMessageBusRepository _logMessageBusRepository;
         private readonly BiovationConfigurationManager _biovationConfigurationManager;
 
-        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository, LogApiSink logApiSink, DeviceRepository deviceRepository, BiovationConfigurationManager biovationConfigurationManager)
+        public LogController(LogRepository logRepository, LogMessageBusRepository logMessageBusRepository, LogApiSink logApiSink, DeviceRepository deviceRepository, BiovationConfigurationManager biovationConfigurationManager, RelayApiSink relayApiSink)
         {
             _logApiSink = logApiSink;
             _logRepository = logRepository;
             _deviceRepository = deviceRepository;
             _logMessageBusRepository = logMessageBusRepository;
             _biovationConfigurationManager = biovationConfigurationManager;
+            _relayApiSink = relayApiSink;
         }
 
         [HttpPost]
@@ -50,11 +52,14 @@ namespace Biovation.Data.Commands.Controllers.v2
             var logInsertionAwaiter = _logRepository.AddLog(log);
             //integration
             var broadcastMessageBusAwaiter = _logMessageBusRepository.SendLog(new List<Log> { log });
+            var broadcastToRelaysAwaiter = _relayApiSink.OpenRelays(log);
             var broadcastApiAwaiter = Task.CompletedTask;
             if (log.EventLog.Code == LogEvents.AuthorizedCode || log.EventLog.Code == LogEvents.UnAuthorizedCode)
                 broadcastApiAwaiter = _logApiSink.TransferLog(log);
 
-            await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastMessageBusAwaiter);
+            await Task.WhenAll(logInsertionAwaiter, broadcastApiAwaiter, broadcastMessageBusAwaiter, broadcastToRelaysAwaiter);
+            if (log.SuccessTransfer)
+                await _logRepository.UpdateLog(log);
             return await logInsertionAwaiter;
         }
 

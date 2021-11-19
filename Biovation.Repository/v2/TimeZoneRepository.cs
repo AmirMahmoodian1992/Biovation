@@ -2,8 +2,10 @@
 using DataAccessLayerCore.Extentions;
 using DataAccessLayerCore.Repositories;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -19,40 +21,14 @@ namespace Biovation.Repository.Sql.v2
 
         public ResultViewModel AddTimeZone(TimeZone timeZone)
         {
-
-
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", timeZone.Id),
-                new SqlParameter("@Name", timeZone.Name)
+                new SqlParameter("@Name", timeZone.Name),
+                new SqlParameter("@TimeZoneDetails", JsonConvert.SerializeObject(timeZone.Details))
             };
 
-            var result = _repository.ToResultList<ResultViewModel>("ModifyTimeZone", parameters).Data.FirstOrDefault();
-
-            if (result != null && result.Validate == 0)
-            {
-                return result;
-            }
-
-            foreach (var timeZoneDetail in timeZone.Details)
-            {
-                parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", timeZoneDetail.Id),
-                new SqlParameter("@DayNumber", timeZoneDetail.DayNumber),
-                new SqlParameter("@FromTime", timeZoneDetail.FromTime),
-                new SqlParameter("@ToTime", timeZoneDetail.ToTime)
-            };
-
-                result = _repository.ToResultList<ResultViewModel>("ModifyTimeZoneDetail", parameters).Data.FirstOrDefault();
-
-                if (result != null && result.Validate == 0)
-                {
-                    return result;
-                }
-            }
-
-            return result;
+            return _repository.ToResultList<ResultViewModel>("ModifyTimeZone", parameters).Data.FirstOrDefault();
         }
 
 
@@ -64,40 +40,14 @@ namespace Biovation.Repository.Sql.v2
         /// <returns></returns>
         public ResultViewModel ModifyTimeZone(TimeZone timeZone)
         {
-
-
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@Id", timeZone.Id),
-                new SqlParameter("@Name", timeZone.Name)
+                new SqlParameter("@Name", timeZone.Name),
+                new SqlParameter("@TimeZoneDetails", JsonConvert.SerializeObject(timeZone.Details))
             };
 
-            var result = _repository.ToResultList<ResultViewModel>("ModifyTimeZone", parameters).Data.FirstOrDefault();
-
-            if (result != null && result.Validate == 0)
-            {
-                return result;
-            }
-
-            foreach (var timeZoneDetail in timeZone.Details)
-            {
-                parameters = new List<SqlParameter>
-            {
-                new SqlParameter("@Id", timeZoneDetail.Id),
-                new SqlParameter("@DayNumber", timeZoneDetail.DayNumber),
-                new SqlParameter("@FromTime", timeZoneDetail.FromTime),
-                new SqlParameter("@ToTime", timeZoneDetail.ToTime)
-            };
-
-                result = _repository.ToResultList<ResultViewModel>("ModifyTimeZoneDetail", parameters).Data.FirstOrDefault();
-
-                if (result != null && result.Validate == 0)
-                {
-                    return result;
-                }
-            }
-
-            return result;
+            return _repository.ToResultList<ResultViewModel>("ModifyTimeZone", parameters).Data.FirstOrDefault();
         }
 
         /// <summary>
@@ -105,24 +55,18 @@ namespace Biovation.Repository.Sql.v2
         /// <Fa>اطلاعات یک یوزر را از دیتابیس دریافت میکند.</Fa>
         /// </summary>
         /// <returns></returns>
-        public ResultViewModel<PagingResult<TimeZone>> GetTimeZones()
+        public ResultViewModel<PagingResult<TimeZone>> GetTimeZones(int id = default, int accessGroupId = default, string name = default, int pageNumber = default, int pageSize = default)
         {
-            var result = _repository.ToResultList<TimeZone>("SelectTimeZones", fetchCompositions: true).FetchResultList();
-            return new ResultViewModel<PagingResult<TimeZone>>
+            var sqlParameters = new List<SqlParameter>
             {
-                Code = result.Code,
-                Message = result.Message,
-                Success = result.Success,
-                Id = result.Id,
-                Data = new PagingResult<TimeZone>
-                {
-                    From = 0,
-                    PageNumber = 1,
-                    PageSize = result.Data.Count,
-                    Count = result.Data.Count,
-                    Data = result.Data
-                }
+                new SqlParameter("@id", SqlDbType.Int) {Value = id },
+                new SqlParameter("@accessGroupId", SqlDbType.Int) {Value = accessGroupId },
+                new SqlParameter("@Name", SqlDbType.NVarChar) {Value = name},
+                new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
+                new SqlParameter("@PageSize", SqlDbType.Int) {Value = pageSize},
             };
+
+            return _repository.ToResultList<PagingResult<TimeZone>>("SelectTimeZones", sqlParameters, fetchCompositions: true, compositionDepthLevel: 4).FetchFromResultList();
         }
 
         /// <summary>

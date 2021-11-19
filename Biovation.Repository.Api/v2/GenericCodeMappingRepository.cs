@@ -1,10 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
+﻿using Biovation.Domain;
 using RestSharp;
+using System.Threading.Tasks;
 
 namespace Biovation.Repository.Api.v2
 {
@@ -17,7 +13,7 @@ namespace Biovation.Repository.Api.v2
             _restClient = restClient;
         }
 
-        public ResultViewModel<PagingResult<GenericCodeMapping>> GetGenericCodeMappings(int categoryId = default,
+        public async Task<ResultViewModel<PagingResult<GenericCodeMapping>>> GetGenericCodeMappings(int categoryId = default,
             string brandCode = default, int manufactureCode = default, int genericCode = default,
             int pageNumber = default, int pageSize = default)
         {
@@ -28,8 +24,8 @@ namespace Biovation.Repository.Api.v2
             restRequest.AddQueryParameter("genericCode", genericCode.ToString());
             restRequest.AddQueryParameter("pageNumber", pageNumber.ToString());
             restRequest.AddQueryParameter("PageSize", pageSize.ToString());
-            var requestResult = _restClient.ExecuteAsync<ResultViewModel<PagingResult<GenericCodeMapping>>>(restRequest);
-            return requestResult.Result.Data;
+            var requestResult = await _restClient.ExecuteAsync<ResultViewModel<PagingResult<GenericCodeMapping>>>(restRequest);
+            return requestResult.Data;
         }
     }
 }

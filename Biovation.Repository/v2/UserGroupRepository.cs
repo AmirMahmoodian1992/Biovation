@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Biovation.Domain;
+using DataAccessLayerCore.Extentions;
+using DataAccessLayerCore.Repositories;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Biovation.Domain;
-using DataAccessLayerCore.Extentions;
-using DataAccessLayerCore.Repositories;
-using Newtonsoft.Json;
 
 namespace Biovation.Repository.Sql.v2
 {
@@ -34,6 +34,7 @@ namespace Biovation.Repository.Sql.v2
                 return _repository.ToResultList<ResultViewModel>("ModifyUserGroup", parameters).Data.FirstOrDefault();
             });
         }
+
         public ResultViewModel AddUserGroupMember(UserGroupMember userMember)
         {
             var parameters = new List<SqlParameter>
@@ -45,22 +46,23 @@ namespace Biovation.Repository.Sql.v2
 
             return _repository.ToResultList<ResultViewModel>("InsertUserGroupMember", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId)
+
+        public ResultViewModel ModifyUserGroupMember(int userGroupId, List<UserGroupMember> members)
         {
-            
             var parameters = new List<SqlParameter> {
-                new SqlParameter("@UserGroupMember",JsonConvert.SerializeObject(member)),
+                new SqlParameter("@UserGroupMember",JsonConvert.SerializeObject(members)),
                 new SqlParameter("@UserGroupId",userGroupId)
             };
 
             return _repository.ToResultList<ResultViewModel>("ModifyUserGroupMember", parameters).Data.FirstOrDefault();
         }
+
         public ResultViewModel<PagingResult<UserGroup>> GetUserGroups(int id, long adminUserId, int accessGroupId, long userId, int pageNumber = default,
             int pageSize = default)
         {
             var parameters = new List<SqlParameter> {
                 new SqlParameter("@Id",id),
-                new SqlParameter("@adminUserId",adminUserId),              
+                new SqlParameter("@adminUserId",adminUserId),
                 new SqlParameter("@accessGroupId",accessGroupId ),
                 new SqlParameter("@UserId",userId),
                 new SqlParameter("@PageNumber", SqlDbType.Int) {Value = pageNumber},
@@ -89,8 +91,8 @@ namespace Biovation.Repository.Sql.v2
 
             return _repository.ToResultList<ResultViewModel>("DeleteUserGroup", parameters).Data.FirstOrDefault();
         }
-        public ResultViewModel SyncUserGroupMember(string lstUser,int id,int adminUserId, int deviceGroupId)
-        {        
+        public ResultViewModel SyncUserGroupMember(string lstUser, int id, int adminUserId, int deviceGroupId)
+        {
             var parameters = new List<SqlParameter>
             {
                 new SqlParameter("@UserId", lstUser),

@@ -20,6 +20,7 @@ namespace Biovation.Brands.Suprema.Devices
         private readonly FaceTemplateTypes _faceTemplateTypes;
         private readonly BiometricTemplateManager _biometricTemplateManager;
         private readonly LogService _logService;
+        private readonly AdminDeviceService _adminDeviceService;
 
         private readonly TimeZoneService _timeZoneService;
         private readonly SupremaCodeMappings _supremaCodeMappings;
@@ -29,7 +30,7 @@ namespace Biovation.Brands.Suprema.Devices
         private readonly LogEvents _logEvents;
         private readonly LogSubEvents _logSubEvents;
 
-        public DeviceFactory(DeviceService deviceService, AccessGroupService accessGroupService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager, LogService logService, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, DeviceBrands deviceBrands, MatchingTypes matchingTypes, LogEvents logEvents, LogSubEvents logSubEvents)
+        public DeviceFactory(DeviceService deviceService, AccessGroupService accessGroupService, UserCardService userCardService, FingerTemplateService fingerTemplateService, FingerTemplateTypes fingerTemplateTypes, FaceTemplateService faceTemplateService, FaceTemplateTypes faceTemplateTypes, BiometricTemplateManager biometricTemplateManager, LogService logService, TimeZoneService timeZoneService, SupremaCodeMappings supremaCodeMappings, DeviceBrands deviceBrands, MatchingTypes matchingTypes, LogEvents logEvents, LogSubEvents logSubEvents, AdminDeviceService adminDeviceService)
         {
             _deviceService = deviceService;
             _accessGroupService = accessGroupService;
@@ -46,6 +47,8 @@ namespace Biovation.Brands.Suprema.Devices
             _matchingTypes = matchingTypes;
             _logEvents = logEvents;
             _logSubEvents = logSubEvents;
+            _adminDeviceService = adminDeviceService;
+
         }
 
         /// <summary>
@@ -65,7 +68,7 @@ namespace Biovation.Brands.Suprema.Devices
                 case BSSDK.BS_DEVICE_FSTATION:
                     {
                         return new FaceStation(device, _deviceService, _userCardService
-                        , _accessGroupService, _faceTemplateService, _faceTemplateTypes, _matchingTypes, _logEvents, _logService, _timeZoneService, _supremaCodeMappings, _deviceBrands, _logSubEvents);
+                        , _accessGroupService, _faceTemplateService, _faceTemplateTypes, _matchingTypes, _logEvents, _logService, _timeZoneService, _supremaCodeMappings, _deviceBrands, _logSubEvents, _adminDeviceService);
                     }
 
                 case BSSDK.BS_DEVICE_BIOSTATION:

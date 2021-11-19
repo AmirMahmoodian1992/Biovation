@@ -3,8 +3,6 @@ using Biovation.CommonClasses;
 using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
-using Newtonsoft.Json;
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,66 +18,36 @@ namespace Biovation.Brands.EOS
 
         private readonly LogEvents _logEvents;
         private readonly LogService _logService;
-        private readonly RestClient _restClient;
         private readonly DeviceFactory _deviceFactory;
 
         public int Count = 0;
 
-        public EosServer(LogService logService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, RestClient restClient, LogEvents logEvents, DeviceFactory deviceFactory)
+        public EosServer(LogService logService, DeviceService deviceService, Dictionary<uint, Device> onlineDevices, LogEvents logEvents, DeviceFactory deviceFactory)
         {
             _logService = logService;
             _onlineDevices = onlineDevices;
-            _restClient = restClient;
             _logEvents = logEvents;
             _deviceFactory = deviceFactory;
             _eosDevices = deviceService.GetDevices(brandId: DeviceBrands.EosCode).Result?.Data?.Data?.Where(x => x.Active).ToList() ?? new List<DeviceBasicInfo>();
         }
 
-        public async void ConnectToDevice(DeviceBasicInfo deviceInfo)
+        public async void ConnectToDevice(DeviceBasicInfo deviceInfo, CancellationToken cancellationToken)
         {
             await Task.Run(() =>
             {
-                ConnectionStatus connectionStatus;
-
                 lock (_onlineDevices)
                 {
                     if (_onlineDevices.ContainsKey(deviceInfo.Code))
                     {
                         _onlineDevices[deviceInfo.Code].Disconnect();
                         _onlineDevices.Remove(deviceInfo.Code);
-
-                        connectionStatus = new ConnectionStatus
-                        {
-                            DeviceId = deviceInfo.DeviceId,
-                            IsConnected = false
-                        };
-
-
-                        try
-                        {
-                            var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                            restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                            _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                            _logService.AddLog(new Log
-                            {
-                                DeviceId = deviceInfo.DeviceId,
-                                LogDateTime = DateTime.Now,
-                                EventLog = _logEvents.Disconnect
-                            });
-                        }
-                        catch (Exception)
-                        {
-                            //ignore
-                        }
                     }
                 }
 
                 if (!deviceInfo.Active) return;
 
                 var device = _deviceFactory.Factory(deviceInfo);
-                var connectResult = device.Connect();
+                var connectResult = device.Connect(cancellationToken);
                 if (!connectResult) return;
 
                 lock (_onlineDevices)
@@ -89,32 +57,7 @@ namespace Biovation.Brands.EOS
                         _onlineDevices.Add(deviceInfo.Code, device);
                     }
                 }
-
-                connectionStatus = new ConnectionStatus
-                {
-                    DeviceId = deviceInfo.DeviceId,
-                    IsConnected = true
-                };
-
-                try
-                {
-                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                    _logService.AddLog(new Log
-                    {
-                        DeviceId = deviceInfo.DeviceId,
-                        LogDateTime = DateTime.Now,
-                        EventLog = _logEvents.Connect
-                    });
-                }
-                catch (Exception)
-                {
-                    //ignore
-                }
-            });
+            }, cancellationToken);
         }
 
         public async void DisconnectFromDevice(DeviceBasicInfo deviceInfo)
@@ -128,29 +71,17 @@ namespace Biovation.Brands.EOS
                 }
                 try
                 {
-                    var connectionStatus = new ConnectionStatus
-                    {
-                        DeviceId = deviceInfo.DeviceId,
-                        IsConnected = false
-                    };
-
-                    var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                    restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                    _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                    _logService.AddLog(new Log
+                    _ = _logService.AddLog(new Log
                     {
                         DeviceId = deviceInfo.DeviceId,
                         LogDateTime = DateTime.Now,
                         EventLog = _logEvents.Disconnect
-                    });
+                    }).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
                     //ignore
                 }
-                //});
             });
         }
 
@@ -160,24 +91,15 @@ namespace Biovation.Brands.EOS
             {
                 onlineDevice.Value.Disconnect();
             });
-
-            //foreach (var onlineDevice in _onlineDevices)
-            //{
-            //    onlineDevice.Value.Disconnect();
-            //}
         }
+
         public void StartServer(CancellationToken cancellationToken)
         {
             Logger.Log("EOS Server Started!");
-            foreach (var eosDevice in _eosDevices)
+            Parallel.ForEach(_eosDevices, eosDevice =>
             {
-                ConnectToDevice(eosDevice);
-            }
+                ConnectToDevice(eosDevice, cancellationToken);
+            });
         }
-
-        //public static Dictionary<uint, Device> GetOnlineDevices()
-        //{
-        //    return OnlineDevices;
-        //}
     }
 }

@@ -18,7 +18,7 @@ namespace Biovation.Brands.Suprema.Model
         /// <value></value>
         public ushort nIsLog { get; set; }
         public uint Reserved { get; set; }
-        public override uint DateTimeTicks
+        public override ulong DateTimeTicks
         {
             get => nDateTime;
             set

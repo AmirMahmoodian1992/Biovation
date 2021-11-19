@@ -27,12 +27,12 @@ namespace Biovation.Service.Api.v1
 
         public ResultViewModel SyncUserGroupMember(string lstUser = default, string token = default)
         {
-            return _userGroupRepository.SyncUserGroupMember(lstUser, token).Result ;
+            return _userGroupRepository.SyncUserGroupMember(lstUser, token).Result;
         }
 
-        public ResultViewModel AddUserGroup(UserGroupMember userGroupMember = default, string token = default)
+        public async Task<ResultViewModel> AddUserGroup(UserGroup userGroup = default, string token = default)
         {
-            return _userGroupRepository.AddUserGroup(userGroupMember, token).Result;
+            return await _userGroupRepository.AddUserGroup(userGroup, token);
         }
 
         public ResultViewModel ModifyUserGroup(UserGroup userGroup = default, string token = default)
@@ -44,9 +44,9 @@ namespace Biovation.Service.Api.v1
         {
             return await _userGroupRepository.DeleteUserGroup(groupId, token);
         }
-        public ResultViewModel ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
+        public async Task<ResultViewModel> ModifyUserGroupMember(List<UserGroupMember> member, int userGroupId, string token = default)
         {
-            return _userGroupRepository.ModifyUserGroupMember(member, userGroupId, token);
+            return await _userGroupRepository.ModifyUserGroupMember(userGroupId, member, token);
         }
     }
 }

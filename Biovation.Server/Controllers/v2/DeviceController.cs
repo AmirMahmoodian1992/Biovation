@@ -73,6 +73,34 @@ namespace Biovation.Server.Controllers.v2
         public async Task<ResultViewModel> ModifyDeviceInfo([FromBody] DeviceBasicInfo device)
         {
             var token = HttpContext.Items["Token"] as string;
+            try
+            {
+                device.IpAddress = device.IpAddress.Trim();
+                var validateIpAddress = IPv4.IsValidIPv4Address(device.IpAddress);
+                if (!validateIpAddress)
+                {
+                    return new ResultViewModel
+                    {
+                        Success = false,
+                        Code = 502,
+                        Id = device.Code,
+                        Message = @"آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                    };
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Code = 502,
+                    Id = device.Code,
+                    Message = "آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                };
+            }
+
             var result = await _deviceService.ModifyDevice(device, token);
             if (result.Validate != 1) return result;
 
@@ -92,8 +120,36 @@ namespace Biovation.Server.Controllers.v2
 
         [HttpPost]
         [Authorize]
-        public async Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device = default)
+        public async Task<ResultViewModel> AddDevice([FromBody] DeviceBasicInfo device)
         {
+            try
+            {
+                device.IpAddress = device.IpAddress.Trim();
+                var validateIpAddress = IPv4.IsValidIPv4Address(device.IpAddress);
+                if (!validateIpAddress)
+                {
+                    return new ResultViewModel
+                    {
+                        Success = false,
+                        Code = 502,
+                        Id = device.Code,
+                        Message = @"آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                    };
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(exception);
+
+                return new ResultViewModel
+                {
+                    Success = false,
+                    Code = 502,
+                    Id = device.Code,
+                    Message = "آدرس IP دستگاه به درستی وارد نشده است، لطفا مجددا تلاش کنید."
+                };
+            }
+
             return await _deviceService.AddDevice(device, HttpContext.Items["Token"] as string);
         }
 
@@ -342,20 +398,41 @@ namespace Biovation.Server.Controllers.v2
                var onlineDevices = new List<DeviceBasicInfo>();
                var deviceBrands = _systemInformation.Services;
 
-               Parallel.ForEach(deviceBrands, async deviceBrand =>
-               {
-                   var restRequest =
-                       new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+               // Parallel.ForEach(deviceBrands, deviceBrand =>
+               // {
 
-                   var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+               //     var restRequest =
+               //         new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+               //     if (HttpContext.Request.Headers["Authorization"].FirstOrDefault() != null)
+               //     {
+               //         restRequest.AddHeader("Authorization",
+               //             HttpContext.Request.Headers["Authorization"].FirstOrDefault());
+               //     }
 
-                   if (result.StatusCode != HttpStatusCode.OK) return;
-                   lock (onlineDevices)
-                       onlineDevices.AddRange(result.Data);
-               });
+               //    var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
 
-               var permissibleDevices = (await _deviceService.GetDevices(token: token))?.Data?.Data;
+               //    if (result.StatusCode != HttpStatusCode.OK) return;
+               //    lock (onlineDevices)
+               //        onlineDevices.AddRange(result.Data);
+               //});
 
+               var permissibleDevicesAwaiter = _deviceService.GetDevices(token: token);
+               //made synchronous because of the latency of the onlineDevices list getting full filled
+               Parallel.ForEach(deviceBrands, /*async*/ deviceBrand =>
+                {
+                    var restRequest =
+                        new RestRequest($"{deviceBrand.Name}/{deviceBrand.Name}Device/GetOnlineDevices");
+
+                    //var result = await _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest);
+                    var result = _restClient.ExecuteAsync<List<DeviceBasicInfo>>(restRequest).GetAwaiter().GetResult();
+
+                    if (result.StatusCode != HttpStatusCode.OK) return;
+                    lock (onlineDevices)
+                        onlineDevices.AddRange(result.Data);
+                });
+
+
+               var permissibleDevices = (await permissibleDevicesAwaiter)?.Data?.Data;
                if (permissibleDevices == null) return new List<DeviceBasicInfo>();
                permissibleDevices = onlineDevices.Where(item => permissibleDevices.Any(dev => dev.DeviceId.Equals(item.DeviceId))).ToList();
                return permissibleDevices;
@@ -419,11 +496,19 @@ namespace Biovation.Server.Controllers.v2
                                  {
                                      Type = u == null ? 0 : 1,
                                      IsActive = r.IsActive,
-                                     Id = r.Id,
+                                     Id = u?.Id ?? 0,
                                      Code = r.Code,
-                                     FullName = u != null ? u.FirstName + " " + u.SurName : r.UserName,
-                                     StartDate = u?.StartDate ?? new DateTime(1990, 1, 1),
-                                     EndDate = u?.EndDate ?? new DateTime(2050, 1, 1)
+                                     FullName = u != null && !string.IsNullOrWhiteSpace(u.FirstName) && !string.IsNullOrWhiteSpace(u.SurName) ? u.FirstName + " " + u.SurName : r.UserName,
+                                     FirstName = u is not null && !string.IsNullOrWhiteSpace(u.FirstName) ? u.FirstName : string.Empty,
+                                     SurName = u is not null && !string.IsNullOrWhiteSpace(u.SurName) ? u.SurName : string.Empty,
+                                     UserName = u is not null && !string.IsNullOrWhiteSpace(u.UserName) ? u.SurName : r.UserName,
+                                     StartDate = r.StartDate,
+                                     EndDate = r.EndDate,
+                                     AdminLevel = r.AdminLevel,
+                                     FaceTemplatesCount = r.FaceTemplatesCount,
+                                     FingerTemplatesCount = r.FingerTemplatesCount,
+                                     IdentityCardsCount = r.IdentityCardsCount,
+                                     IrisTemplatesCount = r.IrisTemplatesCount
                                  }).ToList();
 
             return usersOfDevice;

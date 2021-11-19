@@ -13,11 +13,11 @@ namespace Biovation.Service.Api.v1
             _genericCodeMappingRepository = genericCodeMappingRepository;
         }
 
-        public Task<ResultViewModel<PagingResult<GenericCodeMapping>>> GetGenericCodeMappings(int categoryId = default,
+        public async Task<ResultViewModel<PagingResult<GenericCodeMapping>>> GetGenericCodeMappings(int categoryId = default,
             string brandCode = default, int manufactureCode = default, int genericCode = default,
             int pageNumber = default, int pageSize = default)
         {
-            return Task.Run(() => _genericCodeMappingRepository.GetGenericCodeMappings(categoryId, brandCode, manufactureCode, genericCode, pageNumber, pageSize));
+            return await _genericCodeMappingRepository.GetGenericCodeMappings(categoryId, brandCode, manufactureCode, genericCode, pageNumber, pageSize);
         }
     }
 }

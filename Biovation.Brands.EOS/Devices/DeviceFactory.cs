@@ -90,23 +90,23 @@ namespace Biovation.Brands.EOS.Devices
                 case StPro:
                 case StProPlus:
                     {
-                        return new SupremaBaseDevice(device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _restClient, _onlineDevices, _taskService, _deviceBrands);
+                        return new SupremaBaseDevice(device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _onlineDevices, _taskService, _deviceBrands);
                     }
 
                 case StFace110:
                 case StFace710:
                     {
-                        return new HanvonBase(device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _restClient, _onlineDevices, _taskService, _deviceBrands);
+                        return new HanvonBase(device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _faceTemplateTypes, _onlineDevices, _taskService, _deviceBrands);
                     }
 
                 case StShineL:
                     {
-                        return new StShineDevice(ProtocolType.Suprema, device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _restClient, _onlineDevices, _logger, _taskService, _deviceBrands);
+                        return new StShineDevice(ProtocolType.Suprema, device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _onlineDevices, _logger, _taskService, _deviceBrands);
                     }
 
                 case StShineM:
                     {
-                        return new StShineDevice(ProtocolType.Zk, device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _restClient, _onlineDevices, _logger, _taskService, _deviceBrands);
+                        return new StShineDevice(ProtocolType.Zk, device, _logService, _logEvents, _logSubEvents, _eosCodeMappings, _biometricTemplateManager, _fingerTemplateTypes, _onlineDevices, _logger, _taskService, _deviceBrands);
                     }
 
                 case StFace120:

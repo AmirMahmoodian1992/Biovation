@@ -324,6 +324,22 @@ namespace Biovation.CommonClasses.Manager
             }
         }
 
+        public int PalizDevicesConnectionPort
+        {
+            get
+            {
+                try
+                {
+                    return Convert.ToInt32(ConfigurationManager.AppSettings["PalizDevicesConnectionPort"] ?? "1883");
+                }
+                catch (Exception exception)
+                {
+                    Logger.Log(exception);
+                    return default;
+                }
+            }
+        }
+
 
         public bool GetAllLogWhenConnect
         {
@@ -363,7 +379,7 @@ namespace Biovation.CommonClasses.Manager
             {
                 try
                 {
-                    return string.Equals(Configuration.GetSection("AppSettings")["ShowLiveImageInMonitoring"], bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
+                    return string.Equals(Configuration.GetSection("AppSettings")["ShowLiveImageInMonitoring"] ?? bool.TrueString, bool.TrueString, StringComparison.InvariantCultureIgnoreCase);
                 }
                 catch (Exception exception)
                 {

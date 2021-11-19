@@ -1,12 +1,12 @@
 ﻿using Biovation.CommonClasses;
 using Biovation.CommonClasses.Interface;
-using Biovation.Domain;
 using Biovation.Constants;
-using Biovation.Service;
+using Biovation.Domain;
+using Biovation.Service.Api.v1;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Biovation.Service.Api.v1;
+using UCSAPICOMLib;
 
 namespace Biovation.Brands.Virdi.Command
 {
@@ -17,10 +17,11 @@ namespace Biovation.Brands.Virdi.Command
         private int TaskItemId { get; }
         private Dictionary<uint, DeviceBasicInfo> OnlineDevices { get; }
 
-        private readonly VirdiServer _virdiServer;
+        private readonly UCSAPI _ucsApi;
 
-        public VirdiOpenDoor(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService)
+        public VirdiOpenDoor(IReadOnlyList<object> items, VirdiServer virdiServer, DeviceService deviceService, UCSAPI ucsApi)
         {
+            _ucsApi = ucsApi;
             DeviceId = Convert.ToInt32(items[0]);
             TaskItemId = Convert.ToInt32(items[1]);
             Code = deviceService.GetDevices(brandId: DeviceBrands.VirdiCode).FirstOrDefault(d => d.DeviceId == DeviceId)?.Code ?? 0;
@@ -35,21 +36,18 @@ namespace Biovation.Brands.Virdi.Command
                 Logger.Log($"Opendoor command,The device: {Code} is not connected.");
                 //return false;
                 return new ResultViewModel { Id = DeviceId, Message = $"The device: {Code} is not connected.", Validate = 0, Code = Convert.ToInt64(TaskStatuses.DeviceDisconnectedCode) };
-
             }
 
             try
             {
-                _virdiServer.UcsApi.OpenDoorToTerminal(TaskItemId, (int)Code);
+                _ucsApi.OpenDoorToTerminal(TaskItemId, (int)Code);
                 // return true;
                 return new ResultViewModel { Id = DeviceId, Message = $"Opendoor command,Error free", Validate = 1, Code = Convert.ToInt64(TaskStatuses.DoneCode) };
-
             }
             catch (Exception)
             {
                 //return false;
                 return new ResultViewModel { Id = DeviceId, Message = $"Opendoor command,Error ", Validate = 0, Code = Convert.ToInt64(TaskStatuses.FailedCode) };
-
             }
         }
 

@@ -4,14 +4,13 @@ using Biovation.Constants;
 using Biovation.Domain;
 using Biovation.Service.Api.v2;
 using EosClocks;
-using Newtonsoft.Json;
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Logger = Biovation.CommonClasses.Logger;
 using Timer = System.Timers.Timer;
 
@@ -21,7 +20,6 @@ namespace Biovation.Brands.EOS.Devices
     {
         private readonly StFace _stFace;
 
-        private readonly RestClient _restClient;
         private readonly LogService _logService;
         private readonly TaskService _taskService;
         private readonly DeviceBrands _deviceBrands;
@@ -39,11 +37,9 @@ namespace Biovation.Brands.EOS.Devices
         //private readonly DateTime _endDateTimeThreshold;
 
         internal HanvonBase(DeviceBasicInfo deviceInfo, LogService logService, LogEvents logEvents,
-            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes,
-            RestClient restClient, Dictionary<uint, Device> onlineDevices, TaskService taskService, DeviceBrands deviceBrands) : base(deviceInfo,
+            LogSubEvents logSubEvents, EosCodeMappings eosCodeMappings, FaceTemplateTypes faceTemplateTypes, Dictionary<uint, Device> onlineDevices, TaskService taskService, DeviceBrands deviceBrands) : base(deviceInfo,
             logEvents, logSubEvents, eosCodeMappings)
         {
-            _restClient = restClient;
             _logService = logService;
             _onlineDevices = onlineDevices;
             _taskService = taskService;
@@ -63,8 +59,10 @@ namespace Biovation.Brands.EOS.Devices
             Valid = true;
         }
 
-        public override bool Connect()
+        public override bool Connect(CancellationToken cancellationToken)
         {
+            ServiceCancellationToken = cancellationToken != CancellationToken.None && !ServiceCancellationToken.Equals(cancellationToken) ? cancellationToken : ServiceCancellationToken;
+            
             lock (_onlineDevices)
             {
                 if (_onlineDevices.ContainsKey(DeviceInfo.Code))
@@ -72,25 +70,14 @@ namespace Biovation.Brands.EOS.Devices
                     _onlineDevices[DeviceInfo.Code].Disconnect();
                     _onlineDevices.Remove(DeviceInfo.Code);
 
-                    var connectionStatus = new ConnectionStatus
-                    {
-                        DeviceId = DeviceInfo.DeviceId,
-                        IsConnected = false
-                    };
-
                     try
                     {
-                        var restRequest = new RestRequest("DeviceConnectionState/DeviceConnectionState", Method.POST);
-                        restRequest.AddQueryParameter("jsonInput", JsonConvert.SerializeObject(connectionStatus));
-
-                        _restClient.ExecuteAsync<ResultViewModel>(restRequest);
-
-                        _logService.AddLog(new Log
+                        _ = _logService.AddLog(new Log
                         {
                             DeviceId = DeviceInfo.DeviceId,
                             LogDateTime = DateTime.Now,
                             EventLog = LogEvents.Disconnect
-                        });
+                        }).ConfigureAwait(false);
                     }
                     catch (Exception)
                     {
@@ -162,7 +149,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     try
                     {
-                        ((TCPIPConnection)_stFace.Connection).IsProtected = false;
+                        ((TCPIPConnection) _stFace.Connection).IsProtected = false;
                         _stFace.Connect();
                         if (!string.IsNullOrWhiteSpace(DeviceInfo.DeviceLockPassword))
                         {
@@ -186,16 +173,16 @@ namespace Biovation.Brands.EOS.Devices
 
                 }
 
-                while (Valid)
+                while (Valid && !ServiceCancellationToken.IsCancellationRequested)
                 {
                     Logger.Log($"Could not connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}");
 
-                    Thread.Sleep(10000);
+                    Task.Delay(TimeSpan.FromSeconds(10), ServiceCancellationToken).Wait(ServiceCancellationToken);
                     Logger.Log($"Retrying connect to device {DeviceInfo.Code} --> IP: {DeviceInfo.IpAddress}");
                     lock (_stFace)
                         try
                         {
-                            ((TCPIPConnection)_stFace.Connection).IsProtected = false;
+                            ((TCPIPConnection) _stFace.Connection).IsProtected = false;
                             _stFace.Connect();
                             if (!string.IsNullOrWhiteSpace(DeviceInfo.DeviceLockPassword))
                             {
@@ -240,7 +227,7 @@ namespace Biovation.Brands.EOS.Devices
                 catch (Exception exception)
                 {
                     Logger.Log(exception);
-                    Thread.Sleep(++i * 200);
+                    Task.Delay(TimeSpan.FromMilliseconds(++i * 200), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 }
             }
 
@@ -285,7 +272,7 @@ namespace Biovation.Brands.EOS.Devices
                 {
                     user.IdentityCard = new IdentityCard
                     {
-                        Id = (int)terminalUserData.Id,
+                        Id = (int) terminalUserData.Id,
                         Number = terminalUserData.CardNumber,
                         DataCheck = 0,
                         IsActive = !string.Equals(terminalUserData.CardNumber, "0xffffffff",
@@ -351,6 +338,7 @@ namespace Biovation.Brands.EOS.Devices
 
 
             Valid = false;
+            Dispose();
             return true;
         }
 
@@ -365,12 +353,12 @@ namespace Biovation.Brands.EOS.Devices
                 bool deletion;
                 lock (_stFace)
                 {
-                    var user = _stFace.GetUserInfo((int)sUserId);
+                    var user = _stFace.GetUserInfo((int) sUserId);
                     if (user == null) return true;
                 }
 
                 lock (_stFace)
-                    deletion = _stFace.DeleteUser((int)sUserId);
+                    deletion = _stFace.DeleteUser((int) sUserId);
 
                 return deletion;
             }
@@ -539,7 +527,7 @@ namespace Biovation.Brands.EOS.Devices
                         {
                             user.IdentityCard = new IdentityCard
                             {
-                                Id = (int)retrievedUser.Id,
+                                Id = (int) retrievedUser.Id,
                                 Number = retrievedUser.CardNumber,
                                 DataCheck = 0,
                                 IsActive = !string.Equals(retrievedUser.CardNumber, "0xffffffff",
@@ -671,7 +659,7 @@ namespace Biovation.Brands.EOS.Devices
                 // _stFace?.Dispose();
                 //Disconnect();
                 if (!Valid)
-                    Connect();
+                    Connect(ServiceCancellationToken);
 
                 return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 1, Message = "0" };
             }
@@ -684,7 +672,7 @@ namespace Biovation.Brands.EOS.Devices
                        DeviceInfo.IpAddress);
 
             if (!Valid)
-                Connect();
+                Connect(ServiceCancellationToken);
 
             //EosServer.IsRunning[(uint)DeviceInfo.Code] = false;
             return new ResultViewModel { Id = DeviceInfo.DeviceId, Validate = 0, Message = "0" };
@@ -891,15 +879,69 @@ namespace Biovation.Brands.EOS.Devices
                 }
             }
 
-            _logService.AddLog(eosLogs);
+            _ = _logService.AddLog(eosLogs);
             return new ResultViewModel
-            { Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {DeviceInfo.Code}", Code = Convert.ToInt64(TaskStatuses.DoneCode) };
+                {Success = true, Message = $"{eosLogs.Count} Logs retrieved from device {DeviceInfo.Code}"};
+        }
+
+        public override Dictionary<string, string> GetAdditionalData(int code)
+        {
+            var dictionary = new Dictionary<string, string>();
+            lock (_stFace)
+            {
+                dictionary.Add("Serial", _stFace.GetSerial());
+                dictionary.Add("Model", _stFace.GetModel());
+                dictionary.Add("Capacity", _stFace.GetDeviceCapacity().ToString());
+                dictionary.Add("FirmwareVersion", _stFace.GetFirmwareVersion());
+                dictionary.Add("Datetime", _stFace.GetDateTime().ToString(CultureInfo.InvariantCulture));
+            }
+
+            List<StFaceUserInfo> usersOfDevice;
+            lock (_stFace)
+                usersOfDevice = _stFace.GetUserList();
+            dictionary.Add("UserCount", usersOfDevice.Count.ToString());
+            string text;
+            bool flag;
+            lock (_stFace)
+            {
+                var command =
+                    $"GetManagerID()";
+                flag = _stFace.SendCommandAndGetResult(command, out text);
+            }
+
+            if (flag)
+            {
+                dictionary.Add("Admins", GetBetween(text, "total=", " id="));
+            }
+
+            return dictionary;
+        }
+
+
+        private static string GetBetween(string strSource, string strStart, string strEnd)
+        {
+            try
+            {
+
+                if (strSource.Contains(strStart) && strSource.Contains(strEnd))
+                {
+                    var start = strSource.IndexOf(strStart, 0, StringComparison.Ordinal) + strStart.Length;
+                    var end = strSource.IndexOf(strEnd, start, StringComparison.Ordinal);
+                    if (start >= 0 && strSource.Length > start) return strSource.Substring(start, end - start);
+                }
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+
+            return "";
         }
 
         private void SetTimer(uint deviceCode)
         {
             _readOnlineLogTimer.Add(deviceCode, new Timer(10000));
-            _readOnlineLogTimer[deviceCode].Elapsed += (sender, e) =>
+            _readOnlineLogTimer[deviceCode].Elapsed += (sender, _) =>
             {
                 var timer = sender as Timer;
                 timer?.Stop();
@@ -909,14 +951,13 @@ namespace Biovation.Brands.EOS.Devices
             _readOnlineLogTimer[deviceCode].Enabled = true;
             _readOnlineLogTimer[deviceCode].AutoReset = true;
         }
-
-
         public void Dispose()
         {
             try
             {
                 _stFace?.Dispose();
                 _fixDaylightSavingTimer?.Dispose();
+                GC.SuppressFinalize(this);
             }
             catch (Exception exception)
             {

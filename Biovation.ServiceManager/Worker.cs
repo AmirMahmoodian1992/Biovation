@@ -27,6 +27,8 @@ namespace Biovation.ServiceManager
             while (!stoppingToken.IsCancellationRequested)
             {
                 var startBaseServices = true;
+                var services = ServiceController.GetServices();
+                
                 foreach (var service in _baseServices)
                 {
                     if (!startBaseServices)
@@ -36,10 +38,11 @@ namespace Biovation.ServiceManager
                     }
 
                     _logger.LogDebug("Checking status of {service} service at {time}", service, DateTimeOffset.Now);
-                    startBaseServices = CheckServiceStatus(service);
+                    var checkServiceExistence = services.Any(existsService => existsService.ServiceName.ToLower().Equals(service.ToLower()));
+
+                    startBaseServices = !checkServiceExistence || CheckServiceStatus(service);
                 }
 
-                var services = ServiceController.GetServices();
                 var biovationBrandsServices = services.Where(service => service.ServiceName.ToLower().Contains("biovation.brands"));
 
                 if (!startBaseServices)
@@ -85,7 +88,7 @@ namespace Biovation.ServiceManager
                 //}
 
                 service.Start();
-                service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(1));
+                service.WaitForStatus(ServiceControllerStatus.Running, TimeSpan.FromMinutes(2));
                 return true;
             }
             catch
