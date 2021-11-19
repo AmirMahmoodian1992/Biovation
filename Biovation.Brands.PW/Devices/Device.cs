@@ -19,7 +19,7 @@ namespace Biovation.Brands.PW.Devices
 {
     public class Device : IDevices, IDisposable
     {
-        internal CancellationToken CancellationToken;
+        internal CancellationToken ServiceCancellationToken;
         private bool _valid;
 
         private readonly xLinkClass _pwSdk = new xLinkClass();//create Standalone _PWSdk class dynamically
@@ -60,12 +60,6 @@ namespace Biovation.Brands.PW.Devices
             _logger = logger.ForContext<Device>();
         }
 
-        //public void UpdateDeviceInfo(DeviceBasicInfo deviceInfo)
-        //{
-        //    _valid = false;
-        //    _deviceInfo = deviceInfo;
-        //}
-
         public DeviceBasicInfo GetDeviceInfo()
         {
             return _deviceInfo;
@@ -73,7 +67,7 @@ namespace Biovation.Brands.PW.Devices
 
         public bool Connect(CancellationToken cancellationToken)
         {
-            CancellationToken = cancellationToken;
+            ServiceCancellationToken = cancellationToken != CancellationToken.None && !ServiceCancellationToken.Equals(cancellationToken) ? cancellationToken : ServiceCancellationToken;
             FillLinkParameters();
             var isConnect = IsConnected();
             if (isConnect)
@@ -84,8 +78,6 @@ namespace Biovation.Brands.PW.Devices
 
                 try
                 {
-                    //var daylightSaving = DateTime.Now.DayOfYear <= 81 || DateTime.Now.DayOfYear > 265 ? new DateTime(DateTime.Now.Year, 3, 22, 0, 2, 0) : new DateTime(DateTime.Now.Year, 9, 22, 0, 2, 0);
-                    //var dueTime = (daylightSaving.Ticks - DateTime.Now.Ticks) / 10000;
                     var dueTime = (DateTime.Today.AddDays(1).AddMinutes(1) - DateTime.Now).TotalMilliseconds;
                     _fixDaylightSavingTimer = new Timer(FixDaylightSavingTimer_Elapsed, null, (long)dueTime, (long)TimeSpan.FromHours(24).TotalMilliseconds);
                 }
@@ -96,81 +88,24 @@ namespace Biovation.Brands.PW.Devices
 
                 //Task.Run(() => { ReadOnlineLog(Token); }, Token);
                 ReadOnlineLog();
-
-                //if (_isGetLogEnable)
-                //{
-                //Task.Run(() => { ReadOfflineLog(Token); }, Token);
-                //PWServer.LogReaderQueue.Enqueue(new Task(() => ReadOfflineLog(Token), Token));
-                //PWServer.StartReadLogs();
-
-
-
-                //Task.Run(() =>
-                //{
-                //while (!Token.IsCancellationRequested && _valid &&
-                //       PWServer.GetOnlineDevices().ContainsKey(_deviceInfo.Code))
-                //{
-                //    var device =
-                //        _deviceService.GetDeviceBasicInfoWithCode(_deviceInfo.Code,
-                //            DeviceBrands.ProcessingWorldCode);
-                //    var creatorUser = _userService.GetUser(123456789, false);
-
-
-                //    var task = new TaskInfo
-                //    {
-                //        CreatedAt = DateTimeOffset.Now,
-                //        CreatedBy = creatorUser,
-                //        TaskType = TaskTypes.GetServeLogs,
-                //        Priority = TaskPriorities.Medium,
-                //        DeviceBrand = DeviceBrands.ProcessingWorld,
-                //        TaskItems = new List<TaskItem>()
-                //    };
-                //    task.TaskItems.Add(new TaskItem
-                //    {
-
-                //        Status = TaskStatuses.Queued,
-                //        TaskItemType = TaskItemTypes.GetServeLogs,
-                //        Priority = TaskPriorities.Medium,
-                //        DueDate = DateTime.Today,
-                //        DeviceId = device.DeviceId,
-                //        Data = JsonConvert.SerializeObject(new {device.DeviceId}),
-                //        IsParallelRestricted = true,
-                //        IsScheduled = false,
-                //        OrderIndex = 1
-                //    });
-                //    _taskService.InsertTask(task).Wait(Token);
-                //    PWServer.ProcessQueue();
-
-                //    Thread.Sleep(120);
-                //}
-                //}, Token);
-                //}
             }
 
-            //_taskManager.ProcessQueue(_deviceInfo.DeviceId);
             _taskService.ProcessQueue(_deviceBrands.ProcessingWorld, _deviceInfo.DeviceId).ConfigureAwait(false);
             return isConnect;
         }
 
         public bool Disconnect()
         {
-            _valid = false;
-            //try
-            //{
-            //    Token.Cancel(false);
-            //}
-            //catch (Exception)
-            //{
-            //    //ignore
-            //}
-            //var onlineDevices = PWServer.GetOnlineDevices();
-            //lock (onlineDevices)
-            //{
-            //    if (onlineDevices.ContainsKey(_deviceInfo.Code))
-            //    {
-            //        onlineDevices.Remove(_deviceInfo.Code);
-            //    }
-            //}
+            try
+            {
+                _valid = false;
+                Dispose();
+            }
+            catch (Exception exception)
+            {
+                _logger.Warning(exception, exception.Message);
+                return false;
+            }
 
             return true;
         }
@@ -196,12 +131,12 @@ namespace Biovation.Brands.PW.Devices
                 return true;
             }
 
-            while (!CancellationToken.IsCancellationRequested && _valid)
+            while (!ServiceCancellationToken.IsCancellationRequested && _valid)
             {
                 _logger.Debug($"Could not connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
                 _logger.Debug($"Error code: {connectResult} ");
 
-                Thread.Sleep(120000);
+                Task.Delay(TimeSpan.FromSeconds(120), ServiceCancellationToken).Wait(ServiceCancellationToken);
                 _logger.Debug($"Retrying connect to device {_deviceInfo.Code} --> IP: {_deviceInfo.IpAddress}");
                 short retryConnectResult;
                 lock (_pwSdk)
@@ -248,39 +183,6 @@ namespace Biovation.Brands.PW.Devices
         {
             return Task.Run(() =>
             {
-                //ushort recordsCount = 0;
-                //var bonesFn = "";
-                //var records = new NetTypes.IN_OUT_RECORD_TYPE[100000]; //for 10000 records.
-
-                //var gateNumber = _deviceInfo.Code;
-
-                //var filePath = @"";
-                //var textFile = "";
-                //short result;
-                //lock (_pwSdk)
-                //{
-                //    _linkParam.blkLen = 6000;
-                //    _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber,
-                //        textFile);
-                //}
-
-                //lock (_pwSdk)
-                //{
-                //    if (_offlineLogReadCount % 5 == 0 && _clearLogAfterRetrieving)
-                //        _linkParam.clearPW = true;
-
-                //    result = _pwSdk.getIOs(_linkParam, filePath, ref recordsCount, ref bonesFn, ref records, gateNumber, textFile);
-                //    _linkParam.clearPW = false;
-                //    if (recordsCount > 0 && _lastLogReadCount == recordsCount)
-                //        _offlineLogReadCount++;
-                //    else
-                //        _offlineLogReadCount = 1;
-
-                //    _lastLogReadCount = recordsCount;
-                //}
-
-                //DeletePhysicalFile(bonesFn);
-
                 ushort newRecordsCount = 0;
 
                 do
@@ -293,8 +195,7 @@ namespace Biovation.Brands.PW.Devices
                         var newFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + '\\';
                         var newTextFile = "";
                         long userId = 0;
-                        //Task.Run(() =>
-                        //{
+
                         short newResult;
                         lock (_pwSdk)
                         {
@@ -318,7 +219,7 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 if (_offlineLogReadCount % 5 == 1 && _clearLogAfterRetrieving)
                                     _lastLogReadCount = 0;
-                                Thread.Sleep(120000);
+                                Task.Delay(TimeSpan.FromSeconds(120), ServiceCancellationToken).Wait(ServiceCancellationToken);
                                 continue;
                             }
 
@@ -326,14 +227,12 @@ namespace Biovation.Brands.PW.Devices
                             {
                                 try
                                 {
-                                    //var len = records.Length;
                                     var logs = new List<Log>();
                                     for (var i = 0; i < newRecordsCount; i++)
                                     {
                                         try
                                         {
                                             userId = Convert.ToInt64(newRecords[i].cardNo);
-
 
                                             var log = new Log
                                             {
@@ -363,18 +262,19 @@ namespace Biovation.Brands.PW.Devices
 
                                     Task.Run(() =>
                                     {
-                                        foreach (var log in logs.TakeWhile(log => !CancellationToken.IsCancellationRequested))
+                                        var retrievedLogsCount = logs.Count;
+                                        foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                         {
                                             _logger.Debug($@"RTEvent OnAttTransaction Has been Triggered,Verified OK
                                                 ...UserID: {log.UserId}
                                                 ...DeviceCode: {log.DeviceCode}
                                                 ...MatchingType: {log.MatchingType}
                                                 ...VerifyMethod: {log.AuthType}
-                                                ...Time: {log.LogDateTime}");
+                                                ...Time: {log.LogDateTime}
+                                                ...Progress: {index}/{retrievedLogsCount}");
                                         }
-                                    }, CancellationToken);
+                                    }, ServiceCancellationToken);
 
-                                    //innerRecord = newRecordsCount;
                                     _lastLogReadCount = newRecordsCount;
                                 }
 
@@ -390,11 +290,11 @@ namespace Biovation.Brands.PW.Devices
                         _logger.Warning(exception, exception.Message);
                     }
 
-                    Thread.Sleep(120000);
-                } while (IsConnected() && _valid);
+                    Task.Delay(TimeSpan.FromSeconds(120), ServiceCancellationToken).Wait(ServiceCancellationToken);
+                } while (IsConnected() && _valid && !ServiceCancellationToken.IsCancellationRequested);
 
                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = "0" };
-            }, CancellationToken);
+            }, ServiceCancellationToken);
         }
 
         public ResultViewModel ReadOfflineLog(object cancellationToken, bool fileSave = false)
@@ -420,9 +320,6 @@ namespace Biovation.Brands.PW.Devices
                 }
 
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
-                //if (result != 0)
-                //    return new ResultViewModel
-                //    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
 
                 if (result == 0)
                 {
@@ -460,52 +357,21 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            //var logs = records.Take(recordsCount).Select(rec =>
-                            //{
-                            //    try
-                            //    {
-                            //        if (rec.xDate.y < 1990 || rec.xDate.y < 2050 || rec.xDate.m < 1 || rec.xDate.m > 12 || rec.xDate.d < 1 || rec.xDate.d > 31 || rec.hh < 1 || rec.hh > 24 || rec.mn < 1 || rec.mn > 60 || rec.ss < 1 || rec.ss > 60)
-                            //            return null;
-
-                            //        return new Log
-                            //        {
-                            //            DeviceId = _deviceInfo.DeviceId,
-                            //            DeviceCode = _deviceInfo.Code,
-                            //            LogDateTime = new DateTime(rec.xDate.y, rec.xDate.m, rec.xDate.d, rec.hh, rec.mn,
-                            //                rec.ss),
-                            //            UserId = Convert.ToInt32(rec.cardNo),
-                            //            MatchingType = rec.ioType,
-                            //            TnaEvent = 0,
-                            //            SubEvent = LogSubEvents.Normal
-                            //        };
-                            //    }
-                            //    catch (Exception)
-                            //    {
-                            //        //_logger.Debug(exception);
-                            //        return null;
-                            //    }
-                            //}).Where(log => log != null).ToList();
-
                             var count = recordsCount;
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{count}");
+                                    +Progress:{index}/{count}");
                                 }
-                            }, CancellationToken);
+                            }, ServiceCancellationToken);
 
-                            //Task.Run(() =>
-                            //{
-                            _logService.AddLog(logs).ConfigureAwait(false);
-                            //});
-
+                            _ = _logService.AddLog(logs).ConfigureAwait(false);
                         }
                         catch (Exception exception)
                         {
@@ -536,7 +402,6 @@ namespace Biovation.Brands.PW.Devices
                             var logs = new List<Log>();
                             var thousandIndex = 0;
                             var logInsertionTasks = new List<Task>();
-                            //var len = records.Length;
 
                             for (var i = recordsCount - 1; i >= 0; i--)
                             {
@@ -586,7 +451,6 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            //_logService.AddLog(logs).ConfigureAwait(false);
                             try
                             {
                                 var partedLogs = logs.Skip(thousandIndex * 1000).Take(1000).ToList();
@@ -599,20 +463,19 @@ namespace Biovation.Brands.PW.Devices
                                 return new ResultViewModel { Id = _deviceInfo.DeviceId, Validate = 0, Message = exception.Message, Code = Convert.ToInt32(TaskStatuses.FailedCode) };
                             }
 
-                            Task.WaitAll(logInsertionTasks.ToArray());
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{recordsCount}");
+                                    +Progress:{index}/{recordsCount}");
                                 }
-                            }, CancellationToken);
+                            }, ServiceCancellationToken);
+                            Task.WaitAll(logInsertionTasks.ToArray());
 
                         }
                         catch (Exception exception)
@@ -659,7 +522,6 @@ namespace Biovation.Brands.PW.Devices
                 var textFile = "";
                 short result;
 
-
                 lock (_pwSdk)
                 {
                     _linkParam.clearPW = false;
@@ -667,9 +529,6 @@ namespace Biovation.Brands.PW.Devices
                 }
 
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
-                //if (result != 0)
-                //    return new ResultViewModel
-                //    { Id = _deviceInfo.DeviceId, Validate = 1, Message = recordsCount.ToString() };
 
                 if (result == 0)
                 {
@@ -714,22 +573,16 @@ namespace Biovation.Brands.PW.Devices
 
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{count}");
+                                    +Progress:{index}/{count}");
                                 }
-                            }, CancellationToken);
-
-                            //Task.Run(() =>
-                            //{
-                            //});
-
+                            }, ServiceCancellationToken);
                         }
                         catch (Exception exception)
                         {
@@ -750,7 +603,6 @@ namespace Biovation.Brands.PW.Devices
                         ref records, gateNumber);
                 }
 
-                //var userId = 0;
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
                 if (result == 0)
                 {
@@ -793,7 +645,6 @@ namespace Biovation.Brands.PW.Devices
 
                             var count = recordsCount;
                             var logInsertionTasks = new List<Task>();
-                            //_logService.AddLog(logs).ConfigureAwait(false);
 
                             for (var i = 0; i < count / 1000; i++)
                             {
@@ -811,21 +662,19 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            Task.WaitAll(logInsertionTasks.ToArray());
-
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{recordsCount}");
+                                    +Progress:{index}/{count}");
                                 }
-                            }, CancellationToken);
+                            }, ServiceCancellationToken);
+                            Task.WaitAll(logInsertionTasks.ToArray());
 
                         }
                         catch (Exception exception)
@@ -860,7 +709,6 @@ namespace Biovation.Brands.PW.Devices
                         _deviceInfo.Code);
                 }
 
-                //var userId = 0;
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
                 if (result == 0)
                 {
@@ -903,7 +751,6 @@ namespace Biovation.Brands.PW.Devices
 
                             var count = recordsCount;
                             var logInsertionTasks = new List<Task>();
-                            //_logService.AddLog(logs).ConfigureAwait(false);
 
                             for (var i = 0; i < count / 1000; i++)
                             {
@@ -921,22 +768,19 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            Task.WaitAll(logInsertionTasks.ToArray());
-
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{recordsCount}");
+                                    +Progress:{index}/{count}");
                                 }
-                            }, CancellationToken);
-
+                            }, ServiceCancellationToken);
+                            Task.WaitAll(logInsertionTasks.ToArray());
                         }
                         catch (Exception exception)
                         {
@@ -970,7 +814,6 @@ namespace Biovation.Brands.PW.Devices
                         ref records, gateNumber, 0, false);
                 }
 
-                //var userId = 0;
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
                 if (result == 0)
                 {
@@ -1013,7 +856,6 @@ namespace Biovation.Brands.PW.Devices
 
                             var count = recordsCount;
                             var logInsertionTasks = new List<Task>();
-                            //_logService.AddLog(logs).ConfigureAwait(false);
 
                             for (var i = 0; i < count / 1000; i++)
                             {
@@ -1031,22 +873,19 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            Task.WaitAll(logInsertionTasks.ToArray());
-
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{recordsCount}");
+                                    +Progress:{index}/{count}");
                                 }
-                            }, CancellationToken);
-
+                            }, ServiceCancellationToken);
+                            Task.WaitAll(logInsertionTasks.ToArray());
                         }
                         catch (Exception exception)
                         {
@@ -1080,7 +919,6 @@ namespace Biovation.Brands.PW.Devices
                         ref records, gateNumber, 0, true);
                 }
 
-                //var userId = 0;
                 DeletePhysicalFile(Path.Combine(filePath, bonesFn));
                 if (result == 0)
                 {
@@ -1123,7 +961,6 @@ namespace Biovation.Brands.PW.Devices
 
                             var count = recordsCount;
                             var logInsertionTasks = new List<Task>();
-                            //_logService.AddLog(logs).ConfigureAwait(false);
 
                             for (var i = 0; i < count / 1000; i++)
                             {
@@ -1141,22 +978,19 @@ namespace Biovation.Brands.PW.Devices
                                 }
                             }
 
-                            Task.WaitAll(logInsertionTasks.ToArray());
-
                             Task.Run(() =>
                             {
-                                for (var i = 0; i < logs.Count;)
+                                foreach (var (log, index) in logs.TakeWhile(_ => !ServiceCancellationToken.IsCancellationRequested).Select((log, index) => (log, index)))
                                 {
-                                    var log = logs[i];
                                     _logger.Debug($@"<--
                                     +TerminalID:{_deviceInfo.Code}
                                     +UserID:{log.UserId}
                                     +DateTime:{log.LogDateTime}
                                     +AuthType:{log.MatchingType}
-                                    +Progress:{++i}/{recordsCount}");
+                                    +Progress:{index}/{count}");
                                 }
-                            }, CancellationToken);
-
+                            }, ServiceCancellationToken);
+                            Task.WaitAll(logInsertionTasks.ToArray());
                         }
                         catch (Exception exception)
                         {
@@ -1281,6 +1115,7 @@ namespace Biovation.Brands.PW.Devices
             try
             {
                 _fixDaylightSavingTimer?.Dispose();
+                GC.SuppressFinalize(this);
             }
             catch (Exception exception)
             {
